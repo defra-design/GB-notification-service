@@ -46,7 +46,7 @@
             }) }}
           </div>
         {% endif %}
-        <a{% if section.linkId %} id="{{ section.linkId }}"{% endif %} class="govuk-link app-govuk-body-link" href="/consignment-addresses/add/{{ section.addressType }}">
+        <a{% if section.linkId %} id="{{ section.linkId }}"{% endif %} class="govuk-link app-govuk-body-link" href="{{ section.href }}">
           {{ section.linkText }}
         </a>
       </section>

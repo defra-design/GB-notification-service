@@ -159,7 +159,7 @@ function hasCphDetails (sessionData) {
   return Boolean(sessionData.cphNumber && sessionData.cphNumber.trim())
 }
 
-function hasConsignmentAddresses (sessionData) {
+function hasAllConsignmentAddressFields (sessionData) {
   const requiredAddresses = [
     sessionData.placeOfOriginAddress,
     sessionData.consignorAddress,
@@ -169,6 +169,20 @@ function hasConsignmentAddresses (sessionData) {
   ]
 
   return requiredAddresses.every((value) => value && value.trim())
+}
+
+function hasConsignmentAddresses (sessionData) {
+  return hasAllConsignmentAddressFields(sessionData) && hasCphDetails(sessionData)
+}
+
+function getConsignmentAddressesViewModel (req) {
+  const sessionData = req.session.data
+
+  return {
+    backLink: getBackLink(req, '/notification-tasklist'),
+    reference: sessionData.notificationReference || 'GBN-AG-26-7K8M2P (Draft)',
+    addressSections: getConsignmentHubSections(sessionData)
+  }
 }
 
 function getContactAddressById (addressId) {
@@ -369,9 +383,34 @@ function getConsignmentAddressSections (sessionData) {
       hint: config.hint,
       linkText: getConsignmentAddressLinkText(config, hasAddress),
       linkId: addressType === 'place-of-origin' ? 'place-of-origin-link' : null,
+      href: `/consignment-addresses/add/${addressType}`,
       selectedAddressHtml: hasAddress ? formatMultilineValue(selectedAddress) : null
     }
   })
+}
+
+function getCphSection (sessionData) {
+  const cphNumber = (sessionData.cphNumber || '').trim()
+  const hasCph = Boolean(cphNumber)
+
+  return {
+    heading: 'County Parish Holding number (CPH)',
+    hint: 'The County Parish Holding (CPH) number identifies the holding where the animals will be kept.',
+    linkText: hasCph ? 'Change CPH number' : 'Add a CPH number',
+    linkId: 'cph-number-link',
+    href: '/county-parish-holding',
+    selectedAddressHtml: hasCph ? cphNumber : null
+  }
+}
+
+function getConsignmentHubSections (sessionData) {
+  const addressSections = getConsignmentAddressSections(sessionData)
+
+  if (commodityRequiresCph(sessionData)) {
+    return [...addressSections, getCphSection(sessionData)]
+  }
+
+  return addressSections
 }
 
 function getConsignmentAddressList (addressType) {
@@ -1190,14 +1229,6 @@ function getReviewNotificationViewModel (sessionData) {
     })
   }
 
-  if (commodityRequiresCph(sessionData)) {
-    additionalAnimalRows.push({
-      key: { text: 'CPH number' },
-      value: { text: sessionData.cphNumber || 'N/A' },
-      actions: { items: [{ href: '/county-parish-holding', text: 'Change', visuallyHiddenText: 'CPH number' }] }
-    })
-  }
-
   const commodityRows = [
     {
       key: { text: 'Commodity code' },
@@ -1309,7 +1340,8 @@ function getReviewNotificationViewModel (sessionData) {
         lists: [
           {
             title: 'Consignment addresses',
-            rows: [
+            rows: (() => {
+              const rows = [
               {
                 key: { text: 'Place of origin' },
                 value: { html: formatMultilineValue(sessionData.placeOfOriginAddress) },
@@ -1340,7 +1372,19 @@ function getReviewNotificationViewModel (sessionData) {
                 value: { html: formatMultilineValue(sessionData.placeOfDestinationAddress) },
                 actions: { items: [{ href: '/consignment-addresses/add/place-of-destination', text: 'Change', visuallyHiddenText: 'permanent address' }] }
               }
-            ]
+              ]
+
+              if (commodityRequiresCph(sessionData)) {
+                const placeOfDestinationIndex = rows.findIndex((row) => row.key.text === 'Place of destination')
+                rows.splice(placeOfDestinationIndex + 1, 0, {
+                  key: { text: 'CPH number' },
+                  value: { text: sessionData.cphNumber || 'N/A' },
+                  actions: { items: [{ href: '/county-parish-holding', text: 'Change', visuallyHiddenText: 'CPH number' }] }
+                })
+              }
+
+              return rows
+            })()
           },
           {
             title: 'Contact address for this consignment',
@@ -1994,20 +2038,8 @@ router.post('/additional-animal-details', (req, res) => {
 })
 
 router.get('/county-parish-holding', (req, res) => {
-  if (redirectIfNoCommodity(req, res)) {
+  if (redirectIfNoAddressSectionAccess(req, res)) {
     return
-  }
-
-  if (!req.session.data.animalsAdded || !req.session.data.animals || req.session.data.animals.length === 0) {
-    return res.redirect('/animal-identification-details')
-  }
-
-  if (!hasAdditionalAnimalDetailsComplete(req.session.data)) {
-    return res.redirect('/additional-animal-details')
-  }
-
-  if (!hasValidImportReason(req.session.data)) {
-    return res.redirect('/reason-for-import')
   }
 
   if (!commodityRequiresCph(req.session.data)) {
@@ -2015,25 +2047,13 @@ router.get('/county-parish-holding', (req, res) => {
   }
 
   return res.render('county-parish-holding', {
-    backLink: getBackLink(req, '/notification-tasklist')
+    backLink: '/consignment-addresses'
   })
 })
 
 router.post('/county-parish-holding', (req, res) => {
-  if (redirectIfNoCommodity(req, res)) {
+  if (redirectIfNoAddressSectionAccess(req, res)) {
     return
-  }
-
-  if (!req.session.data.animalsAdded || !req.session.data.animals || req.session.data.animals.length === 0) {
-    return res.redirect('/animal-identification-details')
-  }
-
-  if (!hasAdditionalAnimalDetailsComplete(req.session.data)) {
-    return res.redirect('/additional-animal-details')
-  }
-
-  if (!hasValidImportReason(req.session.data)) {
-    return res.redirect('/reason-for-import')
   }
 
   if (!commodityRequiresCph(req.session.data)) {
@@ -2227,11 +2247,7 @@ router.get('/consignment-addresses', (req, res) => {
     return
   }
 
-  return res.render('consignment-addresses', {
-    backLink: getBackLink(req, '/notification-tasklist'),
-    reference: req.session.data.notificationReference || 'GBN-AG-26-7K8M2P (Draft)',
-    addressSections: getConsignmentAddressSections(req.session.data)
-  })
+  return res.render('consignment-addresses', getConsignmentAddressesViewModel(req))
 })
 
 router.get('/arrival-details', (req, res) => {
@@ -2373,18 +2389,32 @@ router.post('/consignment-addresses', (req, res) => {
     return
   }
 
-  if (!hasConsignmentAddresses(req.session.data)) {
-    req.session.data.errorList = [
-      {
-        text: 'Add all consignment addresses before continuing',
-        href: '#place-of-origin-link'
-      }
-    ]
-    req.session.data.errors = {
-      consignmentAddresses: {
-        text: 'Add all consignment addresses before continuing'
-      }
+  const errorList = []
+  const errors = {}
+
+  if (commodityRequiresCph(req.session.data) && !hasCphDetails(req.session.data)) {
+    errorList.push({
+      text: 'Add the County Parish Holding number (CPH)',
+      href: '#cph-number-link'
+    })
+    errors.cphNumber = {
+      text: 'Add the County Parish Holding number (CPH)'
     }
+  }
+
+  if (!hasAllConsignmentAddressFields(req.session.data)) {
+    errorList.push({
+      text: 'Add all consignment addresses before continuing',
+      href: '#place-of-origin-link'
+    })
+    errors.consignmentAddresses = {
+      text: 'Add all consignment addresses before continuing'
+    }
+  }
+
+  if (errorList.length > 0) {
+    req.session.data.errorList = errorList
+    req.session.data.errors = errors
     return res.redirect('/consignment-addresses')
   }
 
