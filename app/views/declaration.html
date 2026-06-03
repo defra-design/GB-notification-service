@@ -1,0 +1,121 @@
+{% extends "layouts/main.html" %}
+
+{% set pageName = "Declaration" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: "/check-answers-and-submit"
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds app-declaration">
+
+    {% if data.errorList %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: data.errorList
+      }) }}
+    {% endif %}
+
+    <span class="govuk-caption-l">Create an import notification</span>
+    <h1 class="govuk-heading-l">Declaration</h1>
+
+    <form method="post" action="/declaration" novalidate>
+      <div class="app-declaration__statements">
+        <section class="app-declaration__statement">
+          <h2 class="app-declaration__heading">I am the contact for the authorities and located in the UK.</h2>
+          <p class="govuk-body">
+            I am complying with the requirements of Regulation (EU) 2017/625 including on animal health and welfare.
+          </p>
+        </section>
+
+        <section class="app-declaration__statement">
+          <h2 class="app-declaration__heading">I confirm I am responsible for this consignment.</h2>
+          <p class="govuk-body">
+            I am responsible from the submission of this notification to when it enters Great Britain. And I am responsible until it has either:
+          </p>
+          <ul class="govuk-list govuk-list--bullet">
+            <li>cleared official checks at the border</li>
+            <li>reached the Place of Destination as stated on the health certificate or notification</li>
+          </ul>
+        </section>
+
+        <section class="app-declaration__statement">
+          <h2 class="app-declaration__heading">I confirm that I am accountable for:</h2>
+          <ul class="govuk-list govuk-list--bullet">
+            <li>any payment for the official controls at the border</li>
+            <li>any arrangements to re-dispatch the consignment</li>
+            <li>any costs needed for quarantine or isolation of consignments</li>
+            <li>any costs needed for destruction and disposal of consignments, when instructed by the authorities</li>
+          </ul>
+        </section>
+
+        <p class="govuk-body">
+          I am authorised as being accountable for these things if raising notifications on behalf of a third party.
+        </p>
+
+        <p class="govuk-body">
+          I can legally act on behalf of a third party in relation to the conditions of this declaration.
+        </p>
+
+        <p class="govuk-body">
+          I confirm that I have reviewed and comply with this declaration and that the information submitted in this notification is true and correct.
+        </p>
+      </div>
+
+      <div class="govuk-form-group app-declaration__checkbox-group{% if data.errors and data.errors.declarationConfirmed %} govuk-form-group--error{% endif %}">
+        <fieldset class="govuk-fieldset" aria-describedby="{% if data.errors and data.errors.declarationConfirmed %}declaration-confirmed-error{% endif %}">
+          <legend class="govuk-fieldset__legend govuk-visually-hidden">
+            Declaration confirmation
+          </legend>
+
+          {% if data.errors and data.errors.declarationConfirmed %}
+            <p id="declaration-confirmed-error" class="govuk-error-message">
+              <span class="govuk-visually-hidden">Error:</span>
+              {{ data.errors.declarationConfirmed.text }}
+            </p>
+          {% endif %}
+
+          <div class="govuk-checkboxes govuk-checkboxes--small" data-module="govuk-checkboxes">
+            <div class="govuk-checkboxes__item">
+              <input
+                class="govuk-checkboxes__input"
+                id="declaration-confirmed"
+                name="declarationConfirmed"
+                type="checkbox"
+                value="yes"
+                {% if data.declarationConfirmed === "yes" %}checked{% endif %}
+              >
+              <label class="govuk-label govuk-checkboxes__label" for="declaration-confirmed">
+                I confirm that I have reviewed and comply with this declaration and that the information submitted in this notification is true and correct.
+              </label>
+            </div>
+          </div>
+        </fieldset>
+      </div>
+
+      <dl class="govuk-summary-list govuk-summary-list--no-border app-declaration__date">
+        <div class="govuk-summary-list__row">
+          <dt class="govuk-summary-list__key">Date of declaration</dt>
+          <dd class="govuk-summary-list__value">{{ data.declarationDate }}</dd>
+        </div>
+      </dl>
+
+      {{ govukButton({
+        text: "Continue"
+      }) }}
+    </form>
+
+  </div>
+</div>
+{% endblock %}

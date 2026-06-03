@@ -1,0 +1,71 @@
+{% extends "layouts/main.html" %}
+
+{% set pageName = "Animal identification details" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: "/select-commodity"
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds app-animal-identification__intro">
+
+    <span class="govuk-caption-l">Create an import notification</span>
+    <h1 class="govuk-heading-l">Animal identification details</h1>
+
+    {{ govukInsetText({
+      text: "Check the health certificate for this information. You must add all animal identification details before the consignment arrives at the port of entry."
+    }) }}
+
+  </div>
+</div>
+
+<form method="post" action="/animal-identification-details" novalidate>
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+
+      {% if data.errorList %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: data.errorList
+        }) }}
+      {% endif %}
+
+      <div class="app-species-panels" id="species-panels">
+        {% for panel in data.speciesEntries %}
+          {% include "partials/species-panel.html" %}
+        {% endfor %}
+      </div>
+
+      <p class="govuk-body app-animal-identification__change-species">
+        <a class="govuk-link app-govuk-body-link" href="/select-commodity?change=species">Add/change species</a>
+      </p>
+
+      {{ govukButton({
+        text: "Continue",
+        name: "action",
+        value: "continue",
+        classes: "app-animal-identification__continue"
+      }) }}
+
+    </div>
+  </div>
+</form>
+
+<div class="app-animal-identification-commodity-summary">
+  {% include "partials/commodity-details-summary.html" %}
+</div>
+<div class="app-animal-identification-import-summary">
+  {% include "partials/import-details-summary.html" %}
+</div>
+{% endblock %}

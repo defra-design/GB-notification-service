@@ -1,0 +1,114 @@
+{% extends "layouts/main.html" %}
+
+{% set pageName = "What are you importing?" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: "/origin-of-the-import"
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+
+    <span class="govuk-caption-l">Create an import notification</span>
+    <h1 class="govuk-heading-l">What are you importing?</h1>
+
+    {{ govukInsetText({
+      text: "Each health certificate requires a separate notification."
+    }) }}
+
+  </div>
+</div>
+
+<form method="post" action="/select-commodity" novalidate>
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+      {% if data.errorList %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: data.errorList
+        }) }}
+      {% endif %}
+
+      <div class="govuk-form-group{% if data.errors and data.errors.commoditySearch %} govuk-form-group--error{% endif %}">
+        <label class="govuk-label govuk-label--m" for="commodity-search">
+          Search for a common name, commodity code or species
+        </label>
+        {% if data.errors and data.errors.commoditySearch %}
+          <p id="commodity-search-error" class="govuk-error-message">
+            <span class="govuk-visually-hidden">Error:</span>
+            {{ data.errors.commoditySearch.text }}
+          </p>
+        {% endif %}
+        <div id="commodity-search-hint" class="govuk-hint">
+          For example, Cow, 0102, or Bos taurus
+        </div>
+        <div
+          class="app-commodity-search-wrapper"
+          data-module="app-commodity-search"
+        >
+          <div class="app-commodity-search-panel">
+            <div
+              class="app-commodity-search"
+              aria-expanded="false"
+              aria-controls="commodity-search-results"
+            >
+              <input
+                class="app-commodity-search__input"
+                id="commodity-search"
+                name="commoditySearch"
+                type="search"
+                autocomplete="off"
+                aria-controls="commodity-search-results"
+                aria-describedby="commodity-search-hint commodity-search-status{% if data.errors and data.errors.commoditySearch %} commodity-search-error{% endif %}"
+              >
+              <button class="app-commodity-search__button" type="button">
+                <span class="govuk-visually-hidden">Search</span>
+                <svg class="app-commodity-search__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 27 27" width="20" height="20" aria-hidden="true" focusable="false">
+                  <path d="M19.6 18.1c1.6-2 .7-4.9.7-7.6C20.3 5.1 16.2 1 11.1 1S1.8 5.1 1.8 10.5s4.1 9.5 9.3 9.5c2.7 0 5.1-1.1 6.9-2.9l6.9 6.9 2.1-2.1-6.8-6.9zM11.1 18.1c-4.2 0-7.6-3.4-7.6-7.6S6.9 2.9 11.1 2.9s7.6 3.4 7.6 7.6-3.4 7.6-7.6 7.6z"/>
+                </svg>
+              </button>
+            </div>
+            <ul
+              id="commodity-search-results"
+              class="app-commodity-search__results"
+              role="list"
+              aria-label="Commodity search results"
+              hidden
+            ></ul>
+          </div>
+          <script type="application/json" class="app-commodity-search__initial">{{ (commoditySelectionsJson or "[]") | safe }}</script>
+          <input type="hidden" name="commodityId" class="app-commodity-search__commodity-id">
+          <input type="hidden" name="commodityCode" class="app-commodity-search__commodity-code">
+          <input type="hidden" name="selectedSpecies" class="app-commodity-search__species-value">
+          <input type="hidden" name="commoditySelections" class="app-commodity-search__selections-value">
+          <div id="commodity-search-status" class="app-commodity-search__status govuk-visually-hidden" aria-live="polite"></div>
+        </div>
+      </div>
+
+      {{ govukDetails({
+        summaryText: "If you need help with finding an animal",
+        html: "<p class='govuk-body'>You can:</p><ul class='govuk-list govuk-list--bullet'><li>use the Species search to find an animal using its scientific (Latin) species name</li><li><a class='govuk-link' href='https://www.gov.uk/trade-tariff' rel='noreferrer noopener' target='_blank'>look up commodity codes for animals using the Trade Tariff tool<span class='govuk-visually-hidden'> (opens in new tab)</span></a></li></ul>"
+      }) }}
+
+      {{ govukButton({
+        text: "Continue"
+      }) }}
+
+    </div>
+  </div>
+</form>
+
+{% include "partials/import-details-summary.html" %}
+{% endblock %}

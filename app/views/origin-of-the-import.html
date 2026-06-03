@@ -1,0 +1,170 @@
+{% extends "layouts/main.html" %}
+
+{% set pageName = "Origin of the import" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: "/what-are-you-importing"
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds app-origin-page">
+
+    {% if data.errorList %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: data.errorList
+      }) }}
+    {% endif %}
+
+    <div class="app-origin-page__header">
+      <p class="app-origin-page__caption">Create an import notification</p>
+      <h1 class="app-origin-page__heading">Origin of the import</h1>
+    </div>
+
+    <form method="post" action="/origin-of-the-import" novalidate class="app-origin-form">
+
+      <div class="govuk-form-group{% if data.errors and data.errors.countryOfOrigin %} govuk-form-group--error{% endif %} app-origin-country">
+        <h2 class="app-eu-heading-m app-origin-country__label">Country of origin</h2>
+        {% if data.errors and data.errors.countryOfOrigin %}
+          <p id="country-of-origin-error" class="govuk-error-message">
+            <span class="govuk-visually-hidden">Error:</span>
+            {{ data.errors.countryOfOrigin.text }}
+          </p>
+        {% endif %}
+        <div
+          class="app-commodity-search-wrapper app-origin-country__search"
+          data-module="app-country-search"
+        >
+          <script type="application/json" class="app-country-search__data">{{ countriesJson | safe }}</script>
+          <script type="application/json" class="app-country-search__prefixes">{{ countryPrefixesJson | safe }}</script>
+          <div class="app-commodity-search-panel">
+            <div
+              class="app-commodity-search"
+              aria-expanded="false"
+              aria-controls="country-search-results"
+            >
+              <input
+                class="app-commodity-search__input"
+                id="country-of-origin"
+                type="search"
+                autocomplete="off"
+                placeholder="Select a country"
+                aria-controls="country-search-results"
+                {% if data.errors and data.errors.countryOfOrigin %}aria-describedby="country-of-origin-error"{% endif %}
+                value="{{ data.countryOfOrigin or '' }}"
+              >
+              <button class="app-commodity-search__button" type="button">
+                <span class="govuk-visually-hidden">Search</span>
+                <svg class="app-commodity-search__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 27 27" width="20" height="20" aria-hidden="true" focusable="false">
+                  <path d="M19.6 18.1c1.6-2 .7-4.9.7-7.6C20.3 5.1 16.2 1 11.1 1S1.8 5.1 1.8 10.5s4.1 9.5 9.3 9.5c2.7 0 5.1-1.1 6.9-2.9l6.9 6.9 2.1-2.1-6.8-6.9zM11.1 18.1c-4.2 0-7.6-3.4-7.6-7.6S6.9 2.9 11.1 2.9s7.6 3.4 7.6 7.6-3.4 7.6-7.6 7.6z"/>
+                </svg>
+              </button>
+            </div>
+            <ul
+              id="country-search-results"
+              class="app-commodity-search__results"
+              role="list"
+              aria-label="Country search results"
+              hidden
+            ></ul>
+          </div>
+          <input
+            type="hidden"
+            name="countryOfOrigin"
+            class="app-country-search__value"
+            value="{{ data.countryOfOrigin or '' }}"
+          >
+          <div class="app-country-search__status govuk-visually-hidden" aria-live="polite"></div>
+        </div>
+      </div>
+
+      {% set regionOfOriginCodeConditional %}
+        {% include "partials/region-of-origin-code-input.html" %}
+      {% endset %}
+
+      {% set regionOfOriginItems = [
+        {
+          value: "Yes",
+          text: "Yes",
+          checked: data.regionOfOriginRequired == "Yes",
+          conditional: {
+            html: regionOfOriginCodeConditional
+          }
+        },
+        {
+          value: "No",
+          text: "No",
+          checked: data.regionOfOriginRequired == "No"
+        }
+      ] %}
+
+      <div class="govuk-form-group{% if data.errors and data.errors.regionOfOriginRequired %} govuk-form-group--error{% endif %} app-origin-radios-block">
+        <fieldset
+          class="govuk-fieldset"
+          aria-describedby="region-of-origin-hint{% if data.errors and data.errors.regionOfOriginRequired %} region-of-origin-error{% endif %}"
+        >
+          <legend class="govuk-fieldset__legend govuk-fieldset__legend--m app-eu-heading-m">
+            Does the consignment require a region of origin code?
+          </legend>
+          <p id="region-of-origin-hint" class="govuk-hint app-origin-radios-block__hint">
+            If a region of origin code is required it will be shown on your health certificate.
+          </p>
+          {% if data.errors and data.errors.regionOfOriginRequired %}
+            {{ govukErrorMessage({
+              id: "region-of-origin-error",
+              text: data.errors.regionOfOriginRequired.text
+            }) }}
+          {% endif %}
+
+          {{ govukRadios({
+            idPrefix: "region-of-origin",
+            name: "regionOfOriginRequired",
+            formGroup: {
+              classes: "app-origin-radios-nested"
+            },
+            classes: "app-origin-radios",
+            items: regionOfOriginItems
+          }) }}
+        </fieldset>
+      </div>
+
+      <div class="app-origin-reference">
+        {{ govukInput({
+          label: {
+            text: "Your internal reference number for this consignment (optional)",
+            classes: "govuk-label--m app-eu-heading-m"
+          },
+          hint: {
+            text: "Enter any internal reference number you want to use to identify this consignment, or leave blank."
+          },
+          id: "internal-reference",
+          name: "internalReference",
+          value: internalReference or "",
+          classes: "app-origin-reference__input"
+        }) }}
+      </div>
+
+      {{ govukButton({
+        text: "Continue",
+        classes: "app-eu-button"
+      }) }}
+
+    </form>
+
+    {% set importSummaryEmbedded = true %}
+    {% include "partials/import-details-summary.html" %}
+
+  </div>
+</div>
+{% endblock %}

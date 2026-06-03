@@ -1,0 +1,67 @@
+{% extends "layouts/main.html" %}
+
+{% set pageName = "County Parish Holding number (CPH)" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: "/notification-tasklist"
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+
+    {% if data.errorList %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: data.errorList
+      }) }}
+    {% endif %}
+
+    <span class="govuk-caption-l">Create an import notification</span>
+    <h1 class="govuk-heading-l">Add the County Parish Holding number (CPH)</h1>
+
+    <p class="govuk-body app-cph-intro">
+      Your CPH number identifies UK land and buildings used to keep livestock for any purpose at their place of destination.
+    </p>
+
+    <form method="post" action="/county-parish-holding" novalidate>
+      <div class="govuk-form-group{% if data.errors and data.errors.cphNumber %} govuk-form-group--error{% endif %}">
+        <label class="govuk-label govuk-label--m" for="cph-number">
+          CPH number
+        </label>
+        {% if data.errors and data.errors.cphNumber %}
+          <p id="cph-number-error" class="govuk-error-message">
+            <span class="govuk-visually-hidden">Error:</span>
+            {{ data.errors.cphNumber.text }}
+          </p>
+        {% endif %}
+        <div class="app-cph-input-wrap">
+          <input
+            class="govuk-input app-cph-input"
+            id="cph-number"
+            name="cphNumber"
+            type="text"
+            value="{{ data.cphNumber or '' }}"
+            {% if data.errors and data.errors.cphNumber %}aria-describedby="cph-number-error"{% endif %}
+          >
+        </div>
+      </div>
+
+      {{ govukButton({
+        text: "Save and continue"
+      }) }}
+    </form>
+
+  </div>
+</div>
+{% endblock %}

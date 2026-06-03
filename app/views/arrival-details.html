@@ -1,0 +1,154 @@
+{% extends "layouts/main.html" %}
+
+{% set pageName = "Arrival details" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: "/notification-tasklist"
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds app-arrival-page">
+    {% if data.errorList %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: data.errorList
+      }) }}
+    {% endif %}
+
+    <span class="govuk-caption-l">Movement</span>
+    <h1 class="govuk-heading-l">Arrival details</h1>
+
+    <form method="post" action="/arrival-details" novalidate class="app-arrival-form">
+      <div class="govuk-form-group{% if data.errors and data.errors.portOfEntry %} govuk-form-group--error{% endif %}">
+        <h2 class="govuk-heading-m">Port of entry</h2>
+        <p class="govuk-hint" id="port-of-entry-hint">
+          Choose where the transporter will enter with the consignment. Start typing to search by port or airport name or code.
+        </p>
+        {% if data.errors and data.errors.portOfEntry %}
+          <p id="port-of-entry-error" class="govuk-error-message">
+            <span class="govuk-visually-hidden">Error:</span>
+            {{ data.errors.portOfEntry.text }}
+          </p>
+        {% endif %}
+        <div class="app-commodity-search-wrapper app-arrival-port-search" data-module="app-airport-search">
+          <div class="app-commodity-search-panel">
+            <div class="app-commodity-search" aria-expanded="false">
+              <input
+                class="govuk-input app-commodity-search__input"
+                id="port-of-entry"
+                name="portOfEntry"
+                type="search"
+                value="{{ data.portOfEntry or '' }}"
+                placeholder="Type to search"
+                autocomplete="off"
+                aria-describedby="port-of-entry-hint{% if data.errors and data.errors.portOfEntry %} port-of-entry-error{% endif %}"
+              >
+              <button class="app-commodity-search__button" type="button" aria-label="Search ports">
+                <svg class="app-commodity-search__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 27 27" width="20" height="20" aria-hidden="true" focusable="false">
+                  <path d="M19.6 18.1c1.6-2 .7-4.9.7-7.6C20.3 5.1 16.2 1 11.1 1S1.8 5.1 1.8 10.5s4.1 9.5 9.3 9.5c2.7 0 5.1-1.1 6.9-2.9l6.9 6.9 2.1-2.1-6.8-6.9zM11.1 18.1c-4.2 0-7.6-3.4-7.6-7.6S6.9 2.9 11.1 2.9s7.6 3.4 7.6 7.6-3.4 7.6-7.6 7.6z"/>
+                </svg>
+              </button>
+            </div>
+            <ul class="app-commodity-search__results" hidden></ul>
+            <p class="govuk-visually-hidden app-airport-search__status" aria-live="polite"></p>
+            <script type="application/json" class="app-airport-search__data">{{ (ukAirportItemsJson or "[]") | safe }}</script>
+          </div>
+        </div>
+      </div>
+
+      {{ govukDateInput({
+        id: "arrival-date",
+        namePrefix: "arrivalDate",
+        fieldset: {
+          legend: {
+            text: "Arrival date at destination",
+            classes: "govuk-fieldset__legend--m"
+          }
+        },
+        hint: {
+          text: "The expected date of arrival at the final destination, not the time of day. For example, 27 3 2026."
+        },
+        errorMessage: data.errors.arrivalDate if data.errors and data.errors.arrivalDate,
+        items: [
+          {
+            classes: "govuk-input--width-2",
+            name: "day",
+            label: "Day",
+            value: data.arrivalDateDay
+          },
+          {
+            classes: "govuk-input--width-2",
+            name: "month",
+            label: "Month",
+            value: data.arrivalDateMonth
+          },
+          {
+            classes: "govuk-input--width-4",
+            name: "year",
+            label: "Year",
+            value: data.arrivalDateYear
+          }
+        ]
+      }) }}
+
+      {{ govukSelect({
+        id: "means-of-transport",
+        name: "meansOfTransport",
+        label: {
+          text: "Means of transport",
+          classes: "govuk-label--m"
+        },
+        classes: "app-arrival-form__means-select",
+        items: meansOfTransportItems,
+        errorMessage: data.errors.meansOfTransport if data.errors and data.errors.meansOfTransport
+      }) }}
+
+      {{ govukInput({
+        label: {
+          text: "Transport identification",
+          classes: "govuk-label--m"
+        },
+        hint: {
+          html: '<p class="govuk-hint govuk-!-margin-bottom-2">To identify the means of transport, enter (one of the following):</p><ul class="govuk-list govuk-list--bullet govuk-hint app-arrival-form__hint-list"><li>flight number</li><li>train number</li><li>road vehicle registration number</li><li>vessel name (for ferries, also the road vehicle registration number)</li></ul>'
+        },
+        id: "transport-identification",
+        name: "transportIdentification",
+        classes: "govuk-input--width-20",
+        value: data.transportIdentification,
+        errorMessage: data.errors.transportIdentification if data.errors and data.errors.transportIdentification
+      }) }}
+
+      {{ govukInput({
+        label: {
+          text: "Transport document reference",
+          classes: "govuk-label--m"
+        },
+        hint: {
+          text: "Enter the reference number on the air waybill, bill of lading, sea waybill, road consignment note (CMR) or other transport document."
+        },
+        id: "transport-document-reference",
+        name: "transportDocumentReference",
+        classes: "govuk-input--width-20",
+        value: data.transportDocumentReference,
+        errorMessage: data.errors.transportDocumentReference if data.errors and data.errors.transportDocumentReference
+      }) }}
+
+      {{ govukButton({
+        text: "Save and continue",
+        classes: "app-eu-button"
+      }) }}
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends "layouts/main.html" %}
+
+{% set pageName = "Additional animal details" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: "/animal-identification-details"
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+
+    {% if data.errorList %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: data.errorList
+      }) }}
+    {% endif %}
+
+    <span class="govuk-caption-l">Create an import notification</span>
+    <h1 class="govuk-heading-l">Additional animal details</h1>
+
+    <form method="post" action="/additional-animal-details" novalidate>
+      {% if showCertificationPurposeQuestion %}
+        {{ govukRadios({
+          idPrefix: "certification-purpose",
+          name: "certificationPurpose",
+          fieldset: {
+            legend: {
+              text: "What are the animals certified for?",
+              classes: "govuk-fieldset__legend--m"
+            }
+          },
+          hint: {
+            text: "You'll find this on the health certificate."
+          },
+          errorMessage: data.errors.certificationPurpose if data.errors and data.errors.certificationPurpose,
+          items: certificationPurposeItems
+        }) }}
+      {% endif %}
+
+      {% if showUnweanedQuestion %}
+        {{ govukRadios({
+          idPrefix: "unweaned-animals",
+          name: "unweanedAnimals",
+          fieldset: {
+            legend: {
+              text: "Does the consignment contain any unweaned animals?",
+              classes: "govuk-fieldset__legend--m"
+            }
+          },
+          errorMessage: data.errors.unweanedAnimals if data.errors and data.errors.unweanedAnimals,
+          items: unweanedItems
+        }) }}
+      {% endif %}
+
+      {% if showTemperatureQuestion %}
+        {{ govukRadios({
+          idPrefix: "temperature",
+          name: "temperature",
+          fieldset: {
+            legend: {
+              text: "What is the temperature?",
+              classes: "govuk-fieldset__legend--m"
+            }
+          },
+          errorMessage: data.errors.temperature if data.errors and data.errors.temperature,
+          items: temperatureItems
+        }) }}
+      {% endif %}
+
+      {{ govukButton({
+        text: "Continue"
+      }) }}
+    </form>
+
+  </div>
+</div>
+
+{% include "partials/commodity-details-summary.html" %}
+{% include "partials/import-details-summary.html" %}
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "layouts/main.html" %}
+
+{% set pageName = "Reason for import" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: "/commodity-hub"
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+
+    {% if data.errorList %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: data.errorList
+      }) }}
+    {% endif %}
+
+    <span class="govuk-caption-l">Create an import notification</span>
+    <h1 class="govuk-heading-l">What is the main reason for importing the animals?</h1>
+
+    <form method="post" action="/reason-for-import" novalidate>
+      {{ govukRadios({
+        idPrefix: "import-reason",
+        name: "importReason",
+        fieldset: {
+          legend: {
+            text: "What is the main reason for importing the animals?",
+            classes: "govuk-visually-hidden"
+          }
+        },
+        errorMessage: data.errors.importReason if data.errors and data.errors.importReason,
+        items: importReasonItems
+      }) }}
+
+      {{ govukButton({
+        text: "Save and continue"
+      }) }}
+    </form>
+
+  </div>
+</div>
+{% endblock %}

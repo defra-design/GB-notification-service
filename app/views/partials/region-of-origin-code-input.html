@@ -1,0 +1,31 @@
+<div class="govuk-form-group app-region-origin-code{% if data.errors and data.errors.regionOfOriginCodeSuffix %} govuk-form-group--error{% endif %}">
+  <label class="govuk-label app-region-origin-code__label" for="region-of-origin-code-suffix">
+    Enter the region of origin code
+  </label>
+  <div id="region-of-origin-code-hint" class="govuk-hint app-region-origin-code__hint">
+    Enter up to 5 characters.
+  </div>
+  {% if data.errors and data.errors.regionOfOriginCodeSuffix %}
+    <p id="region-of-origin-code-error" class="govuk-error-message">
+      <span class="govuk-visually-hidden">Error:</span>
+      {{ data.errors.regionOfOriginCodeSuffix.text }}
+    </p>
+  {% endif %}
+  <div
+    class="app-region-origin-code__group"
+    {% if data.errors and data.errors.regionOfOriginCodeSuffix %}aria-describedby="region-of-origin-code-hint region-of-origin-code-error"{% else %}aria-describedby="region-of-origin-code-hint"{% endif %}
+  >
+    <span class="app-region-origin-code__prefix" id="region-of-origin-code-prefix" aria-hidden="true">{{ regionOfOriginCodePrefix }}</span>
+    <span class="app-region-origin-code__separator" aria-hidden="true">-</span>
+    <input
+      class="govuk-input app-region-origin-code__input"
+      id="region-of-origin-code-suffix"
+      name="regionOfOriginCodeSuffix"
+      type="text"
+      value="{{ regionOfOriginCodeSuffix or '' }}"
+      maxlength="5"
+      autocomplete="off"
+      spellcheck="false"
+    >
+  </div>
+</div>

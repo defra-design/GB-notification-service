@@ -1,0 +1,54 @@
+{% extends "layouts/main.html" %}
+
+{% set pageName = "What are you importing" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: "/"
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+
+    {% if data.errorList %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: data.errorList
+      }) }}
+    {% endif %}
+
+    <span class="govuk-caption-l">Create an import notification</span>
+    <h1 class="govuk-heading-l app-what-importing__heading">What are you importing</h1>
+
+    <form method="post" action="/what-are-you-importing" novalidate>
+      {{ govukRadios({
+        idPrefix: "import-category",
+        name: "importCategory",
+        fieldset: {
+          legend: {
+            text: "What are you importing",
+            classes: "govuk-visually-hidden"
+          }
+        },
+        errorMessage: data.errors.importCategory if data.errors and data.errors.importCategory,
+        items: importCategoryItems
+      }) }}
+
+      {{ govukButton({
+        text: "Continue"
+      }) }}
+    </form>
+
+  </div>
+</div>
+{% endblock %}

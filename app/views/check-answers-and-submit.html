@@ -1,0 +1,74 @@
+{% extends "layouts/main.html" %}
+
+{% set pageName = "Review your notification" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: "/notification-tasklist"
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row app-review-notification">
+  <div class="govuk-grid-column-full">
+    <span class="govuk-caption-l">Create an import notification</span>
+    <h1 class="govuk-heading-l">Review your notification</h1>
+
+    <h2 class="govuk-heading-m app-review-notification__section-heading">1. The consignment</h2>
+    <h3 class="govuk-heading-s app-review-notification__sub-heading">Consignment details</h3>
+
+    {% for list in consignmentLists %}
+      <div class="app-review-notification__summary-block">
+        <h4 class="govuk-heading-s app-review-notification__summary-title">{{ list.title }}</h4>
+        <div class="app-review-notification__summary-content">
+          {{ govukSummaryList({
+            classes: "app-review-notification__summary-list",
+            rows: list.rows
+          }) }}
+        </div>
+      </div>
+    {% endfor %}
+
+    <h2 class="govuk-heading-m app-review-notification__section-heading">2. Movement</h2>
+
+    {% for list in movementLists %}
+      <div class="app-review-notification__summary-block">
+        <h3 class="govuk-heading-s app-review-notification__summary-title">{{ list.title }}</h3>
+        <div class="app-review-notification__summary-content">
+          {{ govukSummaryList({
+            classes: "app-review-notification__summary-list",
+            rows: list.rows
+          }) }}
+        </div>
+      </div>
+    {% endfor %}
+
+    <h2 class="govuk-heading-m app-review-notification__section-heading">3. Addresses</h2>
+
+    {% for list in addressLists %}
+      <div class="app-review-notification__summary-block">
+        <h3 class="govuk-heading-s app-review-notification__summary-title">{{ list.title }}</h3>
+        <div class="app-review-notification__summary-content">
+          {{ govukSummaryList({
+            classes: "app-review-notification__summary-list",
+            rows: list.rows
+          }) }}
+        </div>
+      </div>
+    {% endfor %}
+
+    {{ govukButton({
+      text: "Continue",
+      href: "/declaration"
+    }) }}
+  </div>
+</div>
+{% endblock %}
