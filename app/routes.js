@@ -1806,6 +1806,10 @@ router.get('/additional-animal-details', (req, res) => {
 
   const config = getAdditionalAnimalDetailsConfig(req.session.data)
 
+  if (config.hasUnweanedQuestion && !req.session.data.unweanedAnimals) {
+    req.session.data.unweanedAnimals = 'No'
+  }
+
   res.render('additional-animal-details', {
     backLink: getBackLink(req, '/animal-identification-details'),
     showCertificationPurposeQuestion: config.hasCertificationPurposeQuestion,
