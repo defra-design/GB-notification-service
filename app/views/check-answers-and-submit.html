@@ -12,7 +12,7 @@
 
   {{ govukBackLink({
     text: "Back",
-    href: "/notification-tasklist"
+    href: backLink
   }) }}
 {% endblock %}
 
@@ -22,47 +22,20 @@
     <span class="govuk-caption-l">Create an import notification</span>
     <h1 class="govuk-heading-l">Review your notification</h1>
 
-    <h2 class="govuk-heading-m app-review-notification__section-heading">1. The consignment</h2>
-    <h3 class="govuk-heading-s app-review-notification__sub-heading">Consignment details</h3>
+    {% for section in sections %}
+      <h2 class="govuk-heading-m app-review-notification__section-heading">{{ section.title }}</h2>
 
-    {% for list in consignmentLists %}
-      <div class="app-review-notification__summary-block">
-        <h4 class="govuk-heading-s app-review-notification__summary-title">{{ list.title }}</h4>
-        <div class="app-review-notification__summary-content">
-          {{ govukSummaryList({
-            classes: "app-review-notification__summary-list",
-            rows: list.rows
-          }) }}
+      {% for list in section.lists %}
+        <div class="app-review-notification__summary-block">
+          <h3 class="govuk-heading-s app-review-notification__summary-title">{{ list.title }}</h3>
+          <div class="app-review-notification__summary-content">
+            {{ govukSummaryList({
+              classes: "app-review-notification__summary-list",
+              rows: list.rows
+            }) }}
+          </div>
         </div>
-      </div>
-    {% endfor %}
-
-    <h2 class="govuk-heading-m app-review-notification__section-heading">2. Movement</h2>
-
-    {% for list in movementLists %}
-      <div class="app-review-notification__summary-block">
-        <h3 class="govuk-heading-s app-review-notification__summary-title">{{ list.title }}</h3>
-        <div class="app-review-notification__summary-content">
-          {{ govukSummaryList({
-            classes: "app-review-notification__summary-list",
-            rows: list.rows
-          }) }}
-        </div>
-      </div>
-    {% endfor %}
-
-    <h2 class="govuk-heading-m app-review-notification__section-heading">3. Addresses</h2>
-
-    {% for list in addressLists %}
-      <div class="app-review-notification__summary-block">
-        <h3 class="govuk-heading-s app-review-notification__summary-title">{{ list.title }}</h3>
-        <div class="app-review-notification__summary-content">
-          {{ govukSummaryList({
-            classes: "app-review-notification__summary-list",
-            rows: list.rows
-          }) }}
-        </div>
-      </div>
+      {% endfor %}
     {% endfor %}
 
     {{ govukButton({

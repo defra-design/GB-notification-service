@@ -6,6 +6,28 @@
 const govukPrototypeKit = require('govuk-prototype-kit')
 const router = govukPrototypeKit.requests.setupRouter()
 
+function syncTasklistBackNavigation (req) {
+  if (req.query.from === 'tasklist') {
+    req.session.data.backToTasklist = true
+  } else if (req.method === 'GET' && Object.prototype.hasOwnProperty.call(req.query, 'from')) {
+    req.session.data.backToTasklist = false
+  }
+}
+
+function getBackLink (req, defaultHref) {
+  syncTasklistBackNavigation(req)
+  return req.session.data.backToTasklist ? '/notification-tasklist' : defaultHref
+}
+
+function withFromTasklist (href) {
+  if (!href || href === '#') {
+    return href
+  }
+
+  const separator = href.includes('?') ? '&' : '?'
+  return `${href}${separator}from=tasklist`
+}
+
 router.use((req, res, next) => {
   const sessionData = req.session.data || {}
 
@@ -734,7 +756,6 @@ function getNotificationTasklistViewModel (sessionData) {
   const hasCommodity = Boolean(sessionData.commodityCode)
   const hasAnimals = Boolean(sessionData.animalsAdded && sessionData.animals && sessionData.animals.length > 0)
   const hasAdditionalAnimalDetails = hasAdditionalAnimalDetailsComplete(sessionData)
-  const hasCph = hasCphDetails(sessionData)
   const hasImportReason = hasValidImportReason(sessionData)
   const hasAddresses = hasConsignmentAddresses(sessionData)
   const hasContact = hasContactAddress(sessionData)
@@ -748,48 +769,54 @@ function getNotificationTasklistViewModel (sessionData) {
     reference: sessionData.notificationReference || 'GBN-AG-26-7K8M2P (Draft)',
     sections: [
       {
-        title: '1. The consignment',
+        title: 'About the consignment',
         items: [
           {
             text: 'Where is this consignment coming from?',
-            href: '/origin-of-the-import',
+            href: withFromTasklist('/origin-of-the-import'),
             status: hasOrigin ? statusComplete : statusTodo
           },
           {
-            text: 'Your commodities',
-            href: '/commodity-hub',
-            status: hasCommodity && hasAnimals ? statusComplete : statusTodo
-          },
-          {
-            text: 'Additional animal details',
-            href: '/additional-animal-details',
-            status: hasAdditionalAnimalDetails ? statusComplete : statusTodo
-          },
-          {
             text: 'Main reason for importing the animals',
-            href: '/reason-for-import',
+            href: withFromTasklist('/reason-for-import'),
             status: hasImportReason ? statusComplete : statusTodo
           }
         ]
       },
       {
-        title: '2. Movement',
+        title: 'Description of the goods',
         items: [
-          { text: 'Arrival details', href: '/arrival-details', status: hasArrival ? statusComplete : statusTodo },
-          { text: 'Transport details', href: '/transport-details', status: hasTransport ? statusComplete : statusTodo },
-          { text: 'Accompanying documents (optional)', href: '#', status: statusTodo }
+          {
+            text: 'Your commodities',
+            href: withFromTasklist('/commodity-hub'),
+            status: hasCommodity && hasAnimals ? statusComplete : statusTodo
+          },
+          {
+            text: 'Additional animal details',
+            href: withFromTasklist('/additional-animal-details'),
+            status: hasAdditionalAnimalDetails ? statusComplete : statusTodo
+          }
         ]
       },
       {
-        title: '3. Addresses',
+        title: 'Documents',
         items: [
-          {
-            text: 'County Parish Holding number (CPH)',
-            href: '/county-parish-holding',
-            status: hasCph ? statusComplete : statusTodo
-          },
-          { text: 'Consignment addresses', href: '/consignment-addresses', status: hasAddresses ? statusComplete : statusTodo },
-          { text: 'Contact address for this consignment', href: '/contact-address-for-consignment', status: hasContact ? statusComplete : statusTodo }
+          { text: 'Latest health certificate', href: '#', status: statusTodo },
+          { text: 'Accompanying documents', href: '#', status: statusTodo }
+        ]
+      },
+      {
+        title: 'Addresses',
+        items: [
+          { text: 'Consignment addresses', href: withFromTasklist('/consignment-addresses'), status: hasAddresses ? statusComplete : statusTodo },
+          { text: 'Contact address for this consignment', href: withFromTasklist('/contact-address-for-consignment'), status: hasContact ? statusComplete : statusTodo }
+        ]
+      },
+      {
+        title: 'Transport',
+        items: [
+          { text: 'Arrival details', href: withFromTasklist('/arrival-details'), status: hasArrival ? statusComplete : statusTodo },
+          { text: 'Transport details', href: withFromTasklist('/transport-details'), status: hasTransport ? statusComplete : statusTodo }
         ]
       }
     ]
@@ -1138,7 +1165,6 @@ function getReviewNotificationViewModel (sessionData) {
     : ''
   const animalsCount = sessionData.animals && sessionData.animals.length ? String(sessionData.animals.length) : 'N/A'
   const speciesLabel = sessionData.speciesSummary || sessionData.commodityName || 'N/A'
-  const selectedSpeciesHeading = sessionData.speciesPanelName || speciesLabel
 
   const additionalAnimalRows = [
     {
@@ -1164,196 +1190,237 @@ function getReviewNotificationViewModel (sessionData) {
     })
   }
 
-  additionalAnimalRows.push({
-    key: { text: 'CPH number' },
-    value: { text: sessionData.cphNumber || 'N/A' },
-    actions: { items: [{ href: '/county-parish-holding', text: 'Change', visuallyHiddenText: 'CPH number' }] }
-  })
+  if (commodityRequiresCph(sessionData)) {
+    additionalAnimalRows.push({
+      key: { text: 'CPH number' },
+      value: { text: sessionData.cphNumber || 'N/A' },
+      actions: { items: [{ href: '/county-parish-holding', text: 'Change', visuallyHiddenText: 'CPH number' }] }
+    })
+  }
 
-  additionalAnimalRows.push({
-    key: { text: 'Reason for import' },
-    value: { text: sessionData.importReason || 'N/A' },
-    actions: { items: [{ href: '/reason-for-import', text: 'Change', visuallyHiddenText: 'reason for import' }] }
-  })
+  const commodityRows = [
+    {
+      key: { text: 'Commodity code' },
+      value: { text: sessionData.commodityCode || 'N/A' },
+      actions: { items: [{ href: '/select-commodity?change=species', text: 'Change', visuallyHiddenText: 'commodity code' }] }
+    },
+    {
+      key: { text: 'Common name' },
+      value: { text: sessionData.commodityName || 'N/A' },
+      actions: { items: [{ href: '/select-commodity?change=species', text: 'Change', visuallyHiddenText: 'common name' }] }
+    },
+    {
+      key: { text: 'Species' },
+      value: { text: speciesLabel },
+      actions: { items: [{ href: '/select-commodity?change=species', text: 'Change', visuallyHiddenText: 'species' }] }
+    },
+    {
+      key: { text: 'Quantity' },
+      value: { text: animalsCount },
+      actions: { items: [{ href: '/animal-identification-details', text: 'Change', visuallyHiddenText: 'quantity' }] }
+    },
+    {
+      key: { text: 'Animal details' },
+      value: { text: animalsCount !== 'N/A' ? `${animalsCount} animals added` : 'N/A' },
+      actions: { items: [{ href: '/animal-identification-details', text: 'Change', visuallyHiddenText: 'animal details' }] }
+    },
+    {
+      key: { text: 'Package details' },
+      value: { text: packagingCount || 'N/A' },
+      actions: { items: [{ href: '/animal-identification-details', text: 'Change', visuallyHiddenText: 'package details' }] }
+    }
+  ]
 
   return {
-    speciesHeading: selectedSpeciesHeading,
-    consignmentLists: [
+    sections: [
       {
-        title: 'Import details',
-        rows: [
+        title: 'About the consignment',
+        lists: [
           {
-            key: { text: 'Country of origin' },
-            value: { text: sessionData.countryOfOrigin || 'N/A' },
-            actions: { items: [{ href: '/origin-of-the-import', text: 'Change', visuallyHiddenText: 'country of origin' }] }
+            title: 'Where is this consignment coming from?',
+            rows: [
+              {
+                key: { text: 'Country of origin' },
+                value: { text: sessionData.countryOfOrigin || 'N/A' },
+                actions: { items: [{ href: '/origin-of-the-import', text: 'Change', visuallyHiddenText: 'country of origin' }] }
+              },
+              {
+                key: { text: 'Region of origin code' },
+                value: { text: getRegionOfOriginSummaryValue(sessionData) || 'N/A' },
+                actions: { items: [{ href: '/origin-of-the-import', text: 'Change', visuallyHiddenText: 'region of origin code' }] }
+              },
+              {
+                key: { text: 'Internal reference number' },
+                value: { text: sessionData.internalReference || 'N/A' },
+                actions: { items: [{ href: '/origin-of-the-import', text: 'Change', visuallyHiddenText: 'internal reference number' }] }
+              }
+            ]
           },
           {
-            key: { text: 'Region of origin code' },
-            value: { text: getRegionOfOriginSummaryValue(sessionData) || 'N/A' },
-            actions: { items: [{ href: '/origin-of-the-import', text: 'Change', visuallyHiddenText: 'region of origin code' }] }
-          },
-          {
-            key: { text: 'Internal reference number' },
-            value: { text: sessionData.internalReference || 'N/A' },
-            actions: { items: [{ href: '/origin-of-the-import', text: 'Change', visuallyHiddenText: 'internal reference number' }] }
+            title: 'Main reason for importing the animals',
+            rows: [
+              {
+                key: { text: 'Reason for import' },
+                value: { text: sessionData.importReason || 'N/A' },
+                actions: { items: [{ href: '/reason-for-import', text: 'Change', visuallyHiddenText: 'reason for import' }] }
+              }
+            ]
           }
         ]
       },
       {
-        title: 'Animal details',
-        rows: [
+        title: 'Description of the goods',
+        lists: [
           {
-            key: { text: 'Commodity code' },
-            value: { text: sessionData.commodityCode || 'N/A' },
-            actions: { items: [{ href: '/select-commodity?change=species', text: 'Change', visuallyHiddenText: 'commodity code' }] }
+            title: 'Your commodities',
+            rows: commodityRows
           },
           {
-            key: { text: 'Common name' },
-            value: { text: sessionData.commodityName || 'N/A' },
-            actions: { items: [{ href: '/select-commodity?change=species', text: 'Change', visuallyHiddenText: 'common name' }] }
-          },
-          {
-            key: { text: 'Species' },
-            value: { text: speciesLabel },
-            actions: { items: [{ href: '/select-commodity?change=species', text: 'Change', visuallyHiddenText: 'species' }] }
+            title: 'Additional animal details',
+            rows: additionalAnimalRows
           }
         ]
       },
       {
-        title: 'Additional animal details',
-        rows: additionalAnimalRows
-      },
-      {
-        title: selectedSpeciesHeading,
-        rows: [
+        title: 'Documents',
+        lists: [
           {
-            key: { text: 'Quantity' },
-            value: { text: animalsCount },
-            actions: { items: [{ href: '/animal-identification-details', text: 'Change', visuallyHiddenText: 'quantity' }] }
+            title: 'Latest health certificate',
+            rows: [
+              {
+                key: { text: 'Details' },
+                value: { text: 'Not added' }
+              }
+            ]
           },
           {
-            key: { text: 'Animal details' },
-            value: { text: animalsCount !== 'N/A' ? `${animalsCount} animals added` : 'N/A' },
-            actions: { items: [{ href: '/animal-identification-details', text: 'Change', visuallyHiddenText: 'animal details' }] }
-          },
-          {
-            key: { text: 'Package details' },
-            value: { text: packagingCount || 'N/A' },
-            actions: { items: [{ href: '/animal-identification-details', text: 'Change', visuallyHiddenText: 'package details' }] }
-          }
-        ]
-      }
-    ],
-    movementLists: [
-      {
-        title: 'Arrival details',
-        rows: [
-          {
-            key: { text: 'Port of entry' },
-            value: { text: sessionData.portOfEntry || 'N/A' },
-            actions: { items: [{ href: '/arrival-details', text: 'Change', visuallyHiddenText: 'port of entry' }] }
-          },
-          {
-            key: { text: 'Arrival date at destination' },
-            value: { text: formatArrivalDate(sessionData) },
-            actions: { items: [{ href: '/arrival-details', text: 'Change', visuallyHiddenText: 'arrival date at destination' }] }
-          },
-          {
-            key: { text: 'Means of transport' },
-            value: { text: sessionData.meansOfTransport || 'N/A' },
-            actions: { items: [{ href: '/arrival-details', text: 'Change', visuallyHiddenText: 'means of transport' }] }
-          },
-          {
-            key: { text: 'Transport identification' },
-            value: { text: sessionData.transportIdentification || 'N/A' },
-            actions: { items: [{ href: '/arrival-details', text: 'Change', visuallyHiddenText: 'transport identification' }] }
-          },
-          {
-            key: { text: 'Transport document reference' },
-            value: { text: sessionData.transportDocumentReference || 'N/A' },
-            actions: { items: [{ href: '/arrival-details', text: 'Change', visuallyHiddenText: 'transport document reference' }] }
+            title: 'Accompanying documents',
+            rows: [
+              {
+                key: { text: 'Details' },
+                value: { text: 'Not added' }
+              }
+            ]
           }
         ]
       },
       {
-        title: 'Transport details',
-        rows: [
+        title: 'Addresses',
+        lists: [
           {
-            key: { text: 'Name' },
-            value: { text: sessionData.transporterName || 'N/A' },
-            actions: { items: [{ href: '/transport-details', text: 'Change', visuallyHiddenText: 'transport name' }] }
+            title: 'Consignment addresses',
+            rows: [
+              {
+                key: { text: 'Place of origin' },
+                value: { html: formatMultilineValue(sessionData.placeOfOriginAddress) },
+                actions: { items: [{ href: '/consignment-addresses/add/place-of-origin', text: 'Change', visuallyHiddenText: 'place of origin' }] }
+              },
+              {
+                key: { text: 'Consignor' },
+                value: { html: formatMultilineValue(sessionData.consignorAddress) },
+                actions: { items: [{ href: '/consignment-addresses/add/consignor', text: 'Change', visuallyHiddenText: 'consignor' }] }
+              },
+              {
+                key: { text: 'Consignee' },
+                value: { html: formatMultilineValue(sessionData.consigneeAddress) },
+                actions: { items: [{ href: '/consignment-addresses/add/consignee', text: 'Change', visuallyHiddenText: 'consignee' }] }
+              },
+              {
+                key: { text: 'Importer' },
+                value: { html: formatMultilineValue(sessionData.importerAddress) },
+                actions: { items: [{ href: '/consignment-addresses/add/importer', text: 'Change', visuallyHiddenText: 'importer' }] }
+              },
+              {
+                key: { text: 'Place of destination' },
+                value: { html: formatMultilineValue(sessionData.placeOfDestinationAddress) },
+                actions: { items: [{ href: '/consignment-addresses/add/place-of-destination', text: 'Change', visuallyHiddenText: 'place of destination' }] }
+              },
+              {
+                key: { text: 'Permanent address' },
+                value: { html: formatMultilineValue(sessionData.placeOfDestinationAddress) },
+                actions: { items: [{ href: '/consignment-addresses/add/place-of-destination', text: 'Change', visuallyHiddenText: 'permanent address' }] }
+              }
+            ]
           },
           {
-            key: { text: 'Address' },
-            value: { text: sessionData.transporterAddress || 'N/A' },
-            actions: { items: [{ href: '/transport-details', text: 'Change', visuallyHiddenText: 'transport address' }] }
-          },
-          {
-            key: { text: 'Country' },
-            value: { text: sessionData.transporterCountry || 'N/A' },
-            actions: { items: [{ href: '/transport-details', text: 'Change', visuallyHiddenText: 'transport country' }] }
-          },
-          {
-            key: { text: 'Approval number' },
-            value: { text: sessionData.transporterApprovalNumber || 'N/A' },
-            actions: { items: [{ href: '/transport-details', text: 'Change', visuallyHiddenText: 'transport approval number' }] }
-          },
-          {
-            key: { text: 'Type' },
-            value: { text: sessionData.transporterType || 'N/A' },
-            actions: { items: [{ href: '/transport-details', text: 'Change', visuallyHiddenText: 'transport type' }] }
-          },
-          {
-            key: { text: 'Status' },
-            value: { text: sessionData.transporterStatus || 'N/A' },
-            actions: { items: [{ href: '/transport-details', text: 'Change', visuallyHiddenText: 'transport status' }] }
-          }
-        ]
-      }
-    ],
-    addressLists: [
-      {
-        title: 'Consignment addresses',
-        rows: [
-          {
-            key: { text: 'Place of origin' },
-            value: { html: formatMultilineValue(sessionData.placeOfOriginAddress) },
-            actions: { items: [{ href: '/consignment-addresses/add/place-of-origin', text: 'Change', visuallyHiddenText: 'place of origin' }] }
-          },
-          {
-            key: { text: 'Consignor' },
-            value: { html: formatMultilineValue(sessionData.consignorAddress) },
-            actions: { items: [{ href: '/consignment-addresses/add/consignor', text: 'Change', visuallyHiddenText: 'consignor' }] }
-          },
-          {
-            key: { text: 'Consignee' },
-            value: { html: formatMultilineValue(sessionData.consigneeAddress) },
-            actions: { items: [{ href: '/consignment-addresses/add/consignee', text: 'Change', visuallyHiddenText: 'consignee' }] }
-          },
-          {
-            key: { text: 'Importer' },
-            value: { html: formatMultilineValue(sessionData.importerAddress) },
-            actions: { items: [{ href: '/consignment-addresses/add/importer', text: 'Change', visuallyHiddenText: 'importer' }] }
-          },
-          {
-            key: { text: 'Place of destination' },
-            value: { html: formatMultilineValue(sessionData.placeOfDestinationAddress) },
-            actions: { items: [{ href: '/consignment-addresses/add/place-of-destination', text: 'Change', visuallyHiddenText: 'place of destination' }] }
-          },
-          {
-            key: { text: 'Permanent address' },
-            value: { html: formatMultilineValue(sessionData.placeOfDestinationAddress) },
-            actions: { items: [{ href: '/consignment-addresses/add/place-of-destination', text: 'Change', visuallyHiddenText: 'permanent address' }] }
+            title: 'Contact address for this consignment',
+            rows: [
+              {
+                key: { text: 'Address' },
+                value: { html: formatMultilineValue(sessionData.contactAddress) },
+                actions: { items: [{ href: '/contact-address-for-consignment', text: 'Change', visuallyHiddenText: 'contact address for this consignment' }] }
+              }
+            ]
           }
         ]
       },
       {
-        title: 'Contact address for this consignment',
-        rows: [
+        title: 'Transport',
+        lists: [
           {
-            key: { text: 'Address' },
-            value: { html: formatMultilineValue(sessionData.contactAddress) },
-            actions: { items: [{ href: '/contact-address-for-consignment', text: 'Change', visuallyHiddenText: 'contact address for this consignment' }] }
+            title: 'Arrival details',
+            rows: [
+              {
+                key: { text: 'Port of entry' },
+                value: { text: sessionData.portOfEntry || 'N/A' },
+                actions: { items: [{ href: '/arrival-details', text: 'Change', visuallyHiddenText: 'port of entry' }] }
+              },
+              {
+                key: { text: 'Arrival date at destination' },
+                value: { text: formatArrivalDate(sessionData) },
+                actions: { items: [{ href: '/arrival-details', text: 'Change', visuallyHiddenText: 'arrival date at destination' }] }
+              },
+              {
+                key: { text: 'Means of transport' },
+                value: { text: sessionData.meansOfTransport || 'N/A' },
+                actions: { items: [{ href: '/arrival-details', text: 'Change', visuallyHiddenText: 'means of transport' }] }
+              },
+              {
+                key: { text: 'Transport identification' },
+                value: { text: sessionData.transportIdentification || 'N/A' },
+                actions: { items: [{ href: '/arrival-details', text: 'Change', visuallyHiddenText: 'transport identification' }] }
+              },
+              {
+                key: { text: 'Transport document reference' },
+                value: { text: sessionData.transportDocumentReference || 'N/A' },
+                actions: { items: [{ href: '/arrival-details', text: 'Change', visuallyHiddenText: 'transport document reference' }] }
+              }
+            ]
+          },
+          {
+            title: 'Transport details',
+            rows: [
+              {
+                key: { text: 'Name' },
+                value: { text: sessionData.transporterName || 'N/A' },
+                actions: { items: [{ href: '/transport-details', text: 'Change', visuallyHiddenText: 'transport name' }] }
+              },
+              {
+                key: { text: 'Address' },
+                value: { text: sessionData.transporterAddress || 'N/A' },
+                actions: { items: [{ href: '/transport-details', text: 'Change', visuallyHiddenText: 'transport address' }] }
+              },
+              {
+                key: { text: 'Country' },
+                value: { text: sessionData.transporterCountry || 'N/A' },
+                actions: { items: [{ href: '/transport-details', text: 'Change', visuallyHiddenText: 'transport country' }] }
+              },
+              {
+                key: { text: 'Approval number' },
+                value: { text: sessionData.transporterApprovalNumber || 'N/A' },
+                actions: { items: [{ href: '/transport-details', text: 'Change', visuallyHiddenText: 'transport approval number' }] }
+              },
+              {
+                key: { text: 'Type' },
+                value: { text: sessionData.transporterType || 'N/A' },
+                actions: { items: [{ href: '/transport-details', text: 'Change', visuallyHiddenText: 'transport type' }] }
+              },
+              {
+                key: { text: 'Status' },
+                value: { text: sessionData.transporterStatus || 'N/A' },
+                actions: { items: [{ href: '/transport-details', text: 'Change', visuallyHiddenText: 'transport status' }] }
+              }
+            ]
           }
         ]
       }
@@ -1486,6 +1553,7 @@ router.get('/origin-of-the-import', (req, res) => {
   const countryOfOrigin = req.session.data.countryOfOrigin
 
   return res.render('origin-of-the-import', {
+    backLink: getBackLink(req, '/what-are-you-importing'),
     countriesJson: JSON.stringify(countries),
     countryPrefixesJson: JSON.stringify(countryRegionPrefixes),
     regionOfOriginCodePrefix: getCountryRegionPrefix(countryOfOrigin),
@@ -1549,6 +1617,7 @@ router.post('/origin-of-the-import', (req, res) => {
     req.session.data.regionOfOriginRequired = regionOfOriginRequired
 
     return res.render('origin-of-the-import', {
+      backLink: getBackLink(req, '/what-are-you-importing'),
       countriesJson: JSON.stringify(countries),
       countryPrefixesJson: JSON.stringify(countryRegionPrefixes),
       regionOfOriginCodePrefix: getCountryRegionPrefix(countryOfOrigin),
@@ -1694,6 +1763,7 @@ router.get('/additional-animal-details', (req, res) => {
   const config = getAdditionalAnimalDetailsConfig(req.session.data)
 
   res.render('additional-animal-details', {
+    backLink: getBackLink(req, '/animal-identification-details'),
     showCertificationPurposeQuestion: config.hasCertificationPurposeQuestion,
     showUnweanedQuestion: config.hasUnweanedQuestion,
     showTemperatureQuestion: config.hasTemperatureQuestion,
@@ -1718,7 +1788,10 @@ router.get('/commodity-hub', (req, res) => {
 
   initialiseSpeciesEntries(req.session.data)
 
-  res.render('commodity-hub', getCommodityHubViewModel(req.session.data))
+  res.render('commodity-hub', {
+    ...getCommodityHubViewModel(req.session.data),
+    backLink: getBackLink(req, '/additional-animal-details')
+  })
 })
 
 router.post('/animal-identification-details', (req, res) => {
@@ -1941,7 +2014,9 @@ router.get('/county-parish-holding', (req, res) => {
     return res.redirect('/consignment-addresses')
   }
 
-  return res.render('county-parish-holding')
+  return res.render('county-parish-holding', {
+    backLink: getBackLink(req, '/notification-tasklist')
+  })
 })
 
 router.post('/county-parish-holding', (req, res) => {
@@ -2004,6 +2079,7 @@ router.get('/reason-for-import', (req, res) => {
   }
 
   res.render('reason-for-import', {
+    backLink: getBackLink(req, '/commodity-hub'),
     importReasonItems: buildImportReasonItems(req.session.data, req.session.data.importReason)
   })
 })
@@ -2033,7 +2109,10 @@ router.get('/check-answers-and-submit', (req, res) => {
     return
   }
 
-  return res.render('check-answers-and-submit', getReviewNotificationViewModel(req.session.data))
+  return res.render('check-answers-and-submit', {
+    ...getReviewNotificationViewModel(req.session.data),
+    backLink: getBackLink(req, '/notification-tasklist')
+  })
 })
 
 function generateNotificationReference () {
@@ -2149,6 +2228,7 @@ router.get('/consignment-addresses', (req, res) => {
   }
 
   return res.render('consignment-addresses', {
+    backLink: getBackLink(req, '/notification-tasklist'),
     reference: req.session.data.notificationReference || 'GBN-AG-26-7K8M2P (Draft)',
     addressSections: getConsignmentAddressSections(req.session.data)
   })
@@ -2160,6 +2240,7 @@ router.get('/arrival-details', (req, res) => {
   }
 
   return res.render('arrival-details', {
+    backLink: getBackLink(req, '/notification-tasklist'),
     ukAirportItemsJson: JSON.stringify(getUkAirportDisplayOptions()),
     meansOfTransportItems: buildMeansOfTransportItems(req.session.data.meansOfTransport)
   })
@@ -2222,6 +2303,7 @@ router.post('/arrival-details', (req, res) => {
     req.session.data.arrivalDateMonth = arrivalDateMonth
     req.session.data.arrivalDateYear = arrivalDateYear
     return res.render('arrival-details', {
+      backLink: getBackLink(req, '/notification-tasklist'),
       ukAirportItemsJson: JSON.stringify(getUkAirportDisplayOptions()),
       meansOfTransportItems: buildMeansOfTransportItems(meansOfTransport)
     })
@@ -2246,6 +2328,7 @@ router.get('/transport-details', (req, res) => {
   }
 
   return res.render('transport-details', {
+    backLink: getBackLink(req, '/notification-tasklist'),
     transporters
   })
 })
@@ -2308,7 +2391,7 @@ router.post('/consignment-addresses', (req, res) => {
   req.session.data.errorList = null
   req.session.data.errors = null
 
-  return res.redirect('/notification-tasklist')
+  return res.redirect('/contact-address-for-consignment')
 })
 
 router.get('/contact-address-for-consignment', (req, res) => {
@@ -2316,11 +2399,8 @@ router.get('/contact-address-for-consignment', (req, res) => {
     return
   }
 
-  if (!hasConsignmentAddresses(req.session.data)) {
-    return res.redirect('/consignment-addresses')
-  }
-
   return res.render('contact-address-for-consignment', {
+    backLink: getBackLink(req, '/consignment-addresses'),
     addresses: contactAddresses,
     addressId: req.session.data.contactAddressId || '',
     addressSearch: req.session.data.contactAddressSearch || ''
@@ -2330,10 +2410,6 @@ router.get('/contact-address-for-consignment', (req, res) => {
 router.post('/contact-address-for-consignment', (req, res) => {
   if (redirectIfNoAddressSectionAccess(req, res)) {
     return
-  }
-
-  if (!hasConsignmentAddresses(req.session.data)) {
-    return res.redirect('/consignment-addresses')
   }
 
   const addressSearch = (req.body.addressSearch || '').trim()
