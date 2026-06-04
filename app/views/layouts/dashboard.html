@@ -1,0 +1,29 @@
+{% extends "govuk-prototype-kit/layouts/govuk-branded.njk" %}
+{% from "govuk/components/header/macro.njk" import govukHeader %}
+{% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
+
+{% block header %}
+  {{ govukHeader({
+    homepageUrl: "/",
+    classes: "govuk-header--full-width-border"
+  }) }}
+
+  {{ govukServiceNavigation({
+    classes: "app-dashboard-service-navigation",
+    serviceName: "Import notification service",
+    collapseNavigationOnMobile: false,
+    navigation: [
+      {
+        text: "Dashboard",
+        href: "/dashboard",
+        current: true
+      }
+    ]
+  }) }}
+{% endblock %}
+
+{% block main %}
+  <main class="govuk-main-wrapper app-dashboard-main-wrapper" id="main-content" role="main">
+    {% block content %}{% endblock %}
+  </main>
+{% endblock %}

@@ -5,6 +5,13 @@
 
 const govukPrototypeKit = require('govuk-prototype-kit')
 const router = govukPrototypeKit.requests.setupRouter()
+const dashboardNotifications = require('./data/dashboard-notifications')
+const {
+  getDisplayNotificationReference,
+  ensureDraftNotificationReference,
+  generateSubmittedNotificationReference,
+  normalizeNotificationReference
+} = require('./utils/notification-reference')
 
 function syncTasklistBackNavigation (req) {
   if (req.query.from === 'tasklist') {
@@ -28,14 +35,152 @@ function withFromTasklist (href) {
   return `${href}${separator}from=tasklist`
 }
 
+const dashboardStatusOptions = [
+  { value: '', text: 'Show all' },
+  { value: 'Draft', text: 'Draft' },
+  { value: 'Submitted', text: 'Submitted' }
+]
+
+const dashboardSortOptions = [
+  { value: 'arrival-desc', text: 'Arrival (newest to oldest)' },
+  { value: 'arrival-asc', text: 'Arrival (oldest to newest)' },
+  { value: 'reference-asc', text: 'Reference (A to Z)' },
+  { value: 'reference-desc', text: 'Reference (Z to A)' }
+]
+
+function getDashboardFilters (req) {
+  return {
+    keyword: (req.query.keyword || '').trim(),
+    commodity: (req.query.commodity || '').trim(),
+    country: (req.query.country || '').trim(),
+    party: (req.query.party || '').trim(),
+    destination: (req.query.destination || '').trim(),
+    status: (req.query.status || '').trim(),
+    startDate: (req.query.startDate || '29-06-2025').trim(),
+    endDate: (req.query.endDate || '30-06-2025').trim(),
+    sortBy: (req.query.sortBy || 'arrival-desc').trim()
+  }
+}
+
+function notificationMatchesDashboardFilters (notification, filters) {
+  const keyword = filters.keyword.toLowerCase()
+
+  if (keyword) {
+    const searchableText = [
+      notification.reference,
+      notification.commodity,
+      notification.origin,
+      notification.consignee,
+      notification.consignor,
+      notification.status
+    ].join(' ').toLowerCase()
+
+    if (!searchableText.includes(keyword)) {
+      return false
+    }
+  }
+
+  if (filters.commodity && !notification.commodity.toLowerCase().includes(filters.commodity.toLowerCase())) {
+    return false
+  }
+
+  if (filters.country && !notification.origin.toLowerCase().includes(filters.country.toLowerCase())) {
+    return false
+  }
+
+  if (filters.party) {
+    const party = filters.party.toLowerCase()
+    const matchesParty = notification.consignee.toLowerCase().includes(party) ||
+      notification.consignor.toLowerCase().includes(party)
+
+    if (!matchesParty) {
+      return false
+    }
+  }
+
+  if (filters.status && notification.status !== filters.status) {
+    return false
+  }
+
+  return true
+}
+
+function sortDashboardNotifications (notifications, sortBy) {
+  const sorted = [...notifications]
+
+  sorted.sort((left, right) => {
+    if (sortBy === 'reference-asc') {
+      return left.reference.localeCompare(right.reference)
+    }
+
+    if (sortBy === 'reference-desc') {
+      return right.reference.localeCompare(left.reference)
+    }
+
+    if (sortBy === 'arrival-asc') {
+      return left.arrivalAtDestination.localeCompare(right.arrivalAtDestination)
+    }
+
+    return right.arrivalAtDestination.localeCompare(left.arrivalAtDestination)
+  })
+
+  return sorted
+}
+
+function getDashboardViewModel (req) {
+  const filters = getDashboardFilters(req)
+  const filteredNotifications = dashboardNotifications.filter((notification) =>
+    notificationMatchesDashboardFilters(notification, filters)
+  )
+  const notifications = sortDashboardNotifications(filteredNotifications, filters.sortBy)
+  const filterHiddenFields = {
+    keyword: filters.keyword,
+    commodity: filters.commodity,
+    country: filters.country,
+    party: filters.party,
+    destination: filters.destination,
+    status: filters.status,
+    startDate: filters.startDate,
+    endDate: filters.endDate
+  }
+
+  return {
+    filters,
+    filterHiddenFields,
+    resultCount: notifications.length,
+    notifications,
+    statusOptions: dashboardStatusOptions.map((option) => ({
+      ...option,
+      selected: option.value === filters.status
+    })),
+    sortOptions: dashboardSortOptions.map((option) => ({
+      ...option,
+      selected: option.value === filters.sortBy
+    }))
+  }
+}
+
+router.get('/dashboard', (req, res) => {
+  return res.render('dashboard', getDashboardViewModel(req))
+})
+
 router.use((req, res, next) => {
   const sessionData = req.session.data || {}
 
+  if (sessionData.importCategory) {
+    ensureDraftNotificationReference(sessionData)
+  }
+
   res.locals.importDetailsSummaryRows = getImportDetailsSummaryRows(sessionData)
   res.locals.speciesSummaryHtml = sessionData.commodityId ? getSpeciesSummaryHtml(sessionData) : null
+  res.locals.notificationReference = sessionData.importCategory
+    ? getDisplayNotificationReference(sessionData)
+    : null
   next()
 })
 
+const documentTypes = require('./data/document-types')
+const getDocumentTypeLabel = documentTypes.getDocumentTypeLabel
 const commodities = require('./data/commodities')
 const importCategories = require('./data/import-categories')
 const { getImportReasonsForCommodity } = require('./data/import-reasons')
@@ -180,7 +325,7 @@ function getConsignmentAddressesViewModel (req) {
 
   return {
     backLink: getBackLink(req, '/notification-tasklist'),
-    reference: sessionData.notificationReference || 'GBN-AG-26-7K8M2P (Draft)',
+    reference: getDisplayNotificationReference(sessionData),
     addressSections: getConsignmentHubSections(sessionData)
   }
 }
@@ -687,6 +832,174 @@ function clearCommoditySession (sessionData) {
   sessionData.declarationDate = null
   sessionData.notificationSubmitted = null
   sessionData.notificationReference = null
+  sessionData.accompanyingDocuments = null
+  sessionData.accompanyingDocumentsComplete = null
+}
+
+function createEmptyAccompanyingDocument () {
+  return {
+    reference: '',
+    documentType: '',
+    issueDateDay: '',
+    issueDateMonth: '',
+    issueDateYear: '',
+    attachmentName: ''
+  }
+}
+
+function getAccompanyingDocuments (sessionData) {
+  if (!sessionData.accompanyingDocuments || !Array.isArray(sessionData.accompanyingDocuments) || sessionData.accompanyingDocuments.length === 0) {
+    sessionData.accompanyingDocuments = [createEmptyAccompanyingDocument()]
+  }
+
+  return sessionData.accompanyingDocuments
+}
+
+function buildDocumentTypeItems (selectedValue) {
+  return documentTypes.map((option) => ({
+    ...option,
+    selected: option.value === selectedValue
+  }))
+}
+
+function parseAccompanyingDocumentsFromBody (body, count) {
+  const documents = []
+
+  for (let index = 0; index < count; index += 1) {
+    documents.push({
+      reference: (body[`reference-${index}`] || '').trim(),
+      documentType: (body[`documentType-${index}`] || '').trim(),
+      issueDateDay: (body[`issueDate-${index}-day`] || '').trim(),
+      issueDateMonth: (body[`issueDate-${index}-month`] || '').trim(),
+      issueDateYear: (body[`issueDate-${index}-year`] || '').trim(),
+      attachmentName: (body[`attachmentName-${index}`] || '').trim() || (body[`existingAttachmentName-${index}`] || '').trim()
+    })
+  }
+
+  return documents
+}
+
+function formatIssueDate (document) {
+  const day = (document.issueDateDay || '').trim()
+  const month = (document.issueDateMonth || '').trim()
+  const year = (document.issueDateYear || '').trim()
+
+  if (!day || !month || !year) {
+    return 'N/A'
+  }
+
+  return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`
+}
+
+function isAccompanyingDocumentEmpty (document) {
+  return !(
+    (document.reference || '').trim() ||
+    (document.documentType || '').trim() ||
+    (document.issueDateDay || '').trim() ||
+    (document.issueDateMonth || '').trim() ||
+    (document.issueDateYear || '').trim() ||
+    (document.attachmentName || '').trim()
+  )
+}
+
+function isAccompanyingDocumentComplete (document) {
+  const allowedDocumentTypes = documentTypes
+    .map((option) => option.value)
+    .filter(Boolean)
+
+  return Boolean(
+    (document.reference || '').trim() &&
+    (document.documentType || '').trim() &&
+    allowedDocumentTypes.includes(document.documentType) &&
+    (document.issueDateDay || '').trim() &&
+    (document.issueDateMonth || '').trim() &&
+    (document.issueDateYear || '').trim()
+  )
+}
+
+function getCompleteAccompanyingDocuments (sessionData) {
+  if (!sessionData.accompanyingDocuments || !Array.isArray(sessionData.accompanyingDocuments)) {
+    return []
+  }
+
+  return sessionData.accompanyingDocuments.filter(isAccompanyingDocumentComplete)
+}
+
+function hasAccompanyingDocuments (sessionData) {
+  return Boolean(sessionData.accompanyingDocumentsComplete) ||
+    getCompleteAccompanyingDocuments(sessionData).length > 0
+}
+
+function getAccompanyingDocumentsReviewRows (sessionData) {
+  if (!hasAccompanyingDocuments(sessionData)) {
+    return [
+      {
+        key: { text: 'Details' },
+        value: { text: 'Not added' },
+        actions: { items: [{ href: '/accompanying-documents', text: 'Change', visuallyHiddenText: 'accompanying documents' }] }
+      }
+    ]
+  }
+
+  return getCompleteAccompanyingDocuments(sessionData).flatMap((document, index) => {
+    const documentNumber = index + 1
+
+    return [
+      {
+        key: { text: `Document ${documentNumber} reference` },
+        value: { text: document.reference },
+        actions: { items: [{ href: '/accompanying-documents', text: 'Change', visuallyHiddenText: `document ${documentNumber} reference` }] }
+      },
+      {
+        key: { text: `Document ${documentNumber} type` },
+        value: { text: getDocumentTypeLabel(document.documentType) },
+        actions: { items: [{ href: '/accompanying-documents', text: 'Change', visuallyHiddenText: `document ${documentNumber} type` }] }
+      },
+      {
+        key: { text: `Document ${documentNumber} date of issue` },
+        value: { text: formatIssueDate(document) },
+        actions: { items: [{ href: '/accompanying-documents', text: 'Change', visuallyHiddenText: `document ${documentNumber} date of issue` }] }
+      },
+      {
+        key: { text: `Document ${documentNumber} attachment` },
+        value: { text: document.attachmentName || 'Not added' },
+        actions: { items: [{ href: '/accompanying-documents', text: 'Change', visuallyHiddenText: `document ${documentNumber} attachment` }] }
+      }
+    ]
+  })
+}
+
+function getAccompanyingDocumentsViewModel (req) {
+  const documents = getAccompanyingDocuments(req.session.data)
+
+  return {
+    backLink: getBackLink(req, '/notification-tasklist'),
+    documents,
+    documentTypeItems: documents.map((document) => buildDocumentTypeItems(document.documentType))
+  }
+}
+
+function redirectIfCannotAccessAccompanyingDocuments (req, res) {
+  if (redirectIfNoCommodity(req, res)) {
+    return true
+  }
+
+  if (!req.session.data.animalsAdded || !req.session.data.animals || req.session.data.animals.length === 0) {
+    res.redirect('/animal-identification-details')
+    return true
+  }
+
+  if (!hasAdditionalAnimalDetailsComplete(req.session.data)) {
+    res.redirect('/additional-animal-details')
+    return true
+  }
+
+  if (!hasValidImportReason(req.session.data)) {
+    res.redirect('/reason-for-import')
+    return true
+  }
+
+  return false
 }
 
 function redirectIfNoImportCategory (req, res) {
@@ -800,12 +1113,13 @@ function getNotificationTasklistViewModel (sessionData) {
   const hasContact = hasContactAddress(sessionData)
   const hasArrival = hasArrivalDetails(sessionData)
   const hasTransport = hasTransportDetails(sessionData)
+  const hasDocuments = hasAccompanyingDocuments(sessionData)
 
   const statusComplete = { text: 'Complete', class: 'govuk-tag--green' }
   const statusTodo = { text: 'To do', class: 'govuk-tag--blue' }
 
   return {
-    reference: sessionData.notificationReference || 'GBN-AG-26-7K8M2P (Draft)',
+    reference: getDisplayNotificationReference(sessionData),
     sections: [
       {
         title: 'About the consignment',
@@ -840,8 +1154,11 @@ function getNotificationTasklistViewModel (sessionData) {
       {
         title: 'Documents',
         items: [
-          { text: 'Latest health certificate', href: '#', status: statusTodo },
-          { text: 'Accompanying documents', href: '#', status: statusTodo }
+          {
+            text: 'Accompanying documents',
+            href: withFromTasklist('/accompanying-documents'),
+            status: hasDocuments ? statusComplete : statusTodo
+          }
         ]
       },
       {
@@ -1316,22 +1633,8 @@ function getReviewNotificationViewModel (sessionData) {
         title: 'Documents',
         lists: [
           {
-            title: 'Latest health certificate',
-            rows: [
-              {
-                key: { text: 'Details' },
-                value: { text: 'Not added' }
-              }
-            ]
-          },
-          {
             title: 'Accompanying documents',
-            rows: [
-              {
-                key: { text: 'Details' },
-                value: { text: 'Not added' }
-              }
-            ]
+            rows: getAccompanyingDocumentsReviewRows(sessionData)
           }
         ]
       },
@@ -1577,6 +1880,7 @@ router.post('/what-are-you-importing', (req, res) => {
   req.session.data.errorList = null
   req.session.data.errors = null
   req.session.data.importCategory = importCategory
+  ensureDraftNotificationReference(req.session.data)
 
   if (previousCategory !== importCategory) {
     clearCommoditySession(req.session.data)
@@ -2128,6 +2432,101 @@ router.get('/notification-tasklist', (req, res) => {
   return res.render('notification-tasklist', getNotificationTasklistViewModel(req.session.data))
 })
 
+router.get('/accompanying-documents', (req, res) => {
+  if (redirectIfCannotAccessAccompanyingDocuments(req, res)) {
+    return
+  }
+
+  syncTasklistBackNavigation(req)
+
+  return res.render('accompanying-documents', getAccompanyingDocumentsViewModel(req))
+})
+
+router.post('/accompanying-documents', (req, res) => {
+  if (redirectIfCannotAccessAccompanyingDocuments(req, res)) {
+    return
+  }
+
+  const documentCount = Math.max(1, parseInt(req.body.documentCount, 10) || 1)
+  const submittedDocuments = parseAccompanyingDocumentsFromBody(req.body, documentCount)
+
+  if (req.body.addDocument === 'yes') {
+    req.session.data.accompanyingDocuments = submittedDocuments
+    req.session.data.accompanyingDocuments.push(createEmptyAccompanyingDocument())
+    req.session.data.errorList = null
+    req.session.data.errors = null
+
+    const redirectUrl = req.session.data.backToTasklist
+      ? '/accompanying-documents?from=tasklist'
+      : '/accompanying-documents'
+
+    return res.redirect(redirectUrl)
+  }
+
+  const errors = {}
+  const errorList = []
+  const allowedDocumentTypes = documentTypes
+    .map((option) => option.value)
+    .filter(Boolean)
+  const documentsToValidate = submittedDocuments.filter((document) => !isAccompanyingDocumentEmpty(document))
+
+  if (documentsToValidate.length === 0) {
+    errors['reference-0'] = { text: 'Enter the document reference' }
+    errorList.push({
+      text: 'Enter the details for at least one document',
+      href: '#document-reference-0'
+    })
+  }
+
+  submittedDocuments.forEach((document, index) => {
+    if (isAccompanyingDocumentEmpty(document)) {
+      return
+    }
+
+    if (!document.reference) {
+      errors[`reference-${index}`] = { text: 'Enter the document reference' }
+      errorList.push({
+        text: `Enter the document reference for document ${index + 1}`,
+        href: `#document-reference-${index}`
+      })
+    }
+
+    if (!document.documentType || !allowedDocumentTypes.includes(document.documentType)) {
+      errors[`documentType-${index}`] = { text: 'Select the document type' }
+      errorList.push({
+        text: `Select the document type for document ${index + 1}`,
+        href: `#document-type-${index}`
+      })
+    }
+
+    if (!document.issueDateDay || !document.issueDateMonth || !document.issueDateYear) {
+      errors[`issueDate-${index}`] = { text: 'Enter the date of issue' }
+      errorList.push({
+        text: `Enter the date of issue for document ${index + 1}`,
+        href: `#issue-date-${index}`
+      })
+    }
+  })
+
+  if (errorList.length > 0) {
+    req.session.data.errorList = errorList
+    req.session.data.errors = errors
+    req.session.data.accompanyingDocuments = submittedDocuments
+    req.session.data.accompanyingDocumentsComplete = false
+
+    return res.render('accompanying-documents', getAccompanyingDocumentsViewModel(req))
+  }
+
+  const completeDocuments = submittedDocuments.filter(isAccompanyingDocumentComplete)
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+  req.session.data.accompanyingDocuments = completeDocuments
+  req.session.data.accompanyingDocumentsComplete = true
+
+  return res.redirect('/notification-tasklist')
+})
+
 router.get('/check-answers-and-submit', (req, res) => {
   if (redirectIfCannotAccessCheckAnswers(req, res)) {
     return
@@ -2138,22 +2537,6 @@ router.get('/check-answers-and-submit', (req, res) => {
     backLink: getBackLink(req, '/notification-tasklist')
   })
 })
-
-function generateNotificationReference () {
-  const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ'
-  const digits = '0123456789'
-  const pick = (chars, count) => {
-    let result = ''
-
-    for (let index = 0; index < count; index += 1) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length))
-    }
-
-    return result
-  }
-
-  return pick(letters, 3) + pick(digits, 4) + pick(letters, 1)
-}
 
 function redirectIfNotificationNotSubmitted (req, res) {
   if (req.session.data.declarationConfirmed !== 'yes' || !req.session.data.notificationReference) {
@@ -2229,10 +2612,7 @@ router.post('/declaration', (req, res) => {
   req.session.data.declarationConfirmed = 'yes'
   req.session.data.declarationDate = getDeclarationDate(req.session.data)
 
-  if (!req.session.data.notificationReference) {
-    req.session.data.notificationReference = generateNotificationReference()
-  }
-
+  req.session.data.notificationReference = generateSubmittedNotificationReference()
   req.session.data.notificationSubmitted = true
 
   return res.redirect('/notification-submitted')

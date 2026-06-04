@@ -19,7 +19,7 @@
 {% block content %}
 <div class="govuk-grid-row app-review-notification">
   <div class="govuk-grid-column-full">
-    <span class="govuk-caption-l">Create an import notification</span>
+    {% include "partials/notification-caption.html" %}
     <h1 class="govuk-heading-l">Review your notification</h1>
 
     {% for section in sections %}

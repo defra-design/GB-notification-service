@@ -27,7 +27,7 @@
       }) }}
     {% endif %}
 
-    <span class="govuk-caption-l">Create an import notification</span>
+    {% include "partials/notification-caption.html" %}
     <h1 class="govuk-heading-l">What is the main reason for importing the animals?</h1>
 
     <form method="post" action="/reason-for-import" novalidate>

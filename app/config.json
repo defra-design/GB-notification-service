@@ -1,5 +1,5 @@
 {
-  "serviceName": "GB notification service",
+  "serviceName": "Import notification service",
   "useServiceNavigation": true,
   "plugins": {
     "govuk-frontend": {

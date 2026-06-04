@@ -28,7 +28,7 @@
     {% endif %}
 
     <div class="app-origin-page__header">
-      <p class="app-origin-page__caption">Create an import notification</p>
+      <p class="app-origin-page__caption">{% if notificationReference %}{{ notificationReference }}{% else %}Create an import notification{% endif %}</p>
       <h1 class="app-origin-page__heading">Origin of the import</h1>
     </div>
 

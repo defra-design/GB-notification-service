@@ -1972,3 +1972,325 @@ $transporter-radio-dot: 12px;
     }
   }
 }
+
+// Dashboard — Figma 7503-33121
+.app-dashboard-service-navigation {
+  border-bottom-color: #8eb8dc;
+  background-color: #f4f8fb;
+
+  .govuk-service-navigation__service-name .govuk-service-navigation__text,
+  .govuk-service-navigation__service-name .govuk-service-navigation__link {
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 25px;
+    color: #0b0c0c;
+  }
+
+  .govuk-service-navigation__item--active {
+    border-bottom-color: #1d70b8;
+
+    .govuk-service-navigation__link {
+      color: #1d70b8;
+      font-weight: 400;
+    }
+  }
+}
+
+.app-dashboard-main-wrapper {
+  max-width: none;
+  padding-top: 48px;
+  padding-bottom: 48px;
+}
+
+.app-dashboard {
+  max-width: 1124px;
+  margin: 0 auto;
+}
+
+.app-dashboard__intro {
+  max-width: 630px;
+  margin-bottom: 30px;
+}
+
+.app-dashboard__heading {
+  margin-bottom: 30px;
+}
+
+.app-dashboard__create-button {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+}
+
+.app-dashboard__layout {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+}
+
+.app-dashboard__filters {
+  flex: 0 0 344px;
+  padding: 16px;
+  background-color: #f8f8f8;
+}
+
+.app-dashboard__filters-heading {
+  margin-bottom: 24px;
+}
+
+.app-dashboard__filters-form {
+  .govuk-form-group {
+    margin-bottom: 26px;
+  }
+
+  .govuk-fieldset {
+    margin-bottom: 26px;
+  }
+
+  .govuk-label {
+    margin-bottom: 10px;
+  }
+}
+
+.app-dashboard__date-range {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.app-dashboard__date-field {
+  flex: 1 1 auto;
+  margin-bottom: 0;
+}
+
+.app-dashboard__filter-actions {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.app-dashboard__clear-link {
+  font-size: 19px;
+}
+
+.app-dashboard__results {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.app-dashboard__results-count {
+  margin-bottom: 8px;
+}
+
+.app-dashboard__sort {
+  margin-bottom: 30px;
+}
+
+.app-dashboard__sort-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.app-dashboard__sort-label {
+  margin-bottom: 0;
+  font-size: 19px;
+  font-weight: 400;
+}
+
+.app-dashboard__sort-select {
+  width: 244px;
+  max-width: 100%;
+}
+
+.app-dashboard__sort-button {
+  margin-bottom: 0;
+}
+
+.app-dashboard__cards {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.app-dashboard-card {
+  border: 1px solid #b1b4b6;
+}
+
+.app-dashboard-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background-color: #f3f2f1;
+  border-bottom: 1px solid #f3f2f1;
+}
+
+.app-dashboard-card__reference {
+  margin: 0;
+}
+
+.app-dashboard-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.app-dashboard-card__action-divider {
+  display: inline-block;
+  width: 1px;
+  height: 19px;
+  background-color: #b1b4b6;
+}
+
+.app-dashboard-card__body {
+  padding: 15px 20px;
+  background-color: #ffffff;
+}
+
+.app-dashboard-card__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.app-dashboard-card__field {
+  flex: 0 1 192px;
+  min-width: 0;
+}
+
+.app-dashboard-card__label {
+  margin-bottom: 8px;
+}
+
+.app-dashboard-card__value {
+  margin: 0;
+}
+
+// Accompanying documents — Figma 8228-28275
+.app-accompanying-documents {
+  &__caption {
+    color: #505a5f;
+    font-size: 24px;
+    line-height: 30px;
+    margin-bottom: 0;
+  }
+
+  &__heading {
+    margin-bottom: 30px;
+  }
+
+  &__intro {
+    max-width: 476px;
+    margin-bottom: 24px;
+  }
+
+  &__list {
+    margin-bottom: 24px;
+  }
+
+  &__form {
+    margin-top: 30px;
+  }
+
+  &__documents {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    margin-bottom: 30px;
+  }
+
+  &__document-card {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    padding: 20px;
+    background-color: #ffffff;
+  }
+
+  &__document {
+    padding: 20px;
+    background-color: #eeefef;
+  }
+
+  &__document-title {
+    margin-bottom: 0;
+    font-size: 24px;
+    line-height: 30px;
+  }
+
+  &__input {
+    max-width: 630px;
+  }
+
+  &__select {
+    max-width: 400px;
+  }
+
+  &__attachment {
+    max-width: 630px;
+  }
+
+  &__attachment-heading {
+    margin-bottom: 10px;
+    font-size: 24px;
+    line-height: 30px;
+  }
+
+  &__attachment-rules {
+    margin-bottom: 10px;
+  }
+
+  &__attachment-list {
+    margin-bottom: 20px;
+  }
+
+  &__add-another {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 50px;
+    border: 1px dashed #505a5f;
+    background-color: #eeefef;
+  }
+
+  &__add-another-button {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    font-size: 19px;
+    line-height: 25px;
+    text-decoration: underline;
+  }
+}
+
+@media (max-width: 1020px) {
+  .app-dashboard__layout {
+    flex-direction: column;
+  }
+
+  .app-dashboard__filters {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .app-dashboard-card__row {
+    flex-direction: column;
+  }
+
+  .app-dashboard-card__field {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+}

@@ -26,7 +26,7 @@
       }) }}
     {% endif %}
 
-    <span class="govuk-caption-l">{{ reference }}</span>
+    {% include "partials/notification-caption.html" %}
     <h1 class="govuk-heading-l">Consignment addresses</h1>
 
     {{ govukWarningText({

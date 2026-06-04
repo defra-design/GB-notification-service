@@ -14,7 +14,7 @@
 {% block content %}
 <div class="govuk-grid-row">
   <div class="govuk-grid-column-two-thirds">
-    <span class="govuk-caption-l">{{ reference }}</span>
+    {% include "partials/notification-caption.html" %}
     <h1 class="govuk-heading-l">Notification tasklist</h1>
 
     {% for section in sections %}
@@ -38,7 +38,7 @@
     <div class="app-tasklist-actions">
       {{ govukButton({
         text: "Return to dashboard",
-        href: "/",
+        href: "/dashboard",
         classes: "govuk-button--secondary"
       }) }}
 
