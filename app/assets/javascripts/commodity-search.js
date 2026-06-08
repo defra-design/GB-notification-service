@@ -1,5 +1,5 @@
 //
-// Commodity search — multiple selection (commodity and/or species rows)
+// Commodity search — multi-select species rows grouped under commodity headers
 //
 
 const commodities = [
@@ -62,6 +62,10 @@ const commodities = [
 
 function formatCommodity (commodity) {
   return `${commodity.name} (${commodity.code})`
+}
+
+function formatSpeciesOptionLabel (commodity, species) {
+  return `${commodity.name} (${species.label})`
 }
 
 function speciesMatchesQuery (speciesLabel, query) {
@@ -195,12 +199,18 @@ function initCommoditySearch (root) {
   const speciesInput = root.querySelector('.app-commodity-search__species-value')
   const selectionsInput = root.querySelector('.app-commodity-search__selections-value')
   const searchBox = root.querySelector('.app-commodity-search')
+  const selectedPanel = root.querySelector('.app-commodity-search__selected')
+  const selectedHeading = root.querySelector('.app-commodity-search__selected-heading')
+  const selectedList = root.querySelector('.app-commodity-search__selected-list')
+  const clearAllButton = root.querySelector('.app-commodity-search__selected-clear')
 
-  if (!input || !button || !results || !searchBox) {
+  if (!input || !button || !results || !searchBox || !selectedPanel || !selectedHeading || !selectedList || !clearAllButton) {
     return
   }
 
-  const selectedValues = new Set(getInitialSelections(root))
+  const selectedValues = new Set(
+    getInitialSelections(root).filter((value) => !value.startsWith('commodity:'))
+  )
 
   function getCommodityById (commodityId) {
     return commodities.find((commodity) => commodity.id === commodityId)
@@ -224,12 +234,7 @@ function initCommoditySearch (root) {
     selectedValues.forEach((value) => {
       const parsed = parseSelectionValue(value)
 
-      if (!parsed) {
-        return
-      }
-
-      if (parsed.type === 'commodity') {
-        commodityIds.add(parsed.id)
+      if (!parsed || parsed.type !== 'species') {
         return
       }
 
@@ -258,7 +263,9 @@ function initCommoditySearch (root) {
       return null
     }
 
-    const [type, id] = value.split(':')
+    const separatorIndex = value.indexOf(':')
+    const type = value.slice(0, separatorIndex)
+    const id = value.slice(separatorIndex + 1)
 
     if (!type || !id) {
       return null
@@ -279,21 +286,7 @@ function initCommoditySearch (root) {
     selectedValues.forEach((value) => {
       const parsed = parseSelectionValue(value)
 
-      if (!parsed) {
-        return
-      }
-
-      if (parsed.type === 'commodity') {
-        const commodity = getCommodityById(parsed.id)
-
-        if (commodity) {
-          records.push({
-            type: 'commodity',
-            commodityId: commodity.id,
-            commodityCode: commodity.code
-          })
-        }
-
+      if (!parsed || parsed.type !== 'species') {
         return
       }
 
@@ -345,7 +338,29 @@ function initCommoditySearch (root) {
 
   function refreshUi () {
     updateHiddenFields()
+    renderSelectedPanel()
     renderResults(input.value)
+  }
+
+  function getSelectionLabel (value) {
+    const parsed = parseSelectionValue(value)
+
+    if (!parsed) {
+      return ''
+    }
+
+    const match = getSpeciesById(parsed.id)
+
+    return match ? match.species.label : ''
+  }
+
+  function getSelectionItems () {
+    return Array.from(selectedValues)
+      .map((value) => ({
+        value,
+        label: getSelectionLabel(value)
+      }))
+      .filter((item) => item.label)
   }
 
   function announceSelectionCount () {
@@ -357,6 +372,53 @@ function initCommoditySearch (root) {
     }
 
     announce(`${count} ${count === 1 ? 'option' : 'options'} selected`)
+  }
+
+  function renderSelectedPanel () {
+    const items = getSelectionItems()
+    const hasSelections = items.length > 0
+
+    selectedPanel.hidden = !hasSelections
+    selectedPanel.classList.toggle('app-commodity-search__selected--visible', hasSelections)
+    clearAllButton.hidden = !hasSelections
+
+    if (!hasSelections) {
+      selectedHeading.textContent = ''
+      selectedList.innerHTML = ''
+      return
+    }
+
+    selectedHeading.textContent = `${items.length} selected`
+
+    selectedList.innerHTML = items.map((item) => `
+      <li class="app-commodity-search__selected-item">
+        <span class="app-commodity-search__selected-label">${escapeHtml(item.label)}</span>
+        <button
+          class="app-commodity-search__selected-remove"
+          type="button"
+          data-selection-value="${escapeHtml(item.value)}"
+          aria-label="Remove ${escapeHtml(item.label)}"
+        >
+          <span class="govuk-visually-hidden">Remove ${escapeHtml(item.label)}</span>
+        </button>
+      </li>
+    `).join('')
+  }
+
+  function clearAllSelections () {
+    selectedValues.clear()
+    updateHiddenFields()
+    renderSelectedPanel()
+    closeResults()
+    announce('')
+  }
+
+  function removeSelection (value) {
+    selectedValues.delete(value)
+    updateHiddenFields()
+    renderSelectedPanel()
+    closeResults()
+    announceSelectionCount()
   }
 
   function toggleSelection (value, checked) {
@@ -376,9 +438,18 @@ function initCommoditySearch (root) {
     setExpanded(false)
   }
 
-  function buildCheckboxRow ({
-    rowIndex,
-    rowType,
+  function buildCommodityHeaderRow ({ commodity, disabled, labelHtml }) {
+    const disabledClass = disabled ? ' app-commodity-search__row--disabled-group' : ''
+
+    return `
+      <li class="app-commodity-search__row app-commodity-search__row--commodity-header${disabledClass}">
+        <span class="app-commodity-search__row-label app-commodity-search__row-label--heading">${labelHtml}</span>
+      </li>
+    `
+  }
+
+  function buildSpeciesRow ({
+    speciesRowIndex,
     commodity,
     disabled,
     checkboxId,
@@ -386,38 +457,57 @@ function initCommoditySearch (root) {
     selectionValue,
     isChecked
   }) {
-    const altClass = rowIndex % 2 === 1 ? ' app-commodity-search__row--alt' : ''
-    const typeClass = rowType === 'commodity'
-      ? ' app-commodity-search__row--commodity'
-      : ' app-commodity-search__row--species'
+    const altClass = speciesRowIndex % 2 === 1 ? ' app-commodity-search__row--alt' : ''
     const disabledClass = disabled ? ' app-commodity-search__row--disabled' : ''
 
     return `
-      <li class="app-commodity-search__row${altClass}${typeClass}${disabledClass}">
+      <li class="app-commodity-search__row app-commodity-search__row--species${altClass}${disabledClass}">
         <div class="govuk-checkboxes app-commodity-search__checkbox-item">
           <div class="govuk-checkboxes__item">
-          <input
-            class="govuk-checkboxes__input app-commodity-search__checkbox-input"
-            id="${checkboxId}"
-            name="commodity-selection"
-            type="checkbox"
-            value="${selectionValue}"
-            data-row-type="${rowType}"
-            data-commodity-id="${commodity.id}"
-            ${isChecked ? 'checked' : ''}
-            ${disabled ? 'disabled' : ''}
-          >
-          <label class="govuk-checkboxes__label app-commodity-search__row-label" for="${checkboxId}">
-            ${labelHtml}
-          </label>
+            <input
+              class="govuk-checkboxes__input app-commodity-search__checkbox-input"
+              id="${checkboxId}"
+              name="commodity-selection"
+              type="checkbox"
+              value="${selectionValue}"
+              data-row-type="species"
+              data-commodity-id="${commodity.id}"
+              ${isChecked ? 'checked' : ''}
+              ${disabled ? 'disabled' : ''}
+            >
+            <label class="govuk-checkboxes__label app-commodity-search__row-label" for="${checkboxId}">
+              ${labelHtml}
+            </label>
           </div>
         </div>
       </li>
     `
   }
 
-  results.addEventListener('mousedown', (event) => {
+  results.addEventListener('change', (event) => {
+    const checkbox = event.target.closest('.app-commodity-search__checkbox-input')
+
+    if (!checkbox || checkbox.disabled) {
+      return
+    }
+
+    toggleSelection(checkbox.value, checkbox.checked)
+  })
+
+  selectedList.addEventListener('click', (event) => {
+    const removeButton = event.target.closest('.app-commodity-search__selected-remove')
+
+    if (!removeButton) {
+      return
+    }
+
     event.preventDefault()
+    removeSelection(removeButton.dataset.selectionValue)
+  })
+
+  clearAllButton.addEventListener('click', (event) => {
+    event.preventDefault()
+    clearAllSelections()
   })
 
   function renderResults (query) {
@@ -442,55 +532,44 @@ function initCommoditySearch (root) {
     }
 
     const trimmedQuery = query.trim()
-    let rowIndex = 0
+    let speciesRowIndex = 0
+    let speciesRowCount = 0
     const rowsHtml = []
 
     groups.forEach(({ commodity, species }) => {
       const disabled = isCommodityDisabled(commodity.id)
-      const commodityValue = `commodity:${commodity.id}`
 
-      rowsHtml.push(buildCheckboxRow({
-        rowIndex: rowIndex++,
-        rowType: 'commodity',
+      rowsHtml.push(buildCommodityHeaderRow({
         commodity,
         disabled,
-        checkboxId: `commodity-row-${commodity.id}`,
-        labelHtml: highlightMatch(escapeHtml(formatCommodity(commodity)), trimmedQuery),
-        selectionValue: commodityValue,
-        isChecked: selectedValues.has(commodityValue)
+        labelHtml: highlightMatch(escapeHtml(formatCommodity(commodity)), trimmedQuery)
       }))
 
       species.forEach((speciesItem) => {
         const speciesValue = `species:${speciesItem.id}`
+        const optionLabel = formatSpeciesOptionLabel(commodity, speciesItem)
 
-        rowsHtml.push(buildCheckboxRow({
-          rowIndex: rowIndex++,
-          rowType: 'species',
+        rowsHtml.push(buildSpeciesRow({
+          speciesRowIndex: speciesRowIndex++,
           commodity,
           disabled,
           checkboxId: `commodity-species-${speciesItem.id}`,
-          labelHtml: highlightMatch(escapeHtml(speciesItem.label), trimmedQuery),
+          labelHtml: highlightMatch(escapeHtml(optionLabel), trimmedQuery),
           selectionValue: speciesValue,
           isChecked: selectedValues.has(speciesValue)
         }))
+        speciesRowCount += 1
       })
     })
 
     results.innerHTML = rowsHtml.join('')
-
-    results.querySelectorAll('.app-commodity-search__checkbox-input').forEach((checkbox) => {
-      checkbox.addEventListener('change', (event) => {
-        toggleSelection(event.target.value, event.target.checked)
-      })
-    })
-
     results.hidden = false
     setExpanded(true)
 
     if (selectedValues.size > 0) {
       announceSelectionCount()
     } else {
-      announce(`${rowIndex} results available`)
+      announce(`${speciesRowCount} results available`)
     }
   }
 
@@ -504,8 +583,10 @@ function initCommoditySearch (root) {
     }
   })
 
-  input.addEventListener('blur', () => {
-    window.setTimeout(closeResults, 200)
+  document.addEventListener('pointerdown', (event) => {
+    if (!root.contains(event.target)) {
+      closeResults()
+    }
   })
 
   input.addEventListener('keydown', (event) => {
@@ -524,6 +605,7 @@ function initCommoditySearch (root) {
   })
 
   updateHiddenFields()
+  renderSelectedPanel()
 
   if (input.value.trim()) {
     renderResults(input.value)

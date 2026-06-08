@@ -88,6 +88,17 @@
               hidden
             ></ul>
           </div>
+
+          <div class="app-commodity-search__selected" id="commodity-search-selected" hidden>
+            <div class="app-commodity-search__selected-header">
+              <p class="app-commodity-search__selected-heading" id="commodity-search-selected-heading"></p>
+              <button class="govuk-link app-govuk-body-link app-commodity-search__selected-clear" type="button">
+                Clear all
+              </button>
+            </div>
+            <ul class="app-commodity-search__selected-list" id="commodity-search-selected-list" role="list"></ul>
+          </div>
+
           <script type="application/json" class="app-commodity-search__initial">{{ (commoditySelectionsJson or "[]") | safe }}</script>
           <input type="hidden" name="commodityId" class="app-commodity-search__commodity-id">
           <input type="hidden" name="commodityCode" class="app-commodity-search__commodity-code">
@@ -98,7 +109,7 @@
       </div>
 
       {{ govukDetails({
-        summaryText: "If you need help with finding an animal",
+        summaryText: "Help with commodities",
         html: "<p class='govuk-body'>You can:</p><ul class='govuk-list govuk-list--bullet'><li>use the Species search to find an animal using its scientific (Latin) species name</li><li><a class='govuk-link' href='https://www.gov.uk/trade-tariff' rel='noreferrer noopener' target='_blank'>look up commodity codes for animals using the Trade Tariff tool<span class='govuk-visually-hidden'> (opens in new tab)</span></a></li></ul>"
       }) }}
 
