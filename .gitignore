@@ -1,0 +1,18 @@
+# Node.js
+node_modules/
+
+# GOV.UK Prototype Kit — per-user / generated
+.tmp/
+.env
+migrate.log
+usage-data-config.json
+
+# OS and editor
+.DS_Store
+.idea/
+.vscode/
+.cursor/
+
+# Logs
+*.log
+npm-debug.log*
