@@ -1,0 +1,266 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+
+{% set pageName = "Upload documents" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full app-upload-documents-page">
+
+    {% include "partials/notification-status.html" %}
+
+    <div class="app-upload-documents-page__header">
+      <p class="app-upload-documents-page__caption">Documents</p>
+      <h1 class="app-upload-documents-page__heading">Upload documents</h1>
+    </div>
+
+    <p class="app-upload-documents-page__intro">
+      You must attach an ITAHC if this consignment requires one. If you do not have it now, you can add it later. All documents should be uploaded before the consignment arrives at the UK port. Documents must be in English and you must upload all pages.
+    </p>
+
+    <div class="app-upload-documents-page__content">
+      <p class="app-upload-documents-page__body">Other documents you may need to attach include:</p>
+
+      <ul class="app-upload-documents-page__list govuk-list govuk-list--bullet">
+        <li>import licences or authorisations</li>
+        <li>commercial documents or invoices</li>
+      </ul>
+    </div>
+
+    {{ govukDetails({
+      summaryText: "Check which additional documents you must upload",
+      classes: "app-upload-documents-page__details",
+      html: '
+        <div class="app-upload-documents-page__details-content">
+          <table class="govuk-table app-upload-documents-page__details-table">
+            <thead class="govuk-table__head">
+              <tr class="govuk-table__row">
+                <th scope="col" class="govuk-table__header">Consignment</th>
+                <th scope="col" class="govuk-table__header">Documents needed</th>
+              </tr>
+            </thead>
+            <tbody class="govuk-table__body">
+              <tr class="govuk-table__row">
+                <td class="govuk-table__cell">Animals that do not need a health certificate</td>
+                <td class="govuk-table__cell">Exporter&#39;s declaration that they are fit to travel</td>
+              </tr>
+              <tr class="govuk-table__row">
+                <td class="govuk-table__cell">Livestock transiting bluetongue restricted territories</td>
+                <td class="govuk-table__cell">Bluetongue declaration GBHC172</td>
+              </tr>
+              <tr class="govuk-table__row">
+                <td class="govuk-table__cell">Rodents imported for research purposes</td>
+                <td class="govuk-table__cell">RM39 licence and supplementary health certificate</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="app-upload-documents-page__details-link">
+            <a class="govuk-link" href="#">Check the documents you need</a> on <a class="govuk-link" href="#">GOV.UK</a> (opens in new tab).
+          </p>
+        </div>'
+    }) }}
+
+    <form method="post" action="/upload-documents" novalidate class="app-upload-documents-form">
+      {% if data.errorList %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: data.errorList
+        }) }}
+      {% endif %}
+
+      <section class="app-upload-documents-card" aria-labelledby="file-upload-heading">
+        <div class="app-upload-documents-card__header">
+          <h2 class="app-upload-documents-card__heading" id="file-upload-heading">File upload</h2>
+        </div>
+
+        <div class="app-upload-documents-card__body">
+          <div class="app-upload-documents-card__field app-upload-documents-card__field--reference">
+            {{ govukInput({
+              id: "document-reference",
+              name: "documentReference",
+              value: formValues.documentReference or "",
+              label: {
+                text: "Document reference",
+                classes: "app-upload-documents-card__label"
+              },
+              classes: "app-upload-documents-card__input app-upload-documents-card__input--reference",
+              formGroup: {
+                classes: "app-upload-documents-card__form-group"
+              },
+              errorMessage: data.errors.documentReference if data.errors and data.errors.documentReference
+            }) }}
+          </div>
+
+          <div class="app-upload-documents-card__field app-upload-documents-card__field--type">
+            {{ govukSelect({
+              id: "document-type",
+              name: "documentType",
+              label: {
+                text: "Document type",
+                classes: "app-upload-documents-card__label"
+              },
+              items: documentTypeItems,
+              classes: "app-upload-documents-card__select",
+              formGroup: {
+                classes: "app-upload-documents-card__form-group"
+              },
+              errorMessage: data.errors.documentType if data.errors and data.errors.documentType
+            }) }}
+          </div>
+
+          <div class="app-upload-documents-card__field app-upload-documents-card__field--date">
+            <div class="app-upload-documents-card__date-picker">
+              {{ mojDatePicker({
+                id: "date-of-issue",
+                name: "dateOfIssue",
+                value: formValues.dateOfIssue or "",
+                label: {
+                  text: "Date of issue",
+                  classes: "app-upload-documents-card__label"
+                },
+                hint: {
+                  text: "For example, 27/3/2026",
+                  classes: "app-upload-documents-card__hint"
+                },
+                formGroup: {
+                  classes: "app-upload-documents-card__form-group"
+                },
+                errorMessage: data.errors.dateOfIssue if data.errors and data.errors.dateOfIssue
+              }) }}
+            </div>
+          </div>
+
+          <div class="app-upload-documents-card__field app-upload-documents-card__field--attachment{% if data.errors and data.errors.attachment %} app-upload-documents-card__field--error{% endif %}">
+            <label class="govuk-label app-upload-documents-card__label" for="attachment">
+              Attachment
+            </label>
+            {% if data.errors and data.errors.attachment %}
+              <p id="attachment-error" class="govuk-error-message">
+                <span class="govuk-visually-hidden">Error:</span> {{ data.errors.attachment.text }}
+              </p>
+            {% endif %}
+            <div class="govuk-hint app-upload-documents-card__hint">Your file must be:</div>
+
+            <ul class="app-upload-documents-card__requirements govuk-list govuk-list--bullet">
+              <li>files that are smaller than 50MB</li>
+              <li>PDF, DOC, DOCX, JPEG, JPG, PNG, XLS or XLSX</li>
+              <li>up to a maximum of 15 files</li>
+              <li>ZIP files are not allowed for security reasons</li>
+            </ul>
+
+            <div class="app-upload-documents-card__dropzone{% if data.errors and data.errors.attachment %} app-upload-documents-card__dropzone--error{% endif %}" data-module="app-file-upload">
+              <div class="app-upload-documents-card__dropzone-status" aria-live="polite">{{ formValues.attachmentFileName or "No file chosen" }}</div>
+              <div class="app-upload-documents-card__dropzone-actions">
+                <label class="app-upload-documents-card__choose-file" for="attachment">Choose file</label>
+                <span class="app-upload-documents-card__drop-text">or drop file</span>
+              </div>
+              <input class="app-upload-documents-card__file-input" id="attachment" name="attachment" type="file"{% if data.errors and data.errors.attachment %} aria-describedby="attachment-error"{% endif %}>
+              <input type="hidden" name="attachmentFileName" value="{{ formValues.attachmentFileName or '' }}">
+            </div>
+          </div>
+
+          {{ govukButton({
+            text: "Save and add another",
+            name: "action",
+            value: "add-another",
+            classes: "app-upload-documents-card__add-button"
+          }) }}
+
+          {% if uploadedDocuments.length %}
+            <div class="app-upload-documents-card__saved">
+              <table class="govuk-table app-upload-documents-table">
+                <colgroup>
+                  <col class="app-upload-documents-table__col">
+                  <col class="app-upload-documents-table__col">
+                  <col class="app-upload-documents-table__col">
+                  <col class="app-upload-documents-table__col">
+                  <col class="app-upload-documents-table__col">
+                </colgroup>
+                <thead class="govuk-table__head">
+                  <tr class="govuk-table__row">
+                    <th scope="col" class="govuk-table__header">Document reference</th>
+                    <th scope="col" class="govuk-table__header">Document type</th>
+                    <th scope="col" class="govuk-table__header">Date of issue</th>
+                    <th scope="col" class="govuk-table__header">Status</th>
+                    <th scope="col" class="govuk-table__header govuk-table__header--numeric">
+                      <span class="govuk-visually-hidden">Action</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="govuk-table__body">
+                  {% for document in uploadedDocuments %}
+                    <tr class="govuk-table__row">
+                      <td class="govuk-table__cell">{{ document.documentReference }}</td>
+                      <td class="govuk-table__cell">{{ document.documentTypeLabel }}</td>
+                      <td class="govuk-table__cell">{{ document.dateOfIssue }}</td>
+                      <td class="govuk-table__cell">
+                        <span class="govuk-visually-hidden">Virus check status for {{ document.documentReference }}</span>
+                        <strong
+                          class="govuk-tag {{ document.status.class }} app-upload-documents-table__status"
+                          data-virus-status="{{ document.virusStatus }}"
+                          data-document-id="{{ document.id }}"
+                        >{{ document.status.text }}</strong>
+                      </td>
+                      <td class="govuk-table__cell govuk-table__cell--numeric">
+                        <button
+                          type="submit"
+                          name="action"
+                          value="remove:{{ document.id }}"
+                          class="govuk-link app-upload-documents-table__remove-button"
+                        >Remove</button>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% endif %}
+        </div>
+      </section>
+
+      <div class="app-origin-form-actions">
+        <div class="app-origin-actions">
+          {{ govukButton({
+            text: "Save and continue",
+            name: "action",
+            value: "continue"
+          }) }}
+
+          {{ govukButton({
+            text: "Save and return to hub",
+            name: "action",
+            value: "hub",
+            classes: "govuk-button--secondary"
+          }) }}
+        </div>
+
+        <p class="app-origin-form-actions__cancel">
+          <a class="govuk-link" href="/notification-hub">Cancel and return to hub</a>
+        </p>
+      </div>
+    </form>
+
+  </div>
+</div>
+{% endblock %}

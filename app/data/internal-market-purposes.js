@@ -34,6 +34,10 @@ module.exports = [
     text: 'Production'
   },
   {
+    value: 'Rehoming',
+    text: 'Rehoming'
+  },
+  {
     value: 'Slaughter',
     text: 'Slaughter'
   },

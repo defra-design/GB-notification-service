@@ -1,0 +1,56 @@
+{% from "partials/review-summary-row.html" import reviewRow %}
+
+{% macro reviewCardWrapperStart(card) %}
+  <div class="app-review-card-wrapper{% if card.hasError %} app-review-card-wrapper--error{% endif %}">
+{% endmacro %}
+
+{% macro reviewCardWrapperEnd() %}
+  </div>
+{% endmacro %}
+
+{% macro reviewCardErrorMessage(card) %}
+  {% if card.errorMessage %}
+    <p class="govuk-error-message app-review-card__error-message">
+      <span class="govuk-visually-hidden">Error:</span>
+      {{ card.errorMessage }}
+    </p>
+  {% endif %}
+{% endmacro %}
+
+{% macro reviewCard(card) %}
+  {{ reviewCardWrapperStart(card) }}
+  <section class="app-review-card" aria-labelledby="{{ card.id }}">
+    <div class="app-review-card__title{% if card.changeHref %} app-review-card__title--with-action{% endif %}">
+      <h3 class="app-review-card__title-text" id="{{ card.id }}">{{ card.title }}</h3>
+      {% if card.changeHref %}
+        <a class="govuk-link app-review-card__title-link" href="{{ card.changeHref }}">Change</a>
+      {% endif %}
+    </div>
+
+    {{ reviewCardErrorMessage(card) }}
+
+    {% if card.rows and card.rows.length %}
+      <dl class="app-review-card__rows">
+        {% for row in card.rows %}
+          {{ reviewRow(row) }}
+        {% endfor %}
+      </dl>
+    {% endif %}
+
+    {% if card.documents %}
+      <div class="app-review-card__documents">
+        {% for document in card.documents %}
+          <div class="app-review-card__document">
+            <h4 class="app-review-card__document-heading">{{ document.title }}</h4>
+            <dl class="app-review-card__rows app-review-card__rows--nested">
+              {% for row in document.rows %}
+                {{ reviewRow(row) }}
+              {% endfor %}
+            </dl>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
+  {{ reviewCardWrapperEnd() }}
+{% endmacro %}

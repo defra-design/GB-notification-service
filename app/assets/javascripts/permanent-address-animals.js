@@ -1,15 +1,15 @@
 //
-// Reason for import — show Internal market dropdown only when that option is selected
+// Permanent address animals — hide radio hint when conditional address form is open
 //
 
-function initReasonForImport (root) {
-  const radios = Array.from(root.querySelectorAll('input[name="importReason"]'))
+function initPermanentAddressAnimalRadios (root) {
+  const radios = Array.from(root.querySelectorAll('.govuk-radios__input[data-aria-controls]'))
 
   if (!radios.length) {
     return
   }
 
-  function updateInternalMarketReveal () {
+  function updateConditionalReveals () {
     radios.forEach((radio) => {
       const conditionalId = radio.getAttribute('data-aria-controls')
 
@@ -22,24 +22,28 @@ function initReasonForImport (root) {
       const hint = item && item.querySelector('.govuk-radios__hint')
       const isOpen = radio.checked
 
+      if (hint) {
+        hint.hidden = isOpen
+      }
+
+      if (item) {
+        item.classList.toggle('govuk-radios__item--conditional-open', isOpen)
+      }
+
       if (conditional) {
         conditional.classList.toggle('govuk-radios__conditional--hidden', !isOpen)
         conditional.setAttribute('aria-hidden', isOpen ? 'false' : 'true')
-      }
-
-      if (hint) {
-        hint.hidden = isOpen
       }
     })
   }
 
   radios.forEach((radio) => {
-    radio.addEventListener('change', updateInternalMarketReveal)
+    radio.addEventListener('change', updateConditionalReveals)
   })
 
-  updateInternalMarketReveal()
+  updateConditionalReveals()
 }
 
 window.GOVUKPrototypeKit.documentReady(() => {
-  document.querySelectorAll('.app-reason-for-import-form').forEach(initReasonForImport)
+  document.querySelectorAll('.app-permanent-address-animals-form').forEach(initPermanentAddressAnimalRadios)
 })

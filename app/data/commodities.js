@@ -1,37 +1,33 @@
 // UK live animal commodities — CN codes based on Trade Tariff chapter 01 (live animals)
 // and common species used in GB import notifications (IPAFFS / CHEDA).
 
-module.exports = [
+const otherLiveMammalsSpecies = require('./commodities-01061900-species')
+const cattleSpecies = require('./commodities-0102-species')
+const horseSpecies = require('./commodities-0101-species')
+const { getIdentifiersForCommodityCode } = require('./commodity-identifiers')
+
+const commodities = [
   {
     id: 'cattle',
     name: 'Cattle',
     code: '0102',
-    identifiers: [
-      { id: 'ear-tag', label: 'Ear tag' },
-      { id: 'passport', label: 'Passport' }
-    ],
+    identifiers: getIdentifiersForCommodityCode('0102'),
     certificationPurposeOptions: [
       'Approved bodies',
       'Breeding and/or production',
       'Slaughter'
     ],
     unweanedOptions: ['Yes', 'No'],
-    species: [
-      { id: 'cattle-bos-taurus', label: 'Bos taurus' },
-      { id: 'cattle-bos-indicus', label: 'Bos indicus' },
-      { id: 'cattle-bison-bison', label: 'Bison bison' },
-      { id: 'cattle-bubalus-bubalis', label: 'Bubalus bubalis' },
-      { id: 'cattle-bos-spp', label: 'Bos spp.' }
-    ]
+    packagingFields: [
+      { id: 'number-of-packages', label: 'Number of packages', type: 'number', hint: 'Such as crates, bags or boxes' }
+    ],
+    species: cattleSpecies
   },
   {
     id: 'horse',
     name: 'Horse',
     code: '0101',
-    identifiers: [
-      { id: 'microchip', label: 'Microchip' },
-      { id: 'passport', label: 'Passport' }
-    ],
+    identifiers: getIdentifiersForCommodityCode('0101'),
     certificationPurposeOptions: [
       'Breeding',
       'Racing/Competition',
@@ -40,25 +36,25 @@ module.exports = [
       'Transit',
       'Other'
     ],
-    species: [
-      { id: 'horse-equus-caballus', label: 'Equus caballus' },
-      { id: 'horse-equus-asinus', label: 'Equus asinus' },
-      { id: 'horse-equus-przewalskii', label: "Equus przewalskii" }
-    ]
+    packagingFields: [
+      { id: 'number-of-packages', label: 'Number of packages', type: 'number', hint: 'Such as crates, bags or boxes' }
+    ],
+    species: horseSpecies
   },
   {
     id: 'pig',
     name: 'Pig',
     code: '0103',
-    identifiers: [
-      { id: 'ear-tag', label: 'Ear tag' }
-    ],
+    identifiers: getIdentifiersForCommodityCode('0103'),
     certificationPurposeOptions: [
       'Approved bodies',
       'Breeding and/or production',
       'Slaughter'
     ],
     unweanedOptions: ['Yes', 'No'],
+    packagingFields: [
+      { id: 'number-of-packages', label: 'Number of packages', type: 'number', hint: 'Such as crates, bags or boxes' }
+    ],
     species: [
       { id: 'pig-sus-scrofa', label: 'Sus scrofa domesticus' }
     ]
@@ -145,11 +141,7 @@ module.exports = [
     id: 'cat',
     name: 'Cat',
     code: '01061900',
-    identifiers: [
-      { id: 'microchip', label: 'Microchip' },
-      { id: 'passport', label: 'Passport' },
-      { id: 'tattoo', label: 'Tattoo' }
-    ],
+    identifiers: getIdentifiersForCommodityCode('01061900'),
     certificationPurposeOptions: [
       'Approved bodies',
       'Breeding and/or production',
@@ -168,11 +160,7 @@ module.exports = [
     id: 'dog',
     name: 'Dog',
     code: '01061900',
-    identifiers: [
-      { id: 'microchip', label: 'Microchip' },
-      { id: 'passport', label: 'Passport' },
-      { id: 'tattoo', label: 'Tattoo' }
-    ],
+    identifiers: getIdentifiersForCommodityCode('01061900'),
     certificationPurposeOptions: [
       'Approved bodies',
       'Breeding and/or production',
@@ -186,6 +174,23 @@ module.exports = [
     species: [
       { id: 'dog-canis-familiaris', label: 'Canis familiaris', commonName: 'Domestic dog' }
     ]
+  },
+  {
+    id: 'other-live-mammals',
+    name: 'Other live mammals',
+    code: '01061900',
+    identifiers: getIdentifiersForCommodityCode('01061900'),
+    certificationPurposeOptions: [
+      'Approved bodies',
+      'Breeding and/or production',
+      'Circus/exhibition',
+      'Pets',
+      'Other'
+    ],
+    packagingFields: [
+      { id: 'number-of-packages', label: 'Number of packages', type: 'number', hint: 'Such as crates, bags or boxes' }
+    ],
+    species: otherLiveMammalsSpecies
   },
   {
     id: 'rabbit',
@@ -256,3 +261,7 @@ module.exports = [
     ]
   }
 ]
+
+module.exports = commodities.slice().sort((a, b) =>
+  a.name.localeCompare(b.name, 'en', { sensitivity: 'base' })
+)

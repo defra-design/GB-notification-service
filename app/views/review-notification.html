@@ -1,0 +1,140 @@
+{% extends "layouts/main.html" %}
+
+{% set pageName = "Review your notification" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "partials/review-summary-card.html" import reviewCard, reviewCardWrapperStart, reviewCardWrapperEnd, reviewCardErrorMessage %}
+{% from "partials/review-summary-row.html" import reviewRow %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full app-review-notification-page">
+
+    {% include "partials/notification-status.html" %}
+
+    {% if data.errorList %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: data.errorList
+      }) }}
+    {% endif %}
+
+    <h1 class="app-review-notification-page__title">Review your notification</h1>
+
+    <section class="app-review-notification-page__section" aria-labelledby="review-section-about">
+      <h2 class="app-review-notification-page__section-heading" id="review-section-about">1. About the consignment</h2>
+
+      <h3 class="app-review-notification-page__subsection-heading">Consignment details</h3>
+      {{ reviewCard(aboutConsignment.importDetailsCard) }}
+
+      <h3 class="app-review-notification-page__subsection-heading">Commodity details</h3>
+      {{ reviewCard(aboutConsignment.animalDetailsCard) }}
+
+      {{ reviewCard(aboutConsignment.additionalAnimalDetailsCard) }}
+
+      <h3 class="app-review-notification-page__subsection-heading">Species</h3>
+
+      {% for species in aboutConsignment.speciesSections %}
+        {{ reviewCardWrapperStart(species) }}
+        <section class="app-review-card app-review-card--species" aria-labelledby="{{ species.id }}">
+          <div class="app-review-card__title app-review-card__title--with-action">
+            <h3 class="app-review-card__title-text" id="{{ species.id }}">{{ species.title }}</h3>
+            <a class="govuk-link app-review-card__title-link" href="{{ species.changeHref }}">Change</a>
+          </div>
+
+          {{ reviewCardErrorMessage(species) }}
+
+          <dl class="app-review-card__rows">
+            {% for row in species.rows %}
+              {{ reviewRow(row) }}
+            {% endfor %}
+          </dl>
+
+          {% if species.animalTable %}
+            <div class="app-review-card__animal-details">
+              <h4 class="app-review-card__animal-details-heading">Animal details</h4>
+              <table class="govuk-table app-review-card__animal-table">
+                <thead class="govuk-table__head">
+                  <tr class="govuk-table__row">
+                    {% for header in species.animalTable.headers %}
+                      <th scope="col" class="govuk-table__header">{{ header }}</th>
+                    {% endfor %}
+                  </tr>
+                </thead>
+                <tbody class="govuk-table__body">
+                  {% for animal in species.animalTable.rows %}
+                    <tr class="govuk-table__row">
+                      <td class="govuk-table__cell">{{ animal.label }}</td>
+                      {% for value in animal.values %}
+                        <td class="govuk-table__cell">{{ value }}</td>
+                      {% endfor %}
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% endif %}
+
+          {% if species.packagingRows %}
+          <div class="app-review-card__packaging">
+            <h4 class="app-review-card__packaging-heading">Packaging details</h4>
+            <dl class="app-review-card__rows app-review-card__rows--packaging">
+              {% for row in species.packagingRows %}
+                {{ reviewRow(row) }}
+              {% endfor %}
+            </dl>
+          </div>
+          {% endif %}
+        </section>
+        {{ reviewCardWrapperEnd() }}
+      {% endfor %}
+    </section>
+
+    <section class="app-review-notification-page__section" aria-labelledby="review-section-movement">
+      <h2 class="app-review-notification-page__section-heading" id="review-section-movement">2. Movement</h2>
+
+      {{ reviewCard(movement.arrivalDetailsCard) }}
+
+      {{ reviewCard(movement.transportDetailsCard) }}
+    </section>
+
+    <section class="app-review-notification-page__section" aria-labelledby="review-section-addresses">
+      <h2 class="app-review-notification-page__section-heading" id="review-section-addresses">3. Addresses</h2>
+
+      {{ reviewCard(addresses.rolesCard) }}
+
+      {{ reviewCard(addresses.contactCard) }}
+    </section>
+
+    <section class="app-review-notification-page__section" aria-labelledby="review-section-documents">
+      <h2 class="app-review-notification-page__section-heading" id="review-section-documents">4. Documents</h2>
+
+      {{ reviewCard(documents.uploadedDocumentsCard) }}
+    </section>
+
+    <form method="post" action="/review-notification" novalidate class="app-review-notification-page__form">
+      {{ govukButton({
+        text: "Continue"
+      }) }}
+    </form>
+
+  </div>
+</div>
+{% endblock %}

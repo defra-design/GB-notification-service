@@ -55,6 +55,7 @@
         <div class="app-consignment-details-page__species">
           <div class="app-consignment-details-page__species-header">
             <h2 class="app-consignment-details-page__species-heading">{{ entry.heading }}</h2>
+            {% if speciesEntries.length > 1 %}
             <button
               class="govuk-link app-govuk-body-link app-consignment-details-page__species-remove"
               type="submit"
@@ -63,6 +64,7 @@
             >
               Remove
             </button>
+            {% endif %}
           </div>
 
           {% set numberOfAnimalsError = data.errors["numberOfAnimals-" + entry.speciesId] if data.errors and data.errors["numberOfAnimals-" + entry.speciesId] %}
@@ -77,6 +79,28 @@
             classes: "govuk-input--width-10",
             errorMessage: numberOfAnimalsError
           }) }}
+
+          {% if entry.showPackaging %}
+            <div class="app-consignment-details-page__packaging">
+              <h3 class="app-consignment-details-page__packaging-heading">Packaging details</h3>
+
+              {% for field in entry.packagingFields %}
+                {{ govukInput({
+                  label: {
+                    text: field.label
+                  },
+                  hint: {
+                    text: field.hint
+                  },
+                  id: field.id,
+                  name: field.name,
+                  value: field.value,
+                  classes: "govuk-input--width-10",
+                  errorMessage: field.errorMessage
+                }) }}
+              {% endfor %}
+            </div>
+          {% endif %}
         </div>
       {% endfor %}
 

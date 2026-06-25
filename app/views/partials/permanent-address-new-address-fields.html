@@ -1,0 +1,86 @@
+{% from "govuk/components/input/macro.njk" import govukInput %}
+
+{% set fieldPrefix = "permanentAddressDetails[" + animalKey + "]" %}
+{% set errorPrefix = "permanentAddressDetails-" + animalKey | replace(":", "-") %}
+
+<div class="app-permanent-address-new-address-fields">
+  {{ govukInput({
+    label: {
+      text: "Name or organisation"
+    },
+    id: errorPrefix + "-name",
+    name: fieldPrefix + "[name]",
+    value: values.name,
+    classes: "app-permanent-address-new-address-fields__input app-permanent-address-new-address-fields__input--three-quarters",
+    errorMessage: data.errors[errorPrefix + "-name"] if data.errors and data.errors[errorPrefix + "-name"]
+  }) }}
+
+  {{ govukInput({
+    label: {
+      text: "Address line 1"
+    },
+    id: errorPrefix + "-address-line-1",
+    name: fieldPrefix + "[addressLine1]",
+    value: values.addressLine1,
+    classes: "app-permanent-address-new-address-fields__input app-permanent-address-new-address-fields__input--three-quarters",
+    errorMessage: data.errors[errorPrefix + "-address-line-1"] if data.errors and data.errors[errorPrefix + "-address-line-1"]
+  }) }}
+
+  {{ govukInput({
+    label: {
+      text: "Address line 2 (optional)"
+    },
+    id: errorPrefix + "-address-line-2",
+    name: fieldPrefix + "[addressLine2]",
+    value: values.addressLine2,
+    classes: "app-permanent-address-new-address-fields__input app-permanent-address-new-address-fields__input--three-quarters",
+    errorMessage: data.errors[errorPrefix + "-address-line-2"] if data.errors and data.errors[errorPrefix + "-address-line-2"]
+  }) }}
+
+  {{ govukInput({
+    label: {
+      text: "Town or city"
+    },
+    id: errorPrefix + "-town-or-city",
+    name: fieldPrefix + "[townOrCity]",
+    value: values.townOrCity,
+    classes: "app-permanent-address-new-address-fields__input app-permanent-address-new-address-fields__input--one-half",
+    errorMessage: data.errors[errorPrefix + "-town-or-city"] if data.errors and data.errors[errorPrefix + "-town-or-city"]
+  }) }}
+
+  {{ govukInput({
+    label: {
+      text: "Postcode or Zip code"
+    },
+    id: errorPrefix + "-postcode",
+    name: fieldPrefix + "[postcode]",
+    value: values.postcode,
+    classes: "app-permanent-address-new-address-fields__input app-permanent-address-new-address-fields__input--one-half",
+    errorMessage: data.errors[errorPrefix + "-postcode"] if data.errors and data.errors[errorPrefix + "-postcode"]
+  }) }}
+
+  {{ govukInput({
+    label: {
+      text: "Email address"
+    },
+    id: errorPrefix + "-email",
+    name: fieldPrefix + "[email]",
+    value: values.email,
+    classes: "app-permanent-address-new-address-fields__input app-permanent-address-new-address-fields__input--three-quarters",
+    errorMessage: data.errors[errorPrefix + "-email"] if data.errors and data.errors[errorPrefix + "-email"]
+  }) }}
+
+  {{ govukInput({
+    label: {
+      text: "Phone number"
+    },
+    hint: {
+      text: "For international numbers include the country code"
+    },
+    id: errorPrefix + "-phone",
+    name: fieldPrefix + "[phone]",
+    value: values.phone,
+    classes: "app-permanent-address-new-address-fields__input app-permanent-address-new-address-fields__input--two-thirds",
+    errorMessage: data.errors[errorPrefix + "-phone"] if data.errors and data.errors[errorPrefix + "-phone"]
+  }) }}
+</div>

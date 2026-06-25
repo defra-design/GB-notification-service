@@ -9,12 +9,17 @@ const countryOptions = require('./data/countries')
 const countryLabels = countryOptions.labels
 const countryRegionPrefixes = require('./data/country-region-prefixes')
 const commodities = require('./data/commodities')
+const { getIdentifiersForCommodityCode } = require('./data/commodity-identifiers')
 const certificationPurposeOptions = require('./data/certification-purposes')
 const importReasons = require('./data/import-reasons')
 const internalMarketPurposes = require('./data/internal-market-purposes')
 const ukAirports = require('./data/uk-airports')
 const meansOfTransportOptions = require('./data/means-of-transport')
 const contactAddresses = require('./data/contact-addresses')
+const consignmentAddressSections = require('./data/consignment-address-sections')
+const getActiveConsignmentAddressSections = consignmentAddressSections.getActiveConsignmentAddressSections
+const consignmentAddresses = require('./data/consignment-addresses')
+const transporters = require('./data/transporters')
 const { getCommoditySearchData } = require('./utils/commodity-search-data')
 
 const TRANSIT_MEANS_OF_TRANSPORT = ['Railway', 'Road Vehicle']
@@ -65,6 +70,27 @@ function ensurePrototypeNotificationReference (sessionData) {
   if (!sessionData.notificationReference) {
     sessionData.notificationReference = PROTOTYPE_NOTIFICATION_REFERENCE
   }
+}
+
+function seedPrototypeSessionForReasonForImport (sessionData) {
+  sessionData.countryOfOrigin = 'France'
+  sessionData.regionOfOriginRequired = 'No'
+  sessionData.commodityId = 'cattle'
+  sessionData.commodityCode = '0102'
+  sessionData.commodityName = 'Cattle'
+  sessionData.selectedSpecies = ['cattle-bison-bison']
+  sessionData.commoditySelections = [{
+    type: 'species',
+    commodityId: 'cattle',
+    commodityCode: '0102',
+    speciesId: 'cattle-bison-bison'
+  }]
+  sessionData.numberOfAnimals = {
+    'cattle-bison-bison': '5'
+  }
+  sessionData.certificationPurpose = 'Slaughter'
+  sessionData.unweanedAnimals = 'No'
+  ensurePrototypeNotificationReference(sessionData)
 }
 
 function hasOriginDetails (sessionData) {
@@ -167,6 +193,10 @@ function syncCommoditySession (sessionData, commodity) {
   sessionData.commodityId = commodity.id
   sessionData.commodityCode = commodity.code
   sessionData.commodityName = commodity.name
+
+  if (commodity.code === '01061900') {
+    sessionData.unweanedAnimals = null
+  }
 }
 
 function getSpeciesMatch (speciesId) {
@@ -203,6 +233,13 @@ function toTitleCaseLabel (value) {
     .join(' ')
 }
 
+function formatSpeciesDisplayTitle ({ commodity, species }) {
+  const commonName = species.commonName || commodity.name
+  const latinName = species.label
+
+  return `${commodity.code} (${commonName} - ${latinName})`
+}
+
 function buildSpeciesSelectionRecords (speciesIds) {
   return speciesIds
     .map((speciesId) => {
@@ -233,6 +270,10 @@ function removeSpeciesFromSession (sessionData, speciesId) {
     delete sessionData.numberOfAnimals[speciesId]
   }
 
+  if (sessionData.numberOfPackages && sessionData.numberOfPackages[speciesId] != null) {
+    delete sessionData.numberOfPackages[speciesId]
+  }
+
   if (speciesIds.length === 0) {
     sessionData.commodityId = null
     sessionData.commodityCode = null
@@ -247,8 +288,21 @@ function removeSpeciesFromSession (sessionData, speciesId) {
   }
 }
 
+function getPackagingFields (commodity) {
+  if (!commodity || !Array.isArray(commodity.packagingFields) || !commodity.packagingFields.length) {
+    return []
+  }
+
+  return commodity.packagingFields
+}
+
+function commodityRequiresPackaging (commodity) {
+  return getPackagingFields(commodity).length > 0
+}
+
 function getConsignmentSpeciesEntries (sessionData) {
   const numberOfAnimals = sessionData.numberOfAnimals || {}
+  const numberOfPackages = sessionData.numberOfPackages || {}
 
   return normalizeSelectedSpecies(sessionData.selectedSpecies)
     .map((speciesId) => {
@@ -258,13 +312,24 @@ function getConsignmentSpeciesEntries (sessionData) {
         return null
       }
 
-      const { species } = match
-      const speciesLabel = species.commonName || species.label
+      const { species, commodity } = match
+      const packagingFields = getPackagingFields(commodity)
 
       return {
         speciesId,
-        heading: toTitleCaseLabel(speciesLabel),
-        numberOfAnimals: numberOfAnimals[speciesId] != null ? String(numberOfAnimals[speciesId]) : ''
+        heading: formatSpeciesDisplayTitle({ commodity, species }),
+        numberOfAnimals: numberOfAnimals[speciesId] != null ? String(numberOfAnimals[speciesId]) : '',
+        showPackaging: packagingFields.length > 0,
+        packagingFields: packagingFields.map((field) => ({
+          id: `${field.id}-${speciesId}`,
+          name: `numberOfPackages[${speciesId}]`,
+          label: field.label,
+          hint: field.hint,
+          value: numberOfPackages[speciesId] != null ? String(numberOfPackages[speciesId]) : '',
+          errorMessage: sessionData.errors && sessionData.errors[`numberOfPackages-${speciesId}`]
+            ? sessionData.errors[`numberOfPackages-${speciesId}`]
+            : null
+        }))
       }
     })
     .filter(Boolean)
@@ -318,6 +383,57 @@ function validateNumberOfAnimals (values, speciesIds) {
 
     if (!/^\d+$/.test(value) || Number(value) < 1) {
       errors[`numberOfAnimals-${speciesId}`] = { text: 'Enter a whole number greater than 0' }
+      errorList.push({
+        text: 'Enter a whole number greater than 0',
+        href: `#${errorId}`
+      })
+    }
+  })
+
+  return { errors, errorList }
+}
+
+function parseNumberOfPackages (body, speciesIds) {
+  const rawValues = body.numberOfPackages && typeof body.numberOfPackages === 'object'
+    ? body.numberOfPackages
+    : {}
+  const values = {}
+
+  speciesIds.forEach((speciesId) => {
+    const fieldName = `numberOfPackages[${speciesId}]`
+    const value = rawValues[speciesId] != null ? rawValues[speciesId] : body[fieldName]
+
+    values[speciesId] = value != null ? String(value).trim() : ''
+  })
+
+  return values
+}
+
+function validateNumberOfPackages (values, speciesIds) {
+  const errors = {}
+  const errorList = []
+
+  speciesIds.forEach((speciesId) => {
+    const match = getSpeciesMatch(speciesId)
+
+    if (!match || !commodityRequiresPackaging(match.commodity)) {
+      return
+    }
+
+    const value = values[speciesId]
+    const errorId = `number-of-packages-${speciesId}`
+
+    if (!value) {
+      errors[`numberOfPackages-${speciesId}`] = { text: 'Enter the number of packages' }
+      errorList.push({
+        text: 'Enter the number of packages',
+        href: `#${errorId}`
+      })
+      return
+    }
+
+    if (!/^\d+$/.test(value) || Number(value) < 1) {
+      errors[`numberOfPackages-${speciesId}`] = { text: 'Enter a whole number greater than 0' }
       errorList.push({
         text: 'Enter a whole number greater than 0',
         href: `#${errorId}`
@@ -389,8 +505,15 @@ function validateContactAddress (addressId) {
   return { errors, errorList, address }
 }
 
-function getUnweanedOptions (commodityId) {
-  const commodity = getCommodityById(commodityId)
+function getUnweanedOptions (sessionData) {
+  const commodityCode = sessionData.commodityCode ||
+    (getCommodityById(sessionData.commodityId) || {}).code
+
+  if (commodityCode === '01061900') {
+    return []
+  }
+
+  const commodity = getCommodityById(sessionData.commodityId)
 
   return commodity && Array.isArray(commodity.unweanedOptions)
     ? commodity.unweanedOptions
@@ -398,7 +521,7 @@ function getUnweanedOptions (commodityId) {
 }
 
 function getAdditionalAnimalDetailsConfig (sessionData) {
-  const unweanedOptions = getUnweanedOptions(sessionData.commodityId)
+  const unweanedOptions = getUnweanedOptions(sessionData)
 
   return {
     showCertificationPurposeQuestion: true,
@@ -411,15 +534,27 @@ function getAdditionalAnimalDetailsConfig (sessionData) {
 function hasConsignmentDetails (sessionData) {
   const speciesIds = normalizeSelectedSpecies(sessionData.selectedSpecies)
   const numberOfAnimals = sessionData.numberOfAnimals || {}
+  const numberOfPackages = sessionData.numberOfPackages || {}
 
   if (!speciesIds.length) {
     return false
   }
 
   return speciesIds.every((speciesId) => {
-    const value = numberOfAnimals[speciesId]
+    const match = getSpeciesMatch(speciesId)
+    const animalCount = numberOfAnimals[speciesId]
 
-    return value && /^\d+$/.test(String(value)) && Number(value) >= 1
+    if (!animalCount || !/^\d+$/.test(String(animalCount)) || Number(animalCount) < 1) {
+      return false
+    }
+
+    if (!match || !commodityRequiresPackaging(match.commodity)) {
+      return true
+    }
+
+    const packageCount = numberOfPackages[speciesId]
+
+    return packageCount && /^\d+$/.test(String(packageCount)) && Number(packageCount) >= 1
   })
 }
 
@@ -480,14 +615,6 @@ function redirectIfNoImportReason (req, res) {
   return false
 }
 
-function getReasonForImportContinuePath (sessionData) {
-  if (hasAnimalIdentifiersRequired(sessionData)) {
-    return '/animal-identification-details'
-  }
-
-  return '/arrival-details'
-}
-
 function getAnimalIdentifiers (sessionData) {
   if (!sessionData.animalIdentifiers || typeof sessionData.animalIdentifiers !== 'object') {
     return {}
@@ -501,6 +628,12 @@ function getIdentifierFieldsForSpecies (speciesId) {
 
   if (!match) {
     return []
+  }
+
+  const codeIdentifiers = getIdentifiersForCommodityCode(match.commodity.code)
+
+  if (codeIdentifiers.length) {
+    return codeIdentifiers
   }
 
   return Array.isArray(match.commodity.identifiers) ? match.commodity.identifiers : []
@@ -907,6 +1040,956 @@ function renderContactAddressPage (req, res, locals = {}) {
   })
 }
 
+function formatConsignmentAddressForDisplay (address) {
+  if (!address || !address.name) {
+    return null
+  }
+
+  const addressLines = address.addressLines || []
+  let lines = []
+
+  if (addressLines.length > 1) {
+    lines = [
+      ...addressLines.slice(0, -1),
+      `${addressLines[addressLines.length - 1]}, ${address.country}`
+    ]
+  } else if (addressLines.length === 1) {
+    lines = [`${addressLines[0]}, ${address.country}`]
+  } else if (address.country) {
+    lines = [address.country]
+  }
+
+  return {
+    name: address.name,
+    lines
+  }
+}
+
+function getSessionConsignmentAddressSections (sessionData) {
+  return getActiveConsignmentAddressSections(sessionData.commodityCode || '')
+}
+
+function isConsignmentAddressSectionActive (sessionData, sectionId) {
+  return getSessionConsignmentAddressSections(sessionData).some((section) => section.id === sectionId)
+}
+
+function buildConsignmentAddressSections (sessionData) {
+  const hasConsigneeAddress = Boolean(sessionData.consigneeAddress)
+
+  return getSessionConsignmentAddressSections(sessionData).map((section) => {
+    if (section.isCph) {
+      const cphNumber = (sessionData[section.sessionCphKey] || '').trim()
+
+      if (cphNumber) {
+        return {
+          ...section,
+          href: section.path,
+          selectedCphNumber: cphNumber,
+          changeHref: section.path
+        }
+      }
+
+      return {
+        ...section,
+        href: section.path
+      }
+    }
+
+    if (section.isPermanentAddress) {
+      const href = sessionData.permanentAddressSameAsDestination === 'no'
+        ? section.selectPath
+        : section.path
+
+      if (sessionData.permanentAddressSummary) {
+        return {
+          ...section,
+          href,
+          selectedAddressSummary: sessionData.permanentAddressSummary,
+          changeHref: sessionData.permanentAddressSameAsDestination === 'no' ? section.selectPath : section.path
+        }
+      }
+
+      const selectedAddress = formatConsignmentAddressForDisplay(sessionData[section.sessionAddressKey])
+
+      if (selectedAddress) {
+        return {
+          ...section,
+          href,
+          selectedAddress,
+          changeHref: sessionData.permanentAddressSameAsDestination === 'no' ? section.selectPath : section.path
+        }
+      }
+
+      return {
+        ...section,
+        href: sessionData.permanentAddressSameAsDestination === 'no' ? section.selectPath : section.path
+      }
+    }
+
+    if (!section.selectable) {
+      return {
+        ...section,
+        href: section.path
+      }
+    }
+
+    const selectedAddress = formatConsignmentAddressForDisplay(sessionData[section.sessionAddressKey])
+
+    if (selectedAddress) {
+      return {
+        ...section,
+        href: section.path,
+        selectedAddress,
+        changeHref: section.path
+      }
+    }
+
+    if (section.canUseSameAsConsignee && hasConsigneeAddress) {
+      return {
+        ...section,
+        href: section.path,
+        showSameAsConsignee: true,
+        sameAsConsigneeAction: `same-as-consignee:${section.id}`
+      }
+    }
+
+    return {
+      ...section,
+      href: section.path
+    }
+  })
+}
+
+function copyConsigneeAddressToSection (sessionData, sectionId) {
+  const section = consignmentAddressSections.find((item) => item.id === sectionId)
+
+  if (!section || !section.canUseSameAsConsignee || !sessionData.consigneeAddress) {
+    return false
+  }
+
+  sessionData[section.sessionAddressIdKey] = sessionData.consigneeAddressId
+  sessionData[section.sessionAddressKey] = {
+    name: sessionData.consigneeAddress.name,
+    addressLines: [...(sessionData.consigneeAddress.addressLines || [])],
+    country: sessionData.consigneeAddress.country
+  }
+
+  return true
+}
+
+function hasConsignmentAddressSectionComplete (sessionData, section) {
+  if (section.isCph) {
+    return Boolean((sessionData[section.sessionCphKey] || '').trim())
+  }
+
+  if (section.isPermanentAddress) {
+    if (sessionData.permanentAddressSameAsDestination === 'yes') {
+      return Boolean(sessionData[section.sessionAddressKey] && sessionData[section.sessionAddressKey].name)
+    }
+
+    if (sessionData.permanentAddressSameAsDestination === 'no') {
+      return hasPermanentAddressAnimalsComplete(sessionData)
+    }
+
+    return false
+  }
+
+  if (!section.selectable) {
+    return true
+  }
+
+  const address = sessionData[section.sessionAddressKey]
+  return Boolean(address && address.name)
+}
+
+function hasConsignmentAddressesComplete (sessionData) {
+  return getSessionConsignmentAddressSections(sessionData).every((section) =>
+    hasConsignmentAddressSectionComplete(sessionData, section)
+  )
+}
+
+function validateConsignmentAddressesComplete (sessionData) {
+  const incompleteSections = getSessionConsignmentAddressSections(sessionData)
+    .map((section, index) => ({ section, index: index + 1 }))
+    .filter(({ section }) => !hasConsignmentAddressSectionComplete(sessionData, section))
+
+  if (!incompleteSections.length) {
+    return { errorList: [] }
+  }
+
+  return {
+    errorList: incompleteSections.map(({ section, index }) => ({
+      text: `Complete ${section.heading.toLowerCase()}`,
+      href: `#address-section-${index}`
+    }))
+  }
+}
+
+function getSelectableConsignmentAddressSectionByPath (path) {
+  return consignmentAddressSections.find((section) =>
+    (section.selectable && section.path === path) ||
+    (section.selectPath && section.selectPath === path)
+  )
+}
+
+function formatAddressAsSingleLine (address) {
+  if (!address || !address.name) {
+    return ''
+  }
+
+  const parts = [address.name, ...(address.addressLines || [])]
+
+  if (address.country) {
+    parts.push(address.country)
+  }
+
+  return parts.join(', ')
+}
+
+function buildPermanentAddressRadioItems (sessionData, selectedValue) {
+  const destinationHint = formatAddressAsSingleLine(sessionData.placeOfDestinationAddress)
+  const yesItem = {
+    value: 'yes',
+    text: 'Yes',
+    checked: selectedValue === 'yes'
+  }
+
+  if (destinationHint) {
+    yesItem.hint = {
+      text: destinationHint
+    }
+  }
+
+  return [
+    yesItem,
+    {
+      value: 'no',
+      text: 'No',
+      checked: selectedValue === 'no'
+    }
+  ]
+}
+
+function copyPlaceOfDestinationToPermanentAddress (sessionData) {
+  if (!sessionData.placeOfDestinationAddress) {
+    return false
+  }
+
+  sessionData.permanentAddressSameAsDestination = 'yes'
+  sessionData.permanentAddressId = sessionData.placeOfDestinationAddressId
+  sessionData.permanentAddress = {
+    name: sessionData.placeOfDestinationAddress.name,
+    addressLines: [...(sessionData.placeOfDestinationAddress.addressLines || [])],
+    country: sessionData.placeOfDestinationAddress.country
+  }
+
+  return true
+}
+
+function validatePermanentAddressChoice (choice, sessionData) {
+  const value = (choice || '').trim()
+  const errors = {}
+  const errorList = []
+
+  if (!value || !['yes', 'no'].includes(value)) {
+    errors.permanentAddressSameAsDestination = {
+      text: 'Select yes if all the animals are going to the place of destination'
+    }
+    errorList.push({
+      text: 'Select yes if all the animals are going to the place of destination',
+      href: '#permanent-address-same-as-destination'
+    })
+
+    return { errors, errorList, value }
+  }
+
+  if (value === 'yes' && !sessionData.placeOfDestinationAddress) {
+    errors.permanentAddressSameAsDestination = {
+      text: 'Add a place of destination before you can continue'
+    }
+    errorList.push({
+      text: 'Add a place of destination before you can continue',
+      href: '#permanent-address-same-as-destination'
+    })
+  }
+
+  return { errors, errorList, value }
+}
+
+function getPermanentAnimalAddresses (sessionData) {
+  if (!sessionData.permanentAnimalAddresses || typeof sessionData.permanentAnimalAddresses !== 'object') {
+    return {}
+  }
+
+  return sessionData.permanentAnimalAddresses
+}
+
+function getPermanentAddressAnimalLabel (match, animalNumber) {
+  return `${match.species.label} ${animalNumber}`
+}
+
+function getSelectedSpeciesIds (sessionData) {
+  const speciesIds = normalizeSelectedSpecies(sessionData.selectedSpecies)
+
+  if (speciesIds.length) {
+    return speciesIds
+  }
+
+  return parseCommoditySelections(sessionData.commoditySelections)
+    .filter((selection) => selection && selection.type === 'species' && selection.speciesId)
+    .map((selection) => selection.speciesId)
+}
+
+function buildPermanentAddressAnimalList (sessionData) {
+  const speciesIds = getSelectedSpeciesIds(sessionData)
+  const savedIdentifiers = getAnimalIdentifiers(sessionData)
+  const savedAddresses = getPermanentAnimalAddresses(sessionData)
+  const animals = []
+
+  speciesIds.forEach((speciesId) => {
+    const match = getSpeciesMatch(speciesId)
+
+    if (!match) {
+      return
+    }
+
+    const total = Number((sessionData.numberOfAnimals || {})[speciesId]) || 0
+    const identifierFields = getIdentifierFieldsForSpecies(speciesId)
+    const speciesSaved = savedIdentifiers[speciesId] || []
+
+    for (let index = 0; index < total; index++) {
+      const animalKey = `${speciesId}:${index}`
+      const animalData = speciesSaved[index] || {}
+      const identifiers = identifierFields
+        .map((field) => ({
+          id: field.id,
+          label: field.label,
+          value: animalData[field.id] ? String(animalData[field.id]).trim() : ''
+        }))
+        .filter((item) => item.value)
+
+      animals.push({
+        key: animalKey,
+        speciesId,
+        animalIndex: index,
+        heading: getPermanentAddressAnimalLabel(match, index + 1),
+        identifiers,
+        savedChoice: savedAddresses[animalKey] ? savedAddresses[animalKey].choice : ''
+      })
+    }
+  })
+
+  return animals
+}
+
+function getPermanentAddressDetailsErrorPrefix (animalKey) {
+  return `permanentAddressDetails-${animalKey.replace(/:/g, '-')}`
+}
+
+function getEmptyPermanentAddressFormValues () {
+  return {
+    name: '',
+    addressLine1: '',
+    addressLine2: '',
+    townOrCity: '',
+    postcode: '',
+    email: '',
+    phone: ''
+  }
+}
+
+function getPermanentAddressFormValuesFromSession (sessionData, animalKey) {
+  const entry = getPermanentAnimalAddresses(sessionData)[animalKey]
+
+  if (!entry || !entry.address) {
+    return getEmptyPermanentAddressFormValues()
+  }
+
+  const address = entry.address
+  const lines = address.addressLines || []
+
+  return {
+    name: address.name || '',
+    addressLine1: lines[0] || '',
+    addressLine2: lines[1] || '',
+    townOrCity: lines[2] || '',
+    postcode: lines[3] || '',
+    email: address.email || '',
+    phone: address.phone || ''
+  }
+}
+
+function parsePermanentAddressDetails (body) {
+  const rawDetails = body.permanentAddressDetails
+
+  if (!rawDetails || typeof rawDetails !== 'object') {
+    return {}
+  }
+
+  return Object.fromEntries(
+    Object.entries(rawDetails).map(([animalKey, fields]) => {
+      const values = fields && typeof fields === 'object' ? fields : {}
+
+      return [animalKey, {
+        name: String(values.name || '').trim(),
+        addressLine1: String(values.addressLine1 || '').trim(),
+        addressLine2: String(values.addressLine2 || '').trim(),
+        townOrCity: String(values.townOrCity || '').trim(),
+        postcode: String(values.postcode || '').trim(),
+        email: String(values.email || '').trim(),
+        phone: String(values.phone || '').trim()
+      }]
+    })
+  )
+}
+
+function buildAddressFromPermanentAddressForm (form) {
+  const addressLines = [
+    form.addressLine1,
+    form.addressLine2,
+    form.townOrCity,
+    form.postcode
+  ].filter(Boolean)
+
+  return {
+    name: form.name,
+    addressLines,
+    country: 'United Kingdom',
+    email: form.email,
+    phone: form.phone
+  }
+}
+
+function buildPermanentAddressAnimalRadioItems (animal, sessionData, selectedValue, newAddressConditionalHtml) {
+  const placeOfDestinationHint = formatAddressAsSingleLine(sessionData.placeOfDestinationAddress)
+
+  const sameAsPodItem = {
+    value: 'same-as-pod',
+    text: 'Same as the place of destination (POD)',
+    checked: selectedValue === 'same-as-pod'
+  }
+
+  if (placeOfDestinationHint) {
+    sameAsPodItem.hint = {
+      text: placeOfDestinationHint
+    }
+  }
+
+  const newAddressItem = {
+    value: 'new-address',
+    text: 'Enter a new address',
+    hint: {
+      text: 'This is where they will stay after spending 48 hours at the place of destination.'
+    },
+    checked: selectedValue === 'new-address'
+  }
+
+  if (newAddressConditionalHtml) {
+    newAddressItem.conditional = {
+      html: newAddressConditionalHtml
+    }
+  }
+
+  return [
+    sameAsPodItem,
+    newAddressItem
+  ]
+}
+
+function renderPermanentAddressNewAddressFields (app, animalKey, values, errors) {
+  return new Promise((resolve, reject) => {
+    app.render('partials/permanent-address-new-address-fields', {
+      animalKey,
+      values,
+      data: { errors }
+    }, (error, html) => {
+      if (error) {
+        reject(error)
+        return
+      }
+
+      resolve(html)
+    })
+  })
+}
+
+function buildPermanentAddressAnimalsViewModel (app, sessionData, submittedChoices = {}, submittedAddressDetails = {}, errors = {}) {
+  const savedAddresses = getPermanentAnimalAddresses(sessionData)
+  const animals = buildPermanentAddressAnimalList(sessionData)
+
+  if (!animals.length) {
+    return Promise.resolve([])
+  }
+
+  return Promise.all(animals.map(async (animal) => {
+    const savedChoice = savedAddresses[animal.key] ? savedAddresses[animal.key].choice : ''
+    const selectedValue = Object.prototype.hasOwnProperty.call(submittedChoices, animal.key)
+      ? submittedChoices[animal.key]
+      : savedChoice
+    const values = submittedAddressDetails[animal.key] ||
+      getPermanentAddressFormValuesFromSession(sessionData, animal.key)
+    const conditionalHtml = await renderPermanentAddressNewAddressFields(
+      app,
+      animal.key,
+      values,
+      errors
+    )
+
+    return {
+      ...animal,
+      radioItems: buildPermanentAddressAnimalRadioItems(
+        animal,
+        sessionData,
+        selectedValue,
+        conditionalHtml
+      )
+    }
+  }))
+}
+
+function copyAddressToPermanentAnimalEntry (sessionData, animalKey, address, choice) {
+  if (!sessionData.permanentAnimalAddresses || typeof sessionData.permanentAnimalAddresses !== 'object') {
+    sessionData.permanentAnimalAddresses = {}
+  }
+
+  sessionData.permanentAnimalAddresses[animalKey] = {
+    choice,
+    addressId: address.id || null,
+    address: {
+      name: address.name,
+      addressLines: [...(address.addressLines || [])],
+      country: address.country || 'United Kingdom',
+      email: address.email || '',
+      phone: address.phone || ''
+    }
+  }
+}
+
+function syncPermanentAddressSummary (sessionData) {
+  const animals = buildPermanentAddressAnimalList(sessionData)
+  const saved = getPermanentAnimalAddresses(sessionData)
+
+  if (!animals.length) {
+    return
+  }
+
+  const allSameAsPod = animals.every((animal) => saved[animal.key] && saved[animal.key].choice === 'same-as-pod')
+
+  if (allSameAsPod && sessionData.placeOfDestinationAddress) {
+    sessionData.permanentAddressId = sessionData.placeOfDestinationAddressId
+    sessionData.permanentAddress = {
+      name: sessionData.placeOfDestinationAddress.name,
+      addressLines: [...(sessionData.placeOfDestinationAddress.addressLines || [])],
+      country: sessionData.placeOfDestinationAddress.country
+    }
+    sessionData.permanentAddressSummary = null
+    return
+  }
+
+  const addresses = animals
+    .map((animal) => saved[animal.key] && saved[animal.key].address)
+    .filter(Boolean)
+
+  if (addresses.length === 1) {
+    sessionData.permanentAddressId = saved[animals[0].key].addressId || null
+    sessionData.permanentAddress = {
+      name: addresses[0].name,
+      addressLines: [...(addresses[0].addressLines || [])],
+      country: addresses[0].country
+    }
+    sessionData.permanentAddressSummary = null
+    return
+  }
+
+  sessionData.permanentAddressId = null
+  sessionData.permanentAddress = null
+  sessionData.permanentAddressSummary = `Permanent addresses added for ${animals.length} animals`
+}
+
+function hasPermanentAddressAnimalsComplete (sessionData) {
+  if (sessionData.permanentAddressSameAsDestination !== 'no') {
+    return false
+  }
+
+  const animals = buildPermanentAddressAnimalList(sessionData)
+  const saved = getPermanentAnimalAddresses(sessionData)
+
+  if (!animals.length) {
+    return false
+  }
+
+  return animals.every((animal) => {
+    const entry = saved[animal.key]
+
+    return entry && entry.address && entry.address.name
+  })
+}
+
+function parsePermanentAddressChoices (body) {
+  const rawChoices = body.permanentAddressChoice
+
+  if (!rawChoices || typeof rawChoices !== 'object') {
+    return {}
+  }
+
+  return Object.fromEntries(
+    Object.entries(rawChoices).map(([key, value]) => [key, String(value || '').trim()])
+  )
+}
+
+function validatePermanentAddressAnimalsForm (choices, sessionData, addressDetails = {}) {
+  const animals = buildPermanentAddressAnimalList(sessionData)
+  const errors = {}
+  const errorList = []
+
+  animals.forEach((animal) => {
+    const choice = choices[animal.key]
+    const errorPrefix = getPermanentAddressDetailsErrorPrefix(animal.key)
+
+    if (!choice || !['same-as-pod', 'new-address'].includes(choice)) {
+      const errorKey = `permanentAddressChoice-${animal.key}`
+
+      errors[errorKey] = {
+        text: `Select an address for ${animal.heading}`
+      }
+      errorList.push({
+        text: `Select an address for ${animal.heading}`,
+        href: `#permanent-address-choice-${animal.key}`
+      })
+      return
+    }
+
+    if (choice === 'same-as-pod' && !sessionData.placeOfDestinationAddress) {
+      const errorKey = `permanentAddressChoice-${animal.key}`
+
+      errors[errorKey] = {
+        text: 'Add a place of destination before you can continue'
+      }
+      errorList.push({
+        text: 'Add a place of destination before you can continue',
+        href: `#permanent-address-choice-${animal.key}`
+      })
+      return
+    }
+
+    if (choice !== 'new-address') {
+      return
+    }
+
+    const form = addressDetails[animal.key] || getEmptyPermanentAddressFormValues()
+
+    if (!form.name) {
+      errors[`${errorPrefix}-name`] = { text: 'Enter a name or organisation' }
+      errorList.push({
+        text: `Enter a name or organisation for ${animal.heading}`,
+        href: `#${errorPrefix}-name`
+      })
+    }
+
+    if (!form.addressLine1) {
+      errors[`${errorPrefix}-address-line-1`] = { text: 'Enter address line 1' }
+      errorList.push({
+        text: `Enter address line 1 for ${animal.heading}`,
+        href: `#${errorPrefix}-address-line-1`
+      })
+    }
+
+    if (!form.townOrCity) {
+      errors[`${errorPrefix}-town-or-city`] = { text: 'Enter a town or city' }
+      errorList.push({
+        text: `Enter a town or city for ${animal.heading}`,
+        href: `#${errorPrefix}-town-or-city`
+      })
+    }
+
+    if (!form.postcode) {
+      errors[`${errorPrefix}-postcode`] = { text: 'Enter a postcode or Zip code' }
+      errorList.push({
+        text: `Enter a postcode or Zip code for ${animal.heading}`,
+        href: `#${errorPrefix}-postcode`
+      })
+    }
+
+    if (!form.email) {
+      errors[`${errorPrefix}-email`] = { text: 'Enter an email address' }
+      errorList.push({
+        text: `Enter an email address for ${animal.heading}`,
+        href: `#${errorPrefix}-email`
+      })
+    }
+  })
+
+  return { errors, errorList, choices, addressDetails }
+}
+
+function getPermanentAddressAnimalByKey (sessionData, animalKey) {
+  return buildPermanentAddressAnimalList(sessionData).find((animal) => animal.key === animalKey) || null
+}
+
+function renderPermanentAddressAnimalsPage (req, res, locals = {}) {
+  const sessionData = req.session.data
+  const submittedChoices = locals.submittedChoices || {}
+  const submittedAddressDetails = locals.submittedAddressDetails || {}
+  const errors = locals.errors || sessionData.errors || {}
+
+  return buildPermanentAddressAnimalsViewModel(
+    req.app,
+    sessionData,
+    submittedChoices,
+    submittedAddressDetails,
+    errors
+  ).then((animals) => {
+    return res.render('permanent-address-animals', {
+      backLink: '/permanent-address',
+      notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+      animals,
+      data: sessionData,
+      ...locals
+    })
+  })
+}
+
+function renderPermanentAddressPage (req, res, locals = {}) {
+  const sessionData = req.session.data
+  const selectedValue = locals.permanentAddressSameAsDestination != null
+    ? locals.permanentAddressSameAsDestination
+    : sessionData.permanentAddressSameAsDestination || ''
+
+  return res.render('permanent-address', {
+    backLink: '/roles-and-addresses',
+    notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    radioItems: buildPermanentAddressRadioItems(sessionData, selectedValue),
+    data: sessionData,
+    ...locals
+  })
+}
+
+function renderRolesAndAddressesPage (req, res, locals = {}) {
+  const sessionData = req.session.data
+
+  return res.render('roles-and-addresses', {
+    backLink: '/notification-hub',
+    notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    addressSections: buildConsignmentAddressSections(sessionData),
+    data: sessionData,
+    ...locals
+  })
+}
+
+function validateCphNumber (cphNumber) {
+  const value = (cphNumber || '').trim()
+  const errors = {}
+  const errorList = []
+
+  if (!value) {
+    errors.cphNumber = { text: 'Enter a CPH number' }
+    errorList.push({
+      text: 'Enter a CPH number',
+      href: '#cph-number'
+    })
+  }
+
+  return { errors, errorList, value }
+}
+
+function renderCphNumberPage (req, res, locals = {}) {
+  const sessionData = req.session.data
+
+  return res.render('cph-number', {
+    backLink: '/roles-and-addresses',
+    notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    cphNumber: locals.cphNumber != null ? locals.cphNumber : sessionData.cphNumber || '',
+    data: sessionData,
+    ...locals
+  })
+}
+
+function hasTransportDetailsComplete (sessionData) {
+  return Boolean(sessionData.transporter && sessionData.transporter.name)
+}
+
+function formatTransporterForSearch (transporter) {
+  return [
+    transporter.name,
+    transporter.address,
+    transporter.approvalNumber,
+    transporter.type,
+    transporter.status
+  ].join(' ').toLowerCase()
+}
+
+function getTransporterById (transporterId) {
+  return transporters.find((transporter) => transporter.id === transporterId)
+}
+
+function buildTransporterResults (searchQuery = '') {
+  const query = searchQuery.trim().toLowerCase()
+  const filtered = query
+    ? transporters.filter((transporter) => formatTransporterForSearch(transporter).includes(query))
+    : transporters
+
+  return {
+    transporters: filtered.map((transporter) => ({
+      ...transporter,
+      searchText: formatTransporterForSearch(transporter)
+    }))
+  }
+}
+
+function renderTransporterPage (req, res, locals = {}) {
+  const sessionData = req.session.data
+  const searchQuery = locals.searchQuery != null ? locals.searchQuery : ''
+
+  return res.render('transporter', {
+    backLink: '/notification-hub',
+    notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    transporterResults: buildTransporterResults(searchQuery),
+    selectedTransporterId: locals.selectedTransporterId != null
+      ? locals.selectedTransporterId
+      : sessionData.transporterId || '',
+    searchQuery,
+    data: sessionData,
+    ...locals
+  })
+}
+
+function syncTransporterSession (sessionData, transporter) {
+  sessionData.transporterId = transporter.id
+  sessionData.transporter = {
+    name: transporter.name,
+    address: transporter.address,
+    approvalNumber: transporter.approvalNumber,
+    type: transporter.type,
+    status: transporter.status
+  }
+}
+
+function formatConsignmentAddressForSearch (address) {
+  return [
+    address.name,
+    ...(address.addressLines || []),
+    address.country
+  ].join(' ').toLowerCase()
+}
+
+function getConsignmentAddressesForSection (sectionId) {
+  if (!sectionId) {
+    return consignmentAddresses
+  }
+
+  return consignmentAddresses.filter((address) => address.type === sectionId)
+}
+
+function getConsignmentAddressById (addressId, sectionId) {
+  return getConsignmentAddressesForSection(sectionId).find((address) => address.id === addressId)
+}
+
+function buildConsignmentAddressResults (searchQuery = '', sectionId = '') {
+  const sectionAddresses = getConsignmentAddressesForSection(sectionId)
+  const query = searchQuery.trim().toLowerCase()
+  const filtered = query
+    ? sectionAddresses.filter((address) => formatConsignmentAddressForSearch(address).includes(query))
+    : sectionAddresses
+
+  return {
+    addresses: filtered.map((address) => ({
+      ...address,
+      searchText: formatConsignmentAddressForSearch(address)
+    })),
+    visibleCount: filtered.length,
+    totalCount: sectionAddresses.length
+  }
+}
+
+function renderConsignmentAddressSelectPage (section, req, res, locals = {}) {
+  const sessionData = req.session.data
+  const searchQuery = locals.searchQuery != null ? locals.searchQuery : ''
+
+  return res.render('consignment-address-select', {
+    backLink: '/roles-and-addresses',
+    notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    heading: section.heading,
+    intro: section.hint,
+    introList: section.hintList || null,
+    formAction: section.path,
+    formFieldName: section.formFieldName,
+    inputIdPrefix: section.inputIdPrefix,
+    searchInputId: section.searchInputId,
+    addressResults: buildConsignmentAddressResults(searchQuery, section.id),
+    selectedAddressId: locals.selectedAddressId != null
+      ? locals.selectedAddressId
+      : sessionData[section.sessionAddressIdKey] || '',
+    searchQuery,
+    data: sessionData,
+    ...locals
+  })
+}
+
+function handleConsignmentAddressSelectGet (req, res) {
+  const section = getSelectableConsignmentAddressSectionByPath(req.path)
+
+  if (!section) {
+    return res.status(404).send('Page not found')
+  }
+
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (!isConsignmentAddressSectionActive(req.session.data, section.id)) {
+    return res.redirect('/roles-and-addresses')
+  }
+
+  return renderConsignmentAddressSelectPage(section, req, res, {
+    searchQuery: (req.query.search || '').trim()
+  })
+}
+
+function handleConsignmentAddressSelectPost (req, res) {
+  const section = getSelectableConsignmentAddressSectionByPath(req.path)
+
+  if (!section) {
+    return res.status(404).send('Page not found')
+  }
+
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (!isConsignmentAddressSectionActive(req.session.data, section.id)) {
+    return res.redirect('/roles-and-addresses')
+  }
+
+  const addressId = (req.body[section.formFieldName] || '').trim()
+  const searchQuery = (req.body.search || '').trim()
+  const address = getConsignmentAddressById(addressId, section.id)
+
+  if (!address) {
+    const sectionAddresses = getConsignmentAddressesForSection(section.id)
+    const firstAddressId = sectionAddresses[0] ? sectionAddresses[0].id : ''
+
+    req.session.data.errorList = [{
+      text: 'Select an address',
+      href: `#${section.inputIdPrefix}-${firstAddressId}`
+    }]
+    req.session.data.errors = {
+      [section.formFieldName]: { text: 'Select an address' }
+    }
+
+    return renderConsignmentAddressSelectPage(section, req, res, {
+      searchQuery,
+      selectedAddressId: addressId
+    })
+  }
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+  req.session.data[section.sessionAddressIdKey] = address.id
+  req.session.data[section.sessionAddressKey] = {
+    name: address.name,
+    addressLines: address.addressLines,
+    country: address.country
+  }
+
+  return res.redirect('/roles-and-addresses')
+}
+
 function redirectIfNoArrivalDetails (req, res) {
   if (!hasArrivalDetailsComplete(req.session.data)) {
     res.redirect('/arrival-details')
@@ -1059,15 +2142,686 @@ function getTotalAnimalCount (sessionData) {
   }, 0)
 }
 
+function formatReviewValueOrNa (value) {
+  if (value == null || (typeof value === 'string' && !value.trim())) {
+    return 'N/A'
+  }
+
+  return String(value).trim()
+}
+
+function formatAddressForReviewValue (address) {
+  const formatted = formatConsignmentAddressForDisplay(address)
+
+  if (!formatted) {
+    return 'N/A'
+  }
+
+  return {
+    isAddress: true,
+    name: formatted.name,
+    lines: formatted.lines
+  }
+}
+
+function formatContactAddressForReviewValue (sessionData) {
+  const lines = (sessionData.contactAddress || '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+
+  if (!lines.length) {
+    return 'N/A'
+  }
+
+  if (lines.length === 1) {
+    return {
+      isAddress: true,
+      name: lines[0],
+      lines: []
+    }
+  }
+
+  return {
+    isAddress: true,
+    name: lines[0],
+    lines: lines.slice(1)
+  }
+}
+
+function formatCommaSeparatedAddressForReviewValue (addressString) {
+  const parts = (addressString || '')
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean)
+
+  if (!parts.length) {
+    return 'N/A'
+  }
+
+  if (parts.length === 1) {
+    return parts[0]
+  }
+
+  return {
+    isAddress: true,
+    lines: parts
+  }
+}
+
+function getTransporterCountryLabel (sessionData) {
+  const approvalNumber = sessionData.transporter?.approvalNumber || ''
+
+  if (approvalNumber.startsWith('UK/')) {
+    return 'United Kingdom'
+  }
+
+  if (approvalNumber.startsWith('DK/')) {
+    return 'Denmark'
+  }
+
+  if (approvalNumber.startsWith('PT/')) {
+    return 'Portugal'
+  }
+
+  if (approvalNumber.startsWith('RO/')) {
+    return 'Romania'
+  }
+
+  if (approvalNumber.startsWith('SK/')) {
+    return 'Slovakia'
+  }
+
+  if (approvalNumber.startsWith('FI/')) {
+    return 'Finland'
+  }
+
+  return 'N/A'
+}
+
+function getSelectedSpeciesLabelsForReview (sessionData) {
+  return normalizeSelectedSpecies(sessionData.selectedSpecies)
+    .map((speciesId) => {
+      const match = getSpeciesMatch(speciesId)
+
+      if (!match) {
+        return null
+      }
+
+      return toTitleCaseLabel(match.species.label || match.species.commonName)
+    })
+    .filter(Boolean)
+    .join(', ')
+}
+
+function buildReviewSpeciesSections (sessionData) {
+  return normalizeSelectedSpecies(sessionData.selectedSpecies)
+    .map((speciesId, index) => {
+      const match = getSpeciesMatch(speciesId)
+      const numberOfAnimals = sessionData.numberOfAnimals || {}
+      const quantity = numberOfAnimals[speciesId] != null
+        ? String(numberOfAnimals[speciesId])
+        : 'N/A'
+      const speciesLabel = match
+        ? toTitleCaseLabel(match.species.label || match.species.commonName)
+        : 'Species'
+      const panel = getSpeciesIdentificationState(sessionData, speciesId)
+      const numberOfPackages = sessionData.numberOfPackages || {}
+      let animalTable = null
+
+      if (panel && panel.savedAnimalsTable && panel.savedAnimalsTable.rows.length) {
+        animalTable = {
+          headers: panel.savedAnimalsTable.head
+            .map((column) => column.text)
+            .filter(Boolean),
+          rows: panel.savedAnimalsTable.rows.map((row) => ({
+            label: row[0].text,
+            values: row.slice(1, -1).map((cell) => cell.text)
+          }))
+        }
+      }
+
+      const packagingRows = match && commodityRequiresPackaging(match.commodity)
+        ? [{
+          key: 'Number of packages',
+          value: numberOfPackages[speciesId] != null ? String(numberOfPackages[speciesId]) : 'N/A'
+        }]
+        : null
+
+      return {
+        id: `review-species-${index + 1}`,
+        title: speciesLabel,
+        changeHref: getIdentifierFieldsForSpecies(speciesId).length
+          ? '/animal-identification-details'
+          : '/consignment-details',
+        rows: [{
+          key: 'Quantity',
+          value: quantity
+        }],
+        animalTable,
+        packagingRows,
+        ...reviewSpeciesCardErrorState(sessionData, speciesId, speciesLabel)
+      }
+    })
+}
+
+function getSpeciesReviewCardErrorMessage (sessionData, speciesId, speciesLabel) {
+  if (isSpeciesConsignmentComplete(sessionData, speciesId)) {
+    return null
+  }
+
+  const speciesName = speciesLabel.toLowerCase()
+  const match = getSpeciesMatch(speciesId)
+  const numberOfAnimals = sessionData.numberOfAnimals || {}
+  const animalCount = numberOfAnimals[speciesId]
+
+  if (!animalCount || !/^\d+$/.test(String(animalCount)) || Number(animalCount) < 1) {
+    return `Enter the number of animals for ${speciesName}`
+  }
+
+  if (match && commodityRequiresPackaging(match.commodity)) {
+    return `Enter the number of packages for ${speciesName}`
+  }
+
+  return `Complete ${speciesName}`
+}
+
+function reviewSpeciesCardErrorState (sessionData, speciesId, speciesLabel) {
+  const errorMessage = getSpeciesReviewCardErrorMessage(sessionData, speciesId, speciesLabel)
+
+  if (!errorMessage) {
+    return { hasError: false, errorMessage: null }
+  }
+
+  return {
+    hasError: true,
+    errorMessage
+  }
+}
+
+function reviewCardErrorState (isComplete, title) {
+  if (isComplete) {
+    return { hasError: false, errorMessage: null }
+  }
+
+  return {
+    hasError: true,
+    errorMessage: `Complete ${title.toLowerCase()}`
+  }
+}
+
+function isSpeciesConsignmentComplete (sessionData, speciesId) {
+  const match = getSpeciesMatch(speciesId)
+  const numberOfAnimals = sessionData.numberOfAnimals || {}
+  const animalCount = numberOfAnimals[speciesId]
+
+  if (!animalCount || !/^\d+$/.test(String(animalCount)) || Number(animalCount) < 1) {
+    return false
+  }
+
+  if (!match || !commodityRequiresPackaging(match.commodity)) {
+    return true
+  }
+
+  const packageCount = (sessionData.numberOfPackages || {})[speciesId]
+
+  return packageCount && /^\d+$/.test(String(packageCount)) && Number(packageCount) >= 1
+}
+
+function isSpeciesIdentifiersComplete (sessionData, speciesId) {
+  const fields = getIdentifierFieldsForSpecies(speciesId)
+
+  if (fields.length === 0) {
+    return true
+  }
+
+  const total = Number((sessionData.numberOfAnimals || {})[speciesId]) || 0
+
+  if (!total) {
+    return false
+  }
+
+  const speciesSaved = getAnimalIdentifiers(sessionData)[speciesId] || []
+
+  if (speciesSaved.length < total) {
+    return false
+  }
+
+  return speciesSaved.every((animal) => isAnimalIdentifierEntryComplete(animal, fields))
+}
+
+function hasSpeciesReviewCardComplete (sessionData, speciesId) {
+  return isSpeciesConsignmentComplete(sessionData, speciesId)
+}
+
+function hasAdditionalAnimalDetailsReviewComplete (sessionData) {
+  return hasAdditionalAnimalDetailsComplete(sessionData) && hasImportReasonComplete(sessionData)
+}
+
+function hasArrivalDetailsReviewComplete (sessionData) {
+  return hasArrivalDetailsComplete(sessionData) && hasTransitCountriesComplete(sessionData)
+}
+
+function buildReviewErrorList (cards) {
+  return cards
+    .filter((card) => card.hasError)
+    .map((card) => ({
+      text: card.errorMessage,
+      href: `#${card.id}`
+    }))
+}
+
+function hasNotificationComplete (sessionData) {
+  if (!hasOriginDetails(sessionData)) {
+    return false
+  }
+
+  if (!hasCommoditySelection(sessionData)) {
+    return false
+  }
+
+  if (!hasConsignmentDetails(sessionData)) {
+    return false
+  }
+
+  if (!hasAdditionalAnimalDetailsComplete(sessionData)) {
+    return false
+  }
+
+  if (!hasImportReasonComplete(sessionData)) {
+    return false
+  }
+
+  if (!hasArrivalDetailsComplete(sessionData)) {
+    return false
+  }
+
+  if (requiresTransitCountries(sessionData) && !hasTransitCountriesComplete(sessionData)) {
+    return false
+  }
+
+  if (!hasTransportDetailsComplete(sessionData)) {
+    return false
+  }
+
+  if (!hasConsignmentAddressesComplete(sessionData)) {
+    return false
+  }
+
+  if (!hasContactAddress(sessionData)) {
+    return false
+  }
+
+  return true
+}
+
+function getReviewNotificationViewModel (sessionData) {
+  const commodity = getSelectedCommoditySummary(sessionData)
+  const additionalConfig = getAdditionalAnimalDetailsConfig(sessionData)
+  const transporter = sessionData.transporter || {}
+  const importDetailsRows = [
+    {
+      key: 'Country of origin',
+      value: formatReviewValueOrNa(sessionData.countryOfOrigin)
+    },
+    {
+      key: 'Region of origin code',
+      value: formatReviewValueOrNa(sessionData.regionOfOriginCode)
+    },
+    {
+      key: 'Internal reference number',
+      value: formatReviewValueOrNa(sessionData.internalReference)
+    }
+  ]
+  const animalDetailsRows = [
+    {
+      key: 'Commodity code',
+      value: formatReviewValueOrNa(commodity && commodity.code)
+    },
+    {
+      key: 'Common name',
+      value: formatReviewValueOrNa(commodity && commodity.name)
+    },
+    {
+      key: 'Species',
+      value: formatReviewValueOrNa(getSelectedSpeciesLabelsForReview(sessionData))
+    }
+  ]
+  const additionalAnimalRows = []
+
+  if (additionalConfig.showCertificationPurposeQuestion) {
+    additionalAnimalRows.push({
+      key: 'Certified for',
+      value: formatReviewValueOrNa(sessionData.certificationPurpose)
+    })
+  }
+
+  if (additionalConfig.showUnweanedQuestion) {
+    additionalAnimalRows.push({
+      key: 'Includes unweaned animals',
+      value: formatReviewValueOrNa(sessionData.unweanedAnimals)
+    })
+  }
+
+  additionalAnimalRows.push({
+    key: 'Reason for import',
+    value: formatReviewValueOrNa(sessionData.importReason)
+  })
+
+  if (sessionData.importReason === 'Internal market') {
+    additionalAnimalRows.push({
+      key: 'Purpose in the market',
+      value: formatReviewValueOrNa(sessionData.internalMarketPurpose)
+    })
+  }
+
+  const arrivalDetailsRows = [
+    {
+      key: 'Port of entry',
+      value: formatReviewValueOrNa(sessionData.portOfEntry)
+    },
+    {
+      key: 'Arrival date at destination',
+      value: formatReviewValueOrNa(sessionData.arrivalDateAtPort)
+    },
+    {
+      key: 'Means of transport to the port of entry',
+      value: formatReviewValueOrNa(sessionData.meansOfTransport)
+    }
+  ]
+
+  if (requiresTransitCountries(sessionData)) {
+    arrivalDetailsRows.push({
+      key: 'Countries that the consignment will travel through',
+      value: formatReviewValueOrNa(normalizeTransitCountries(sessionData.transitCountries).join(', '))
+    })
+  }
+
+  arrivalDetailsRows.push(
+    {
+      key: 'Transport identification',
+      value: formatReviewValueOrNa(sessionData.transportIdentification)
+    },
+    {
+      key: 'Transport document reference',
+      value: formatReviewValueOrNa(sessionData.transportDocumentReference)
+    }
+  )
+
+  const rolesRows = getSessionConsignmentAddressSections(sessionData).map((section) => {
+    if (section.isCph) {
+      return {
+        key: section.heading,
+        value: formatReviewValueOrNa(sessionData[section.sessionCphKey])
+      }
+    }
+
+    if (section.isPermanentAddress && sessionData.permanentAddressSummary) {
+      return {
+        key: section.heading,
+        value: formatReviewValueOrNa(sessionData.permanentAddressSummary)
+      }
+    }
+
+    return {
+      key: section.heading,
+      value: formatAddressForReviewValue(sessionData[section.sessionAddressKey])
+    }
+  })
+
+  const uploadedDocuments = ensureUploadedDocuments(sessionData).map((document, index) => ({
+    title: `Document ${index + 1}`,
+    rows: [
+      {
+        key: 'Document reference',
+        value: formatReviewValueOrNa(document.documentReference)
+      },
+      {
+        key: 'Document type',
+        value: formatReviewValueOrNa(document.documentTypeLabel || getDocumentTypeLabel(document.documentType))
+      },
+      {
+        key: 'Date of issue',
+        value: formatReviewValueOrNa(document.dateOfIssue)
+      },
+      {
+        key: 'Attachment',
+        value: formatReviewValueOrNa(document.fileName)
+      }
+    ]
+  }))
+
+  return {
+    notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    aboutConsignment: {
+      importDetailsCard: {
+        id: 'review-import-details',
+        title: 'Import details',
+        changeHref: '/origin-of-the-import',
+        rows: importDetailsRows,
+        ...reviewCardErrorState(hasOriginDetails(sessionData), 'Import details')
+      },
+      animalDetailsCard: {
+        id: 'review-animal-details',
+        title: 'Animal details',
+        changeHref: '/what-are-you-importing',
+        rows: animalDetailsRows,
+        ...reviewCardErrorState(hasCommoditySelection(sessionData), 'Animal details')
+      },
+      additionalAnimalDetailsCard: {
+        id: 'review-additional-animal-details',
+        title: 'Additional animal details',
+        changeHref: '/additional-animal-details',
+        rows: additionalAnimalRows,
+        ...reviewCardErrorState(hasAdditionalAnimalDetailsReviewComplete(sessionData), 'Additional animal details')
+      },
+      speciesSections: buildReviewSpeciesSections(sessionData)
+    },
+    movement: {
+      arrivalDetailsCard: {
+        id: 'review-arrival-details',
+        title: 'Arrival details',
+        changeHref: '/arrival-details',
+        rows: arrivalDetailsRows,
+        ...reviewCardErrorState(hasArrivalDetailsReviewComplete(sessionData), 'Arrival details')
+      },
+      transportDetailsCard: {
+        id: 'review-transport-details',
+        title: 'Transport details',
+        changeHref: '/transporter',
+        rows: [
+          {
+            key: 'Name',
+            value: formatReviewValueOrNa(transporter.name)
+          },
+          {
+            key: 'Address',
+            value: formatCommaSeparatedAddressForReviewValue(transporter.address)
+          },
+          {
+            key: 'Country',
+            value: getTransporterCountryLabel(sessionData)
+          },
+          {
+            key: 'Approval number',
+            value: formatReviewValueOrNa(transporter.approvalNumber)
+          },
+          {
+            key: 'Type',
+            value: formatReviewValueOrNa(transporter.type)
+          }
+        ],
+        ...reviewCardErrorState(hasTransportDetailsComplete(sessionData), 'Transport details')
+      }
+    },
+    addresses: {
+      rolesCard: {
+        id: 'review-roles-and-addresses',
+        title: 'Roles and addresses',
+        changeHref: '/roles-and-addresses',
+        rows: rolesRows,
+        ...reviewCardErrorState(hasConsignmentAddressesComplete(sessionData), 'Roles and addresses')
+      },
+      contactCard: {
+        id: 'review-contact-address',
+        title: 'Contact address for this consignment',
+        changeHref: '/contact-address-for-consignment',
+        rows: [{
+          key: 'Address',
+          value: formatContactAddressForReviewValue(sessionData)
+        }],
+        ...reviewCardErrorState(hasContactAddress(sessionData), 'Contact address for this consignment')
+      }
+    },
+    documents: {
+      uploadedDocumentsCard: {
+        id: 'review-uploaded-documents',
+        title: 'Uploaded documents',
+        changeHref: '/upload-documents',
+        documents: uploadedDocuments,
+        hasError: false,
+        errorMessage: null
+      }
+    }
+  }
+}
+
+function getReviewNotificationViewModelWithErrors (sessionData) {
+  const viewModel = getReviewNotificationViewModel(sessionData)
+  const errorList = buildReviewErrorList([
+    viewModel.aboutConsignment.importDetailsCard,
+    viewModel.aboutConsignment.animalDetailsCard,
+    viewModel.aboutConsignment.additionalAnimalDetailsCard,
+    ...viewModel.aboutConsignment.speciesSections,
+    viewModel.movement.arrivalDetailsCard,
+    viewModel.movement.transportDetailsCard,
+    viewModel.addresses.rolesCard,
+    viewModel.addresses.contactCard,
+    viewModel.documents.uploadedDocumentsCard
+  ])
+
+  return {
+    ...viewModel,
+    errorList
+  }
+}
+
+function renderReviewNotificationPage (req, res) {
+  const sessionData = req.session.data
+  const viewModel = getReviewNotificationViewModelWithErrors(sessionData)
+
+  return res.render('review-notification', {
+    backLink: '/notification-hub',
+    ...viewModel,
+    data: {
+      ...sessionData,
+      errorList: viewModel.errorList.length ? viewModel.errorList : null
+    }
+  })
+}
+
+function formatDeclarationDate (date = new Date()) {
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ]
+
+  return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`
+}
+
+function isCheckboxChecked (value) {
+  if (Array.isArray(value)) {
+    return value.includes('yes')
+  }
+
+  return value === 'yes'
+}
+
+function validateDeclaration (body) {
+  const confirmed = isCheckboxChecked(body.declarationConfirmed)
+
+  if (!confirmed) {
+    return {
+      errorList: [{
+        text: 'Confirm that you have reviewed and comply with this declaration',
+        href: '#declaration-confirmed'
+      }],
+      errors: {
+        declarationConfirmed: {
+          text: 'Confirm that you have reviewed and comply with this declaration'
+        }
+      }
+    }
+  }
+
+  return { errorList: [], errors: {} }
+}
+
+function hasDeclarationConfirmed (sessionData) {
+  return Boolean(sessionData.declarationConfirmedAt)
+}
+
+function getConditionalSubmissionItems (sessionData) {
+  const items = []
+
+  if (!hasUploadedDocuments(sessionData)) {
+    items.push('upload the health certificate and any other required documents')
+  }
+
+  if (hasAnimalIdentifiersRequired(sessionData) && !hasAnimalIdentifiersComplete(sessionData)) {
+    items.push('complete the animal identifier information in the notification')
+  }
+
+  return items
+}
+
+function renderDeclarationPage (req, res, locals = {}) {
+  const sessionData = req.session.data
+
+  return res.render('declaration', {
+    backLink: '/review-notification',
+    notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    declarationDate: formatDeclarationDate(),
+    declarationConfirmed: isCheckboxChecked(locals.declarationConfirmed) ||
+      isCheckboxChecked(sessionData.declarationConfirmed),
+    beforeImportItems: getConditionalSubmissionItems(sessionData),
+    data: sessionData,
+    ...locals
+  })
+}
+
+function renderNotificationSubmittedPage (req, res) {
+  const sessionData = req.session.data
+  const beforeImportItems = Array.isArray(sessionData.conditionalSubmissionItems)
+    ? sessionData.conditionalSubmissionItems
+    : getConditionalSubmissionItems(sessionData)
+
+  return res.render('notification-submitted', {
+    notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    beforeImportItems
+  })
+}
+
+function getTotalPackageCount (sessionData) {
+  const numberOfPackages = sessionData.numberOfPackages || {}
+
+  return Object.values(numberOfPackages).reduce((total, value) => {
+    const count = Number(value)
+
+    return Number.isFinite(count) && count > 0 ? total + count : total
+  }, 0)
+}
+
 function getNotificationHubViewModel (sessionData) {
   const statusComplete = { text: 'Complete', class: 'govuk-tag--green' }
   const statusTodo = { text: 'To do', class: 'govuk-tag--blue' }
   const totalAnimals = getTotalAnimalCount(sessionData)
+  const totalPackages = getTotalPackageCount(sessionData)
 
   return {
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     animalCountDisplay: totalAnimals > 0 ? String(totalAnimals) : '0',
-    packagesDisplay: 'N/A',
+    packagesDisplay: totalPackages > 0 ? String(totalPackages) : 'N/A',
     sections: [
       {
         title: '1. About the consignment',
@@ -1119,8 +2873,8 @@ function getNotificationHubViewModel (sessionData) {
           }] : []),
           {
             text: 'Transport details',
-            href: '#',
-            status: statusTodo
+            href: '/transporter',
+            status: hasTransportDetailsComplete(sessionData) ? statusComplete : statusTodo
           }
         ]
       },
@@ -1129,9 +2883,9 @@ function getNotificationHubViewModel (sessionData) {
         items: [
           {
             text: 'Roles and addresses',
-            href: '#',
+            href: '/roles-and-addresses',
             hint: 'Consignor or Exporter, Consignee, Importer and Place of Destination',
-            status: statusTodo
+            status: hasConsignmentAddressesComplete(sessionData) ? statusComplete : statusTodo
           },
           {
             text: 'Contact address for this consignment',
@@ -1145,8 +2899,8 @@ function getNotificationHubViewModel (sessionData) {
         items: [
           {
             text: 'Upload documents',
-            href: '#',
-            status: statusTodo
+            href: '/upload-documents',
+            status: hasUploadedDocuments(sessionData) ? statusComplete : statusTodo
           }
         ]
       }
@@ -1160,12 +2914,19 @@ function renderNotificationHubPage (req, res) {
   return res.render('notification-hub', getNotificationHubViewModel(req.session.data))
 }
 
-function buildInternalMarketPurposeItems (selectedValue) {
-  return internalMarketPurposes.map((purpose) => ({
-    value: purpose.value,
-    text: purpose.text,
-    checked: selectedValue === purpose.value
-  }))
+function buildInternalMarketPurposeSelectItems (selectedValue) {
+  return [
+    {
+      value: '',
+      text: 'Select one',
+      selected: !selectedValue
+    },
+    ...internalMarketPurposes.map((purpose) => ({
+      value: purpose.value,
+      text: purpose.text,
+      selected: selectedValue === purpose.value
+    }))
+  ]
 }
 
 function buildImportReasonItems (selectedValue, internalMarketConditionalHtml) {
@@ -1179,7 +2940,7 @@ function buildImportReasonItems (selectedValue, internalMarketConditionalHtml) {
       checked: selectedValue === reason.value
     }
 
-    if (reason.value === 'Internal market') {
+    if (reason.value === 'Internal market' && internalMarketConditionalHtml) {
       item.conditional = {
         html: internalMarketConditionalHtml
       }
@@ -1280,9 +3041,9 @@ function renderReasonForImportPage (req, res, locals = {}) {
     ? locals.selectedInternalMarketPurpose
     : sessionData.internalMarketPurpose
 
-  return res.app.render('partials/internal-market-purpose-radios', {
+  return res.app.render('partials/internal-market-purpose-select', {
     data: sessionData,
-    internalMarketPurposeItems: buildInternalMarketPurposeItems(selectedInternalMarketPurpose)
+    internalMarketPurposeItems: buildInternalMarketPurposeSelectItems(selectedInternalMarketPurpose)
   }, (err, internalMarketConditionalHtml) => {
     if (err) {
       throw err
@@ -1297,6 +3058,189 @@ function renderReasonForImportPage (req, res, locals = {}) {
       ),
       ...locals
     })
+  })
+}
+
+const documentTypeOptions = [
+  { value: 'itahc', text: 'ITAHC' },
+  { value: 'veterinary-health-certificate', text: 'Veterinary health certificate' },
+  { value: 'air-waybill', text: 'Air waybill' },
+  { value: 'import-permit', text: 'Import permit' },
+  { value: 'letter-of-authority-directive-2008-61-ec', text: 'Letter of authority (Directive 2008/61/EC)' },
+  { value: 'commercial-invoice', text: 'Commercial invoice' },
+  { value: 'sea-waybill', text: 'Sea waybill' },
+  { value: 'rail-waybill', text: 'Rail waybill' },
+  { value: 'bill-of-lading', text: 'Bill of lading' },
+  { value: 'catch-certificate', text: 'Catch certificate' },
+  { value: 'laboratory-sampling-results-for-aflatoxin-reg-2019-1793', text: 'Laboratory sampling results for aflatoxin (Reg 2019/1793)' },
+  { value: 'health-certificate', text: 'Health certificate' },
+  { value: 'journey-log', text: 'Journey log' },
+  { value: 'other', text: 'Other' }
+]
+
+const documentTypeValues = documentTypeOptions.map((option) => option.value)
+const MAX_UPLOADED_DOCUMENTS = 15
+const VIRUS_CHECK_DELAY_MS = 2500
+
+function getDocumentTypeLabel (documentType) {
+  const match = documentTypeOptions.find((option) => option.value === documentType)
+
+  return match ? match.text : documentType
+}
+
+function buildDocumentTypeItems (selectedValue) {
+  return [
+    {
+      value: '',
+      text: 'Select one',
+      selected: !selectedValue
+    },
+    ...documentTypeOptions.map((option) => ({
+      ...option,
+      selected: selectedValue === option.value
+    }))
+  ]
+}
+
+function ensureUploadedDocuments (sessionData) {
+  if (!Array.isArray(sessionData.uploadedDocuments)) {
+    sessionData.uploadedDocuments = []
+  }
+
+  return sessionData.uploadedDocuments
+}
+
+function getUploadedDocumentsForDisplay (sessionData) {
+  return ensureUploadedDocuments(sessionData).map((document) => ({
+    ...document,
+    documentTypeLabel: document.documentTypeLabel || getDocumentTypeLabel(document.documentType),
+    status: {
+      text: document.virusStatus === 'passed' ? 'Check completed' : 'Scanning for virus',
+      class: document.virusStatus === 'passed' ? 'govuk-tag--green' : 'govuk-tag--blue'
+    }
+  }))
+}
+
+function hasUploadedDocuments (sessionData) {
+  return ensureUploadedDocuments(sessionData).length > 0
+}
+
+function parseUploadDocumentBody (body) {
+  return {
+    documentReference: (body.documentReference || '').trim(),
+    documentType: (body.documentType || '').trim(),
+    dateOfIssue: (body.dateOfIssue || '').trim(),
+    attachmentFileName: (body.attachmentFileName || '').trim()
+  }
+}
+
+function validateUploadDocument (values, sessionData) {
+  const errors = {}
+  const errorList = []
+  const uploadedCount = ensureUploadedDocuments(sessionData).length
+
+  if (!values.documentReference) {
+    errors.documentReference = { text: 'Enter a document reference' }
+    errorList.push({
+      text: 'Enter a document reference',
+      href: '#document-reference'
+    })
+  }
+
+  if (!values.documentType || !documentTypeValues.includes(values.documentType)) {
+    errors.documentType = { text: 'Select a document type' }
+    errorList.push({
+      text: 'Select a document type',
+      href: '#document-type'
+    })
+  }
+
+  if (!values.dateOfIssue) {
+    errors.dateOfIssue = { text: 'Enter the date of issue' }
+    errorList.push({
+      text: 'Enter the date of issue',
+      href: '#date-of-issue'
+    })
+  } else if (!parseArrivalDisplayDate(values.dateOfIssue)) {
+    errors.dateOfIssue = { text: 'Enter the date of issue in the correct format, for example 27/3/2026' }
+    errorList.push({
+      text: 'Enter the date of issue in the correct format, for example 27/3/2026',
+      href: '#date-of-issue'
+    })
+  }
+
+  if (!values.attachmentFileName) {
+    errors.attachment = { text: 'Select a file to upload' }
+    errorList.push({
+      text: 'Select a file to upload',
+      href: '#attachment'
+    })
+  }
+
+  if (uploadedCount >= MAX_UPLOADED_DOCUMENTS) {
+    errors.attachment = { text: `You can only upload up to ${MAX_UPLOADED_DOCUMENTS} files` }
+    errorList.push({
+      text: `You can only upload up to ${MAX_UPLOADED_DOCUMENTS} files`,
+      href: '#attachment'
+    })
+  }
+
+  return { errors, errorList, values }
+}
+
+function addUploadedDocument (sessionData, values) {
+  const documents = ensureUploadedDocuments(sessionData)
+
+  documents.push({
+    id: `doc-${Date.now()}-${documents.length + 1}`,
+    documentReference: values.documentReference,
+    documentType: values.documentType,
+    documentTypeLabel: getDocumentTypeLabel(values.documentType),
+    dateOfIssue: values.dateOfIssue,
+    fileName: values.attachmentFileName,
+    virusStatus: 'uploading',
+    addedAt: Date.now()
+  })
+}
+
+function markUploadedDocumentVirusCheckPassed (sessionData, documentId) {
+  const document = ensureUploadedDocuments(sessionData).find((item) => item.id === documentId)
+
+  if (document && document.virusStatus === 'uploading') {
+    document.virusStatus = 'passed'
+  }
+
+  return document
+}
+
+function removeUploadedDocument (sessionData, documentId) {
+  const documents = ensureUploadedDocuments(sessionData)
+  const removeIndex = documents.findIndex((document) => document.id === documentId)
+
+  if (removeIndex === -1) {
+    return
+  }
+
+  documents.splice(removeIndex, 1)
+}
+
+function renderUploadDocumentsPage (req, res, locals = {}) {
+  const sessionData = req.session.data
+  const formValues = locals.formValues || {
+    documentReference: '',
+    documentType: '',
+    dateOfIssue: '',
+    attachmentFileName: ''
+  }
+
+  return res.render('upload-documents', {
+    backLink: '/notification-hub',
+    notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    documentTypeItems: buildDocumentTypeItems(formValues.documentType),
+    uploadedDocuments: getUploadedDocumentsForDisplay(sessionData),
+    formValues,
+    data: sessionData,
+    ...locals
   })
 }
 
@@ -1511,18 +3455,30 @@ router.post('/consignment-details', (req, res) => {
 
   const speciesIds = normalizeSelectedSpecies(req.session.data.selectedSpecies)
   const numberOfAnimals = parseNumberOfAnimals(req.body, speciesIds)
+  const numberOfPackages = parseNumberOfPackages(req.body, speciesIds)
 
   if (req.body.action === 'hub') {
     req.session.data.numberOfAnimals = numberOfAnimals
+    req.session.data.numberOfPackages = numberOfPackages
     return res.redirect('/notification-hub')
   }
 
-  const { errors, errorList } = validateNumberOfAnimals(numberOfAnimals, speciesIds)
+  const animalValidation = validateNumberOfAnimals(numberOfAnimals, speciesIds)
+  const packagingValidation = validateNumberOfPackages(numberOfPackages, speciesIds)
+  const errors = {
+    ...animalValidation.errors,
+    ...packagingValidation.errors
+  }
+  const errorList = [
+    ...animalValidation.errorList,
+    ...packagingValidation.errorList
+  ]
 
   if (errorList.length > 0) {
     req.session.data.errorList = errorList
     req.session.data.errors = errors
     req.session.data.numberOfAnimals = numberOfAnimals
+    req.session.data.numberOfPackages = numberOfPackages
 
     return renderConsignmentDetailsPage(req, res)
   }
@@ -1530,6 +3486,7 @@ router.post('/consignment-details', (req, res) => {
   req.session.data.errorList = null
   req.session.data.errors = null
   req.session.data.numberOfAnimals = numberOfAnimals
+  req.session.data.numberOfPackages = numberOfPackages
 
   return res.redirect('/additional-animal-details')
 })
@@ -1619,6 +3576,12 @@ router.post('/additional-animal-details', (req, res) => {
   return res.redirect('/reason-for-import')
 })
 
+router.get('/prototype/reason-for-import', (req, res) => {
+  seedPrototypeSessionForReasonForImport(req.session.data)
+
+  return res.redirect('/reason-for-import')
+})
+
 router.get('/reason-for-import', (req, res) => {
   ensurePrototypeNotificationReference(req.session.data)
 
@@ -1638,14 +3601,137 @@ router.get('/reason-for-import', (req, res) => {
     return
   }
 
-  return renderReasonForImportPage(req, res, {
-    selectedImportReason: null,
-    selectedInternalMarketPurpose: null
-  })
+  return renderReasonForImportPage(req, res)
 })
 
 router.get('/notification-hub', (req, res) => {
   return renderNotificationHubPage(req, res)
+})
+
+router.get('/review-notification', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  return renderReviewNotificationPage(req, res)
+})
+
+router.post('/review-notification', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (!hasNotificationComplete(req.session.data)) {
+    return renderReviewNotificationPage(req, res)
+  }
+
+  return res.redirect('/declaration')
+})
+
+router.get('/declaration', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (!hasNotificationComplete(req.session.data)) {
+    return res.redirect('/notification-hub')
+  }
+
+  return renderDeclarationPage(req, res)
+})
+
+router.post('/declaration', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (!hasNotificationComplete(req.session.data)) {
+    return res.redirect('/notification-hub')
+  }
+
+  const validation = validateDeclaration(req.body)
+
+  if (validation.errorList.length) {
+    req.session.data.errorList = validation.errorList
+    req.session.data.errors = validation.errors
+
+    return renderDeclarationPage(req, res, {
+      declarationConfirmed: isCheckboxChecked(req.body.declarationConfirmed)
+    })
+  }
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+  req.session.data.declarationConfirmedAt = formatDeclarationDate()
+  req.session.data.conditionalSubmissionItems = getConditionalSubmissionItems(req.session.data)
+
+  return res.redirect('/notification-submitted')
+})
+
+router.get('/notification-submitted', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (!hasDeclarationConfirmed(req.session.data)) {
+    return res.redirect('/declaration')
+  }
+
+  return renderNotificationSubmittedPage(req, res)
+})
+
+router.get('/upload-documents', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  return renderUploadDocumentsPage(req, res)
+})
+
+router.post('/upload-documents/virus-check/:documentId', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  const document = markUploadedDocumentVirusCheckPassed(req.session.data, req.params.documentId)
+
+  return res.json({
+    virusStatus: document ? document.virusStatus : null
+  })
+})
+
+router.post('/upload-documents', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  const action = (req.body.action || '').trim()
+
+  if (action.startsWith('remove:')) {
+    const documentId = action.slice('remove:'.length)
+
+    removeUploadedDocument(req.session.data, documentId)
+    req.session.data.errorList = null
+    req.session.data.errors = null
+
+    return res.redirect('/upload-documents')
+  }
+
+  if (action === 'add-another') {
+    const values = parseUploadDocumentBody(req.body)
+    const validation = validateUploadDocument(values, req.session.data)
+
+    if (validation.errorList.length) {
+      req.session.data.errorList = validation.errorList
+      req.session.data.errors = validation.errors
+
+      return renderUploadDocumentsPage(req, res, {
+        formValues: values
+      })
+    }
+
+    req.session.data.errorList = null
+    req.session.data.errors = null
+    addUploadedDocument(req.session.data, values)
+
+    return res.redirect('/upload-documents')
+  }
+
+  if (action === 'hub') {
+    req.session.data.errorList = null
+    req.session.data.errors = null
+
+    return res.redirect('/notification-hub')
+  }
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+
+  return res.redirect('/notification-hub')
 })
 
 router.post('/reason-for-import', (req, res) => {
@@ -1726,7 +3812,7 @@ router.post('/reason-for-import', (req, res) => {
     ? internalMarketPurpose
     : null
 
-  return res.redirect(getReasonForImportContinuePath(req.session.data))
+  return res.redirect('/notification-hub')
 })
 
 router.get('/animal-identification-details', (req, res) => {
@@ -1853,15 +3939,6 @@ router.post('/animal-identification-details', (req, res) => {
   }
 
   if (action === 'continue') {
-    if (!hasAnimalIdentifiersComplete(req.session.data)) {
-      req.session.data.errorList = [{
-        text: 'Add identification details for all animals before continuing',
-        href: '#animal-identification-panels'
-      }]
-
-      return renderAnimalIdentificationDetailsPage(req, res)
-    }
-
     req.session.data.errorList = null
     req.session.data.errors = null
 
@@ -1997,6 +4074,271 @@ router.get('/contact-address-for-consignment', (req, res) => {
   ensurePrototypeNotificationReference(req.session.data)
 
   return renderContactAddressPage(req, res)
+})
+
+router.get('/roles-and-addresses', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  return renderRolesAndAddressesPage(req, res)
+})
+
+router.get('/transport-details', (req, res) => {
+  return res.redirect('/transporter')
+})
+
+router.get('/transporter', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  return renderTransporterPage(req, res, {
+    searchQuery: (req.query.search || '').trim()
+  })
+})
+
+router.post('/transporter', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  const transporterId = (req.body.transporterId || '').trim()
+  const searchQuery = (req.body.search || '').trim()
+  const action = (req.body.action || '').trim()
+  const transporter = getTransporterById(transporterId)
+
+  if (action === 'hub') {
+    if (transporter) {
+      syncTransporterSession(req.session.data, transporter)
+    }
+
+    req.session.data.errorList = null
+    req.session.data.errors = null
+
+    return res.redirect('/notification-hub')
+  }
+
+  if (!transporter) {
+    const firstTransporterId = transporters[0] ? transporters[0].id : ''
+
+    req.session.data.errorList = [{
+      text: 'Select a transporter',
+      href: `#transporter-${firstTransporterId}`
+    }]
+    req.session.data.errors = {
+      transporterId: { text: 'Select a transporter' }
+    }
+
+    return renderTransporterPage(req, res, {
+      searchQuery,
+      selectedTransporterId: transporterId
+    })
+  }
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+  syncTransporterSession(req.session.data, transporter)
+
+  return res.redirect('/notification-hub')
+})
+
+router.get('/cph-number', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (!isConsignmentAddressSectionActive(req.session.data, 'cph')) {
+    return res.redirect('/roles-and-addresses')
+  }
+
+  return renderCphNumberPage(req, res)
+})
+
+router.post('/cph-number', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (!isConsignmentAddressSectionActive(req.session.data, 'cph')) {
+    return res.redirect('/roles-and-addresses')
+  }
+
+  const validation = validateCphNumber(req.body.cphNumber)
+
+  if (validation.errorList.length) {
+    req.session.data.errorList = validation.errorList
+    req.session.data.errors = validation.errors
+
+    return renderCphNumberPage(req, res, {
+      cphNumber: validation.value
+    })
+  }
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+  req.session.data.cphNumber = validation.value
+
+  return res.redirect('/roles-and-addresses')
+})
+
+router.get('/permanent-address', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (!isConsignmentAddressSectionActive(req.session.data, 'permanent-address')) {
+    return res.redirect('/roles-and-addresses')
+  }
+
+  return renderPermanentAddressPage(req, res)
+})
+
+router.post('/permanent-address', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (!isConsignmentAddressSectionActive(req.session.data, 'permanent-address')) {
+    return res.redirect('/roles-and-addresses')
+  }
+
+  const validation = validatePermanentAddressChoice(
+    req.body.permanentAddressSameAsDestination,
+    req.session.data
+  )
+
+  if (validation.errorList.length) {
+    req.session.data.errorList = validation.errorList
+    req.session.data.errors = validation.errors
+
+    return renderPermanentAddressPage(req, res, {
+      permanentAddressSameAsDestination: validation.value
+    })
+  }
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+
+  if (validation.value === 'no') {
+    req.session.data.permanentAddressSameAsDestination = 'no'
+    req.session.data.permanentAddress = null
+    req.session.data.permanentAddressId = null
+    req.session.data.permanentAddressSummary = null
+
+    return res.redirect('/permanent-address/select')
+  }
+
+  req.session.data.permanentAnimalAddresses = null
+  copyPlaceOfDestinationToPermanentAddress(req.session.data)
+
+  return res.redirect('/roles-and-addresses')
+})
+
+router.get('/permanent-address/select', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (!isConsignmentAddressSectionActive(req.session.data, 'permanent-address')) {
+    return res.redirect('/roles-and-addresses')
+  }
+
+  if (req.session.data.permanentAddressSameAsDestination !== 'no') {
+    return res.redirect('/permanent-address')
+  }
+
+  return renderPermanentAddressAnimalsPage(req, res)
+})
+
+router.post('/permanent-address/select', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (!isConsignmentAddressSectionActive(req.session.data, 'permanent-address')) {
+    return res.redirect('/roles-and-addresses')
+  }
+
+  if (req.session.data.permanentAddressSameAsDestination !== 'no') {
+    return res.redirect('/permanent-address')
+  }
+
+  const action = (req.body.action || '').trim()
+  const choices = parsePermanentAddressChoices(req.body)
+  const addressDetails = parsePermanentAddressDetails(req.body)
+  const validation = validatePermanentAddressAnimalsForm(choices, req.session.data, addressDetails)
+
+  if (validation.errorList.length) {
+    req.session.data.errorList = validation.errorList
+    req.session.data.errors = validation.errors
+
+    return renderPermanentAddressAnimalsPage(req, res, {
+      submittedChoices: validation.choices,
+      submittedAddressDetails: validation.addressDetails,
+      errors: validation.errors
+    })
+  }
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+
+  const animals = buildPermanentAddressAnimalList(req.session.data)
+
+  animals.forEach((animal) => {
+    const choice = validation.choices[animal.key]
+
+    if (choice === 'same-as-pod') {
+      copyAddressToPermanentAnimalEntry(
+        req.session.data,
+        animal.key,
+        req.session.data.placeOfDestinationAddress,
+        'same-as-pod'
+      )
+      return
+    }
+
+    const form = validation.addressDetails[animal.key] || getEmptyPermanentAddressFormValues()
+
+    copyAddressToPermanentAnimalEntry(
+      req.session.data,
+      animal.key,
+      buildAddressFromPermanentAddressForm(form),
+      'new-address'
+    )
+  })
+
+  syncPermanentAddressSummary(req.session.data)
+
+  if (action === 'hub') {
+    return res.redirect('/notification-hub')
+  }
+
+  return res.redirect('/roles-and-addresses')
+})
+
+router.get('/permanent-address/enter-address', (req, res) => {
+  return res.redirect('/permanent-address/select')
+})
+
+router.post('/permanent-address/enter-address', (req, res) => {
+  return res.redirect('/permanent-address/select')
+})
+
+consignmentAddressSections
+  .filter((section) => section.selectable)
+  .forEach((section) => {
+    router.get(section.path, handleConsignmentAddressSelectGet)
+    router.post(section.path, handleConsignmentAddressSelectPost)
+  })
+
+router.post('/roles-and-addresses', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  const action = (req.body.action || '').trim()
+
+  if (action.startsWith('same-as-consignee:')) {
+    const sectionId = action.split(':')[1]
+    copyConsigneeAddressToSection(req.session.data, sectionId)
+
+    return res.redirect('/roles-and-addresses')
+  }
+
+  const validation = validateConsignmentAddressesComplete(req.session.data)
+
+  if (validation.errorList.length) {
+    req.session.data.errorList = validation.errorList
+    req.session.data.errors = null
+
+    return renderRolesAndAddressesPage(req, res)
+  }
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+
+  return res.redirect('/notification-hub')
 })
 
 router.post('/contact-address-for-consignment', (req, res) => {

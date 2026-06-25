@@ -1,0 +1,81 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+
+{% set pageName = "Add the County Parish Holding number (CPH)" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full app-cph-number-page">
+
+    {% include "partials/notification-status.html" %}
+
+    <div class="app-cph-number-page__header">
+      <p class="app-cph-number-page__caption">Consignment addresses</p>
+      <h1 class="app-cph-number-page__heading">Add the County Parish Holding number (CPH)</h1>
+    </div>
+
+    <form method="post" action="/cph-number" novalidate class="app-cph-number-form">
+
+      {% if data.errorList %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: data.errorList
+        }) }}
+      {% endif %}
+
+      {{ govukDetails({
+        summaryText: "What is a CPH number?",
+        classes: "app-cph-number-page__details",
+        html: '
+          <p class="govuk-body">A County Parish Holding (CPH) number is a unique 9-digit number used to identify land and buildings where livestock are kept, moved or handled.</p>
+          <p class="govuk-body">You can find your CPH number on documents from the Animal and Plant Health Agency (APHA) or by <a class="govuk-link" href="#">checking your holding details on GOV.UK</a>.</p>'
+      }) }}
+
+      {{ govukInput({
+        label: {
+          text: "CPH number",
+          classes: "app-cph-number-page__field-label"
+        },
+        hint: {
+          text: "For example 12/345/6789"
+        },
+        id: "cph-number",
+        name: "cphNumber",
+        value: cphNumber,
+        classes: "app-cph-number-page__input",
+        errorMessage: data.errors.cphNumber if data.errors and data.errors.cphNumber,
+        formGroup: {
+          classes: "app-cph-number-page__field"
+        }
+      }) }}
+
+      {{ govukButton({
+        text: "Save and continue",
+        classes: "app-cph-number-page__continue-button"
+      }) }}
+
+    </form>
+
+  </div>
+</div>
+{% endblock %}

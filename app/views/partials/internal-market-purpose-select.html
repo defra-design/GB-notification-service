@@ -1,0 +1,13 @@
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+
+<div class="app-internal-market-purpose-reveal">
+  {{ govukSelect({
+    id: "internal-market-purpose",
+    name: "internalMarketPurpose",
+    label: {
+      text: "Purpose in the internal market"
+    },
+    items: internalMarketPurposeItems,
+    errorMessage: data.errors.internalMarketPurpose if data.errors and data.errors.internalMarketPurpose
+  }) }}
+</div>

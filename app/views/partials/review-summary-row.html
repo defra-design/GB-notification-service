@@ -1,0 +1,21 @@
+{% macro reviewValue(value) %}
+  {% if value.isAddress %}
+    {% if value.name %}
+      <p class="app-review-card__address-name">{{ value.name }}</p>
+    {% endif %}
+    {% for line in value.lines %}
+      <p class="app-review-card__address-line">{{ line }}</p>
+    {% endfor %}
+  {% else %}
+    {{ value }}
+  {% endif %}
+{% endmacro %}
+
+{% macro reviewRow(row) %}
+  <div class="app-review-card__row">
+    <dt class="app-review-card__key">{{ row.key }}</dt>
+    <dd class="app-review-card__value">
+      {{ reviewValue(row.value) }}
+    </dd>
+  </div>
+{% endmacro %}

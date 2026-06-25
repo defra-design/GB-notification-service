@@ -1,0 +1,83 @@
+{% extends "layouts/journey.html" %}
+
+{% set journeyPageClass = "app-permanent-address-page" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+
+{% set pageName = "Permanent address" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block journeyContent %}
+
+    {% include "partials/notification-status.html" %}
+
+    <div class="app-permanent-address-page__header">
+      <p class="app-permanent-address-page__caption">Consignment addresses</p>
+      <h1 class="app-permanent-address-page__heading">Permanent address</h1>
+    </div>
+
+    {{ govukWarningText({
+      text: "Providing a false address is an act of fraud",
+      classes: "app-permanent-address-page__warning"
+    }) }}
+
+    <div class="app-permanent-address-page__guidance">
+      <p class="app-permanent-address-page__guidance-text">A permanent address is where an animal:</p>
+      <ul class="govuk-list govuk-list--bullet app-permanent-address-page__guidance-list">
+        <li>will permanently reside</li>
+        <li>can be checked by the Animal and Plant Health Agency (APHA)</li>
+      </ul>
+    </div>
+
+    {% if data.errorList %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: data.errorList
+      }) }}
+    {% endif %}
+
+    <form method="post" action="/permanent-address" novalidate class="app-permanent-address-form">
+
+      <h2 class="app-permanent-address-page__question">Are all the animals going to the place of destination?</h2>
+
+      {{ govukRadios({
+        idPrefix: "permanent-address-same-as-destination",
+        name: "permanentAddressSameAsDestination",
+        fieldset: {
+          legend: {
+            text: "Are all the animals going to the place of destination?",
+            classes: "govuk-visually-hidden"
+          }
+        },
+        errorMessage: data.errors.permanentAddressSameAsDestination if data.errors and data.errors.permanentAddressSameAsDestination,
+        classes: "app-permanent-address-radios",
+        formGroup: {
+          classes: "app-permanent-address-page__radios"
+        },
+        items: radioItems
+      }) }}
+
+      {{ govukButton({
+        text: "Continue",
+        classes: "app-permanent-address-page__continue-button"
+      }) }}
+
+    </form>
+
+{% endblock %}

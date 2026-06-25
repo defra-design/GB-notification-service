@@ -16,33 +16,49 @@ function formatSpeciesOptionLabel (commodity, species) {
   return `${commodity.name} (${species.label})`
 }
 
-function speciesMatchesQuery (species, query) {
-  const searchable = [species.label, species.commonName].filter(Boolean)
+function textMatchesQuery (text, query) {
+  const queryWords = query
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean)
 
-  return searchable.some((value) => value.toLowerCase().includes(query))
-}
-
-function nameMatchesQuery (name, query) {
-  const normalisedName = name.toLowerCase()
-  const normalisedQuery = query.toLowerCase()
-
-  if (!normalisedName.startsWith(normalisedQuery)) {
+  if (!queryWords.length) {
     return false
   }
 
-  if (normalisedName.length === normalisedQuery.length) {
-    return true
+  const textWords = text
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean)
+
+  if (queryWords.length === 1) {
+    return textWords.some((word) => word.startsWith(queryWords[0]))
   }
 
-  const nextCharacter = normalisedName[normalisedQuery.length]
+  for (let index = 0; index <= textWords.length - queryWords.length; index += 1) {
+    const isMatch = queryWords.every((queryWord, offset) =>
+      textWords[index + offset].startsWith(queryWord)
+    )
 
-  return nextCharacter ? !/[a-z]/.test(nextCharacter) : true
+    if (isMatch) {
+      return true
+    }
+  }
+
+  return false
+}
+
+function speciesMatchesQuery (species, query) {
+  const searchable = [species.label, species.commonName].filter(Boolean)
+
+  return searchable.some((value) => textMatchesQuery(value, query))
 }
 
 function commodityNameOrCodeMatches (commodity, query) {
+  const normalisedQuery = query.toLowerCase()
   const code = commodity.code.toLowerCase()
 
-  return nameMatchesQuery(commodity.name, query) || code.includes(query)
+  return textMatchesQuery(commodity.name, query) || code.startsWith(normalisedQuery)
 }
 
 function getFilteredSpecies (commodity, query) {
@@ -77,17 +93,75 @@ function highlightMatch (text, query) {
     return text
   }
 
-  const index = text.toLowerCase().indexOf(query.toLowerCase())
+  const queryWords = query
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean)
 
-  if (index === -1) {
+  if (!queryWords.length) {
     return text
   }
 
-  const before = text.slice(0, index)
-  const match = text.slice(index, index + query.length)
-  const after = text.slice(index + query.length)
+  const wordPattern = /[a-z0-9]+/gi
+  const words = []
+  let match
 
-  return `${before}<strong class="app-commodity-search__match">${match}</strong>${after}`
+  while ((match = wordPattern.exec(text)) !== null) {
+    words.push({
+      value: match[0],
+      start: match.index,
+      end: match.index + match[0].length
+    })
+  }
+
+  const highlightRanges = []
+
+  if (queryWords.length === 1) {
+    const queryWord = queryWords[0]
+
+    words.forEach((word) => {
+      if (word.value.toLowerCase().startsWith(queryWord)) {
+        highlightRanges.push([word.start, word.end])
+      }
+    })
+  } else {
+    for (let index = 0; index <= words.length - queryWords.length; index += 1) {
+      const isMatch = queryWords.every((queryWord, offset) =>
+        words[index + offset].value.toLowerCase().startsWith(queryWord)
+      )
+
+      if (!isMatch) {
+        continue
+      }
+
+      for (let offset = 0; offset < queryWords.length; offset += 1) {
+        const word = words[index + offset]
+        highlightRanges.push([word.start, word.end])
+      }
+    }
+  }
+
+  if (!highlightRanges.length) {
+    return text
+  }
+
+  highlightRanges.sort((a, b) => a[0] - b[0])
+
+  let result = ''
+  let lastIndex = 0
+
+  highlightRanges.forEach(([start, end]) => {
+    if (start < lastIndex) {
+      return
+    }
+
+    result += text.slice(lastIndex, start)
+    result += `<strong class="app-commodity-search__match">${text.slice(start, end)}</strong>`
+    lastIndex = end
+  })
+
+  result += text.slice(lastIndex)
+  return result
 }
 
 function escapeHtml (value) {
