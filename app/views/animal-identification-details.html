@@ -2,6 +2,14 @@
 
 {% set pageName = "Animal identification details" %}
 
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+
 {% block beforeContent %}
   {{ govukPhaseBanner({
     tag: {
@@ -12,27 +20,31 @@
 
   {{ govukBackLink({
     text: "Back",
-    href: "/select-commodity"
+    href: backLink
   }) }}
 {% endblock %}
 
 {% block content %}
-<div class="govuk-grid-row">
-  <div class="govuk-grid-column-two-thirds app-animal-identification__intro">
 
-    {% include "partials/notification-caption.html" %}
-    <h1 class="govuk-heading-l">Animal identification details</h1>
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds app-animal-identification-page__intro">
+    {% include "partials/notification-status.html" %}
+
+    <div class="app-animal-identification-page__header">
+      <p class="app-animal-identification-page__caption">About the consignment</p>
+      <h1 class="app-animal-identification-page__heading">Animal identification details</h1>
+    </div>
 
     {{ govukInsetText({
-      text: "Check the health certificate for this information. You must add all animal identification details before the consignment arrives at the port of entry."
+      text: "You must add all animal identification details before the consignment arrives at the port of entry.",
+      classes: "app-animal-identification-page__inset"
     }) }}
-
   </div>
 </div>
 
-<form method="post" action="/animal-identification-details" novalidate>
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-full">
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full app-animal-identification-page__panel-column">
+    <form method="post" action="/animal-identification-details" novalidate class="app-animal-identification-page__form">
 
       {% if data.errorList %}
         {{ govukErrorSummary({
@@ -41,31 +53,90 @@
         }) }}
       {% endif %}
 
-      <div class="app-species-panels" id="species-panels">
-        {% for panel in data.speciesEntries %}
-          {% include "partials/species-panel.html" %}
+      <div class="app-animal-identification-panels" id="animal-identification-panels">
+        {% for panel in speciesPanels %}
+          <div class="app-animal-identification-panel{% if not loop.last %} app-animal-identification-panel--spaced{% endif %}">
+            <div class="app-animal-identification-panel__header">
+              <h2 class="app-animal-identification-panel__species-name">{{ panel.speciesLabel }}</h2>
+              <a class="govuk-link app-animal-identification-panel__change-species" href="/what-are-you-importing">Change species</a>
+            </div>
+
+            <div class="app-animal-identification-panel__body">
+              {% if panel.isComplete %}
+                {% if panel.savedAnimalsTable %}
+                  {{ govukTable({
+                    head: panel.savedAnimalsTable.head,
+                    rows: panel.savedAnimalsTable.rows,
+                    classes: "app-animal-identification-table"
+                  }) }}
+                {% endif %}
+              {% else %}
+                <h3 class="app-animal-identification-panel__heading">{{ panel.activeAnimal.headingText }}</h3>
+
+                <p class="app-animal-identification-panel__change-count">
+                  <a class="govuk-link" href="/consignment-details">Change number of animals</a>
+                </p>
+
+                {% for field in panel.identifierFields %}
+                  {% set fieldError = data.errors["identifier-" + panel.speciesId + "-" + field.id] if data.errors and data.errors["identifier-" + panel.speciesId + "-" + field.id] %}
+
+                  {{ govukInput({
+                    label: {
+                      text: field.label
+                    },
+                    id: "identifier-" + panel.speciesId + "-" + field.id,
+                    name: "identifiers[" + panel.speciesId + "][" + field.id + "]",
+                    value: panel.activeAnimal.identifierValues[field.id] or "",
+                    classes: "app-animal-identification-page__input",
+                    errorMessage: fieldError
+                  }) }}
+                {% endfor %}
+
+                {{ govukButton({
+                  text: panel.saveButtonText,
+                  name: "action",
+                  value: "save:" + panel.speciesId
+                }) }}
+
+                {% if panel.savedAnimalsTable %}
+                  <div class="app-animal-identification-panel__saved">
+                    {{ govukTable({
+                      head: panel.savedAnimalsTable.head,
+                      rows: panel.savedAnimalsTable.rows,
+                      classes: "app-animal-identification-table"
+                    }) }}
+                  </div>
+                {% endif %}
+              {% endif %}
+            </div>
+          </div>
         {% endfor %}
       </div>
 
-      <p class="govuk-body app-animal-identification__change-species">
-        <a class="govuk-link app-govuk-body-link" href="/select-commodity?change=species">Add/change species</a>
-      </p>
+      <div class="app-origin-form-actions app-animal-identification-page__form-actions">
+        <div class="app-origin-actions">
+          {{ govukButton({
+            text: "Save and continue",
+            name: "action",
+            value: "continue",
+            disabled: not reviewMode
+          }) }}
 
-      {{ govukButton({
-        text: "Continue",
-        name: "action",
-        value: "continue",
-        classes: "app-animal-identification__continue"
-      }) }}
+          {{ govukButton({
+            text: "Save and return to hub",
+            name: "action",
+            value: "hub",
+            classes: "govuk-button--secondary"
+          }) }}
+        </div>
 
-    </div>
+        <p class="app-origin-form-actions__cancel">
+          <a class="govuk-link" href="/notification-hub">Cancel and return to hub</a>
+        </p>
+      </div>
+
+    </form>
   </div>
-</form>
+</div>
 
-<div class="app-animal-identification-commodity-summary">
-  {% include "partials/commodity-details-summary.html" %}
-</div>
-<div class="app-animal-identification-import-summary">
-  {% include "partials/import-details-summary.html" %}
-</div>
 {% endblock %}

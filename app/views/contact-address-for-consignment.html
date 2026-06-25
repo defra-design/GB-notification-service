@@ -1,6 +1,12 @@
-{% extends "layouts/main.html" %}
+{% extends "layouts/journey.html" %}
 
-{% set pageName = "Contact address for this consignment" %}
+{% set journeyPageClass = "app-contact-address-page" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+
+{% set pageName = "Contact address for consignment" %}
 
 {% block beforeContent %}
   {{ govukPhaseBanner({
@@ -16,9 +22,10 @@
   }) }}
 {% endblock %}
 
-{% block content %}
-<div class="govuk-grid-row app-consignment-address-entry">
-  <div class="govuk-grid-column-full">
+{% block journeyContent %}
+
+    {% include "partials/notification-status.html" %}
+
     {% if data.errorList %}
       {{ govukErrorSummary({
         titleText: "There is a problem",
@@ -26,118 +33,44 @@
       }) }}
     {% endif %}
 
-    <div class="app-consignment-address-entry__intro">
-      <div class="app-consignment-address-entry__title-block">
-        <p class="app-consignment-address-entry__caption">Addresses</p>
-        <h1 class="govuk-heading-l app-consignment-address-entry__heading">Contact address for this consignment</h1>
-      </div>
-
-      {{ govukButton({
-        text: "Add a new address",
-        classes: "govuk-button--secondary app-consignment-address-entry__add-button",
-        href: "#"
-      }) }}
+    <div class="app-contact-address-page__header">
+      <h1 class="app-contact-address-page__heading">Contact address for consignment</h1>
     </div>
 
-    <p class="govuk-body app-consignment-address-entry__description">
+    <p class="app-contact-address-page__intro">
       This is the contact address of the person responsible for the consignment from when it enters Great Britain until authorities complete their checks.
     </p>
 
-    <form method="post" action="/contact-address-for-consignment" novalidate class="app-consignment-address-entry__form">
-      <h2 class="govuk-heading-m app-consignment-address-entry__section-heading">Select an address</h2>
+    <form method="post" action="/contact-address-for-consignment" novalidate class="app-contact-address-form">
 
-      <div class="govuk-form-group app-consignment-address-entry__search{% if data.errors and data.errors.addressId %} govuk-form-group--error{% endif %}">
-        <label class="govuk-label govuk-label--s" for="address-search">
-          Search
-        </label>
-        <div id="address-search-hint" class="govuk-hint">
-          Name or address
-        </div>
-        {% if data.errors and data.errors.addressId %}
-          <p id="address-id-error" class="govuk-error-message">
-            <span class="govuk-visually-hidden">Error:</span>
-            {{ data.errors.addressId.text }}
-          </p>
-        {% endif %}
-        <div class="app-commodity-search-wrapper app-consignment-address-entry__search-input" data-module="app-consignment-address-search">
-          <div class="app-commodity-search-panel">
-            <div class="app-commodity-search">
-              <input
-                class="govuk-input app-commodity-search__input"
-                id="address-search"
-                name="addressSearch"
-                type="search"
-                value="{{ addressSearch or '' }}"
-                autocomplete="off"
-                aria-describedby="address-search-hint{% if data.errors and data.errors.addressId %} address-id-error{% endif %}"
-              >
-              <button class="app-commodity-search__button" type="button" aria-label="Search addresses">
-                <svg class="app-commodity-search__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 27 27" width="20" height="20" aria-hidden="true" focusable="false">
-                  <path d="M19.6 18.1c1.6-2 .7-4.9.7-7.6C20.3 5.1 16.2 1 11.1 1S1.8 5.1 1.8 10.5s4.1 9.5 9.3 9.5c2.7 0 5.1-1.1 6.9-2.9l6.9 6.9 2.1-2.1-6.8-6.9zM11.1 18.1c-4.2 0-7.6-3.4-7.6-7.6S6.9 2.9 11.1 2.9s7.6 3.4 7.6 7.6-3.4 7.6-7.6 7.6z"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <h2 class="app-contact-address-page__section-heading">Select an address</h2>
 
-      <div class="app-consignment-address-table{% if data.errors and data.errors.addressId %} app-consignment-address-table--error{% endif %}" role="radiogroup" aria-labelledby="address-table-heading">
-        <span id="address-table-heading" class="govuk-visually-hidden">Select an address</span>
+      <p class="app-contact-address-page__help">
+        If the correct address is not shown, <a class="govuk-link" href="#">add a new branch address</a>, then return to this page.
+      </p>
 
-        <div class="app-consignment-address-table__row app-consignment-address-table__row--header" aria-hidden="true">
-          <div class="app-consignment-address-table__cell app-consignment-address-table__cell--select"></div>
-          <div class="app-consignment-address-table__cell app-consignment-address-table__cell--name">Name</div>
-          <div class="app-consignment-address-table__cell app-consignment-address-table__cell--address">Address</div>
-          <div class="app-consignment-address-table__cell app-consignment-address-table__cell--country">Country</div>
-          <div class="app-consignment-address-table__cell app-consignment-address-table__cell--action"><span class="govuk-visually-hidden">Action</span></div>
-        </div>
-
-        {% for address in addresses %}
-          <div
-            class="app-consignment-address-table__row"
-            data-address-row
-            data-search-text="{{ address.name }} {{ address.addressLines | join(' ') }} {{ address.country }}"
-          >
-            <div class="app-consignment-address-table__cell app-consignment-address-table__cell--select">
-              <div class="govuk-radios__item app-consignment-address-table__radio-item">
-                <input
-                  class="govuk-radios__input"
-                  id="address-{{ address.id }}"
-                  name="addressId"
-                  type="radio"
-                  value="{{ address.id }}"
-                  {% if addressId === address.id %}checked{% endif %}
-                >
-                <label class="govuk-radios__label" for="address-{{ address.id }}">
-                  <span class="govuk-visually-hidden">Select {{ address.name }}</span>
-                </label>
-              </div>
-            </div>
-            <div class="app-consignment-address-table__cell app-consignment-address-table__cell--name app-consignment-address-table__cell--body">
-              {{ address.name }}
-            </div>
-            <div class="app-consignment-address-table__cell app-consignment-address-table__cell--address app-consignment-address-table__cell--body">
-              {% for line in address.addressLines %}
-                {{ line }}{% if not loop.last %}<br>{% endif %}
-              {% endfor %}
-            </div>
-            <div class="app-consignment-address-table__cell app-consignment-address-table__cell--country app-consignment-address-table__cell--body">
-              {{ address.country }}
-            </div>
-            <div class="app-consignment-address-table__cell app-consignment-address-table__cell--action">
-              <a class="govuk-link app-govuk-body-link" href="#">View</a>
-            </div>
-          </div>
-        {% endfor %}
-
-        <p class="govuk-body app-consignment-address-table__no-results" hidden>No addresses match your search</p>
-      </div>
+      {{ govukRadios({
+        idPrefix: "contact-address",
+        name: "contactAddressId",
+        fieldset: {
+          legend: {
+            text: "Select an address",
+            classes: "govuk-visually-hidden"
+          }
+        },
+        errorMessage: data.errors.contactAddressId if data.errors and data.errors.contactAddressId,
+        classes: "app-contact-address-radios",
+        formGroup: {
+          classes: "app-contact-address-page__question"
+        },
+        items: contactAddressItems
+      }) }}
 
       {{ govukButton({
-        text: "Save and continue",
-        classes: "app-eu-button"
+        text: "Continue",
+        classes: "app-contact-address-page__button"
       }) }}
+
     </form>
-  </div>
-</div>
+
 {% endblock %}

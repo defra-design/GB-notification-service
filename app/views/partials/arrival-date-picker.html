@@ -1,0 +1,21 @@
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+
+<div class="app-arrival-details-page__date">
+  {{ mojDatePicker({
+    id: "arrival-date-at-port",
+    name: "arrivalDateAtPort",
+    value: data.arrivalDateAtPort or "",
+    label: {
+      text: "Arrival date at port of entry",
+      classes: "app-eu-heading-m app-arrival-details-page__field-label"
+    },
+    hint: {
+      text: "The expected date of arrival at the port of entry, not the time of day. For example, 27/3/2026.",
+      classes: "app-arrival-details-page__field-hint"
+    },
+    errorMessage: data.errors.arrivalDateAtPort if data.errors and data.errors.arrivalDateAtPort,
+    formGroup: {
+      classes: "govuk-form-group" + (" govuk-form-group--error" if data.errors and data.errors.arrivalDateAtPort else "")
+    }
+  }) }}
+</div>

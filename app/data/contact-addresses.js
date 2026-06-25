@@ -1,33 +1,21 @@
-// Contact address for this consignment
+// Branch addresses available for contact address selection
 module.exports = [
   {
-    id: 'import-notifications-team',
-    name: 'Import Notifications Team',
-    addressLines: ['Government Buildings, PO Box 14, York, YO1 7PR'],
+    id: 'aberdeen-livestock-union-street',
+    name: 'Aberdeen Livestock Ltd',
+    addressLines: ['15 Union Street, Aberdeen, AB11 5BN'],
     country: 'United Kingdom'
   },
   {
-    id: 'livestock-trade-support-ltd',
-    name: 'Livestock Trade Support Ltd',
-    addressLines: ['15 Commerce Street, Glasgow, G2 8LU'],
+    id: 'aberdeen-livestock-harbour-road',
+    name: 'Aberdeen Livestock Ltd',
+    addressLines: ['42 Harbour Road, Aberdeen, AB11 5BY'],
     country: 'United Kingdom'
   },
   {
-    id: 'border-control-liaison-office',
-    name: 'Border Control Liaison Office',
-    addressLines: ['Customs House, 28 Regent Road, Felixstowe, IP11 3BW'],
-    country: 'United Kingdom'
-  },
-  {
-    id: 'animal-import-contact-centre',
-    name: 'Animal Import Contact Centre',
-    addressLines: ['Riverside House, 2 Thames Street, Reading, RG1 8EQ'],
-    country: 'United Kingdom'
-  },
-  {
-    id: 'consignment-services-uk-ltd',
-    name: 'Consignment Services UK Ltd',
-    addressLines: ['Unit 5, Meridian Business Park, Leicester, LE19 1WZ'],
+    id: 'aberdeen-livestock-king-street',
+    name: 'Aberdeen Livestock Ltd',
+    addressLines: ['8 King Street, Aberdeen, AB24 5AE'],
     country: 'United Kingdom'
   }
 ]

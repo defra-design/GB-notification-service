@@ -12,11 +12,10 @@
     </p>
   {% endif %}
   <div
-    class="app-region-origin-code__group"
+    class="govuk-input__wrapper app-region-origin-code__affix"
     {% if data.errors and data.errors.regionOfOriginCodeSuffix %}aria-describedby="region-of-origin-code-hint region-of-origin-code-error"{% else %}aria-describedby="region-of-origin-code-hint"{% endif %}
   >
-    <span class="app-region-origin-code__prefix" id="region-of-origin-code-prefix" aria-hidden="true">{{ regionOfOriginCodePrefix }}</span>
-    <span class="app-region-origin-code__separator" aria-hidden="true">-</span>
+    <div class="govuk-input__prefix app-region-origin-code__prefix" id="region-of-origin-code-prefix" aria-hidden="true">{{ regionOfOriginCodePrefix }}</div>
     <input
       class="govuk-input app-region-origin-code__input"
       id="region-of-origin-code-suffix"
@@ -26,6 +25,7 @@
       maxlength="5"
       autocomplete="off"
       spellcheck="false"
+      inputmode="text"
     >
   </div>
 </div>

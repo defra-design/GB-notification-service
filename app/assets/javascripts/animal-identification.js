@@ -1,35 +1,55 @@
-//
-// Animal identification — select all checkboxes
-//
+const SCROLL_STORAGE_KEY = 'animal-identification-scroll-y'
 
-function initAnimalIdentifiers (root) {
-  const selectAll = root.querySelector('[data-select-all-animals]')
-  const animalCheckboxes = root.querySelectorAll('[data-animal-checkbox]')
+function shouldPreserveScroll (action) {
+  return (typeof action === 'string' && action.startsWith('save:')) ||
+    (typeof action === 'string' && action.startsWith('remove:'))
+}
 
-  if (!selectAll || animalCheckboxes.length === 0) {
+function restoreScrollPosition () {
+  const savedScrollY = sessionStorage.getItem(SCROLL_STORAGE_KEY)
+
+  if (savedScrollY === null) {
     return
   }
 
-  function syncSelectAll () {
-    const checkedCount = [...animalCheckboxes].filter((checkbox) => checkbox.checked).length
-    selectAll.checked = checkedCount === animalCheckboxes.length
-    selectAll.indeterminate = checkedCount > 0 && checkedCount < animalCheckboxes.length
+  const scrollY = Number(savedScrollY)
+  sessionStorage.removeItem(SCROLL_STORAGE_KEY)
+
+  const applyScroll = () => {
+    window.scrollTo(0, scrollY)
   }
 
-  selectAll.addEventListener('change', () => {
-    animalCheckboxes.forEach((checkbox) => {
-      checkbox.checked = selectAll.checked
-    })
-    selectAll.indeterminate = false
+  applyScroll()
+  requestAnimationFrame(() => {
+    requestAnimationFrame(applyScroll)
   })
-
-  animalCheckboxes.forEach((checkbox) => {
-    checkbox.addEventListener('change', syncSelectAll)
-  })
-
-  syncSelectAll()
 }
 
-window.GOVUKPrototypeKit.documentReady(() => {
-  document.querySelectorAll('.app-animal-identifiers').forEach(initAnimalIdentifiers)
-})
+function initAnimalIdentificationScroll () {
+  const form = document.querySelector('.app-animal-identification-page__form')
+
+  if (!form) {
+    return
+  }
+
+  if ('scrollRestoration' in window.history) {
+    window.history.scrollRestoration = 'manual'
+  }
+
+  form.addEventListener('submit', (event) => {
+    const submitter = event.submitter
+    const action = submitter && (submitter.value || submitter.getAttribute('value'))
+
+    if (shouldPreserveScroll(action)) {
+      sessionStorage.setItem(SCROLL_STORAGE_KEY, String(window.scrollY))
+    }
+  })
+
+  restoreScrollPosition()
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initAnimalIdentificationScroll)
+} else {
+  initAnimalIdentificationScroll()
+}

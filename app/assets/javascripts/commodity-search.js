@@ -2,86 +2,47 @@
 // Commodity search — multi-select species rows grouped under commodity headers
 //
 
-const commodities = [
-  {
-    id: 'cow',
-    name: 'Cow',
-    code: '0102',
-    species: [
-      { id: 'cow-bison-bison', label: 'Bison Bison' },
-      { id: 'cow-bos-spp', label: 'Bos spp.' },
-      { id: 'cow-bos-taurus', label: 'Bos taurus' },
-      { id: 'cow-bubalus-bubalis', label: 'Bubalus bubalis' }
-    ]
-  },
-  {
-    id: 'dog',
-    name: 'Dog',
-    code: '01061900',
-    species: [
-      { id: 'dog-canis-familiaris', label: 'Canis familiaris' }
-    ]
-  },
-  {
-    id: 'pig',
-    name: 'Pig',
-    code: '0103',
-    species: [
-      { id: 'pig-sus-scrofa', label: 'Sus scrofa domesticus' }
-    ]
-  },
-  {
-    id: 'horse',
-    name: 'Horse',
-    code: '0101',
-    species: [
-      { id: 'horse-equus-caballus', label: 'Equus caballus (Horse)' },
-      { id: 'horse-equus-asinus', label: 'Equus asinus (Donkey)' },
-      { id: 'horse-equus-przewalskii', label: "Equus przewalskii (Przewalski's horse)" }
-    ]
-  },
-  {
-    id: 'embryos-horse',
-    name: 'Embryos/Ova - Horse',
-    code: '05119985',
-    species: [
-      { id: 'embryos-horse-equus', label: 'Embryos/Ova - Horse (Equus Cabalus)' }
-    ]
-  },
-  {
-    id: 'bees',
-    name: 'Bees',
-    code: '01064100',
-    species: [
-      { id: 'bees-apis-mellifera', label: 'Apis mellifera' },
-      { id: 'bees-bombus-canariensis', label: 'Bombus Canariensis' },
-      { id: 'bees-bombus-spp', label: 'Bombus Spp' }
-    ]
-  }
-]
+const MIN_SEARCH_LENGTH = 3
 
 function formatCommodity (commodity) {
   return `${commodity.name} (${commodity.code})`
 }
 
 function formatSpeciesOptionLabel (commodity, species) {
+  if (species.commonName) {
+    return `${species.commonName} (${species.label})`
+  }
+
   return `${commodity.name} (${species.label})`
 }
 
-function speciesMatchesQuery (speciesLabel, query) {
-  if (query.length < 3) {
+function speciesMatchesQuery (species, query) {
+  const searchable = [species.label, species.commonName].filter(Boolean)
+
+  return searchable.some((value) => value.toLowerCase().includes(query))
+}
+
+function nameMatchesQuery (name, query) {
+  const normalisedName = name.toLowerCase()
+  const normalisedQuery = query.toLowerCase()
+
+  if (!normalisedName.startsWith(normalisedQuery)) {
     return false
   }
 
-  return speciesLabel.toLowerCase().includes(query)
+  if (normalisedName.length === normalisedQuery.length) {
+    return true
+  }
+
+  const nextCharacter = normalisedName[normalisedQuery.length]
+
+  return nextCharacter ? !/[a-z]/.test(nextCharacter) : true
 }
 
 function commodityNameOrCodeMatches (commodity, query) {
-  const name = commodity.name.toLowerCase()
   const code = commodity.code.toLowerCase()
-  const displayText = formatCommodity(commodity).toLowerCase()
 
-  return displayText.includes(query) || name.includes(query) || code.includes(query)
+  return nameMatchesQuery(commodity.name, query) || code.includes(query)
 }
 
 function getFilteredSpecies (commodity, query) {
@@ -93,13 +54,13 @@ function getFilteredSpecies (commodity, query) {
     return commodity.species
   }
 
-  return commodity.species.filter((species) => speciesMatchesQuery(species.label, query))
+  return commodity.species.filter((species) => speciesMatchesQuery(species, query))
 }
 
-function getVisibleCommodityGroups (query) {
+function getVisibleCommodityGroups (commodities, query) {
   const normalisedQuery = query.trim().toLowerCase()
 
-  if (!normalisedQuery) {
+  if (normalisedQuery.length < MIN_SEARCH_LENGTH) {
     return []
   }
 
@@ -177,6 +138,22 @@ function toSelectionKey (value) {
   return null
 }
 
+function getCommoditiesFromRoot (root) {
+  const dataEl = root.querySelector('.app-commodity-search__data')
+
+  if (!dataEl) {
+    return []
+  }
+
+  try {
+    const parsed = JSON.parse(dataEl.textContent)
+
+    return Array.isArray(parsed) ? parsed : []
+  } catch (error) {
+    return []
+  }
+}
+
 function getInitialSelections (root) {
   const dataEl = root.querySelector('.app-commodity-search__initial')
 
@@ -205,6 +182,12 @@ function initCommoditySearch (root) {
   const clearAllButton = root.querySelector('.app-commodity-search__selected-clear')
 
   if (!input || !button || !results || !searchBox || !selectedPanel || !selectedHeading || !selectedList || !clearAllButton) {
+    return
+  }
+
+  const commodities = getCommoditiesFromRoot(root)
+
+  if (!commodities.length) {
     return
   }
 
@@ -342,25 +325,42 @@ function initCommoditySearch (root) {
     renderResults(input.value)
   }
 
-  function getSelectionLabel (value) {
-    const parsed = parseSelectionValue(value)
+  function getGroupedSelectionItems () {
+    const groups = new Map()
 
-    if (!parsed) {
-      return ''
-    }
+    selectedValues.forEach((value) => {
+      const parsed = parseSelectionValue(value)
 
-    const match = getSpeciesById(parsed.id)
+      if (!parsed || parsed.type !== 'species') {
+        return
+      }
 
-    return match ? match.species.label : ''
+      const match = getSpeciesById(parsed.id)
+
+      if (!match) {
+        return
+      }
+
+      const { commodity, species } = match
+
+      if (!groups.has(commodity.id)) {
+        groups.set(commodity.id, {
+          commodity,
+          items: []
+        })
+      }
+
+      groups.get(commodity.id).items.push({
+        value,
+        label: species.commonName || species.label
+      })
+    })
+
+    return Array.from(groups.values())
   }
 
-  function getSelectionItems () {
-    return Array.from(selectedValues)
-      .map((value) => ({
-        value,
-        label: getSelectionLabel(value)
-      }))
-      .filter((item) => item.label)
+  function getSelectionCount () {
+    return getGroupedSelectionItems().reduce((count, group) => count + group.items.length, 0)
   }
 
   function announceSelectionCount () {
@@ -375,8 +375,9 @@ function initCommoditySearch (root) {
   }
 
   function renderSelectedPanel () {
-    const items = getSelectionItems()
-    const hasSelections = items.length > 0
+    const groups = getGroupedSelectionItems()
+    const count = getSelectionCount()
+    const hasSelections = count > 0
 
     selectedPanel.hidden = !hasSelections
     selectedPanel.classList.toggle('app-commodity-search__selected--visible', hasSelections)
@@ -388,19 +389,28 @@ function initCommoditySearch (root) {
       return
     }
 
-    selectedHeading.textContent = `${items.length} selected`
+    selectedHeading.textContent = `${count} selected`
 
-    selectedList.innerHTML = items.map((item) => `
-      <li class="app-commodity-search__selected-item">
-        <span class="app-commodity-search__selected-label">${escapeHtml(item.label)}</span>
-        <button
-          class="app-commodity-search__selected-remove"
-          type="button"
-          data-selection-value="${escapeHtml(item.value)}"
-          aria-label="Remove ${escapeHtml(item.label)}"
-        >
-          <span class="govuk-visually-hidden">Remove ${escapeHtml(item.label)}</span>
-        </button>
+    selectedList.innerHTML = groups.map((group) => `
+      <li class="app-commodity-search__selected-group">
+        <div class="app-commodity-search__selected-group-row">
+          <p class="app-commodity-search__selected-group-label">${escapeHtml(formatCommodity(group.commodity))}:</p>
+          <ul class="app-commodity-search__selected-chips" role="list">
+            ${group.items.map((item) => `
+              <li class="app-commodity-search__selected-item">
+                <span class="app-commodity-search__selected-label">${escapeHtml(item.label)}</span>
+                <button
+                  class="app-commodity-search__selected-remove"
+                  type="button"
+                  data-selection-value="${escapeHtml(item.value)}"
+                  aria-label="Remove ${escapeHtml(item.label)}"
+                >
+                  <span class="govuk-visually-hidden">Remove ${escapeHtml(item.label)}</span>
+                </button>
+              </li>
+            `).join('')}
+          </ul>
+        </div>
       </li>
     `).join('')
   }
@@ -438,18 +448,19 @@ function initCommoditySearch (root) {
     setExpanded(false)
   }
 
-  function buildCommodityHeaderRow ({ commodity, disabled, labelHtml }) {
+  function buildCommodityHeaderRow ({ disabled, labelHtml, rowIndex }) {
+    const altClass = rowIndex % 2 === 1 ? ' app-commodity-search__row--alt' : ''
     const disabledClass = disabled ? ' app-commodity-search__row--disabled-group' : ''
 
     return `
-      <li class="app-commodity-search__row app-commodity-search__row--commodity-header${disabledClass}">
+      <li class="app-commodity-search__row app-commodity-search__row--commodity-header${altClass}${disabledClass}">
         <span class="app-commodity-search__row-label app-commodity-search__row-label--heading">${labelHtml}</span>
       </li>
     `
   }
 
   function buildSpeciesRow ({
-    speciesRowIndex,
+    rowIndex,
     commodity,
     disabled,
     checkboxId,
@@ -457,7 +468,7 @@ function initCommoditySearch (root) {
     selectionValue,
     isChecked
   }) {
-    const altClass = speciesRowIndex % 2 === 1 ? ' app-commodity-search__row--alt' : ''
+    const altClass = rowIndex % 2 === 1 ? ' app-commodity-search__row--alt' : ''
     const disabledClass = disabled ? ' app-commodity-search__row--disabled' : ''
 
     return `
@@ -511,13 +522,15 @@ function initCommoditySearch (root) {
   })
 
   function renderResults (query) {
-    const groups = getVisibleCommodityGroups(query)
-    results.innerHTML = ''
+    const trimmedQuery = query.trim()
 
-    if (!query.trim()) {
+    if (trimmedQuery.length < MIN_SEARCH_LENGTH) {
       closeResults()
       return
     }
+
+    const groups = getVisibleCommodityGroups(commodities, query)
+    results.innerHTML = ''
 
     if (groups.length === 0) {
       results.innerHTML = `
@@ -531,8 +544,7 @@ function initCommoditySearch (root) {
       return
     }
 
-    const trimmedQuery = query.trim()
-    let speciesRowIndex = 0
+    let rowIndex = 0
     let speciesRowCount = 0
     const rowsHtml = []
 
@@ -540,9 +552,9 @@ function initCommoditySearch (root) {
       const disabled = isCommodityDisabled(commodity.id)
 
       rowsHtml.push(buildCommodityHeaderRow({
-        commodity,
         disabled,
-        labelHtml: highlightMatch(escapeHtml(formatCommodity(commodity)), trimmedQuery)
+        labelHtml: highlightMatch(escapeHtml(formatCommodity(commodity)), trimmedQuery),
+        rowIndex: rowIndex++
       }))
 
       species.forEach((speciesItem) => {
@@ -550,7 +562,7 @@ function initCommoditySearch (root) {
         const optionLabel = formatSpeciesOptionLabel(commodity, speciesItem)
 
         rowsHtml.push(buildSpeciesRow({
-          speciesRowIndex: speciesRowIndex++,
+          rowIndex: rowIndex++,
           commodity,
           disabled,
           checkboxId: `commodity-species-${speciesItem.id}`,
@@ -578,7 +590,7 @@ function initCommoditySearch (root) {
   })
 
   input.addEventListener('focus', () => {
-    if (input.value.trim()) {
+    if (input.value.trim().length >= MIN_SEARCH_LENGTH) {
       renderResults(input.value)
     }
   })
@@ -598,7 +610,7 @@ function initCommoditySearch (root) {
   button.addEventListener('click', (event) => {
     event.preventDefault()
 
-    if (input.value.trim()) {
+    if (input.value.trim().length >= MIN_SEARCH_LENGTH) {
       renderResults(input.value)
       input.focus()
     }
@@ -607,7 +619,7 @@ function initCommoditySearch (root) {
   updateHiddenFields()
   renderSelectedPanel()
 
-  if (input.value.trim()) {
+  if (input.value.trim().length >= MIN_SEARCH_LENGTH) {
     renderResults(input.value)
   }
 }

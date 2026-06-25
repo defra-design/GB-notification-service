@@ -1,6 +1,8 @@
 //
-// Country search — Figma 8296:24063 (select-style search with blue search button)
+// Country search — keyword search for EU countries (minimum 3 characters)
 //
+
+const MIN_SEARCH_LENGTH = 3
 
 function escapeHtml (value) {
   return value
@@ -12,20 +14,34 @@ function escapeHtml (value) {
 
 function highlightMatch (text, query) {
   if (!query) {
-    return text
+    return escapeHtml(text)
   }
 
-  const index = text.toLowerCase().indexOf(query.toLowerCase())
+  const lowerText = text.toLowerCase()
+  const lowerQuery = query.toLowerCase()
+  const index = lowerText.indexOf(lowerQuery)
 
   if (index === -1) {
-    return text
+    return escapeHtml(text)
   }
 
   const before = text.slice(0, index)
   const match = text.slice(index, index + query.length)
   const after = text.slice(index + query.length)
 
-  return `${before}<strong class="app-commodity-search__match">${match}</strong>${after}`
+  return `${escapeHtml(before)}<strong class="app-commodity-search__match">${escapeHtml(match)}</strong>${escapeHtml(after)}`
+}
+
+function countryOptionMatchesQuery (option, normalisedQuery) {
+  if (option.label.toLowerCase().includes(normalisedQuery)) {
+    return true
+  }
+
+  if (option.parent && option.parent.toLowerCase().includes(normalisedQuery)) {
+    return true
+  }
+
+  return false
 }
 
 function getCountries (root) {
@@ -68,13 +84,17 @@ function updateRegionOriginCodePrefix (root, country) {
 }
 
 function initCountrySearch (root) {
-  const countries = getCountries(root)
+  const countryOptions = getCountries(root)
   const input = root.querySelector('.app-commodity-search__input')
   const button = root.querySelector('.app-commodity-search__button')
   const results = root.querySelector('.app-commodity-search__results')
   const status = root.querySelector('.app-country-search__status')
   const valueInput = root.querySelector('.app-country-search__value')
   const searchBox = root.querySelector('.app-commodity-search')
+
+  if (!input || !button || !results) {
+    return
+  }
 
   let selectedCountry = valueInput ? valueInput.value : ''
 
@@ -86,6 +106,7 @@ function initCountrySearch (root) {
   function setExpanded (isExpanded) {
     if (searchBox) {
       searchBox.setAttribute('aria-expanded', isExpanded ? 'true' : 'false')
+      searchBox.classList.toggle('app-commodity-search--open', isExpanded)
     }
   }
 
@@ -118,11 +139,13 @@ function initCountrySearch (root) {
   function getFilteredCountries (query) {
     const normalisedQuery = query.trim().toLowerCase()
 
-    if (!normalisedQuery) {
+    if (normalisedQuery.length < MIN_SEARCH_LENGTH) {
       return []
     }
 
-    return countries.filter((country) => country.toLowerCase().includes(normalisedQuery))
+    return countryOptions
+      .filter((option) => countryOptionMatchesQuery(option, normalisedQuery))
+      .sort((left, right) => left.label.localeCompare(right.label))
   }
 
   function selectCountry (country) {
@@ -132,13 +155,15 @@ function initCountrySearch (root) {
   }
 
   function renderResults (query) {
-    const matches = getFilteredCountries(query)
-    results.innerHTML = ''
+    const trimmedQuery = query.trim()
 
-    if (!query.trim()) {
+    if (trimmedQuery.length < MIN_SEARCH_LENGTH) {
       closeResults()
       return
     }
+
+    const matches = getFilteredCountries(trimmedQuery)
+    results.innerHTML = ''
 
     if (matches.length === 0) {
       results.innerHTML = `
@@ -152,20 +177,18 @@ function initCountrySearch (root) {
       return
     }
 
-    const trimmedQuery = query.trim()
-
-    results.innerHTML = matches.map((country, index) => {
+    results.innerHTML = matches.map((option, index) => {
       const altClass = index % 2 === 1 ? ' app-commodity-search__row--alt' : ''
-      const isSelected = selectedCountry === country
+      const isSelected = selectedCountry === option.value
 
       return `
         <li class="app-commodity-search__row${altClass}">
           <button
             type="button"
             class="app-country-search__option${isSelected ? ' app-country-search__option--selected' : ''}"
-            data-country="${country.replace(/"/g, '&quot;')}"
+            data-country="${option.value.replace(/"/g, '&quot;')}"
           >
-            ${highlightMatch(escapeHtml(country), trimmedQuery)}
+            ${highlightMatch(option.label, trimmedQuery)}
           </button>
         </li>
       `
@@ -179,7 +202,7 @@ function initCountrySearch (root) {
 
     results.hidden = false
     setExpanded(true)
-    announce(`${matches.length} results available`)
+    announce(`${matches.length} result${matches.length === 1 ? '' : 's'} available`)
   }
 
   results.addEventListener('mousedown', (event) => {
@@ -201,7 +224,7 @@ function initCountrySearch (root) {
   })
 
   input.addEventListener('focus', () => {
-    if (input.value.trim()) {
+    if (input.value.trim().length >= MIN_SEARCH_LENGTH) {
       renderResults(input.value)
     }
   })

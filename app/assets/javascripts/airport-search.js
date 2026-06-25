@@ -1,6 +1,8 @@
 //
-// Airport / port search — mirrors commodity search interaction
+// Airport / port search — matches country search interaction and styling
 //
+
+const MIN_SEARCH_LENGTH = 3
 
 function escapeHtml (value) {
   return value
@@ -12,20 +14,22 @@ function escapeHtml (value) {
 
 function highlightMatch (text, query) {
   if (!query) {
-    return text
+    return escapeHtml(text)
   }
 
-  const index = text.toLowerCase().indexOf(query.toLowerCase())
+  const lowerText = text.toLowerCase()
+  const lowerQuery = query.toLowerCase()
+  const index = lowerText.indexOf(lowerQuery)
 
   if (index === -1) {
-    return text
+    return escapeHtml(text)
   }
 
   const before = text.slice(0, index)
   const match = text.slice(index, index + query.length)
   const after = text.slice(index + query.length)
 
-  return `${before}<strong class="app-commodity-search__match">${match}</strong>${after}`
+  return `${escapeHtml(before)}<strong class="app-commodity-search__match">${escapeHtml(match)}</strong>${escapeHtml(after)}`
 }
 
 function getOptions (root) {
@@ -49,19 +53,41 @@ function initAirportSearch (root) {
   const button = root.querySelector('.app-commodity-search__button')
   const results = root.querySelector('.app-commodity-search__results')
   const status = root.querySelector('.app-airport-search__status')
+  const valueInput = root.querySelector('.app-airport-search__value')
   const searchBox = root.querySelector('.app-commodity-search')
 
-  let selectedOption = input ? input.value.trim() : ''
+  if (!input || !button || !results) {
+    return
+  }
+
+  let selectedOption = valueInput ? valueInput.value : ''
+
+  if (selectedOption && input) {
+    input.value = selectedOption
+  }
 
   function setExpanded (isExpanded) {
     if (searchBox) {
       searchBox.setAttribute('aria-expanded', isExpanded ? 'true' : 'false')
+      searchBox.classList.toggle('app-commodity-search--open', isExpanded)
     }
   }
 
   function announce (message) {
     if (status) {
       status.textContent = message
+    }
+  }
+
+  function updateValue (option) {
+    selectedOption = option
+
+    if (valueInput) {
+      valueInput.value = option
+    }
+
+    if (input) {
+      input.value = option
     }
   }
 
@@ -74,28 +100,31 @@ function initAirportSearch (root) {
   function getFilteredOptions (query) {
     const normalisedQuery = query.trim().toLowerCase()
 
-    if (!normalisedQuery) {
+    if (normalisedQuery.length < MIN_SEARCH_LENGTH) {
       return []
     }
 
-    return options.filter((option) => option.toLowerCase().includes(normalisedQuery))
+    return options
+      .filter((option) => option.toLowerCase().includes(normalisedQuery))
+      .sort((left, right) => left.localeCompare(right))
   }
 
   function selectOption (option) {
-    selectedOption = option
-    input.value = option
+    updateValue(option)
     closeResults()
     announce(`Selected ${option}`)
   }
 
   function renderResults (query) {
-    const matches = getFilteredOptions(query)
-    results.innerHTML = ''
+    const trimmedQuery = query.trim()
 
-    if (!query.trim()) {
+    if (trimmedQuery.length < MIN_SEARCH_LENGTH) {
       closeResults()
       return
     }
+
+    const matches = getFilteredOptions(trimmedQuery)
+    results.innerHTML = ''
 
     if (matches.length === 0) {
       results.innerHTML = `
@@ -109,8 +138,6 @@ function initAirportSearch (root) {
       return
     }
 
-    const trimmedQuery = query.trim()
-
     results.innerHTML = matches.map((option, index) => {
       const altClass = index % 2 === 1 ? ' app-commodity-search__row--alt' : ''
       const isSelected = selectedOption === option
@@ -119,16 +146,16 @@ function initAirportSearch (root) {
         <li class="app-commodity-search__row${altClass}">
           <button
             type="button"
-            class="app-airport-search__option${isSelected ? ' app-airport-search__option--selected' : ''}"
+            class="app-country-search__option${isSelected ? ' app-country-search__option--selected' : ''}"
             data-option="${option.replace(/"/g, '&quot;')}"
           >
-            ${highlightMatch(escapeHtml(option), trimmedQuery)}
+            ${highlightMatch(option, trimmedQuery)}
           </button>
         </li>
       `
     }).join('')
 
-    results.querySelectorAll('.app-airport-search__option').forEach((optionButton) => {
+    results.querySelectorAll('.app-country-search__option').forEach((optionButton) => {
       optionButton.addEventListener('click', () => {
         selectOption(optionButton.getAttribute('data-option'))
       })
@@ -136,7 +163,7 @@ function initAirportSearch (root) {
 
     results.hidden = false
     setExpanded(true)
-    announce(`${matches.length} results available`)
+    announce(`${matches.length} result${matches.length === 1 ? '' : 's'} available`)
   }
 
   results.addEventListener('mousedown', (event) => {
@@ -146,13 +173,17 @@ function initAirportSearch (root) {
   input.addEventListener('input', () => {
     if (input.value !== selectedOption) {
       selectedOption = ''
+
+      if (valueInput) {
+        valueInput.value = ''
+      }
     }
 
     renderResults(input.value)
   })
 
   input.addEventListener('focus', () => {
-    if (input.value.trim()) {
+    if (input.value.trim().length >= MIN_SEARCH_LENGTH) {
       renderResults(input.value)
     }
   })

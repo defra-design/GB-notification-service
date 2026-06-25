@@ -1,0 +1,138 @@
+{% extends "layouts/journey.html" %}
+
+{% set journeyPageClass = "app-transit-countries-page" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% set pageName = "Transit countries" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block journeyContent %}
+
+    {% include "partials/notification-status.html" %}
+
+    {% if data.errorList %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: data.errorList
+      }) }}
+    {% endif %}
+
+    <div class="app-transit-countries-page__header">
+      <p class="app-transit-countries-page__caption">Movement</p>
+      <h1 class="app-transit-countries-page__heading">Which countries will the consignment travel through?</h1>
+    </div>
+
+    <div class="app-transit-countries-page__intro">
+      <p class="govuk-body">Countries the consignment will travel through are countries between the country of origin and the destination country.</p>
+      <p class="govuk-body">This does not include the United Kingdom.</p>
+    </div>
+
+    <form method="post" action="/transit-countries" novalidate class="app-transit-countries-form">
+
+      <div class="govuk-form-group{% if data.errors and data.errors.transitCountries %} govuk-form-group--error{% endif %} app-transit-countries-page__country">
+        <label class="govuk-label app-eu-heading-m app-transit-countries-page__field-label" for="transit-country-search">
+          Select a country
+        </label>
+        <div id="transit-country-search-hint" class="govuk-hint app-transit-countries-page__field-hint">
+          Select up to 12 countries. Start typing to search.
+        </div>
+        {% if data.errors and data.errors.transitCountries %}
+          <p id="transit-countries-error" class="govuk-error-message">
+            <span class="govuk-visually-hidden">Error:</span>
+            {{ data.errors.transitCountries.text }}
+          </p>
+        {% endif %}
+        <div
+          class="app-commodity-search-wrapper app-transit-countries-page__country-search"
+          data-module="app-transit-country-search"
+        >
+          <script type="application/json" class="app-transit-country-search__data">{{ countriesJson | safe }}</script>
+          <div class="app-commodity-search-panel">
+            <div
+              class="app-commodity-search"
+              aria-expanded="false"
+              aria-controls="transit-country-search-results"
+            >
+              <input
+                class="app-commodity-search__input"
+                id="transit-country-search"
+                type="search"
+                autocomplete="off"
+                placeholder="Select a country"
+                aria-controls="transit-country-search-results"
+                aria-describedby="transit-country-search-hint{% if data.errors and data.errors.transitCountries %} transit-countries-error{% endif %}"
+              >
+              <button class="app-commodity-search__button" type="button">
+                <span class="govuk-visually-hidden">Search</span>
+                <svg class="app-commodity-search__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20.3765 20" width="20" height="20" aria-hidden="true" focusable="false">
+                  <path d="M8.90084 14.4683C12.3848 14.4683 15.2091 11.644 15.2091 8.16008C15.2091 4.67613 12.3848 1.85184 8.90084 1.85184C5.41689 1.85184 2.59259 4.67613 2.59259 8.16008C2.59259 11.644 5.41689 14.4683 8.90084 14.4683Z" stroke="currentColor" stroke-width="2.22222" fill="none"/>
+                  <path d="M13.2347 12.8583L19.5908 19.2143" stroke="currentColor" stroke-width="2.22222" fill="none"/>
+                </svg>
+              </button>
+            </div>
+            <ul
+              id="transit-country-search-results"
+              class="app-commodity-search__results"
+              role="list"
+              aria-label="Country search results"
+              hidden
+            ></ul>
+          </div>
+          <input
+            type="hidden"
+            name="transitCountries"
+            class="app-transit-country-search__value"
+            value="{{ transitCountriesJson | safe }}"
+          >
+          <div class="app-transit-country-search__status govuk-visually-hidden" aria-live="polite"></div>
+          <div class="app-commodity-search__selected app-transit-country-search__selected" id="transit-country-search-selected" hidden>
+            <div class="app-commodity-search__selected-header">
+              <p class="app-commodity-search__selected-heading app-transit-country-search__selected-heading" id="transit-country-search-selected-heading"></p>
+              <button class="govuk-link app-govuk-body-link app-govuk-body-link--small app-transit-country-search__selected-clear" type="button" hidden>
+                Clear all
+              </button>
+            </div>
+            <ul class="app-commodity-search__selected-list app-transit-country-search__selected-list" id="transit-country-search-selected-list" role="list"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="app-origin-form-actions">
+        <div class="app-origin-actions">
+          {{ govukButton({
+            text: "Save and continue",
+            name: "action",
+            value: "continue"
+          }) }}
+
+          {{ govukButton({
+            text: "Save and return to hub",
+            name: "action",
+            value: "hub",
+            classes: "govuk-button--secondary"
+          }) }}
+        </div>
+
+        <p class="app-origin-form-actions__cancel">
+          <a class="govuk-link" href="/notification-hub">Cancel and return to hub</a>
+        </p>
+      </div>
+
+    </form>
+
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "layouts/main.html" %}
+
+{% set pageName = "Notification hub" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+{% endblock %}
+
+{% block content %}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full app-notification-hub">
+    {% include "partials/notification-status.html" %}
+
+    <h1 class="app-notification-hub__title">Notification hub</h1>
+
+    <section class="app-notification-hub__commodities" aria-labelledby="notification-hub-commodities-heading">
+      <h2 class="app-notification-hub__commodities-heading" id="notification-hub-commodities-heading">Your commodities</h2>
+
+      <div class="app-notification-hub-cards">
+        <section class="app-notification-hub-card" aria-label="Animals summary">
+          <div class="app-notification-hub-card__top">
+            <p class="app-notification-hub-card__value">{{ animalCountDisplay }}</p>
+            <p class="app-notification-hub-card__label">Animals</p>
+          </div>
+          <div class="app-notification-hub-card__bottom">
+            <p class="app-notification-hub-card__caption">This is how many animals you are importing</p>
+          </div>
+        </section>
+
+        <section class="app-notification-hub-card" aria-label="Packages summary">
+          <div class="app-notification-hub-card__top">
+            <p class="app-notification-hub-card__value">{{ packagesDisplay }}</p>
+            <p class="app-notification-hub-card__label">Packages/boxes</p>
+          </div>
+          <div class="app-notification-hub-card__bottom">
+            <p class="app-notification-hub-card__caption">This is how many packages you are importing</p>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="app-notification-hub__tasklist" aria-labelledby="notification-hub-tasklist-heading">
+      <h2 class="app-notification-hub__tasklist-heading" id="notification-hub-tasklist-heading">Notification tasklist</h2>
+
+      {% for section in sections %}
+        <section class="app-notification-hub-section" aria-labelledby="notification-hub-section-{{ loop.index }}">
+          <h3 class="app-notification-hub-section__heading" id="notification-hub-section-{{ loop.index }}">{{ section.title }}</h3>
+
+          <ul class="app-notification-hub-tasklist" role="list">
+            {% for item in section.items %}
+              <li class="app-notification-hub-tasklist__item{% if item.hint %} app-notification-hub-tasklist__item--with-hint{% endif %}">
+                <div class="app-notification-hub-tasklist__content">
+                  <a class="govuk-link app-notification-hub-tasklist__link" href="{{ item.href }}">{{ item.text }}</a>
+                  {% if item.hint %}
+                    <p class="app-notification-hub-tasklist__hint">{{ item.hint }}</p>
+                  {% endif %}
+                </div>
+                {{ govukTag({
+                  text: item.status.text,
+                  classes: item.status.class + " app-notification-hub-tasklist__tag"
+                }) }}
+              </li>
+            {% endfor %}
+          </ul>
+        </section>
+      {% endfor %}
+    </section>
+
+    <div class="app-notification-hub-actions">
+      {{ govukButton({
+        text: "Review and submit",
+        disabled: true
+      }) }}
+
+      {{ govukButton({
+        text: "Return to dashboard",
+        href: "/",
+        classes: "govuk-button--secondary"
+      }) }}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

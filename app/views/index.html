@@ -1,21 +1,65 @@
 {% extends "layouts/main.html" %}
 
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+
 {% set pageName="Home" %}
 
-{% block govukServiceNavigation %}{% endblock %}
+{% block pageTitle %}
+Import notification service
+{% endblock %}
 
 {% block content %}
 
 <div class="govuk-grid-row">
-  <div class="govuk-grid-column-two-thirds">
-
+  <div class="govuk-grid-column-two-thirds prototype-page-header">
+    <span class="govuk-caption-xl">Prototypes</span>
     <h1 class="govuk-heading-xl">
-      {{ serviceName }}
+      Import notification service
     </h1>
-
-    <p class="govuk-body">
-      <a class="govuk-link app-govuk-body-link" href="/dashboard">start prototype</a>
+    <p class="govuk-body-l">
+      Description goes here......
     </p>
+  </div>
+</div>
+
+<div class="govuk-grid-row govuk-!-margin-top-6">
+  <div class="govuk-grid-column-two-thirds">
+    <div class="prototype-release-card">
+      {{ govukTag({
+        text: "In design",
+        classes: "govuk-tag--purple"
+      }) }}
+
+      <h2 class="govuk-heading-l">
+        Design release 1
+      </h2>
+
+      <h3 class="govuk-heading-m">
+        Create a notification
+      </h3>
+
+      <p class="govuk-body">
+        Description goes here......
+      </p>
+
+      {{ govukDetails({
+        summaryText: "What the journey contains",
+        html: '
+          <ul class="govuk-list govuk-list--bullet">
+            <li>Journey step goes here</li>
+            <li>Journey step goes here</li>
+            <li>Journey step goes here</li>
+          </ul>
+        '
+      }) }}
+
+      {{ govukButton({
+        text: "Start prototype",
+        href: "/origin-of-the-import"
+      }) }}
+    </div>
   </div>
 </div>
 

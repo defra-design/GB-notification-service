@@ -1,0 +1,13 @@
+{#
+  Journey pages — standard GOV.UK two-thirds column layout
+#}
+
+{% extends "layouts/main.html" %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds{% if journeyPageClass %} {{ journeyPageClass }}{% endif %}">
+    {% block journeyContent %}{% endblock %}
+  </div>
+</div>
+{% endblock %}

@@ -1,4 +1,11 @@
-{% extends "layouts/main.html" %}
+{% extends "layouts/journey.html" %}
+
+{% set journeyPageClass = "app-arrival-details-page" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
 
 {% set pageName = "Arrival details" %}
 
@@ -16,9 +23,10 @@
   }) }}
 {% endblock %}
 
-{% block content %}
-<div class="govuk-grid-row">
-  <div class="govuk-grid-column-two-thirds app-arrival-page">
+{% block journeyContent %}
+
+    {% include "partials/notification-status.html" %}
+
     {% if data.errorList %}
       {{ govukErrorSummary({
         titleText: "There is a problem",
@@ -26,81 +34,74 @@
       }) }}
     {% endif %}
 
-    <span class="govuk-caption-l">Movement</span>
-    <h1 class="govuk-heading-l">Arrival details</h1>
+    <div class="app-arrival-details-page__header">
+      <p class="app-arrival-details-page__caption">Movement</p>
+      <h1 class="app-arrival-details-page__heading">Arrival details</h1>
+    </div>
 
-    <form method="post" action="/arrival-details" novalidate class="app-arrival-form">
-      <div class="govuk-form-group{% if data.errors and data.errors.portOfEntry %} govuk-form-group--error{% endif %}">
-        <h2 class="govuk-heading-m">Port of entry</h2>
-        <p class="govuk-hint" id="port-of-entry-hint">
+    <form method="post" action="/arrival-details" novalidate class="app-arrival-details-form">
+
+      {% include "partials/arrival-date-picker.html" %}
+
+      <div class="govuk-form-group{% if data.errors and data.errors.portOfEntry %} govuk-form-group--error{% endif %} app-arrival-details-page__port">
+        <label class="govuk-label app-eu-heading-m app-arrival-details-page__field-label" for="port-of-entry">
+          Port of entry
+        </label>
+        <div id="port-of-entry-hint" class="govuk-hint app-arrival-details-page__field-hint">
           Choose where the transporter will enter with the consignment. Start typing to search by port or airport name or code.
-        </p>
+        </div>
         {% if data.errors and data.errors.portOfEntry %}
           <p id="port-of-entry-error" class="govuk-error-message">
             <span class="govuk-visually-hidden">Error:</span>
             {{ data.errors.portOfEntry.text }}
           </p>
         {% endif %}
-        <div class="app-commodity-search-wrapper app-arrival-port-search" data-module="app-airport-search">
+        <div
+          class="app-commodity-search-wrapper app-arrival-details-page__port-search"
+          data-module="app-airport-search"
+        >
+          <script type="application/json" class="app-airport-search__data">{{ ukAirportItemsJson | safe }}</script>
           <div class="app-commodity-search-panel">
-            <div class="app-commodity-search" aria-expanded="false">
+            <div
+              class="app-commodity-search"
+              aria-expanded="false"
+              aria-controls="port-search-results"
+            >
               <input
-                class="govuk-input app-commodity-search__input"
+                class="app-commodity-search__input"
                 id="port-of-entry"
-                name="portOfEntry"
                 type="search"
-                value="{{ data.portOfEntry or '' }}"
-                placeholder="Type to search"
                 autocomplete="off"
+                placeholder="Select a port"
+                aria-controls="port-search-results"
                 aria-describedby="port-of-entry-hint{% if data.errors and data.errors.portOfEntry %} port-of-entry-error{% endif %}"
+                value="{{ data.portOfEntry or '' }}"
               >
-              <button class="app-commodity-search__button" type="button" aria-label="Search ports">
-                <svg class="app-commodity-search__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 27 27" width="20" height="20" aria-hidden="true" focusable="false">
-                  <path d="M19.6 18.1c1.6-2 .7-4.9.7-7.6C20.3 5.1 16.2 1 11.1 1S1.8 5.1 1.8 10.5s4.1 9.5 9.3 9.5c2.7 0 5.1-1.1 6.9-2.9l6.9 6.9 2.1-2.1-6.8-6.9zM11.1 18.1c-4.2 0-7.6-3.4-7.6-7.6S6.9 2.9 11.1 2.9s7.6 3.4 7.6 7.6-3.4 7.6-7.6 7.6z"/>
+              <button class="app-commodity-search__button" type="button">
+                <span class="govuk-visually-hidden">Search</span>
+                <svg class="app-commodity-search__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20.3765 20" width="20" height="20" aria-hidden="true" focusable="false">
+                  <path d="M8.90084 14.4683C12.3848 14.4683 15.2091 11.644 15.2091 8.16008C15.2091 4.67613 12.3848 1.85184 8.90084 1.85184C5.41689 1.85184 2.59259 4.67613 2.59259 8.16008C2.59259 11.644 5.41689 14.4683 8.90084 14.4683Z" stroke="currentColor" stroke-width="2.22222" fill="none"/>
+                  <path d="M13.2347 12.8583L19.5908 19.2143" stroke="currentColor" stroke-width="2.22222" fill="none"/>
                 </svg>
               </button>
             </div>
-            <ul class="app-commodity-search__results" hidden></ul>
-            <p class="govuk-visually-hidden app-airport-search__status" aria-live="polite"></p>
-            <script type="application/json" class="app-airport-search__data">{{ (ukAirportItemsJson or "[]") | safe }}</script>
+            <ul
+              id="port-search-results"
+              class="app-commodity-search__results"
+              role="list"
+              aria-label="Port search results"
+              hidden
+            ></ul>
           </div>
+          <input
+            type="hidden"
+            name="portOfEntry"
+            class="app-airport-search__value"
+            value="{{ data.portOfEntry or '' }}"
+          >
+          <div class="app-airport-search__status govuk-visually-hidden" aria-live="polite"></div>
         </div>
       </div>
-
-      {{ govukDateInput({
-        id: "arrival-date",
-        namePrefix: "arrivalDate",
-        fieldset: {
-          legend: {
-            text: "Arrival date at destination",
-            classes: "govuk-fieldset__legend--m"
-          }
-        },
-        hint: {
-          text: "The expected date of arrival at the final destination, not the time of day. For example, 27 3 2026."
-        },
-        errorMessage: data.errors.arrivalDate if data.errors and data.errors.arrivalDate,
-        items: [
-          {
-            classes: "govuk-input--width-2",
-            name: "day",
-            label: "Day",
-            value: data.arrivalDateDay
-          },
-          {
-            classes: "govuk-input--width-2",
-            name: "month",
-            label: "Month",
-            value: data.arrivalDateMonth
-          },
-          {
-            classes: "govuk-input--width-4",
-            name: "year",
-            label: "Year",
-            value: data.arrivalDateYear
-          }
-        ]
-      }) }}
 
       {{ govukSelect({
         id: "means-of-transport",
@@ -117,38 +118,55 @@
       {{ govukInput({
         label: {
           text: "Transport identification",
-          classes: "govuk-label--m"
+          classes: "app-eu-heading-m app-arrival-details-page__field-label"
         },
         hint: {
-          html: '<p class="govuk-hint govuk-!-margin-bottom-2">To identify the means of transport, enter (one of the following):</p><ul class="govuk-list govuk-list--bullet govuk-hint app-arrival-form__hint-list"><li>flight number</li><li>train number</li><li>road vehicle registration number</li><li>vessel name (for ferries, also the road vehicle registration number)</li></ul>'
+          html: '<p class="govuk-hint app-arrival-details-page__field-hint govuk-!-margin-bottom-2">To identify the means of transport, enter (one of the following):</p><ul class="govuk-list govuk-list--bullet govuk-hint app-arrival-details-page__hint-list"><li>flight number</li><li>train number</li><li>road vehicle registration number</li><li>vessel name (for ferries, also the road vehicle registration number)</li></ul>'
         },
         id: "transport-identification",
         name: "transportIdentification",
-        classes: "govuk-input--width-20",
-        value: data.transportIdentification,
+        value: data.transportIdentification or "",
+        classes: "app-arrival-details-page__transport-input govuk-input",
         errorMessage: data.errors.transportIdentification if data.errors and data.errors.transportIdentification
       }) }}
 
       {{ govukInput({
         label: {
           text: "Transport document reference",
-          classes: "govuk-label--m"
+          classes: "app-eu-heading-m app-arrival-details-page__field-label"
         },
         hint: {
-          text: "Enter the reference number on the air waybill, bill of lading, sea waybill, road consignment note (CMR) or other transport document."
+          text: "Enter the reference number on the air waybill, bill of lading, sea waybill, road consignment note (CMR) or other transport document.",
+          classes: "app-arrival-details-page__field-hint"
         },
         id: "transport-document-reference",
         name: "transportDocumentReference",
-        classes: "govuk-input--width-20",
-        value: data.transportDocumentReference,
+        value: data.transportDocumentReference or "",
+        classes: "app-arrival-details-page__transport-input govuk-input",
         errorMessage: data.errors.transportDocumentReference if data.errors and data.errors.transportDocumentReference
       }) }}
 
-      {{ govukButton({
-        text: "Save and continue",
-        classes: "app-eu-button"
-      }) }}
+      <div class="app-origin-form-actions">
+        <div class="app-origin-actions">
+          {{ govukButton({
+            text: "Save and continue",
+            name: "action",
+            value: "continue"
+          }) }}
+
+          {{ govukButton({
+            text: "Save and return to hub",
+            name: "action",
+            value: "hub",
+            classes: "govuk-button--secondary"
+          }) }}
+        </div>
+
+        <p class="app-origin-form-actions__cancel">
+          <a class="govuk-link" href="/notification-hub">Cancel and return to hub</a>
+        </p>
+      </div>
+
     </form>
-  </div>
-</div>
+
 {% endblock %}

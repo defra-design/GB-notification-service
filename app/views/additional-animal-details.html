@@ -1,4 +1,10 @@
-{% extends "layouts/main.html" %}
+{% extends "layouts/journey.html" %}
+
+{% set journeyPageClass = "app-additional-animal-details-page" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
 
 {% set pageName = "Additional animal details" %}
 
@@ -16,9 +22,9 @@
   }) }}
 {% endblock %}
 
-{% block content %}
-<div class="govuk-grid-row">
-  <div class="govuk-grid-column-two-thirds">
+{% block journeyContent %}
+
+    {% include "partials/notification-status.html" %}
 
     {% if data.errorList %}
       {{ govukErrorSummary({
@@ -27,10 +33,13 @@
       }) }}
     {% endif %}
 
-    {% include "partials/notification-caption.html" %}
-    <h1 class="govuk-heading-l">Additional animal details</h1>
+    <div class="app-additional-animal-details-page__header">
+      <p class="app-additional-animal-details-page__caption">About the consignment</p>
+      <h1 class="app-additional-animal-details-page__heading">Additional animal details</h1>
+    </div>
 
-    <form method="post" action="/additional-animal-details" novalidate>
+    <form method="post" action="/additional-animal-details" novalidate class="app-additional-animal-details-form">
+
       {% if showCertificationPurposeQuestion %}
         {{ govukRadios({
           idPrefix: "certification-purpose",
@@ -38,13 +47,17 @@
           fieldset: {
             legend: {
               text: "What are the animals certified for?",
-              classes: "govuk-fieldset__legend--m"
+              classes: "govuk-fieldset__legend--m app-eu-heading-m"
             }
           },
           hint: {
             text: "You'll find this on the health certificate."
           },
           errorMessage: data.errors.certificationPurpose if data.errors and data.errors.certificationPurpose,
+          classes: "app-origin-radios",
+          formGroup: {
+            classes: "app-origin-radios-block app-additional-animal-details-page__question"
+          },
           items: certificationPurposeItems
         }) }}
       {% endif %}
@@ -56,37 +69,42 @@
           fieldset: {
             legend: {
               text: "Does the consignment contain any unweaned animals?",
-              classes: "govuk-fieldset__legend--m"
+              classes: "govuk-fieldset__legend--m app-eu-heading-m"
             }
           },
+          hint: {
+            text: "These are animals that are still feeding from their mother."
+          },
           errorMessage: data.errors.unweanedAnimals if data.errors and data.errors.unweanedAnimals,
+          classes: "app-origin-radios",
+          formGroup: {
+            classes: "app-origin-radios-block app-additional-animal-details-page__question"
+          },
           items: unweanedItems
         }) }}
       {% endif %}
 
-      {% if showTemperatureQuestion %}
-        {{ govukRadios({
-          idPrefix: "temperature",
-          name: "temperature",
-          fieldset: {
-            legend: {
-              text: "What is the temperature?",
-              classes: "govuk-fieldset__legend--m"
-            }
-          },
-          errorMessage: data.errors.temperature if data.errors and data.errors.temperature,
-          items: temperatureItems
-        }) }}
-      {% endif %}
+      <div class="app-origin-form-actions">
+        <div class="app-origin-actions">
+          {{ govukButton({
+            text: "Save and continue",
+            name: "action",
+            value: "continue"
+          }) }}
 
-      {{ govukButton({
-        text: "Continue"
-      }) }}
+          {{ govukButton({
+            text: "Save and return to hub",
+            name: "action",
+            value: "hub",
+            classes: "govuk-button--secondary"
+          }) }}
+        </div>
+
+        <p class="app-origin-form-actions__cancel">
+          <a class="govuk-link" href="/notification-hub">Cancel and return to hub</a>
+        </p>
+      </div>
+
     </form>
 
-  </div>
-</div>
-
-{% include "partials/commodity-details-summary.html" %}
-{% include "partials/import-details-summary.html" %}
 {% endblock %}

@@ -1,0 +1,9 @@
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+
+<div class="app-notification-status">
+  {{ govukTag({
+    text: "Draft",
+    classes: "govuk-tag--blue"
+  }) }}
+  <span class="app-notification-status__reference">{{ notificationReference }}</span>
+</div>

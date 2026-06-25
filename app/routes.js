@@ -5,204 +5,25 @@
 
 const govukPrototypeKit = require('govuk-prototype-kit')
 const router = govukPrototypeKit.requests.setupRouter()
-const dashboardNotifications = require('./data/dashboard-notifications')
-const {
-  getDisplayNotificationReference,
-  ensureDraftNotificationReference,
-  generateSubmittedNotificationReference,
-  normalizeNotificationReference
-} = require('./utils/notification-reference')
-
-function syncTasklistBackNavigation (req) {
-  if (req.query.from === 'tasklist') {
-    req.session.data.backToTasklist = true
-  } else if (req.method === 'GET' && Object.prototype.hasOwnProperty.call(req.query, 'from')) {
-    req.session.data.backToTasklist = false
-  }
-}
-
-function getBackLink (req, defaultHref) {
-  syncTasklistBackNavigation(req)
-  return req.session.data.backToTasklist ? '/notification-tasklist' : defaultHref
-}
-
-function withFromTasklist (href) {
-  if (!href || href === '#') {
-    return href
-  }
-
-  const separator = href.includes('?') ? '&' : '?'
-  return `${href}${separator}from=tasklist`
-}
-
-const dashboardStatusOptions = [
-  { value: '', text: 'Show all' },
-  { value: 'Draft', text: 'Draft' },
-  { value: 'Submitted', text: 'Submitted' }
-]
-
-const dashboardSortOptions = [
-  { value: 'arrival-desc', text: 'Arrival (newest to oldest)' },
-  { value: 'arrival-asc', text: 'Arrival (oldest to newest)' },
-  { value: 'reference-asc', text: 'Reference (A to Z)' },
-  { value: 'reference-desc', text: 'Reference (Z to A)' }
-]
-
-function getDashboardFilters (req) {
-  return {
-    keyword: (req.query.keyword || '').trim(),
-    commodity: (req.query.commodity || '').trim(),
-    country: (req.query.country || '').trim(),
-    party: (req.query.party || '').trim(),
-    destination: (req.query.destination || '').trim(),
-    status: (req.query.status || '').trim(),
-    startDate: (req.query.startDate || '29-06-2025').trim(),
-    endDate: (req.query.endDate || '30-06-2025').trim(),
-    sortBy: (req.query.sortBy || 'arrival-desc').trim()
-  }
-}
-
-function notificationMatchesDashboardFilters (notification, filters) {
-  const keyword = filters.keyword.toLowerCase()
-
-  if (keyword) {
-    const searchableText = [
-      notification.reference,
-      notification.commodity,
-      notification.origin,
-      notification.consignee,
-      notification.consignor,
-      notification.status
-    ].join(' ').toLowerCase()
-
-    if (!searchableText.includes(keyword)) {
-      return false
-    }
-  }
-
-  if (filters.commodity && !notification.commodity.toLowerCase().includes(filters.commodity.toLowerCase())) {
-    return false
-  }
-
-  if (filters.country && !notification.origin.toLowerCase().includes(filters.country.toLowerCase())) {
-    return false
-  }
-
-  if (filters.party) {
-    const party = filters.party.toLowerCase()
-    const matchesParty = notification.consignee.toLowerCase().includes(party) ||
-      notification.consignor.toLowerCase().includes(party)
-
-    if (!matchesParty) {
-      return false
-    }
-  }
-
-  if (filters.status && notification.status !== filters.status) {
-    return false
-  }
-
-  return true
-}
-
-function sortDashboardNotifications (notifications, sortBy) {
-  const sorted = [...notifications]
-
-  sorted.sort((left, right) => {
-    if (sortBy === 'reference-asc') {
-      return left.reference.localeCompare(right.reference)
-    }
-
-    if (sortBy === 'reference-desc') {
-      return right.reference.localeCompare(left.reference)
-    }
-
-    if (sortBy === 'arrival-asc') {
-      return left.arrivalAtDestination.localeCompare(right.arrivalAtDestination)
-    }
-
-    return right.arrivalAtDestination.localeCompare(left.arrivalAtDestination)
-  })
-
-  return sorted
-}
-
-function getDashboardViewModel (req) {
-  const filters = getDashboardFilters(req)
-  const filteredNotifications = dashboardNotifications.filter((notification) =>
-    notificationMatchesDashboardFilters(notification, filters)
-  )
-  const notifications = sortDashboardNotifications(filteredNotifications, filters.sortBy)
-  const filterHiddenFields = {
-    keyword: filters.keyword,
-    commodity: filters.commodity,
-    country: filters.country,
-    party: filters.party,
-    destination: filters.destination,
-    status: filters.status,
-    startDate: filters.startDate,
-    endDate: filters.endDate
-  }
-
-  return {
-    filters,
-    filterHiddenFields,
-    resultCount: notifications.length,
-    notifications,
-    statusOptions: dashboardStatusOptions.map((option) => ({
-      ...option,
-      selected: option.value === filters.status
-    })),
-    sortOptions: dashboardSortOptions.map((option) => ({
-      ...option,
-      selected: option.value === filters.sortBy
-    }))
-  }
-}
-
-router.get('/dashboard', (req, res) => {
-  return res.render('dashboard', getDashboardViewModel(req))
-})
-
-router.use((req, res, next) => {
-  const sessionData = req.session.data || {}
-
-  if (sessionData.importCategory) {
-    ensureDraftNotificationReference(sessionData)
-  }
-
-  res.locals.importDetailsSummaryRows = getImportDetailsSummaryRows(sessionData)
-  res.locals.speciesSummaryHtml = sessionData.commodityId ? getSpeciesSummaryHtml(sessionData) : null
-  res.locals.notificationReference = sessionData.importCategory
-    ? getDisplayNotificationReference(sessionData)
-    : null
-  next()
-})
-
-const documentTypes = require('./data/document-types')
-const getDocumentTypeLabel = documentTypes.getDocumentTypeLabel
-const commodities = require('./data/commodities')
-const importCategories = require('./data/import-categories')
-const { getImportReasonsForCommodity } = require('./data/import-reasons')
-const countries = require('./data/countries')
+const countryOptions = require('./data/countries')
+const countryLabels = countryOptions.labels
 const countryRegionPrefixes = require('./data/country-region-prefixes')
+const commodities = require('./data/commodities')
+const certificationPurposeOptions = require('./data/certification-purposes')
+const importReasons = require('./data/import-reasons')
+const internalMarketPurposes = require('./data/internal-market-purposes')
 const ukAirports = require('./data/uk-airports')
 const meansOfTransportOptions = require('./data/means-of-transport')
-const transporters = require('./data/transporters')
-const placeOfOriginAddresses = require('./data/place-of-origin-addresses')
-const consignorAddresses = require('./data/consignor-addresses')
-const consigneeAddresses = require('./data/consignee-addresses')
-const importerAddresses = require('./data/importer-addresses')
-const placeOfDestinationAddresses = require('./data/place-of-destination-addresses')
 const contactAddresses = require('./data/contact-addresses')
+const { getCommoditySearchData } = require('./utils/commodity-search-data')
 
-const consignmentAddressLists = {
-  'place-of-origin': placeOfOriginAddresses,
-  consignor: consignorAddresses,
-  consignee: consigneeAddresses,
-  importer: importerAddresses,
-  'place-of-destination': placeOfDestinationAddresses
-}
+const TRANSIT_MEANS_OF_TRANSPORT = ['Railway', 'Road Vehicle']
+const MAX_TRANSIT_COUNTRIES = 12
+
+const importReasonValues = importReasons.map((reason) => reason.value)
+const internalMarketPurposeValues = internalMarketPurposes.map((purpose) => purpose.value)
+
+const PROTOTYPE_NOTIFICATION_REFERENCE = 'GBN-AG-26-7K8M2P'
 
 function getCommodityById (commodityId) {
   return commodities.find((commodity) => commodity.id === commodityId)
@@ -210,420 +31,6 @@ function getCommodityById (commodityId) {
 
 function getCommodityByCode (commodityCode) {
   return commodities.find((commodity) => commodity.code === commodityCode)
-}
-
-function getCommodityFields (commodityId, fieldName) {
-  const commodity = getCommodityById(commodityId)
-
-  if (!commodity || !commodity[fieldName]) {
-    return []
-  }
-
-  return commodity[fieldName]
-}
-
-function getIdentifierFields (commodityId) {
-  return getCommodityFields(commodityId, 'identifiers')
-}
-
-function getPackagingFields (commodityId) {
-  return getCommodityFields(commodityId, 'packagingFields')
-}
-
-function getCertificationPurposeOptions (commodityId) {
-  return getCommodityFields(commodityId, 'certificationPurposeOptions')
-}
-
-function getUnweanedOptions (commodityId) {
-  return getCommodityFields(commodityId, 'unweanedOptions')
-}
-
-function getTemperatureOptions (commodityId) {
-  return getCommodityFields(commodityId, 'temperatureOptions')
-}
-
-function buildCertificationPurposeItems (options, selectedValue) {
-  return options.map((option) => ({
-    value: option,
-    text: option,
-    checked: selectedValue === option
-  }))
-}
-
-function buildSimpleRadioItems (options, selectedValue) {
-  return options.map((option) => ({
-    value: option,
-    text: option,
-    checked: selectedValue === option
-  }))
-}
-
-function getAdditionalAnimalDetailsConfig (sessionData) {
-  const commodityId = sessionData.commodityId
-  const certificationPurposeOptions = getCertificationPurposeOptions(commodityId)
-  const unweanedOptions = getUnweanedOptions(commodityId)
-  const temperatureOptions = getTemperatureOptions(commodityId)
-
-  return {
-    hasCertificationPurposeQuestion: certificationPurposeOptions.length > 0,
-    hasUnweanedQuestion: unweanedOptions.length > 0,
-    hasTemperatureQuestion: temperatureOptions.length > 0,
-    certificationPurposeOptions,
-    unweanedOptions,
-    temperatureOptions
-  }
-}
-
-function hasAdditionalAnimalDetailsComplete (sessionData) {
-  const config = getAdditionalAnimalDetailsConfig(sessionData)
-
-  if (config.hasTemperatureQuestion) {
-    return config.temperatureOptions.includes(sessionData.temperature)
-  }
-
-  if (config.hasCertificationPurposeQuestion && !config.certificationPurposeOptions.includes(sessionData.certificationPurpose)) {
-    return false
-  }
-
-  if (config.hasUnweanedQuestion && !config.unweanedOptions.includes(sessionData.unweanedAnimals)) {
-    return false
-  }
-
-  return config.hasCertificationPurposeQuestion || config.hasUnweanedQuestion
-}
-
-function commodityRequiresCph (sessionData) {
-  return ['cow', 'pig'].includes(sessionData.commodityId)
-}
-
-function hasCphDetails (sessionData) {
-  if (!commodityRequiresCph(sessionData)) {
-    return true
-  }
-
-  return Boolean(sessionData.cphNumber && sessionData.cphNumber.trim())
-}
-
-function hasAllConsignmentAddressFields (sessionData) {
-  const requiredAddresses = [
-    sessionData.placeOfOriginAddress,
-    sessionData.consignorAddress,
-    sessionData.consigneeAddress,
-    sessionData.importerAddress,
-    sessionData.placeOfDestinationAddress
-  ]
-
-  return requiredAddresses.every((value) => value && value.trim())
-}
-
-function hasConsignmentAddresses (sessionData) {
-  return hasAllConsignmentAddressFields(sessionData) && hasCphDetails(sessionData)
-}
-
-function getConsignmentAddressesViewModel (req) {
-  const sessionData = req.session.data
-
-  return {
-    backLink: getBackLink(req, '/notification-tasklist'),
-    reference: getDisplayNotificationReference(sessionData),
-    addressSections: getConsignmentHubSections(sessionData)
-  }
-}
-
-function getContactAddressById (addressId) {
-  return contactAddresses.find((address) => address.id === addressId)
-}
-
-function hasContactAddress (sessionData) {
-  return Boolean(
-    sessionData.contactAddress &&
-    sessionData.contactAddress.trim() &&
-    getContactAddressById(sessionData.contactAddressId)
-  )
-}
-
-function syncContactAddressSession (sessionData, address) {
-  sessionData.contactAddress = formatTraderAddressForSession(address)
-  sessionData.contactAddressId = address.id
-}
-
-function clearContactAddressSession (sessionData) {
-  sessionData.contactAddress = null
-  sessionData.contactAddressId = null
-  sessionData.contactAddressSearch = null
-}
-
-function redirectIfNoAddressSectionAccess (req, res) {
-  if (redirectIfNoCommodity(req, res)) {
-    return true
-  }
-
-  if (!req.session.data.animalsAdded || !req.session.data.animals || req.session.data.animals.length === 0) {
-    res.redirect('/animal-identification-details')
-    return true
-  }
-
-  if (!hasAdditionalAnimalDetailsComplete(req.session.data)) {
-    res.redirect('/additional-animal-details')
-    return true
-  }
-
-  if (!hasValidImportReason(req.session.data)) {
-    res.redirect('/reason-for-import')
-    return true
-  }
-
-  return false
-}
-
-function hasArrivalDetails (sessionData) {
-  const arrivalDay = (sessionData.arrivalDateDay || '').trim()
-  const arrivalMonth = (sessionData.arrivalDateMonth || '').trim()
-  const arrivalYear = (sessionData.arrivalDateYear || '').trim()
-
-  return Boolean(
-    sessionData.portOfEntry &&
-    sessionData.portOfEntry.trim() &&
-    sessionData.meansOfTransport &&
-    meansOfTransportOptions.includes(sessionData.meansOfTransport) &&
-    sessionData.transportIdentification &&
-    sessionData.transportIdentification.trim() &&
-    sessionData.transportDocumentReference &&
-    sessionData.transportDocumentReference.trim() &&
-    arrivalDay &&
-    arrivalMonth &&
-    arrivalYear
-  )
-}
-
-function getTransporterById (transporterId) {
-  return transporters.find((transporter) => transporter.id === transporterId)
-}
-
-function hasTransportDetails (sessionData) {
-  return Boolean(sessionData.transporterId && getTransporterById(sessionData.transporterId))
-}
-
-function formatTransporterAddress (transporter) {
-  if (transporter.addressLines && transporter.addressLines.length) {
-    return transporter.addressLines.join(', ')
-  }
-
-  return transporter.address || ''
-}
-
-function getTransporterDisplayName (transporter) {
-  if (transporter.nameLines && transporter.nameLines.length) {
-    return transporter.nameLines.join(' ')
-  }
-
-  return transporter.name
-}
-
-function syncTransporterSession (sessionData, transporter) {
-  sessionData.transporterId = transporter.id
-  sessionData.transporterName = getTransporterDisplayName(transporter)
-  sessionData.transporterAddress = formatTransporterAddress(transporter)
-  sessionData.transporterCountry = transporter.country
-  sessionData.transporterApprovalNumber = transporter.approvalNumber || null
-  sessionData.transporterType = transporter.type || null
-  sessionData.transporterStatus = transporter.status || null
-}
-
-function redirectIfNoMovementTaskAccess (req, res) {
-  if (redirectIfNoCommodity(req, res)) {
-    return true
-  }
-
-  if (!req.session.data.animalsAdded || !req.session.data.animals || req.session.data.animals.length === 0) {
-    res.redirect('/animal-identification-details')
-    return true
-  }
-
-  if (!hasAdditionalAnimalDetailsComplete(req.session.data)) {
-    res.redirect('/additional-animal-details')
-    return true
-  }
-
-  if (!hasValidImportReason(req.session.data)) {
-    res.redirect('/reason-for-import')
-    return true
-  }
-
-  return false
-}
-
-const consignmentAddressOrder = [
-  'place-of-origin',
-  'consignor',
-  'consignee',
-  'importer',
-  'place-of-destination'
-]
-
-const consignmentAddressConfig = {
-  'place-of-origin': {
-    sessionKey: 'placeOfOriginAddress',
-    addressIdKey: 'placeOfOriginAddressId',
-    searchKey: 'placeOfOriginAddressSearch',
-    heading: 'Place of origin',
-    addLinkText: 'Add a place of origin',
-    hint: 'The address where the animals begin their journey to Great Britain'
-  },
-  consignor: {
-    sessionKey: 'consignorAddress',
-    addressIdKey: 'consignorAddressId',
-    searchKey: 'consignorAddressSearch',
-    heading: 'Consignor or exporter',
-    addLinkText: 'Add a consignor',
-    hint: 'This is the sender of the consignment.'
-  },
-  consignee: {
-    sessionKey: 'consigneeAddress',
-    addressIdKey: 'consigneeAddressId',
-    searchKey: 'consigneeAddressSearch',
-    heading: 'Consignee',
-    addLinkText: 'Add a consignee',
-    hint: 'This is the receiver or buyer of the consignment being shipped or transported.'
-  },
-  importer: {
-    sessionKey: 'importerAddress',
-    addressIdKey: 'importerAddressId',
-    searchKey: 'importerAddressSearch',
-    heading: 'Importer',
-    addLinkText: 'Add an importer',
-    hint: 'This is usually the same as the consignee. You can select a different person if needed.'
-  },
-  'place-of-destination': {
-    sessionKey: 'placeOfDestinationAddress',
-    addressIdKey: 'placeOfDestinationAddressId',
-    searchKey: 'placeOfDestinationAddressSearch',
-    heading: 'Place of destination',
-    addLinkText: 'Add a place of destination',
-    hint: 'This is where the animals will be unloaded and accommodated for at least 48 hours. If a health certificate is required, it will show this address.'
-  }
-}
-
-function getConsignmentAddressConfig (addressType) {
-  return consignmentAddressConfig[addressType]
-}
-
-function getConsignmentAddressLinkText (config, hasAddress) {
-  if (!hasAddress) {
-    return config.addLinkText
-  }
-
-  return config.addLinkText.replace(/^Add (a |an )/, 'Change ')
-}
-
-function getConsignmentAddressSections (sessionData) {
-  return consignmentAddressOrder.map((addressType) => {
-    const config = consignmentAddressConfig[addressType]
-    const selectedAddress = (sessionData[config.sessionKey] || '').trim()
-    const hasAddress = Boolean(selectedAddress)
-
-    return {
-      addressType,
-      heading: config.heading,
-      hint: config.hint,
-      linkText: getConsignmentAddressLinkText(config, hasAddress),
-      linkId: addressType === 'place-of-origin' ? 'place-of-origin-link' : null,
-      href: `/consignment-addresses/add/${addressType}`,
-      selectedAddressHtml: hasAddress ? formatMultilineValue(selectedAddress) : null
-    }
-  })
-}
-
-function getCphSection (sessionData) {
-  const cphNumber = (sessionData.cphNumber || '').trim()
-  const hasCph = Boolean(cphNumber)
-
-  return {
-    heading: 'County Parish Holding number (CPH)',
-    hint: 'The County Parish Holding (CPH) number identifies the holding where the animals will be kept.',
-    linkText: hasCph ? 'Change CPH number' : 'Add a CPH number',
-    linkId: 'cph-number-link',
-    href: '/county-parish-holding',
-    selectedAddressHtml: hasCph ? cphNumber : null
-  }
-}
-
-function getConsignmentHubSections (sessionData) {
-  const addressSections = getConsignmentAddressSections(sessionData)
-
-  if (commodityRequiresCph(sessionData)) {
-    return [...addressSections, getCphSection(sessionData)]
-  }
-
-  return addressSections
-}
-
-function getConsignmentAddressList (addressType) {
-  return consignmentAddressLists[addressType] || []
-}
-
-function getAllConsignmentAddresses () {
-  return Object.values(consignmentAddressLists).flat()
-}
-
-function getTraderAddressById (addressId, addressType) {
-  const addressList = addressType
-    ? getConsignmentAddressList(addressType)
-    : getAllConsignmentAddresses()
-
-  return addressList.find((address) => address.id === addressId)
-}
-
-function formatTraderAddressForSession (address) {
-  return [address.name, ...(address.addressLines || []), address.country].join('\n')
-}
-
-function syncConsignmentAddressSession (sessionData, config, address) {
-  sessionData[config.sessionKey] = formatTraderAddressForSession(address)
-  sessionData[config.addressIdKey] = address.id
-}
-
-function clearConsignmentAddressSession (sessionData, config) {
-  sessionData[config.sessionKey] = null
-  sessionData[config.addressIdKey] = null
-  sessionData[config.searchKey] = null
-}
-
-function buildImportCategoryItems (selectedValue) {
-  return importCategories.map((category) => ({
-    value: category.value,
-    text: category.text,
-    checked: selectedValue === category.value
-  }))
-}
-
-function buildMeansOfTransportItems (selectedValue) {
-  return [
-    {
-      value: '',
-      text: 'Select one',
-      selected: !selectedValue
-    },
-    ...meansOfTransportOptions.map((option) => ({
-      value: option,
-      text: option,
-      selected: selectedValue === option
-    }))
-  ]
-}
-
-function getUkAirportDisplayOptions () {
-  return ukAirports.map((airport) => `${airport.name} - ${airport.code}`)
-}
-
-function isValidPortOfEntry (portOfEntry) {
-  const normalised = (portOfEntry || '').trim().toLowerCase()
-
-  return getUkAirportDisplayOptions().some((option) => option.toLowerCase() === normalised)
-}
-
-function getAllowedImportCategories () {
-  return importCategories.map((category) => category.value)
 }
 
 function getCountryRegionPrefix (countryName) {
@@ -654,592 +61,20 @@ function getRegionOfOriginCodeSuffix (sessionData) {
   return code.slice(separatorIndex + 1).trim()
 }
 
-function formatRegionOfOriginCode (countryName, suffix) {
-  const prefix = getCountryRegionPrefix(countryName)
-  const normalisedSuffix = String(suffix || '').trim().toUpperCase()
-
-  if (!prefix || !normalisedSuffix) {
-    return ''
+function ensurePrototypeNotificationReference (sessionData) {
+  if (!sessionData.notificationReference) {
+    sessionData.notificationReference = PROTOTYPE_NOTIFICATION_REFERENCE
   }
-
-  return `${prefix}-${normalisedSuffix}`
-}
-
-function getRegionOfOriginSummaryValue (sessionData) {
-  if (sessionData.regionOfOriginRequired === 'Yes') {
-    return sessionData.regionOfOriginCode || 'Yes'
-  }
-
-  return sessionData.regionOfOriginRequired
 }
 
 function hasOriginDetails (sessionData) {
-  if (!sessionData.countryOfOrigin) {
-    return false
-  }
-
-  if (sessionData.regionOfOriginRequired === 'No') {
-    return true
-  }
-
-  if (sessionData.regionOfOriginRequired === 'Yes') {
-    return Boolean(sessionData.regionOfOriginCode && String(sessionData.regionOfOriginCode).trim())
-  }
-
-  return false
-}
-
-function getImportDetailsSummaryRows (sessionData) {
-  const rows = []
-
-  if (sessionData.importCategory) {
-    rows.push({
-      key: { text: 'What are you importing' },
-      value: { text: sessionData.importCategory },
-      actions: {
-        items: [
-          {
-            href: '/what-are-you-importing',
-            text: 'Change',
-            visuallyHiddenText: 'what you are importing'
-          }
-        ]
-      }
-    })
-  }
-
-  if (sessionData.countryOfOrigin) {
-    rows.push({
-      key: { text: 'Country of origin' },
-      value: { text: sessionData.countryOfOrigin },
-      actions: {
-        items: [
-          {
-            href: '/origin-of-the-import',
-            text: 'Change',
-            visuallyHiddenText: 'country of origin'
-          }
-        ]
-      }
-    })
-  }
-
-  if (sessionData.regionOfOriginRequired === 'Yes' || sessionData.regionOfOriginRequired === 'No') {
-    rows.push({
-      key: { text: 'Does the consignment require a region of origin code?' },
-      value: { text: getRegionOfOriginSummaryValue(sessionData) },
-      actions: {
-        items: [
-          {
-            href: '/origin-of-the-import',
-            text: 'Change',
-            visuallyHiddenText: 'whether the consignment requires a region of origin code'
-          }
-        ]
-      }
-    })
-  }
-
-  if (hasOriginDetails(sessionData)) {
-    const reference = sessionData.internalReference
-    const referenceText =
-      reference && String(reference).trim() && reference !== 'N/A' ? String(reference).trim() : 'N/A'
-
-    rows.push({
-      key: { text: 'Your internal reference number for this consignment (optional)' },
-      value: { text: referenceText },
-      actions: {
-        items: [
-          {
-            href: '/origin-of-the-import',
-            text: 'Change',
-            visuallyHiddenText: 'your internal reference number'
-          }
-        ]
-      }
-    })
-  }
-
-  return rows
-}
-
-function clearOriginSession (sessionData) {
-  sessionData.countryOfOrigin = null
-  sessionData.regionOfOriginRequired = null
-  sessionData.regionOfOriginCode = null
-  sessionData.regionOfOriginCodeSuffix = null
-  sessionData.internalReference = null
+  return Boolean(sessionData.countryOfOrigin)
 }
 
 function redirectIfNoOrigin (req, res) {
-  if (redirectIfNoImportCategory(req, res)) {
-    return true
-  }
-
   if (!hasOriginDetails(req.session.data)) {
     res.redirect('/origin-of-the-import')
     return true
-  }
-
-  return false
-}
-
-function resetCommoditySelectionSession (sessionData) {
-  sessionData.commodityId = null
-  sessionData.commodityCode = null
-  sessionData.commodityName = null
-  sessionData.speciesSummary = null
-  sessionData.speciesPanelName = null
-  sessionData.selectedSpecies = []
-  sessionData.commoditySelections = []
-  sessionData.speciesEntries = []
-  sessionData.identifierFields = []
-  sessionData.packagingFields = []
-  sessionData.packaging = null
-  sessionData.certificationPurposeOptions = []
-  sessionData.certificationPurpose = null
-  sessionData.unweanedAnimals = null
-  sessionData.temperature = null
-  sessionData.animalCountInput = null
-  sessionData.animalsAdded = false
-  sessionData.animals = []
-}
-
-function clearCommoditySession (sessionData) {
-  resetCommoditySelectionSession(sessionData)
-  sessionData.cphNumber = null
-  Object.values(consignmentAddressConfig).forEach((config) => {
-    clearConsignmentAddressSession(sessionData, config)
-  })
-  clearContactAddressSession(sessionData)
-  sessionData.portOfEntry = null
-  sessionData.arrivalDateDay = null
-  sessionData.arrivalDateMonth = null
-  sessionData.arrivalDateYear = null
-  sessionData.meansOfTransport = null
-  sessionData.transportIdentification = null
-  sessionData.transportDocumentReference = null
-  sessionData.transporterId = null
-  sessionData.transporterName = null
-  sessionData.transporterAddress = null
-  sessionData.transporterApprovalNumber = null
-  sessionData.transporterType = null
-  sessionData.transporterStatus = null
-  sessionData.transporterCountry = null
-  sessionData.transporterSearch = null
-  sessionData.importReason = null
-  sessionData.declarationConfirmed = null
-  sessionData.declarationDate = null
-  sessionData.notificationSubmitted = null
-  sessionData.notificationReference = null
-  sessionData.accompanyingDocuments = null
-  sessionData.accompanyingDocumentsComplete = null
-}
-
-function createEmptyAccompanyingDocument () {
-  return {
-    reference: '',
-    documentType: '',
-    issueDateDay: '',
-    issueDateMonth: '',
-    issueDateYear: '',
-    attachmentName: ''
-  }
-}
-
-function getAccompanyingDocuments (sessionData) {
-  if (!sessionData.accompanyingDocuments || !Array.isArray(sessionData.accompanyingDocuments) || sessionData.accompanyingDocuments.length === 0) {
-    sessionData.accompanyingDocuments = [createEmptyAccompanyingDocument()]
-  }
-
-  return sessionData.accompanyingDocuments
-}
-
-function buildDocumentTypeItems (selectedValue) {
-  return documentTypes.map((option) => ({
-    ...option,
-    selected: option.value === selectedValue
-  }))
-}
-
-function parseAccompanyingDocumentsFromBody (body, count) {
-  const documents = []
-
-  for (let index = 0; index < count; index += 1) {
-    documents.push({
-      reference: (body[`reference-${index}`] || '').trim(),
-      documentType: (body[`documentType-${index}`] || '').trim(),
-      issueDateDay: (body[`issueDate-${index}-day`] || '').trim(),
-      issueDateMonth: (body[`issueDate-${index}-month`] || '').trim(),
-      issueDateYear: (body[`issueDate-${index}-year`] || '').trim(),
-      attachmentName: (body[`attachmentName-${index}`] || '').trim() || (body[`existingAttachmentName-${index}`] || '').trim()
-    })
-  }
-
-  return documents
-}
-
-function formatIssueDate (document) {
-  const day = (document.issueDateDay || '').trim()
-  const month = (document.issueDateMonth || '').trim()
-  const year = (document.issueDateYear || '').trim()
-
-  if (!day || !month || !year) {
-    return 'N/A'
-  }
-
-  return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`
-}
-
-function isAccompanyingDocumentEmpty (document) {
-  return !(
-    (document.reference || '').trim() ||
-    (document.documentType || '').trim() ||
-    (document.issueDateDay || '').trim() ||
-    (document.issueDateMonth || '').trim() ||
-    (document.issueDateYear || '').trim() ||
-    (document.attachmentName || '').trim()
-  )
-}
-
-function isAccompanyingDocumentComplete (document) {
-  const allowedDocumentTypes = documentTypes
-    .map((option) => option.value)
-    .filter(Boolean)
-
-  return Boolean(
-    (document.reference || '').trim() &&
-    (document.documentType || '').trim() &&
-    allowedDocumentTypes.includes(document.documentType) &&
-    (document.issueDateDay || '').trim() &&
-    (document.issueDateMonth || '').trim() &&
-    (document.issueDateYear || '').trim()
-  )
-}
-
-function getCompleteAccompanyingDocuments (sessionData) {
-  if (!sessionData.accompanyingDocuments || !Array.isArray(sessionData.accompanyingDocuments)) {
-    return []
-  }
-
-  return sessionData.accompanyingDocuments.filter(isAccompanyingDocumentComplete)
-}
-
-function hasAccompanyingDocuments (sessionData) {
-  return Boolean(sessionData.accompanyingDocumentsComplete) ||
-    getCompleteAccompanyingDocuments(sessionData).length > 0
-}
-
-function getAccompanyingDocumentsReviewRows (sessionData) {
-  if (!hasAccompanyingDocuments(sessionData)) {
-    return [
-      {
-        key: { text: 'Details' },
-        value: { text: 'Not added' },
-        actions: { items: [{ href: '/accompanying-documents', text: 'Change', visuallyHiddenText: 'accompanying documents' }] }
-      }
-    ]
-  }
-
-  return getCompleteAccompanyingDocuments(sessionData).flatMap((document, index) => {
-    const documentNumber = index + 1
-
-    return [
-      {
-        key: { text: `Document ${documentNumber} reference` },
-        value: { text: document.reference },
-        actions: { items: [{ href: '/accompanying-documents', text: 'Change', visuallyHiddenText: `document ${documentNumber} reference` }] }
-      },
-      {
-        key: { text: `Document ${documentNumber} type` },
-        value: { text: getDocumentTypeLabel(document.documentType) },
-        actions: { items: [{ href: '/accompanying-documents', text: 'Change', visuallyHiddenText: `document ${documentNumber} type` }] }
-      },
-      {
-        key: { text: `Document ${documentNumber} date of issue` },
-        value: { text: formatIssueDate(document) },
-        actions: { items: [{ href: '/accompanying-documents', text: 'Change', visuallyHiddenText: `document ${documentNumber} date of issue` }] }
-      },
-      {
-        key: { text: `Document ${documentNumber} attachment` },
-        value: { text: document.attachmentName || 'Not added' },
-        actions: { items: [{ href: '/accompanying-documents', text: 'Change', visuallyHiddenText: `document ${documentNumber} attachment` }] }
-      }
-    ]
-  })
-}
-
-function getAccompanyingDocumentsViewModel (req) {
-  const documents = getAccompanyingDocuments(req.session.data)
-
-  return {
-    backLink: getBackLink(req, '/notification-tasklist'),
-    documents,
-    documentTypeItems: documents.map((document) => buildDocumentTypeItems(document.documentType))
-  }
-}
-
-function redirectIfCannotAccessAccompanyingDocuments (req, res) {
-  if (redirectIfNoCommodity(req, res)) {
-    return true
-  }
-
-  if (!req.session.data.animalsAdded || !req.session.data.animals || req.session.data.animals.length === 0) {
-    res.redirect('/animal-identification-details')
-    return true
-  }
-
-  if (!hasAdditionalAnimalDetailsComplete(req.session.data)) {
-    res.redirect('/additional-animal-details')
-    return true
-  }
-
-  if (!hasValidImportReason(req.session.data)) {
-    res.redirect('/reason-for-import')
-    return true
-  }
-
-  return false
-}
-
-function redirectIfNoImportCategory (req, res) {
-  if (!req.session.data.importCategory) {
-    res.redirect('/what-are-you-importing')
-    return true
-  }
-
-  return false
-}
-
-function redirectIfNoLiveAnimalsCategory (req, res) {
-  if (redirectIfNoImportCategory(req, res)) {
-    return true
-  }
-
-  if (req.session.data.importCategory !== 'Live animals') {
-    res.redirect('/import-category-not-available')
-    return true
-  }
-
-  return false
-}
-
-function redirectIfNoCommodity (req, res) {
-  if (redirectIfNoOrigin(req, res)) {
-    return true
-  }
-
-  if (req.session.data.importCategory === 'Live animals' && !req.session.data.commodityCode) {
-    res.redirect('/select-commodity')
-    return true
-  }
-
-  return false
-}
-
-function buildImportReasonItems (sessionData, selectedValue) {
-  return getImportReasonsForCommodity(sessionData.commodityId).map((reason) => {
-    return {
-      value: reason.value,
-      text: reason.text,
-      checked: selectedValue === reason.value
-    }
-  })
-}
-
-function getAllowedImportReasons (sessionData) {
-  return getImportReasonsForCommodity(sessionData.commodityId).map((reason) => reason.value)
-}
-
-function hasValidImportReason (sessionData) {
-  const importReason = (sessionData.importReason || '').trim()
-
-  if (!importReason) {
-    return false
-  }
-
-  return getAllowedImportReasons(sessionData).includes(importReason)
-}
-
-function getCommodityHubRows (sessionData) {
-  const numberOfPackages = sessionData.packaging && sessionData.packaging['number-of-packages']
-  const packages = numberOfPackages && numberOfPackages.trim() ? numberOfPackages.trim() : 'N/A'
-  const commodityCode = sessionData.commodityCode || '—'
-  const commodityName = sessionData.commodityName || '—'
-  const entries = sessionData.speciesEntries || []
-
-  if (entries.length > 0) {
-    return entries.map((entry) => ({
-      commodityCode,
-      commodityName,
-      species: entry.label || '—',
-      quantity: entry.animalCount || (entry.animals ? String(entry.animals.length) : '0'),
-      packages
-    }))
-  }
-
-  const quantity = sessionData.animalCount || (sessionData.animals ? String(sessionData.animals.length) : '0')
-
-  return [
-    {
-      commodityCode,
-      commodityName,
-      species: sessionData.speciesSummary || '—',
-      quantity: quantity || '0',
-      packages
-    }
-  ]
-}
-
-function getCommodityHubViewModel (sessionData) {
-  const quantity = sessionData.animalCount || (sessionData.animals ? String(sessionData.animals.length) : '0')
-  const numberOfPackages = sessionData.packaging && sessionData.packaging['number-of-packages']
-  const packages = numberOfPackages && numberOfPackages.trim() ? numberOfPackages.trim() : 'N/A'
-
-  return {
-    animalCountDisplay: quantity || '0',
-    packagesDisplay: packages,
-    rows: getCommodityHubRows(sessionData)
-  }
-}
-
-function getNotificationTasklistViewModel (sessionData) {
-  const hasOrigin = hasOriginDetails(sessionData)
-  const hasCommodity = Boolean(sessionData.commodityCode)
-  const hasAnimals = Boolean(sessionData.animalsAdded && sessionData.animals && sessionData.animals.length > 0)
-  const hasAdditionalAnimalDetails = hasAdditionalAnimalDetailsComplete(sessionData)
-  const hasImportReason = hasValidImportReason(sessionData)
-  const hasAddresses = hasConsignmentAddresses(sessionData)
-  const hasContact = hasContactAddress(sessionData)
-  const hasArrival = hasArrivalDetails(sessionData)
-  const hasTransport = hasTransportDetails(sessionData)
-  const hasDocuments = hasAccompanyingDocuments(sessionData)
-
-  const statusComplete = { text: 'Complete', class: 'govuk-tag--green' }
-  const statusTodo = { text: 'To do', class: 'govuk-tag--blue' }
-
-  return {
-    reference: getDisplayNotificationReference(sessionData),
-    sections: [
-      {
-        title: 'About the consignment',
-        items: [
-          {
-            text: 'Where is this consignment coming from?',
-            href: withFromTasklist('/origin-of-the-import'),
-            status: hasOrigin ? statusComplete : statusTodo
-          },
-          {
-            text: 'Main reason for importing the animals',
-            href: withFromTasklist('/reason-for-import'),
-            status: hasImportReason ? statusComplete : statusTodo
-          }
-        ]
-      },
-      {
-        title: 'Description of the goods',
-        items: [
-          {
-            text: 'Your commodities',
-            href: withFromTasklist('/commodity-hub'),
-            status: hasCommodity && hasAnimals ? statusComplete : statusTodo
-          },
-          {
-            text: 'Additional animal details',
-            href: withFromTasklist('/additional-animal-details'),
-            status: hasAdditionalAnimalDetails ? statusComplete : statusTodo
-          }
-        ]
-      },
-      {
-        title: 'Documents',
-        items: [
-          {
-            text: 'Accompanying documents',
-            href: withFromTasklist('/accompanying-documents'),
-            status: hasDocuments ? statusComplete : statusTodo
-          }
-        ]
-      },
-      {
-        title: 'Addresses',
-        items: [
-          { text: 'Consignment addresses', href: withFromTasklist('/consignment-addresses'), status: hasAddresses ? statusComplete : statusTodo },
-          { text: 'Contact address for this consignment', href: withFromTasklist('/contact-address-for-consignment'), status: hasContact ? statusComplete : statusTodo }
-        ]
-      },
-      {
-        title: 'Transport',
-        items: [
-          { text: 'Arrival details', href: withFromTasklist('/arrival-details'), status: hasArrival ? statusComplete : statusTodo },
-          { text: 'Transport details', href: withFromTasklist('/transport-details'), status: hasTransport ? statusComplete : statusTodo }
-        ]
-      }
-    ]
-  }
-}
-
-function getSpeciesLabels (commodityId, speciesIds) {
-  const commodity = getCommodityById(commodityId)
-  const normalisedSpeciesIds = normalizeSelectedSpecies(speciesIds)
-
-  if (!commodity) {
-    return []
-  }
-
-  return normalisedSpeciesIds
-    .map((speciesId) => commodity.species.find((species) => species.id === speciesId))
-    .filter(Boolean)
-    .map((species) => species.label)
-}
-
-function getSpeciesSummary (speciesLabels) {
-  if (speciesLabels.length > 0) {
-    return speciesLabels.join(', ')
-  }
-
-  return '—'
-}
-
-function getFormValue (value) {
-  if (Array.isArray(value)) {
-    return String(value[value.length - 1] ?? '').trim()
-  }
-
-  return String(value ?? '').trim()
-}
-
-function isDeclarationConfirmed (value) {
-  if (value === true) {
-    return true
-  }
-
-  if (Array.isArray(value)) {
-    return value.some((item) => isDeclarationConfirmed(item))
-  }
-
-  if (value && typeof value === 'object') {
-    return Object.values(value).some((item) => isDeclarationConfirmed(item))
-  }
-
-  return getFormValue(value).toLowerCase() === 'yes'
-}
-
-function getDeclarationConfirmedFromBody (body) {
-  if (!body || typeof body !== 'object') {
-    return false
-  }
-
-  if (body.declarationConfirmed !== undefined) {
-    return isDeclarationConfirmed(body.declarationConfirmed)
-  }
-
-  const matchingKey = Object.keys(body).find((key) =>
-    key === 'declarationConfirmed' || key.startsWith('declarationConfirmed[')
-  )
-
-  if (matchingKey) {
-    return isDeclarationConfirmed(body[matchingKey])
   }
 
   return false
@@ -1279,82 +114,22 @@ function normalizeSelectedSpecies (value) {
   return []
 }
 
-function getSpeciesIdsForSession (sessionData) {
-  const commodity = getCommodityById(sessionData.commodityId)
-  const selectedSpecies = normalizeSelectedSpecies(sessionData.selectedSpecies)
+function parseCommoditySelections (rawValue) {
+  if (Array.isArray(rawValue)) {
+    return rawValue
+  }
 
-  if (!commodity) {
+  if (rawValue && typeof rawValue === 'object') {
+    return Object.values(rawValue).filter(Boolean)
+  }
+
+  try {
+    const parsed = JSON.parse(rawValue || '[]')
+
+    return Array.isArray(parsed) ? parsed : []
+  } catch (error) {
     return []
   }
-
-  if (selectedSpecies.length > 0) {
-    return selectedSpecies.filter((speciesId) =>
-      commodity.species.some((species) => species.id === speciesId)
-    )
-  }
-
-  return commodity.species.map((species) => species.id)
-}
-
-function initialiseSpeciesEntries (sessionData) {
-  const commodity = getCommodityById(sessionData.commodityId)
-
-  if (!commodity) {
-    sessionData.speciesEntries = []
-    return
-  }
-
-  const speciesIds = getSpeciesIdsForSession(sessionData)
-  const existingEntries = sessionData.speciesEntries || []
-
-  sessionData.speciesEntries = speciesIds.map((speciesId) => {
-    const species = commodity.species.find((item) => item.id === speciesId)
-    const existingEntry = existingEntries.find((entry) => entry.speciesId === speciesId)
-
-    return {
-      speciesId,
-      label: species ? species.label : speciesId,
-      animalCountInput: existingEntry ? existingEntry.animalCountInput : '1',
-      animalsAdded: Boolean(existingEntry && existingEntry.animalsAdded),
-      animalCount: existingEntry ? existingEntry.animalCount : null,
-      animals: existingEntry && existingEntry.animals ? existingEntry.animals : []
-    }
-  })
-
-  const speciesLabels = sessionData.speciesEntries.map((entry) => entry.label)
-
-  sessionData.speciesSummary = getSpeciesSummary(speciesLabels)
-  sessionData.speciesPanelName = speciesLabels[0] || commodity.name
-  syncAggregateAnimalsFromSpeciesEntries(sessionData)
-}
-
-function getSpeciesEntry (sessionData, speciesId) {
-  return (sessionData.speciesEntries || []).find((entry) => entry.speciesId === speciesId)
-}
-
-function syncAggregateAnimalsFromSpeciesEntries (sessionData) {
-  const entries = sessionData.speciesEntries || []
-  const allAnimals = entries.flatMap((entry) =>
-    (entry.animals || []).map((animal) => ({
-      ...animal,
-      speciesId: entry.speciesId,
-      speciesLabel: entry.label
-    }))
-  )
-
-  sessionData.animals = allAnimals
-  sessionData.animalsAdded = entries.length > 0 && entries.every((entry) =>
-    entry.animalsAdded && entry.animals && entry.animals.length > 0
-  )
-  sessionData.animalCount = allAnimals.length > 0 ? String(allAnimals.length) : null
-}
-
-function hasAllSpeciesAnimalsComplete (sessionData) {
-  const entries = sessionData.speciesEntries || []
-
-  return entries.length > 0 && entries.every((entry) =>
-    entry.animalsAdded && entry.animals && entry.animals.length > 0
-  )
 }
 
 function getInitialCommoditySelections (sessionData) {
@@ -1387,533 +162,1151 @@ function getInitialCommoditySelections (sessionData) {
   return []
 }
 
-function parseCommoditySelections (rawValue) {
-  if (Array.isArray(rawValue)) {
-    return rawValue
-  }
-
-  if (rawValue && typeof rawValue === 'object') {
-    return Object.values(rawValue).filter(Boolean)
-  }
-
-  try {
-    const parsed = JSON.parse(rawValue || '[]')
-
-    return Array.isArray(parsed) ? parsed : []
-  } catch (error) {
-    return []
-  }
-}
-
-function buildEmptyFieldValues (fields) {
-  const values = {}
-
-  fields.forEach((field) => {
-    values[field.id] = ''
-  })
-
-  return values
-}
-
-function mergeFieldValues (fields, existingValues) {
-  const values = buildEmptyFieldValues(fields)
-
-  if (existingValues) {
-    fields.forEach((field) => {
-      values[field.id] = existingValues[field.id] || ''
-    })
-  }
-
-  return values
-}
-
-function buildAnimalsList (speciesName, count, identifierFields, existingAnimals) {
-  const animals = []
-  const safeCount = Math.min(Math.max(parseInt(count, 10) || 0, 0), 50)
-
-  for (let i = 1; i <= safeCount; i++) {
-    const existing = (existingAnimals || []).find((animal) => animal.id === i)
-
-    animals.push({
-      id: i,
-      label: `${speciesName} ${i}`,
-      identifiers: mergeFieldValues(identifierFields, existing && existing.identifiers)
-    })
-  }
-
-  return animals
-}
-
-function escapeHtml (value) {
-  return String(value || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-}
-
-function getSpeciesSummaryHtml (sessionData) {
-  const commodity = getCommodityById(sessionData.commodityId)
-
-  if (!commodity) {
-    return '—'
-  }
-
-  const labels = getSpeciesLabels(commodity.id, getSpeciesIdsForSession(sessionData))
-
-  if (labels.length === 0) {
-    return '—'
-  }
-
-  return labels.map((label) => escapeHtml(label)).join('<br>')
-}
-
-function formatMultilineValue (value) {
-  const text = (value || '').trim()
-
-  if (!text) {
-    return 'N/A'
-  }
-
-  return text
-    .split(/\r?\n/)
-    .map((line) => escapeHtml(line.trim()))
-    .filter(Boolean)
-    .join('<br>')
-}
-
-function formatArrivalDate (sessionData) {
-  const day = (sessionData.arrivalDateDay || '').trim()
-  const month = (sessionData.arrivalDateMonth || '').trim()
-  const year = (sessionData.arrivalDateYear || '').trim()
-
-  if (!day || !month || !year) {
-    return 'N/A'
-  }
-
-  return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`
-}
-
-function formatDeclarationDate (date = new Date()) {
-  return date.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  })
-}
-
-function getDeclarationDate (sessionData) {
-  if (sessionData.declarationDate) {
-    return sessionData.declarationDate
-  }
-
-  const declarationDate = formatDeclarationDate()
-
-  sessionData.declarationDate = declarationDate
-
-  return declarationDate
-}
-
-function getReviewNotificationViewModel (sessionData) {
-  const packagingCount = sessionData.packaging && sessionData.packaging['number-of-packages']
-    ? String(sessionData.packaging['number-of-packages']).trim()
-    : ''
-  const animalsCount = sessionData.animals && sessionData.animals.length ? String(sessionData.animals.length) : 'N/A'
-  const speciesLabel = sessionData.speciesSummary || sessionData.commodityName || 'N/A'
-
-  const additionalAnimalRows = [
-    {
-      key: { text: 'Certified for' },
-      value: { text: sessionData.certificationPurpose || 'N/A' },
-      actions: { items: [{ href: '/additional-animal-details', text: 'Change', visuallyHiddenText: 'certified for' }] }
-    }
-  ]
-
-  if (sessionData.unweanedAnimals) {
-    additionalAnimalRows.push({
-      key: { text: 'Includes unweaned animals' },
-      value: { text: sessionData.unweanedAnimals },
-      actions: { items: [{ href: '/additional-animal-details', text: 'Change', visuallyHiddenText: 'includes unweaned animals' }] }
-    })
-  }
-
-  if (sessionData.temperature) {
-    additionalAnimalRows.push({
-      key: { text: 'Temperature' },
-      value: { text: sessionData.temperature },
-      actions: { items: [{ href: '/additional-animal-details', text: 'Change', visuallyHiddenText: 'temperature' }] }
-    })
-  }
-
-  const commodityRows = [
-    {
-      key: { text: 'Commodity code' },
-      value: { text: sessionData.commodityCode || 'N/A' },
-      actions: { items: [{ href: '/select-commodity?change=species', text: 'Change', visuallyHiddenText: 'commodity code' }] }
-    },
-    {
-      key: { text: 'Common name' },
-      value: { text: sessionData.commodityName || 'N/A' },
-      actions: { items: [{ href: '/select-commodity?change=species', text: 'Change', visuallyHiddenText: 'common name' }] }
-    },
-    {
-      key: { text: 'Species' },
-      value: { text: speciesLabel },
-      actions: { items: [{ href: '/select-commodity?change=species', text: 'Change', visuallyHiddenText: 'species' }] }
-    },
-    {
-      key: { text: 'Quantity' },
-      value: { text: animalsCount },
-      actions: { items: [{ href: '/animal-identification-details', text: 'Change', visuallyHiddenText: 'quantity' }] }
-    },
-    {
-      key: { text: 'Animal details' },
-      value: { text: animalsCount !== 'N/A' ? `${animalsCount} animals added` : 'N/A' },
-      actions: { items: [{ href: '/animal-identification-details', text: 'Change', visuallyHiddenText: 'animal details' }] }
-    },
-    {
-      key: { text: 'Package details' },
-      value: { text: packagingCount || 'N/A' },
-      actions: { items: [{ href: '/animal-identification-details', text: 'Change', visuallyHiddenText: 'package details' }] }
-    }
-  ]
-
-  return {
-    sections: [
-      {
-        title: 'About the consignment',
-        lists: [
-          {
-            title: 'Where is this consignment coming from?',
-            rows: [
-              {
-                key: { text: 'Country of origin' },
-                value: { text: sessionData.countryOfOrigin || 'N/A' },
-                actions: { items: [{ href: '/origin-of-the-import', text: 'Change', visuallyHiddenText: 'country of origin' }] }
-              },
-              {
-                key: { text: 'Region of origin code' },
-                value: { text: getRegionOfOriginSummaryValue(sessionData) || 'N/A' },
-                actions: { items: [{ href: '/origin-of-the-import', text: 'Change', visuallyHiddenText: 'region of origin code' }] }
-              },
-              {
-                key: { text: 'Internal reference number' },
-                value: { text: sessionData.internalReference || 'N/A' },
-                actions: { items: [{ href: '/origin-of-the-import', text: 'Change', visuallyHiddenText: 'internal reference number' }] }
-              }
-            ]
-          },
-          {
-            title: 'Main reason for importing the animals',
-            rows: [
-              {
-                key: { text: 'Reason for import' },
-                value: { text: sessionData.importReason || 'N/A' },
-                actions: { items: [{ href: '/reason-for-import', text: 'Change', visuallyHiddenText: 'reason for import' }] }
-              }
-            ]
-          }
-        ]
-      },
-      {
-        title: 'Description of the goods',
-        lists: [
-          {
-            title: 'Your commodities',
-            rows: commodityRows
-          },
-          {
-            title: 'Additional animal details',
-            rows: additionalAnimalRows
-          }
-        ]
-      },
-      {
-        title: 'Documents',
-        lists: [
-          {
-            title: 'Accompanying documents',
-            rows: getAccompanyingDocumentsReviewRows(sessionData)
-          }
-        ]
-      },
-      {
-        title: 'Addresses',
-        lists: [
-          {
-            title: 'Consignment addresses',
-            rows: (() => {
-              const rows = [
-              {
-                key: { text: 'Place of origin' },
-                value: { html: formatMultilineValue(sessionData.placeOfOriginAddress) },
-                actions: { items: [{ href: '/consignment-addresses/add/place-of-origin', text: 'Change', visuallyHiddenText: 'place of origin' }] }
-              },
-              {
-                key: { text: 'Consignor' },
-                value: { html: formatMultilineValue(sessionData.consignorAddress) },
-                actions: { items: [{ href: '/consignment-addresses/add/consignor', text: 'Change', visuallyHiddenText: 'consignor' }] }
-              },
-              {
-                key: { text: 'Consignee' },
-                value: { html: formatMultilineValue(sessionData.consigneeAddress) },
-                actions: { items: [{ href: '/consignment-addresses/add/consignee', text: 'Change', visuallyHiddenText: 'consignee' }] }
-              },
-              {
-                key: { text: 'Importer' },
-                value: { html: formatMultilineValue(sessionData.importerAddress) },
-                actions: { items: [{ href: '/consignment-addresses/add/importer', text: 'Change', visuallyHiddenText: 'importer' }] }
-              },
-              {
-                key: { text: 'Place of destination' },
-                value: { html: formatMultilineValue(sessionData.placeOfDestinationAddress) },
-                actions: { items: [{ href: '/consignment-addresses/add/place-of-destination', text: 'Change', visuallyHiddenText: 'place of destination' }] }
-              },
-              {
-                key: { text: 'Permanent address' },
-                value: { html: formatMultilineValue(sessionData.placeOfDestinationAddress) },
-                actions: { items: [{ href: '/consignment-addresses/add/place-of-destination', text: 'Change', visuallyHiddenText: 'permanent address' }] }
-              }
-              ]
-
-              if (commodityRequiresCph(sessionData)) {
-                const placeOfDestinationIndex = rows.findIndex((row) => row.key.text === 'Place of destination')
-                rows.splice(placeOfDestinationIndex + 1, 0, {
-                  key: { text: 'CPH number' },
-                  value: { text: sessionData.cphNumber || 'N/A' },
-                  actions: { items: [{ href: '/county-parish-holding', text: 'Change', visuallyHiddenText: 'CPH number' }] }
-                })
-              }
-
-              return rows
-            })()
-          },
-          {
-            title: 'Contact address for this consignment',
-            rows: [
-              {
-                key: { text: 'Address' },
-                value: { html: formatMultilineValue(sessionData.contactAddress) },
-                actions: { items: [{ href: '/contact-address-for-consignment', text: 'Change', visuallyHiddenText: 'contact address for this consignment' }] }
-              }
-            ]
-          }
-        ]
-      },
-      {
-        title: 'Transport',
-        lists: [
-          {
-            title: 'Arrival details',
-            rows: [
-              {
-                key: { text: 'Port of entry' },
-                value: { text: sessionData.portOfEntry || 'N/A' },
-                actions: { items: [{ href: '/arrival-details', text: 'Change', visuallyHiddenText: 'port of entry' }] }
-              },
-              {
-                key: { text: 'Arrival date at destination' },
-                value: { text: formatArrivalDate(sessionData) },
-                actions: { items: [{ href: '/arrival-details', text: 'Change', visuallyHiddenText: 'arrival date at destination' }] }
-              },
-              {
-                key: { text: 'Means of transport' },
-                value: { text: sessionData.meansOfTransport || 'N/A' },
-                actions: { items: [{ href: '/arrival-details', text: 'Change', visuallyHiddenText: 'means of transport' }] }
-              },
-              {
-                key: { text: 'Transport identification' },
-                value: { text: sessionData.transportIdentification || 'N/A' },
-                actions: { items: [{ href: '/arrival-details', text: 'Change', visuallyHiddenText: 'transport identification' }] }
-              },
-              {
-                key: { text: 'Transport document reference' },
-                value: { text: sessionData.transportDocumentReference || 'N/A' },
-                actions: { items: [{ href: '/arrival-details', text: 'Change', visuallyHiddenText: 'transport document reference' }] }
-              }
-            ]
-          },
-          {
-            title: 'Transport details',
-            rows: [
-              {
-                key: { text: 'Name' },
-                value: { text: sessionData.transporterName || 'N/A' },
-                actions: { items: [{ href: '/transport-details', text: 'Change', visuallyHiddenText: 'transport name' }] }
-              },
-              {
-                key: { text: 'Address' },
-                value: { text: sessionData.transporterAddress || 'N/A' },
-                actions: { items: [{ href: '/transport-details', text: 'Change', visuallyHiddenText: 'transport address' }] }
-              },
-              {
-                key: { text: 'Country' },
-                value: { text: sessionData.transporterCountry || 'N/A' },
-                actions: { items: [{ href: '/transport-details', text: 'Change', visuallyHiddenText: 'transport country' }] }
-              },
-              {
-                key: { text: 'Approval number' },
-                value: { text: sessionData.transporterApprovalNumber || 'N/A' },
-                actions: { items: [{ href: '/transport-details', text: 'Change', visuallyHiddenText: 'transport approval number' }] }
-              },
-              {
-                key: { text: 'Type' },
-                value: { text: sessionData.transporterType || 'N/A' },
-                actions: { items: [{ href: '/transport-details', text: 'Change', visuallyHiddenText: 'transport type' }] }
-              },
-              {
-                key: { text: 'Status' },
-                value: { text: sessionData.transporterStatus || 'N/A' },
-                actions: { items: [{ href: '/transport-details', text: 'Change', visuallyHiddenText: 'transport status' }] }
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
-}
-
-function renumberAnimals (animals, speciesName) {
-  return animals.map((animal, index) => ({
-    ...animal,
-    id: index + 1,
-    label: `${speciesName} ${index + 1}`
-  }))
-}
-
-function saveAnimalFieldGroup (animal, fields, valuesKey, body) {
-  if (!animal[valuesKey]) {
-    animal[valuesKey] = buildEmptyFieldValues(fields)
-  }
-
-  fields.forEach((field) => {
-    const fieldKey = `animal-${animal.id}-${field.id}`
-
-    if (body[fieldKey] !== undefined) {
-      animal[valuesKey][field.id] = body[fieldKey]
-    }
-  })
-}
-
-function saveAnimalFormData (req) {
-  const identifierFields = req.session.data.identifierFields || []
-
-  ;(req.session.data.speciesEntries || []).forEach((entry) => {
-    ;(entry.animals || []).forEach((animal) => {
-      saveAnimalFieldGroup(animal, identifierFields, 'identifiers', req.body)
-    })
-  })
-
-  syncAggregateAnimalsFromSpeciesEntries(req.session.data)
-}
-
-function savePackagingFormData (req) {
-  const packagingFields = req.session.data.packagingFields || []
-
-  if (!req.session.data.packaging) {
-    req.session.data.packaging = buildEmptyFieldValues(packagingFields)
-  }
-
-  packagingFields.forEach((field) => {
-    const fieldKey = `packaging-${field.id}`
-
-    if (req.body[fieldKey] !== undefined) {
-      req.session.data.packaging[field.id] = req.body[fieldKey]
-    }
-  })
-}
-
 function syncCommoditySession (sessionData, commodity) {
   sessionData.selectedSpecies = normalizeSelectedSpecies(sessionData.selectedSpecies)
-
   sessionData.commodityId = commodity.id
   sessionData.commodityCode = commodity.code
   sessionData.commodityName = commodity.name
-  sessionData.identifierFields = getIdentifierFields(commodity.id)
-  sessionData.packagingFields = getPackagingFields(commodity.id)
-  sessionData.certificationPurposeOptions = getCertificationPurposeOptions(commodity.id)
-  sessionData.packaging = buildEmptyFieldValues(getPackagingFields(commodity.id))
-  sessionData.certificationPurpose = null
-  sessionData.unweanedAnimals = null
-  sessionData.temperature = null
-  sessionData.cphNumber = null
-  sessionData.importReason = null
-  sessionData.animalsAdded = false
-  sessionData.animals = []
-  sessionData.animalCountInput = null
-  sessionData.animalCount = null
-  initialiseSpeciesEntries(sessionData)
 }
 
-router.get('/what-are-you-importing', (req, res) => {
-  return res.render('what-are-you-importing', {
-    importCategoryItems: buildImportCategoryItems(req.session.data.importCategory)
+function getSpeciesMatch (speciesId) {
+  for (const commodity of commodities) {
+    const species = commodity.species.find((item) => item.id === speciesId)
+
+    if (species) {
+      return { commodity, species }
+    }
+  }
+
+  return null
+}
+
+function getSelectedCommoditySummary (sessionData) {
+  const commodity = getCommodityById(sessionData.commodityId)
+
+  if (!commodity) {
+    return null
+  }
+
+  return {
+    code: commodity.code,
+    name: commodity.name,
+    text: `${commodity.code} (${commodity.name})`
+  }
+}
+
+function toTitleCaseLabel (value) {
+  return value
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+}
+
+function buildSpeciesSelectionRecords (speciesIds) {
+  return speciesIds
+    .map((speciesId) => {
+      const match = getSpeciesMatch(speciesId)
+
+      if (!match) {
+        return null
+      }
+
+      return {
+        type: 'species',
+        commodityId: match.commodity.id,
+        commodityCode: match.commodity.code,
+        speciesId
+      }
+    })
+    .filter(Boolean)
+}
+
+function removeSpeciesFromSession (sessionData, speciesId) {
+  const speciesIds = normalizeSelectedSpecies(sessionData.selectedSpecies)
+    .filter((id) => id !== speciesId)
+
+  sessionData.selectedSpecies = speciesIds
+  sessionData.commoditySelections = buildSpeciesSelectionRecords(speciesIds)
+
+  if (sessionData.numberOfAnimals && sessionData.numberOfAnimals[speciesId] != null) {
+    delete sessionData.numberOfAnimals[speciesId]
+  }
+
+  if (speciesIds.length === 0) {
+    sessionData.commodityId = null
+    sessionData.commodityCode = null
+    sessionData.commodityName = null
+    return
+  }
+
+  const commodity = getCommodityById(sessionData.commodityId)
+
+  if (commodity) {
+    syncCommoditySession(sessionData, commodity)
+  }
+}
+
+function getConsignmentSpeciesEntries (sessionData) {
+  const numberOfAnimals = sessionData.numberOfAnimals || {}
+
+  return normalizeSelectedSpecies(sessionData.selectedSpecies)
+    .map((speciesId) => {
+      const match = getSpeciesMatch(speciesId)
+
+      if (!match) {
+        return null
+      }
+
+      const { species } = match
+      const speciesLabel = species.commonName || species.label
+
+      return {
+        speciesId,
+        heading: toTitleCaseLabel(speciesLabel),
+        numberOfAnimals: numberOfAnimals[speciesId] != null ? String(numberOfAnimals[speciesId]) : ''
+      }
+    })
+    .filter(Boolean)
+}
+
+function hasCommoditySelection (sessionData) {
+  return Boolean(sessionData.commodityId) && normalizeSelectedSpecies(sessionData.selectedSpecies).length > 0
+}
+
+function redirectIfNoCommodity (req, res) {
+  if (!hasCommoditySelection(req.session.data)) {
+    res.redirect('/what-are-you-importing')
+    return true
+  }
+
+  return false
+}
+
+function parseNumberOfAnimals (body, speciesIds) {
+  const rawValues = body.numberOfAnimals && typeof body.numberOfAnimals === 'object'
+    ? body.numberOfAnimals
+    : {}
+  const values = {}
+
+  speciesIds.forEach((speciesId) => {
+    const fieldName = `numberOfAnimals[${speciesId}]`
+    const value = rawValues[speciesId] != null ? rawValues[speciesId] : body[fieldName]
+
+    values[speciesId] = value != null ? String(value).trim() : ''
   })
-})
 
-router.post('/what-are-you-importing', (req, res) => {
-  const importCategory = (req.body.importCategory || '').trim()
-  const allowedCategories = getAllowedImportCategories()
+  return values
+}
 
-  if (!importCategory || !allowedCategories.includes(importCategory)) {
-    req.session.data.errorList = [
-      {
-        text: 'Select what you are importing',
-        href: '#import-category'
-      }
-    ]
-    req.session.data.errors = {
-      importCategory: {
-        text: 'Select what you are importing'
-      }
+function validateNumberOfAnimals (values, speciesIds) {
+  const errors = {}
+  const errorList = []
+
+  speciesIds.forEach((speciesId) => {
+    const value = values[speciesId]
+    const errorId = `number-of-animals-${speciesId}`
+
+    if (!value) {
+      errors[`numberOfAnimals-${speciesId}`] = { text: 'Enter the number of animals' }
+      errorList.push({
+        text: 'Enter the number of animals',
+        href: `#${errorId}`
+      })
+      return
     }
 
-    return res.render('what-are-you-importing', {
-      importCategoryItems: buildImportCategoryItems(importCategory)
+    if (!/^\d+$/.test(value) || Number(value) < 1) {
+      errors[`numberOfAnimals-${speciesId}`] = { text: 'Enter a whole number greater than 0' }
+      errorList.push({
+        text: 'Enter a whole number greater than 0',
+        href: `#${errorId}`
+      })
+    }
+  })
+
+  return { errors, errorList }
+}
+
+function buildRadioItems (options, selectedValue) {
+  return options.map((option) => ({
+    value: option,
+    text: option,
+    checked: selectedValue === option
+  }))
+}
+
+function getContactAddressById (addressId) {
+  return contactAddresses.find((address) => address.id === addressId)
+}
+
+function formatContactAddressForSession (address) {
+  return [address.name, ...(address.addressLines || []), address.country].join('\n')
+}
+
+function hasContactAddress (sessionData) {
+  return Boolean(
+    sessionData.contactAddress &&
+    sessionData.contactAddress.trim() &&
+    getContactAddressById(sessionData.contactAddressId)
+  )
+}
+
+function syncContactAddressSession (sessionData, address) {
+  sessionData.contactAddress = formatContactAddressForSession(address)
+  sessionData.contactAddressId = address.id
+}
+
+function clearContactAddressSession (sessionData) {
+  sessionData.contactAddress = null
+  sessionData.contactAddressId = null
+}
+
+function buildContactAddressItems (selectedId) {
+  return contactAddresses.map((address) => ({
+    value: address.id,
+    text: address.name,
+    hint: {
+      text: address.addressLines.join(', ')
+    },
+    checked: selectedId === address.id
+  }))
+}
+
+function validateContactAddress (addressId) {
+  const errors = {}
+  const errorList = []
+  const address = getContactAddressById(addressId)
+
+  if (!address) {
+    errors.contactAddressId = { text: 'Select an address' }
+    errorList.push({
+      text: 'Select an address',
+      href: `#contact-address-${contactAddresses[0].id}`
     })
   }
 
-  const previousCategory = req.session.data.importCategory
+  return { errors, errorList, address }
+}
 
-  req.session.data.errorList = null
-  req.session.data.errors = null
-  req.session.data.importCategory = importCategory
-  ensureDraftNotificationReference(req.session.data)
+function getUnweanedOptions (commodityId) {
+  const commodity = getCommodityById(commodityId)
 
-  if (previousCategory !== importCategory) {
-    clearCommoditySession(req.session.data)
-    clearOriginSession(req.session.data)
+  return commodity && Array.isArray(commodity.unweanedOptions)
+    ? commodity.unweanedOptions
+    : []
+}
+
+function getAdditionalAnimalDetailsConfig (sessionData) {
+  const unweanedOptions = getUnweanedOptions(sessionData.commodityId)
+
+  return {
+    showCertificationPurposeQuestion: true,
+    showUnweanedQuestion: unweanedOptions.length > 0,
+    certificationPurposeOptions,
+    unweanedOptions
+  }
+}
+
+function hasConsignmentDetails (sessionData) {
+  const speciesIds = normalizeSelectedSpecies(sessionData.selectedSpecies)
+  const numberOfAnimals = sessionData.numberOfAnimals || {}
+
+  if (!speciesIds.length) {
+    return false
   }
 
-  return res.redirect('/origin-of-the-import')
-})
+  return speciesIds.every((speciesId) => {
+    const value = numberOfAnimals[speciesId]
 
-router.get('/origin-of-the-import', (req, res) => {
-  if (redirectIfNoImportCategory(req, res)) {
+    return value && /^\d+$/.test(String(value)) && Number(value) >= 1
+  })
+}
+
+function redirectIfNoConsignmentDetails (req, res) {
+  if (!hasConsignmentDetails(req.session.data)) {
+    res.redirect('/consignment-details')
+    return true
+  }
+
+  return false
+}
+
+function hasAdditionalAnimalDetailsComplete (sessionData) {
+  const config = getAdditionalAnimalDetailsConfig(sessionData)
+
+  if (config.showCertificationPurposeQuestion) {
+    if (!certificationPurposeOptions.includes(sessionData.certificationPurpose)) {
+      return false
+    }
+  }
+
+  if (config.showUnweanedQuestion) {
+    if (!config.unweanedOptions.includes(sessionData.unweanedAnimals)) {
+      return false
+    }
+  }
+
+  return config.showCertificationPurposeQuestion || config.showUnweanedQuestion
+}
+
+function redirectIfNoAdditionalAnimalDetails (req, res) {
+  if (!hasAdditionalAnimalDetailsComplete(req.session.data)) {
+    res.redirect('/additional-animal-details')
+    return true
+  }
+
+  return false
+}
+
+function hasImportReasonComplete (sessionData) {
+  if (!importReasonValues.includes(sessionData.importReason)) {
+    return false
+  }
+
+  if (sessionData.importReason === 'Internal market') {
+    return internalMarketPurposeValues.includes(sessionData.internalMarketPurpose)
+  }
+
+  return true
+}
+
+function redirectIfNoImportReason (req, res) {
+  if (!hasImportReasonComplete(req.session.data)) {
+    res.redirect('/reason-for-import')
+    return true
+  }
+
+  return false
+}
+
+function getReasonForImportContinuePath (sessionData) {
+  if (hasAnimalIdentifiersRequired(sessionData)) {
+    return '/animal-identification-details'
+  }
+
+  return '/arrival-details'
+}
+
+function getAnimalIdentifiers (sessionData) {
+  if (!sessionData.animalIdentifiers || typeof sessionData.animalIdentifiers !== 'object') {
+    return {}
+  }
+
+  return sessionData.animalIdentifiers
+}
+
+function getIdentifierFieldsForSpecies (speciesId) {
+  const match = getSpeciesMatch(speciesId)
+
+  if (!match) {
+    return []
+  }
+
+  return Array.isArray(match.commodity.identifiers) ? match.commodity.identifiers : []
+}
+
+function hasAnimalIdentifiersRequired (sessionData) {
+  return normalizeSelectedSpecies(sessionData.selectedSpecies).some((speciesId) => {
+    return getIdentifierFieldsForSpecies(speciesId).length > 0
+  })
+}
+
+function isAnimalIdentifierEntryComplete (animal, fields) {
+  return fields.every((field) => {
+    const value = animal[field.id]
+
+    return value != null && String(value).trim() !== ''
+  })
+}
+
+function hasAnimalIdentifiersComplete (sessionData) {
+  const speciesIds = normalizeSelectedSpecies(sessionData.selectedSpecies)
+  const numberOfAnimals = sessionData.numberOfAnimals || {}
+  const saved = getAnimalIdentifiers(sessionData)
+
+  return speciesIds.every((speciesId) => {
+    const fields = getIdentifierFieldsForSpecies(speciesId)
+    const total = Number(numberOfAnimals[speciesId]) || 0
+
+    if (fields.length === 0) {
+      return true
+    }
+
+    if (!total) {
+      return false
+    }
+
+    const speciesSaved = saved[speciesId] || []
+
+    if (speciesSaved.length < total) {
+      return false
+    }
+
+    return speciesSaved.every((animal) =>
+      fields.every((field) => {
+        const value = animal[field.id]
+
+        return value != null && String(value).trim() !== ''
+      })
+    )
+  })
+}
+
+function getSpeciesIdentificationState (sessionData, speciesId) {
+  const match = getSpeciesMatch(speciesId)
+
+  if (!match) {
+    return null
+  }
+
+  const fields = getIdentifierFieldsForSpecies(speciesId)
+
+  if (fields.length === 0) {
+    return null
+  }
+
+  const numberOfAnimals = sessionData.numberOfAnimals || {}
+  const total = Number(numberOfAnimals[speciesId]) || 0
+
+  if (!total) {
+    return null
+  }
+
+  const speciesLabel = toTitleCaseLabel(match.species.commonName || match.species.label)
+  const saved = getAnimalIdentifiers(sessionData)
+  const speciesSaved = saved[speciesId] || []
+  let activeAnimal = null
+
+  for (let index = 0; index < total; index++) {
+    const animal = speciesSaved[index] || {}
+
+    if (!isAnimalIdentifierEntryComplete(animal, fields)) {
+      activeAnimal = {
+        animalNumber: index + 1,
+        identifierValues: animal,
+        headingText: `Enter details for ${speciesLabel} ${index + 1} of ${total}`
+      }
+      break
+    }
+  }
+
+  const panelContext = {
+    speciesId,
+    speciesLabel,
+    identifierFields: fields
+  }
+  const savedAnimals = getSavedAnimalsForSpecies(sessionData, panelContext)
+  const completeSavedAnimals = savedAnimals.filter((animal) => {
+    return isAnimalIdentifierEntryComplete(speciesSaved[animal.index] || {}, fields)
+  })
+
+  return {
+    speciesId,
+    speciesLabel,
+    identifierFields: fields,
+    totalAnimals: total,
+    isComplete: !activeAnimal,
+    activeAnimal,
+    savedAnimalsTable: buildSavedAnimalsTable(panelContext, completeSavedAnimals)
+  }
+}
+
+function getRemainingAnimalIdentifierCount (sessionData) {
+  const speciesIds = normalizeSelectedSpecies(sessionData.selectedSpecies)
+  let remaining = 0
+
+  speciesIds.forEach((speciesId) => {
+    const fields = getIdentifierFieldsForSpecies(speciesId)
+
+    if (fields.length === 0) {
+      return
+    }
+
+    const total = Number((sessionData.numberOfAnimals || {})[speciesId]) || 0
+    const speciesSaved = getAnimalIdentifiers(sessionData)[speciesId] || []
+
+    for (let index = 0; index < total; index++) {
+      if (!isAnimalIdentifierEntryComplete(speciesSaved[index] || {}, fields)) {
+        remaining++
+      }
+    }
+  })
+
+  return remaining
+}
+
+function buildAnimalIdentificationSpeciesPanels (sessionData, locals = {}) {
+  const speciesIds = normalizeSelectedSpecies(sessionData.selectedSpecies)
+  const remainingAnimalCount = getRemainingAnimalIdentifierCount(sessionData)
+
+  return speciesIds
+    .map((speciesId) => {
+      const panel = getSpeciesIdentificationState(sessionData, speciesId)
+
+      if (!panel) {
+        return null
+      }
+
+      if (locals.errorSpeciesId === speciesId && panel.activeAnimal && locals.identifierValues) {
+        panel.activeAnimal = {
+          ...panel.activeAnimal,
+          identifierValues: locals.identifierValues
+        }
+      }
+
+      if (panel.activeAnimal) {
+        panel.saveButtonText = remainingAnimalCount === 1
+          ? 'Save and finish'
+          : 'Save and add another'
+      }
+
+      return panel
+    })
+    .filter(Boolean)
+}
+
+function validateAnimalIdentifiers (identifierFields, rawIdentifiers, speciesId = '') {
+  const errors = {}
+  const errorList = []
+  const values = {}
+  const errorPrefix = speciesId ? `${speciesId}-` : ''
+
+  identifierFields.forEach((field) => {
+    const value = rawIdentifiers && rawIdentifiers[field.id] != null
+      ? String(rawIdentifiers[field.id]).trim()
+      : ''
+
+    values[field.id] = value
+
+    if (!value) {
+      const errorId = `identifier-${errorPrefix}${field.id}`
+
+      errors[errorId] = { text: `Enter ${field.label.toLowerCase()}` }
+      errorList.push({
+        text: `Enter ${field.label.toLowerCase()}`,
+        href: `#${errorId}`
+      })
+    }
+  })
+
+  return { errors, errorList, values }
+}
+
+function getSavedAnimalsForSpecies (sessionData, context) {
+  const saved = getAnimalIdentifiers(sessionData)
+  const animals = saved[context.speciesId] || []
+
+  return animals.map((animal, index) => ({
+    index,
+    label: `${context.speciesLabel} ${index + 1}`,
+    identifierValues: context.identifierFields.map((field) => ({
+      id: field.id,
+      value: animal[field.id] || ''
+    }))
+  }))
+}
+
+function buildSavedAnimalsTable (context, savedAnimals) {
+  if (!savedAnimals.length) {
+    return null
+  }
+
+  return {
+    head: [
+      { text: 'Animal' },
+      ...context.identifierFields.map((field) => ({ text: field.label })),
+      { text: '', format: 'numeric' }
+    ],
+    rows: savedAnimals.map((animal) => [
+      { text: animal.label },
+      ...animal.identifierValues.map((item) => ({ text: item.value })),
+      {
+        html: `<button type="submit" name="action" value="remove:${context.speciesId}:${animal.index}" class="govuk-link app-animal-identification-table__remove-button">Remove</button>`
+      }
+    ])
+  }
+}
+
+function removeSavedAnimal (sessionData, speciesId, removeIndex) {
+  if (!sessionData.animalIdentifiers || typeof sessionData.animalIdentifiers !== 'object') {
     return
   }
 
-  const internalReference = req.session.data.internalReference
-  const displayReference = internalReference && internalReference.trim() ? internalReference.trim() : ''
+  const saved = sessionData.animalIdentifiers[speciesId]
 
-  const countryOfOrigin = req.session.data.countryOfOrigin
+  if (!Array.isArray(saved) || !Number.isInteger(removeIndex) || removeIndex < 0 || removeIndex >= saved.length) {
+    return
+  }
+
+  saved.splice(removeIndex, 1)
+
+  if (saved.length === 0) {
+    delete sessionData.animalIdentifiers[speciesId]
+  }
+}
+
+function getUkAirportDisplayOptions () {
+  return ukAirports.map((airport) => `${airport.name} - ${airport.code}`)
+}
+
+function isValidPortOfEntry (portOfEntry) {
+  const normalised = (portOfEntry || '').trim().toLowerCase()
+
+  return getUkAirportDisplayOptions().some((option) => option.toLowerCase() === normalised)
+}
+
+function buildMeansOfTransportItems (selectedValue) {
+  return [
+    {
+      value: '',
+      text: 'Select one',
+      selected: !selectedValue
+    },
+    ...meansOfTransportOptions.map((option) => ({
+      value: option,
+      text: option,
+      selected: selectedValue === option
+    }))
+  ]
+}
+
+function hasArrivalDetailsComplete (sessionData) {
+  const arrivalDateAtPort = parseArrivalDisplayDate(sessionData.arrivalDateAtPort)
+
+  return Boolean(
+    arrivalDateAtPort &&
+    sessionData.portOfEntry &&
+    sessionData.portOfEntry.trim() &&
+    isValidPortOfEntry(sessionData.portOfEntry) &&
+    sessionData.meansOfTransport &&
+    meansOfTransportOptions.includes(sessionData.meansOfTransport) &&
+    sessionData.transportIdentification &&
+    sessionData.transportIdentification.trim() &&
+    sessionData.transportDocumentReference &&
+    sessionData.transportDocumentReference.trim()
+  )
+}
+
+function saveArrivalDetailsToSession (sessionData, values) {
+  sessionData.arrivalDateAtPort = values.arrivalDateAtPort || null
+  sessionData.portOfEntry = values.portOfEntry || null
+  sessionData.meansOfTransport = values.meansOfTransport || null
+  sessionData.transportIdentification = values.transportIdentification || null
+  sessionData.transportDocumentReference = values.transportDocumentReference || null
+
+  if (!requiresTransitCountries(values)) {
+    sessionData.transitCountries = null
+  }
+}
+
+function requiresTransitCountries (sessionData) {
+  const meansOfTransport = typeof sessionData === 'string'
+    ? sessionData
+    : sessionData.meansOfTransport
+
+  return TRANSIT_MEANS_OF_TRANSPORT.includes(meansOfTransport)
+}
+
+function normalizeTransitCountries (value) {
+  if (!value) {
+    return []
+  }
+
+  if (Array.isArray(value)) {
+    return value.filter(Boolean)
+  }
+
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value)
+
+      return Array.isArray(parsed) ? parsed.filter(Boolean) : []
+    } catch (error) {
+      return []
+    }
+  }
+
+  return []
+}
+
+function isValidTransitCountry (country) {
+  return countryLabels.includes(country)
+}
+
+function hasTransitCountriesComplete (sessionData) {
+  if (!requiresTransitCountries(sessionData)) {
+    return true
+  }
+
+  const transitCountries = normalizeTransitCountries(sessionData.transitCountries)
+
+  return transitCountries.length > 0 &&
+    transitCountries.length <= MAX_TRANSIT_COUNTRIES &&
+    transitCountries.every(isValidTransitCountry)
+}
+
+function saveTransitCountriesToSession (sessionData, countries) {
+  sessionData.transitCountries = normalizeTransitCountries(countries)
+}
+
+function validateTransitCountries (countries) {
+  const errors = {}
+  const errorList = []
+  const normalisedCountries = normalizeTransitCountries(countries)
+
+  if (normalisedCountries.length === 0) {
+    errors.transitCountries = { text: 'Select at least one country' }
+    errorList.push({
+      text: 'Select at least one country',
+      href: '#transit-country-search'
+    })
+  } else if (normalisedCountries.length > MAX_TRANSIT_COUNTRIES) {
+    errors.transitCountries = { text: 'Select a maximum of 12 countries' }
+    errorList.push({
+      text: 'Select a maximum of 12 countries',
+      href: '#transit-country-search'
+    })
+  } else if (!normalisedCountries.every(isValidTransitCountry)) {
+    errors.transitCountries = { text: 'Select countries from the search results' }
+    errorList.push({
+      text: 'Select countries from the search results',
+      href: '#transit-country-search'
+    })
+  }
+
+  return { errors, errorList, normalisedCountries }
+}
+
+function parseTransitCountriesBody (body) {
+  return normalizeTransitCountries(body.transitCountries)
+}
+
+function renderTransitCountriesPage (req, res) {
+  const sessionData = req.session.data
+  const transitCountries = normalizeTransitCountries(sessionData.transitCountries)
+
+  return res.render('transit-countries', {
+    backLink: '/arrival-details',
+    notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    countriesJson: JSON.stringify(countryOptions),
+    transitCountriesJson: JSON.stringify(transitCountries),
+    data: sessionData
+  })
+}
+
+function renderContactAddressPage (req, res, locals = {}) {
+  const sessionData = req.session.data
+
+  return res.render('contact-address-for-consignment', {
+    backLink: '/notification-hub',
+    notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    contactAddressItems: buildContactAddressItems(sessionData.contactAddressId || ''),
+    data: sessionData,
+    ...locals
+  })
+}
+
+function redirectIfNoArrivalDetails (req, res) {
+  if (!hasArrivalDetailsComplete(req.session.data)) {
+    res.redirect('/arrival-details')
+    return true
+  }
+
+  return false
+}
+
+function redirectIfTransitCountriesNotRequired (req, res) {
+  if (!requiresTransitCountries(req.session.data)) {
+    res.redirect('/notification-hub')
+    return true
+  }
+
+  return false
+}
+
+function getArrivalDetailsContinuePath (values) {
+  if (requiresTransitCountries(values)) {
+    return '/transit-countries'
+  }
+
+  return '/notification-hub'
+}
+
+function parseArrivalDisplayDate (value) {
+  const trimmed = (value || '').trim()
+  const match = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
+
+  if (!match) {
+    return null
+  }
+
+  const day = Number(match[1])
+  const month = Number(match[2])
+  const year = Number(match[3])
+  const date = new Date(year, month - 1, day)
+
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null
+  }
+
+  return trimmed
+}
+
+function validateArrivalDetails (values) {
+  const errors = {}
+  const errorList = []
+
+  if (!values.arrivalDateAtPort) {
+    errors.arrivalDateAtPort = { text: 'Enter the arrival date at port of entry' }
+    errorList.push({
+      text: 'Enter the arrival date at port of entry',
+      href: '#arrival-date-at-port'
+    })
+  } else if (!parseArrivalDisplayDate(values.arrivalDateAtPort)) {
+    errors.arrivalDateAtPort = { text: 'Enter the date in the format 27/3/2026' }
+    errorList.push({
+      text: 'Enter the date in the format 27/3/2026',
+      href: '#arrival-date-at-port'
+    })
+  }
+
+  if (!values.portOfEntry) {
+    errors.portOfEntry = { text: 'Enter the port of entry' }
+    errorList.push({
+      text: 'Enter the port of entry',
+      href: '#port-of-entry'
+    })
+  } else if (!isValidPortOfEntry(values.portOfEntry)) {
+    errors.portOfEntry = { text: 'Select a port of entry from the search results' }
+    errorList.push({
+      text: 'Select a port of entry from the search results',
+      href: '#port-of-entry'
+    })
+  }
+
+  if (!values.meansOfTransport) {
+    errors.meansOfTransport = { text: 'Select the means of transport' }
+    errorList.push({
+      text: 'Select the means of transport',
+      href: '#means-of-transport'
+    })
+  } else if (!meansOfTransportOptions.includes(values.meansOfTransport)) {
+    errors.meansOfTransport = { text: 'Select the means of transport' }
+    errorList.push({
+      text: 'Select the means of transport',
+      href: '#means-of-transport'
+    })
+  }
+
+  if (!values.transportIdentification) {
+    errors.transportIdentification = { text: 'Enter the transport identification' }
+    errorList.push({
+      text: 'Enter the transport identification',
+      href: '#transport-identification'
+    })
+  }
+
+  if (!values.transportDocumentReference) {
+    errors.transportDocumentReference = { text: 'Enter the transport document reference' }
+    errorList.push({
+      text: 'Enter the transport document reference',
+      href: '#transport-document-reference'
+    })
+  }
+
+  return { errors, errorList }
+}
+
+function parseArrivalDetailsBody (body) {
+  return {
+    arrivalDateAtPort: (body.arrivalDateAtPort || '').trim(),
+    portOfEntry: (body.portOfEntry || '').trim(),
+    meansOfTransport: (body.meansOfTransport || '').trim(),
+    transportIdentification: (body.transportIdentification || '').trim(),
+    transportDocumentReference: (body.transportDocumentReference || '').trim()
+  }
+}
+
+function renderArrivalDetailsPage (req, res) {
+  const sessionData = req.session.data
+
+  return res.render('arrival-details', {
+    backLink: '/notification-hub',
+    notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    ukAirportItemsJson: JSON.stringify(getUkAirportDisplayOptions()),
+    meansOfTransportItems: buildMeansOfTransportItems(sessionData.meansOfTransport),
+    data: sessionData
+  })
+}
+
+function getTotalAnimalCount (sessionData) {
+  const numberOfAnimals = sessionData.numberOfAnimals || {}
+  const speciesIds = normalizeSelectedSpecies(sessionData.selectedSpecies)
+
+  return speciesIds.reduce((total, speciesId) => {
+    const value = Number(numberOfAnimals[speciesId])
+
+    if (!Number.isFinite(value) || value < 1) {
+      return total
+    }
+
+    return total + value
+  }, 0)
+}
+
+function getNotificationHubViewModel (sessionData) {
+  const statusComplete = { text: 'Complete', class: 'govuk-tag--green' }
+  const statusTodo = { text: 'To do', class: 'govuk-tag--blue' }
+  const totalAnimals = getTotalAnimalCount(sessionData)
+
+  return {
+    notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    animalCountDisplay: totalAnimals > 0 ? String(totalAnimals) : '0',
+    packagesDisplay: 'N/A',
+    sections: [
+      {
+        title: '1. About the consignment',
+        items: [
+          {
+            text: 'Where is this consignment coming from?',
+            href: '/origin-of-the-import',
+            status: hasOriginDetails(sessionData) ? statusComplete : statusTodo
+          },
+          {
+            text: 'Your commodities',
+            href: '/what-are-you-importing',
+            status: hasCommoditySelection(sessionData) ? statusComplete : statusTodo
+          },
+          {
+            text: 'Consignment details',
+            href: '/consignment-details',
+            status: hasConsignmentDetails(sessionData) ? statusComplete : statusTodo
+          },
+          {
+            text: 'Additional animal details',
+            href: '/additional-animal-details',
+            status: hasAdditionalAnimalDetailsComplete(sessionData) ? statusComplete : statusTodo
+          },
+          {
+            text: 'Main reason for importing the animals',
+            href: '/reason-for-import',
+            status: hasImportReasonComplete(sessionData) ? statusComplete : statusTodo
+          },
+          ...(hasAnimalIdentifiersRequired(sessionData) ? [{
+            text: 'Animal identifiers',
+            href: '/animal-identification-details',
+            status: hasAnimalIdentifiersComplete(sessionData) ? statusComplete : statusTodo
+          }] : [])
+        ]
+      },
+      {
+        title: '2. Movement',
+        items: [
+          {
+            text: 'Arrival details',
+            href: '/arrival-details',
+            status: hasArrivalDetailsComplete(sessionData) ? statusComplete : statusTodo
+          },
+          ...(requiresTransitCountries(sessionData) ? [{
+            text: 'Transit countries',
+            href: '/transit-countries',
+            status: hasTransitCountriesComplete(sessionData) ? statusComplete : statusTodo
+          }] : []),
+          {
+            text: 'Transport details',
+            href: '#',
+            status: statusTodo
+          }
+        ]
+      },
+      {
+        title: '3. Addresses',
+        items: [
+          {
+            text: 'Roles and addresses',
+            href: '#',
+            hint: 'Consignor or Exporter, Consignee, Importer and Place of Destination',
+            status: statusTodo
+          },
+          {
+            text: 'Contact address for this consignment',
+            href: '/contact-address-for-consignment',
+            status: hasContactAddress(sessionData) ? statusComplete : statusTodo
+          }
+        ]
+      },
+      {
+        title: '4. Documents',
+        items: [
+          {
+            text: 'Upload documents',
+            href: '#',
+            status: statusTodo
+          }
+        ]
+      }
+    ]
+  }
+}
+
+function renderNotificationHubPage (req, res) {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  return res.render('notification-hub', getNotificationHubViewModel(req.session.data))
+}
+
+function buildInternalMarketPurposeItems (selectedValue) {
+  return internalMarketPurposes.map((purpose) => ({
+    value: purpose.value,
+    text: purpose.text,
+    checked: selectedValue === purpose.value
+  }))
+}
+
+function buildImportReasonItems (selectedValue, internalMarketConditionalHtml) {
+  return importReasons.map((reason) => {
+    const item = {
+      value: reason.value,
+      text: reason.text,
+      hint: {
+        text: reason.hint
+      },
+      checked: selectedValue === reason.value
+    }
+
+    if (reason.value === 'Internal market') {
+      item.conditional = {
+        html: internalMarketConditionalHtml
+      }
+    }
+
+    return item
+  })
+}
+
+function renderOriginPage (req, res, locals = {}) {
+  const sessionData = req.session.data
+  const internalReference = sessionData.internalReference
+  const displayReference = internalReference && internalReference.trim() ? internalReference.trim() : ''
+  const countryOfOrigin = sessionData.countryOfOrigin
 
   return res.render('origin-of-the-import', {
-    backLink: getBackLink(req, '/what-are-you-importing'),
-    countriesJson: JSON.stringify(countries),
+    backLink: '/',
+    notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    countriesJson: JSON.stringify(countryOptions),
     countryPrefixesJson: JSON.stringify(countryRegionPrefixes),
     regionOfOriginCodePrefix: getCountryRegionPrefix(countryOfOrigin),
-    regionOfOriginCodeSuffix: getRegionOfOriginCodeSuffix(req.session.data),
-    internalReference: displayReference
+    regionOfOriginCodeSuffix: getRegionOfOriginCodeSuffix(sessionData),
+    internalReference: displayReference,
+    ...locals
   })
+}
+
+function renderWhatAreYouImportingPage (req, res, locals = {}) {
+  const sessionData = req.session.data
+
+  return res.render('what-are-you-importing', {
+    backLink: '/origin-of-the-import',
+    notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    commoditiesSearchJson: JSON.stringify(getCommoditySearchData(commodities)),
+    commoditySelectionsJson: JSON.stringify(getInitialCommoditySelections(sessionData)),
+    ...locals
+  })
+}
+
+function renderConsignmentDetailsPage (req, res, locals = {}) {
+  const sessionData = req.session.data
+
+  return res.render('consignment-details', {
+    backLink: '/what-are-you-importing',
+    notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    selectedCommodity: getSelectedCommoditySummary(sessionData),
+    speciesEntries: getConsignmentSpeciesEntries(sessionData),
+    ...locals
+  })
+}
+
+function renderAdditionalAnimalDetailsPage (req, res, locals = {}) {
+  const sessionData = req.session.data
+  const config = getAdditionalAnimalDetailsConfig(sessionData)
+
+  return res.render('additional-animal-details', {
+    backLink: '/consignment-details',
+    notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    showCertificationPurposeQuestion: config.showCertificationPurposeQuestion,
+    showUnweanedQuestion: config.showUnweanedQuestion,
+    certificationPurposeItems: buildRadioItems(
+      config.certificationPurposeOptions,
+      sessionData.certificationPurpose
+    ),
+    unweanedItems: buildRadioItems(
+      config.unweanedOptions,
+      sessionData.unweanedAnimals
+    ),
+    ...locals
+  })
+}
+
+function renderAnimalIdentificationDetailsPage (req, res, locals = {}) {
+  const sessionData = req.session.data
+
+  if (!hasAnimalIdentifiersRequired(sessionData)) {
+    return res.redirect('/notification-hub')
+  }
+
+  const speciesPanels = buildAnimalIdentificationSpeciesPanels(sessionData, locals)
+
+  return res.render('animal-identification-details', {
+    backLink: '/notification-hub',
+    notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    reviewMode: speciesPanels.length > 0 && speciesPanels.every((panel) => panel.isComplete),
+    speciesPanels,
+    data: sessionData,
+    ...locals
+  })
+}
+
+function renderReasonForImportPage (req, res, locals = {}) {
+  const sessionData = req.session.data
+  const selectedImportReason = Object.prototype.hasOwnProperty.call(locals, 'selectedImportReason')
+    ? locals.selectedImportReason
+    : sessionData.importReason
+  const selectedInternalMarketPurpose = Object.prototype.hasOwnProperty.call(locals, 'selectedInternalMarketPurpose')
+    ? locals.selectedInternalMarketPurpose
+    : sessionData.internalMarketPurpose
+
+  return res.app.render('partials/internal-market-purpose-radios', {
+    data: sessionData,
+    internalMarketPurposeItems: buildInternalMarketPurposeItems(selectedInternalMarketPurpose)
+  }, (err, internalMarketConditionalHtml) => {
+    if (err) {
+      throw err
+    }
+
+    return res.render('reason-for-import', {
+      backLink: '/additional-animal-details',
+      notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+      importReasonItems: buildImportReasonItems(
+        selectedImportReason,
+        internalMarketConditionalHtml
+      ),
+      ...locals
+    })
+  })
+}
+
+router.get('/origin-of-the-import', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+  return renderOriginPage(req, res)
 })
 
 router.post('/origin-of-the-import', (req, res) => {
-  if (redirectIfNoImportCategory(req, res)) {
-    return
-  }
+  ensurePrototypeNotificationReference(req.session.data)
 
   const countryOfOrigin = (req.body.countryOfOrigin || '').trim()
   const regionOfOriginRequired = (req.body.regionOfOriginRequired || '').trim()
@@ -1922,15 +1315,15 @@ router.post('/origin-of-the-import', (req, res) => {
   const errors = {}
   const errorList = []
 
-  if (!countryOfOrigin || !countries.includes(countryOfOrigin)) {
+  if (!countryOfOrigin || !countryLabels.includes(countryOfOrigin)) {
     errors.countryOfOrigin = { text: 'Select a country of origin' }
     errorList.push({ text: 'Select a country of origin', href: '#country-of-origin' })
   }
 
   if (regionOfOriginRequired !== 'Yes' && regionOfOriginRequired !== 'No') {
-    errors.regionOfOriginRequired = { text: 'Select whether the consignment requires a region of origin code' }
+    errors.regionOfOriginRequired = { text: 'Select whether the consignment has a region of origin code' }
     errorList.push({
-      text: 'Select whether the consignment requires a region of origin code',
+      text: 'Select whether the consignment has a region of origin code',
       href: '#region-of-origin'
     })
   }
@@ -1964,10 +1357,7 @@ router.post('/origin-of-the-import', (req, res) => {
     req.session.data.countryOfOrigin = countryOfOrigin
     req.session.data.regionOfOriginRequired = regionOfOriginRequired
 
-    return res.render('origin-of-the-import', {
-      backLink: getBackLink(req, '/what-are-you-importing'),
-      countriesJson: JSON.stringify(countries),
-      countryPrefixesJson: JSON.stringify(countryRegionPrefixes),
+    return renderOriginPage(req, res, {
       regionOfOriginCodePrefix: getCountryRegionPrefix(countryOfOrigin),
       regionOfOriginCodeSuffix,
       internalReference
@@ -1978,45 +1368,36 @@ router.post('/origin-of-the-import', (req, res) => {
   req.session.data.errors = null
   req.session.data.countryOfOrigin = countryOfOrigin
   req.session.data.regionOfOriginRequired = regionOfOriginRequired
-  req.session.data.internalReference = internalReference || 'N/A'
+  req.session.data.internalReference = internalReference
 
   if (regionOfOriginRequired === 'Yes') {
-    req.session.data.regionOfOriginCode = formatRegionOfOriginCode(countryOfOrigin, regionOfOriginCodeSuffix)
+    const countryPrefix = getCountryRegionPrefix(countryOfOrigin)
     req.session.data.regionOfOriginCodeSuffix = regionOfOriginCodeSuffix
+    req.session.data.regionOfOriginCode = `${countryPrefix}-${regionOfOriginCodeSuffix}`
   } else {
-    req.session.data.regionOfOriginCode = null
     req.session.data.regionOfOriginCodeSuffix = null
+    req.session.data.regionOfOriginCode = null
   }
 
-  if (req.session.data.importCategory === 'Live animals') {
-    return res.redirect('/select-commodity')
+  if (req.body.action === 'hub') {
+    return res.redirect('/notification-hub')
   }
 
-  return res.redirect('/import-category-not-available')
+  return res.redirect('/what-are-you-importing')
 })
 
-router.get('/select-commodity', (req, res) => {
-  if (redirectIfNoLiveAnimalsCategory(req, res)) {
-    return
-  }
+router.get('/what-are-you-importing', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
 
   if (redirectIfNoOrigin(req, res)) {
     return
   }
 
-  if (req.query.change === 'species') {
-    resetCommoditySelectionSession(req.session.data)
-  }
-
-  return res.render('select-commodity', {
-    commoditySelectionsJson: JSON.stringify(getInitialCommoditySelections(req.session.data))
-  })
+  return renderWhatAreYouImportingPage(req, res)
 })
 
-router.post('/select-commodity', (req, res) => {
-  if (redirectIfNoLiveAnimalsCategory(req, res)) {
-    return
-  }
+router.post('/what-are-you-importing', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
 
   if (redirectIfNoOrigin(req, res)) {
     return
@@ -2026,9 +1407,23 @@ router.post('/select-commodity', (req, res) => {
   const commodityId = req.body.commodityId
   const commodityCode = req.body.commodityCode
   const selectedSpecies = normalizeSelectedSpecies(req.body.selectedSpecies)
+  const commoditySearch = (req.body.commoditySearch || '').trim()
+
+  if (req.body.action === 'hub') {
+    req.session.data.commoditySearch = commoditySearch
+    req.session.data.commoditySelections = commoditySelections
+    req.session.data.selectedSpecies = selectedSpecies
+
+    const commodity = getCommodityById(commodityId) || getCommodityByCode(commodityCode)
+
+    if (commodity) {
+      syncCommoditySession(req.session.data, commodity)
+    }
+
+    return res.redirect('/notification-hub')
+  }
 
   if (!commoditySelections.length) {
-    req.session.data.commoditySelections = []
     req.session.data.errorList = [
       {
         text: 'Select at least one commodity or species',
@@ -2040,13 +1435,14 @@ router.post('/select-commodity', (req, res) => {
         text: 'Select at least one commodity or species'
       }
     }
-    return res.redirect('/select-commodity')
+    req.session.data.commoditySearch = commoditySearch
+
+    return renderWhatAreYouImportingPage(req, res)
   }
 
   const commodity = getCommodityById(commodityId) || getCommodityByCode(commodityCode)
 
   if (!commodity) {
-    req.session.data.commoditySelections = commoditySelections
     req.session.data.errorList = [
       {
         text: 'Select at least one commodity or species',
@@ -2058,920 +1454,584 @@ router.post('/select-commodity', (req, res) => {
         text: 'Select at least one commodity or species'
       }
     }
-    return res.redirect('/select-commodity')
+    req.session.data.commoditySearch = commoditySearch
+    req.session.data.commoditySelections = commoditySelections
+
+    return renderWhatAreYouImportingPage(req, res)
   }
 
   req.session.data.errorList = null
   req.session.data.errors = null
+  req.session.data.commoditySearch = commoditySearch
   req.session.data.commoditySelections = commoditySelections
   req.session.data.selectedSpecies = selectedSpecies
   syncCommoditySession(req.session.data, commodity)
 
-  res.redirect('/animal-identification-details')
+  return res.redirect('/consignment-details')
 })
 
-router.get('/animal-identification-details', (req, res) => {
+router.get('/consignment-details', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (redirectIfNoOrigin(req, res)) {
+    return
+  }
+
   if (redirectIfNoCommodity(req, res)) {
     return
   }
 
-  const commodity = getCommodityById(req.session.data.commodityId)
+  return renderConsignmentDetailsPage(req, res)
+})
 
-  if (commodity) {
-    req.session.data.identifierFields = getIdentifierFields(commodity.id)
-    req.session.data.packagingFields = getPackagingFields(commodity.id)
-    req.session.data.certificationPurposeOptions = getCertificationPurposeOptions(commodity.id)
+router.post('/consignment-details', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
 
-    if (!req.session.data.packaging) {
-      req.session.data.packaging = buildEmptyFieldValues(getPackagingFields(commodity.id))
-    }
-
-    initialiseSpeciesEntries(req.session.data)
+  if (redirectIfNoOrigin(req, res)) {
+    return
   }
 
-  const speciesEntries = req.session.data.speciesEntries || []
-  const hasPackagingFields = (req.session.data.packagingFields || []).length > 0
-  const firstExpandedEntry = speciesEntries.find((entry) => entry.animalsAdded)
+  if (redirectIfNoCommodity(req, res)) {
+    return
+  }
 
-  res.render('animal-identification-details', {
-    showSpeciesPackaging: Boolean(firstExpandedEntry && hasPackagingFields),
-    packagingPanelSpeciesId: firstExpandedEntry ? firstExpandedEntry.speciesId : null
-  })
+  const removeSpeciesId = (req.body.removeSpecies || '').trim()
+
+  if (removeSpeciesId) {
+    removeSpeciesFromSession(req.session.data, removeSpeciesId)
+    req.session.data.errorList = null
+    req.session.data.errors = null
+
+    if (!hasCommoditySelection(req.session.data)) {
+      return res.redirect('/what-are-you-importing')
+    }
+
+    return res.redirect('/consignment-details')
+  }
+
+  const speciesIds = normalizeSelectedSpecies(req.session.data.selectedSpecies)
+  const numberOfAnimals = parseNumberOfAnimals(req.body, speciesIds)
+
+  if (req.body.action === 'hub') {
+    req.session.data.numberOfAnimals = numberOfAnimals
+    return res.redirect('/notification-hub')
+  }
+
+  const { errors, errorList } = validateNumberOfAnimals(numberOfAnimals, speciesIds)
+
+  if (errorList.length > 0) {
+    req.session.data.errorList = errorList
+    req.session.data.errors = errors
+    req.session.data.numberOfAnimals = numberOfAnimals
+
+    return renderConsignmentDetailsPage(req, res)
+  }
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+  req.session.data.numberOfAnimals = numberOfAnimals
+
+  return res.redirect('/additional-animal-details')
 })
 
 router.get('/additional-animal-details', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (redirectIfNoOrigin(req, res)) {
+    return
+  }
+
   if (redirectIfNoCommodity(req, res)) {
     return
   }
 
-  if (!req.session.data.animalsAdded || !req.session.data.animals || req.session.data.animals.length === 0) {
-    return res.redirect('/animal-identification-details')
-  }
-
-  const config = getAdditionalAnimalDetailsConfig(req.session.data)
-
-  if (config.hasUnweanedQuestion && !req.session.data.unweanedAnimals) {
-    req.session.data.unweanedAnimals = 'No'
-  }
-
-  res.render('additional-animal-details', {
-    backLink: getBackLink(req, '/animal-identification-details'),
-    showCertificationPurposeQuestion: config.hasCertificationPurposeQuestion,
-    showUnweanedQuestion: config.hasUnweanedQuestion,
-    showTemperatureQuestion: config.hasTemperatureQuestion,
-    certificationPurposeItems: buildCertificationPurposeItems(config.certificationPurposeOptions, req.session.data.certificationPurpose),
-    unweanedItems: buildSimpleRadioItems(config.unweanedOptions, req.session.data.unweanedAnimals),
-    temperatureItems: buildSimpleRadioItems(config.temperatureOptions, req.session.data.temperature)
-  })
-})
-
-router.get('/commodity-hub', (req, res) => {
-  if (redirectIfNoCommodity(req, res)) {
+  if (redirectIfNoConsignmentDetails(req, res)) {
     return
   }
 
-  if (!req.session.data.animalsAdded || !req.session.data.animals || req.session.data.animals.length === 0) {
-    return res.redirect('/animal-identification-details')
-  }
-
-  if (!hasAdditionalAnimalDetailsComplete(req.session.data)) {
-    return res.redirect('/additional-animal-details')
-  }
-
-  initialiseSpeciesEntries(req.session.data)
-
-  res.render('commodity-hub', {
-    ...getCommodityHubViewModel(req.session.data),
-    backLink: getBackLink(req, '/additional-animal-details')
-  })
-})
-
-router.post('/animal-identification-details', (req, res) => {
-  if (redirectIfNoCommodity(req, res)) {
-    return
-  }
-
-  const action = req.body.action
-  const identifierFields = req.session.data.identifierFields || []
-  const packagingFields = req.session.data.packagingFields || []
-
-  initialiseSpeciesEntries(req.session.data)
-
-  if ((req.session.data.speciesEntries || []).some((entry) => entry.animalsAdded)) {
-    saveAnimalFormData(req)
-    savePackagingFormData(req)
-  }
-
-  if (action && action.startsWith('add-')) {
-    const speciesId = action.slice(4)
-    const entry = getSpeciesEntry(req.session.data, speciesId)
-    const animalCount = (req.body[`animalCount-${speciesId}`] || '').trim()
-    const fieldId = `animal-count-${speciesId}`
-
-    if (!entry) {
-      return res.redirect('/animal-identification-details')
-    }
-
-    if (!animalCount || Number(animalCount) < 1) {
-      req.session.data.errorList = [
-        {
-          text: 'Enter the number of animals',
-          href: `#${fieldId}`
-        }
-      ]
-      req.session.data.errors = {
-        [`animalCount-${speciesId}`]: {
-          text: 'Enter the number of animals'
-        }
-      }
-      return res.redirect('/animal-identification-details')
-    }
-
-    req.session.data.errorList = null
-    req.session.data.errors = null
-    entry.animalCountInput = animalCount
-    entry.animalCount = animalCount
-    entry.animalsAdded = true
-    entry.animals = buildAnimalsList(entry.label, animalCount, identifierFields, [])
-
-    if (!req.session.data.packaging) {
-      req.session.data.packaging = buildEmptyFieldValues(packagingFields)
-    }
-
-    syncAggregateAnimalsFromSpeciesEntries(req.session.data)
-
-    return res.redirect('/animal-identification-details')
-  }
-
-  if (action && action.startsWith('change-')) {
-    const speciesId = action.slice(7)
-    const entry = getSpeciesEntry(req.session.data, speciesId)
-
-    if (entry) {
-      entry.animalsAdded = false
-      entry.animalCountInput = entry.animalCount || '1'
-    }
-
-    req.session.data.errorList = null
-    req.session.data.errors = null
-    syncAggregateAnimalsFromSpeciesEntries(req.session.data)
-
-    return res.redirect('/animal-identification-details')
-  }
-
-  const removeMatch = action && action.match(/^remove-(.+)--(\d+)$/)
-
-  if (removeMatch) {
-    const speciesId = removeMatch[1]
-    const removeId = parseInt(removeMatch[2], 10)
-    const entry = getSpeciesEntry(req.session.data, speciesId)
-
-    if (entry) {
-      let animals = (entry.animals || []).filter((animal) => animal.id !== removeId)
-
-      if (animals.length === 0) {
-        entry.animalsAdded = false
-        entry.animals = []
-        entry.animalCount = null
-        entry.animalCountInput = '1'
-      } else {
-        animals = renumberAnimals(animals, entry.label)
-        entry.animals = animals
-        entry.animalCount = String(animals.length)
-        entry.animalCountInput = String(animals.length)
-      }
-    }
-
-    syncAggregateAnimalsFromSpeciesEntries(req.session.data)
-
-    return res.redirect('/animal-identification-details')
-  }
-
-  if (action === 'continue') {
-    if (!hasAllSpeciesAnimalsComplete(req.session.data)) {
-      const firstIncomplete = (req.session.data.speciesEntries || []).find((entry) =>
-        !entry.animalsAdded || !entry.animals || entry.animals.length === 0
-      )
-      const errorHref = firstIncomplete
-        ? `#animal-count-${firstIncomplete.speciesId}`
-        : '#species-panels'
-
-      req.session.data.errorList = [
-        {
-          text: 'Add the number of animals for each species before continuing',
-          href: errorHref
-        }
-      ]
-      req.session.data.errors = firstIncomplete
-        ? {
-            [`animalCount-${firstIncomplete.speciesId}`]: {
-              text: 'Add the number of animals before continuing'
-            }
-          }
-        : {}
-
-      return res.redirect('/animal-identification-details')
-    }
-
-    req.session.data.errorList = null
-    req.session.data.errors = null
-    syncAggregateAnimalsFromSpeciesEntries(req.session.data)
-
-    return res.redirect('/additional-animal-details')
-  }
-
-  res.redirect('/animal-identification-details')
+  return renderAdditionalAnimalDetailsPage(req, res)
 })
 
 router.post('/additional-animal-details', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (redirectIfNoOrigin(req, res)) {
+    return
+  }
+
   if (redirectIfNoCommodity(req, res)) {
     return
   }
 
-  if (!req.session.data.animalsAdded || !req.session.data.animals || req.session.data.animals.length === 0) {
-    return res.redirect('/animal-identification-details')
+  if (redirectIfNoConsignmentDetails(req, res)) {
+    return
   }
 
   const config = getAdditionalAnimalDetailsConfig(req.session.data)
   const certificationPurpose = (req.body.certificationPurpose || '').trim()
   const unweanedAnimals = (req.body.unweanedAnimals || '').trim()
-  const temperature = (req.body.temperature || '').trim()
-  const errorList = []
-  const errors = {}
 
-  if (config.hasCertificationPurposeQuestion && !config.certificationPurposeOptions.includes(certificationPurpose)) {
+  if (req.body.action === 'hub') {
+    if (config.showCertificationPurposeQuestion && certificationPurposeOptions.includes(certificationPurpose)) {
+      req.session.data.certificationPurpose = certificationPurpose
+    }
+
+    if (config.showUnweanedQuestion && config.unweanedOptions.includes(unweanedAnimals)) {
+      req.session.data.unweanedAnimals = unweanedAnimals
+    }
+
+    return res.redirect('/notification-hub')
+  }
+
+  const errors = {}
+  const errorList = []
+
+  if (config.showCertificationPurposeQuestion && !certificationPurposeOptions.includes(certificationPurpose)) {
+    errors.certificationPurpose = { text: 'Select what the animals are certified for' }
     errorList.push({
       text: 'Select what the animals are certified for',
       href: '#certification-purpose'
     })
-    errors.certificationPurpose = {
-      text: 'Select what the animals are certified for'
-    }
   }
 
-  if (config.hasUnweanedQuestion && !config.unweanedOptions.includes(unweanedAnimals)) {
+  if (config.showUnweanedQuestion && !config.unweanedOptions.includes(unweanedAnimals)) {
+    errors.unweanedAnimals = { text: 'Select whether the consignment contains any unweaned animals' }
     errorList.push({
       text: 'Select whether the consignment contains any unweaned animals',
       href: '#unweaned-animals'
     })
-    errors.unweanedAnimals = {
-      text: 'Select whether the consignment contains any unweaned animals'
-    }
-  }
-
-  if (config.hasTemperatureQuestion && !config.temperatureOptions.includes(temperature)) {
-    errorList.push({
-      text: 'Select the temperature',
-      href: '#temperature'
-    })
-    errors.temperature = {
-      text: 'Select the temperature'
-    }
   }
 
   if (errorList.length > 0) {
     req.session.data.errorList = errorList
     req.session.data.errors = errors
+    req.session.data.certificationPurpose = certificationPurpose || null
+    req.session.data.unweanedAnimals = unweanedAnimals || null
 
-    return res.redirect('/additional-animal-details')
+    return renderAdditionalAnimalDetailsPage(req, res)
   }
 
   req.session.data.errorList = null
   req.session.data.errors = null
-  req.session.data.certificationPurpose = config.hasCertificationPurposeQuestion ? certificationPurpose : null
-  req.session.data.unweanedAnimals = config.hasUnweanedQuestion ? unweanedAnimals : null
-  req.session.data.temperature = config.hasTemperatureQuestion ? temperature : null
-
-  return res.redirect('/commodity-hub')
-})
-
-router.get('/county-parish-holding', (req, res) => {
-  if (redirectIfNoAddressSectionAccess(req, res)) {
-    return
-  }
-
-  if (!commodityRequiresCph(req.session.data)) {
-    return res.redirect('/consignment-addresses')
-  }
-
-  return res.render('county-parish-holding', {
-    backLink: '/consignment-addresses'
-  })
-})
-
-router.post('/county-parish-holding', (req, res) => {
-  if (redirectIfNoAddressSectionAccess(req, res)) {
-    return
-  }
-
-  if (!commodityRequiresCph(req.session.data)) {
-    return res.redirect('/consignment-addresses')
-  }
-
-  const cphNumber = (req.body.cphNumber || '').trim()
-
-  if (!cphNumber) {
-    req.session.data.errorList = [
-      {
-        text: 'Enter the County Parish Holding number (CPH)',
-        href: '#cph-number'
-      }
-    ]
-    req.session.data.errors = {
-      cphNumber: {
-        text: 'Enter the County Parish Holding number (CPH)'
-      }
-    }
-
-    return res.redirect('/county-parish-holding')
-  }
-
-  req.session.data.errorList = null
-  req.session.data.errors = null
-  req.session.data.cphNumber = cphNumber
-
-  return res.redirect('/consignment-addresses')
-})
-
-router.get('/reason-for-import', (req, res) => {
-  if (redirectIfNoCommodity(req, res)) {
-    return
-  }
-
-  if (!req.session.data.animalsAdded || !req.session.data.animals || req.session.data.animals.length === 0) {
-    return res.redirect('/animal-identification-details')
-  }
-
-  if (!hasAdditionalAnimalDetailsComplete(req.session.data)) {
-    return res.redirect('/additional-animal-details')
-  }
-
-  res.render('reason-for-import', {
-    backLink: getBackLink(req, '/commodity-hub'),
-    importReasonItems: buildImportReasonItems(req.session.data, req.session.data.importReason)
-  })
-})
-
-router.get('/notification-tasklist', (req, res) => {
-  if (redirectIfNoCommodity(req, res)) {
-    return
-  }
-
-  if (!req.session.data.animalsAdded || !req.session.data.animals || req.session.data.animals.length === 0) {
-    return res.redirect('/animal-identification-details')
-  }
-
-  if (!hasAdditionalAnimalDetailsComplete(req.session.data)) {
-    return res.redirect('/additional-animal-details')
-  }
-
-  if (!hasValidImportReason(req.session.data)) {
-    return res.redirect('/reason-for-import')
-  }
-
-  return res.render('notification-tasklist', getNotificationTasklistViewModel(req.session.data))
-})
-
-router.get('/accompanying-documents', (req, res) => {
-  if (redirectIfCannotAccessAccompanyingDocuments(req, res)) {
-    return
-  }
-
-  syncTasklistBackNavigation(req)
-
-  return res.render('accompanying-documents', getAccompanyingDocumentsViewModel(req))
-})
-
-router.post('/accompanying-documents', (req, res) => {
-  if (redirectIfCannotAccessAccompanyingDocuments(req, res)) {
-    return
-  }
-
-  const documentCount = Math.max(1, parseInt(req.body.documentCount, 10) || 1)
-  const submittedDocuments = parseAccompanyingDocumentsFromBody(req.body, documentCount)
-
-  if (req.body.addDocument === 'yes') {
-    req.session.data.accompanyingDocuments = submittedDocuments
-    req.session.data.accompanyingDocuments.push(createEmptyAccompanyingDocument())
-    req.session.data.errorList = null
-    req.session.data.errors = null
-
-    const redirectUrl = req.session.data.backToTasklist
-      ? '/accompanying-documents?from=tasklist'
-      : '/accompanying-documents'
-
-    return res.redirect(redirectUrl)
-  }
-
-  const errors = {}
-  const errorList = []
-  const allowedDocumentTypes = documentTypes
-    .map((option) => option.value)
-    .filter(Boolean)
-  const documentsToValidate = submittedDocuments.filter((document) => !isAccompanyingDocumentEmpty(document))
-
-  if (documentsToValidate.length === 0) {
-    errors['reference-0'] = { text: 'Enter the document reference' }
-    errorList.push({
-      text: 'Enter the details for at least one document',
-      href: '#document-reference-0'
-    })
-  }
-
-  submittedDocuments.forEach((document, index) => {
-    if (isAccompanyingDocumentEmpty(document)) {
-      return
-    }
-
-    if (!document.reference) {
-      errors[`reference-${index}`] = { text: 'Enter the document reference' }
-      errorList.push({
-        text: `Enter the document reference for document ${index + 1}`,
-        href: `#document-reference-${index}`
-      })
-    }
-
-    if (!document.documentType || !allowedDocumentTypes.includes(document.documentType)) {
-      errors[`documentType-${index}`] = { text: 'Select the document type' }
-      errorList.push({
-        text: `Select the document type for document ${index + 1}`,
-        href: `#document-type-${index}`
-      })
-    }
-
-    if (!document.issueDateDay || !document.issueDateMonth || !document.issueDateYear) {
-      errors[`issueDate-${index}`] = { text: 'Enter the date of issue' }
-      errorList.push({
-        text: `Enter the date of issue for document ${index + 1}`,
-        href: `#issue-date-${index}`
-      })
-    }
-  })
-
-  if (errorList.length > 0) {
-    req.session.data.errorList = errorList
-    req.session.data.errors = errors
-    req.session.data.accompanyingDocuments = submittedDocuments
-    req.session.data.accompanyingDocumentsComplete = false
-
-    return res.render('accompanying-documents', getAccompanyingDocumentsViewModel(req))
-  }
-
-  const completeDocuments = submittedDocuments.filter(isAccompanyingDocumentComplete)
-
-  req.session.data.errorList = null
-  req.session.data.errors = null
-  req.session.data.accompanyingDocuments = completeDocuments
-  req.session.data.accompanyingDocumentsComplete = true
-
-  return res.redirect('/notification-tasklist')
-})
-
-router.get('/check-answers-and-submit', (req, res) => {
-  if (redirectIfCannotAccessCheckAnswers(req, res)) {
-    return
-  }
-
-  return res.render('check-answers-and-submit', {
-    ...getReviewNotificationViewModel(req.session.data),
-    backLink: getBackLink(req, '/notification-tasklist')
-  })
-})
-
-function redirectIfNotificationNotSubmitted (req, res) {
-  if (req.session.data.declarationConfirmed !== 'yes' || !req.session.data.notificationReference) {
-    res.redirect('/declaration')
-    return true
-  }
-
-  return false
-}
-
-function redirectIfCannotAccessCheckAnswers (req, res) {
-  if (redirectIfNoCommodity(req, res)) {
-    return true
-  }
-
-  if (!req.session.data.animalsAdded || !req.session.data.animals || req.session.data.animals.length === 0) {
-    res.redirect('/animal-identification-details')
-    return true
-  }
-
-  if (!hasAdditionalAnimalDetailsComplete(req.session.data)) {
-    res.redirect('/additional-animal-details')
-    return true
-  }
-
-  if (!hasValidImportReason(req.session.data)) {
-    res.redirect('/reason-for-import')
-    return true
-  }
-
-  return false
-}
-
-router.get('/declaration', (req, res) => {
-  if (req.session.data.notificationSubmitted && req.session.data.notificationReference) {
-    return res.redirect('/notification-submitted')
-  }
-
-  if (redirectIfCannotAccessCheckAnswers(req, res)) {
-    return
-  }
-
-  getDeclarationDate(req.session.data)
-
-  return res.render('declaration')
-})
-
-router.post('/declaration', (req, res) => {
-  if (redirectIfCannotAccessCheckAnswers(req, res)) {
-    return
-  }
-
-  if (!getDeclarationConfirmedFromBody(req.body)) {
-    req.session.data.errorList = [
-      {
-        text: 'Confirm the declaration to continue',
-        href: '#declaration-confirmed'
-      }
-    ]
-    req.session.data.errors = {
-      declarationConfirmed: {
-        text: 'Confirm the declaration to continue'
-      }
-    }
-    req.session.data.declarationConfirmed = null
-    getDeclarationDate(req.session.data)
-
-    return res.redirect('/declaration')
-  }
-
-  req.session.data.errorList = null
-  req.session.data.errors = null
-  req.session.data.declarationConfirmed = 'yes'
-  req.session.data.declarationDate = getDeclarationDate(req.session.data)
-
-  req.session.data.notificationReference = generateSubmittedNotificationReference()
-  req.session.data.notificationSubmitted = true
-
-  return res.redirect('/notification-submitted')
-})
-
-router.get('/notification-submitted', (req, res) => {
-  if (redirectIfNotificationNotSubmitted(req, res)) {
-    return
-  }
-
-  return res.render('notification-submitted')
-})
-
-router.get('/consignment-addresses', (req, res) => {
-  if (redirectIfNoAddressSectionAccess(req, res)) {
-    return
-  }
-
-  return res.render('consignment-addresses', getConsignmentAddressesViewModel(req))
-})
-
-router.get('/arrival-details', (req, res) => {
-  if (redirectIfNoMovementTaskAccess(req, res)) {
-    return
-  }
-
-  return res.render('arrival-details', {
-    backLink: getBackLink(req, '/notification-tasklist'),
-    ukAirportItemsJson: JSON.stringify(getUkAirportDisplayOptions()),
-    meansOfTransportItems: buildMeansOfTransportItems(req.session.data.meansOfTransport)
-  })
-})
-
-router.post('/arrival-details', (req, res) => {
-  if (redirectIfNoMovementTaskAccess(req, res)) {
-    return
-  }
-
-  const portOfEntry = (req.body.portOfEntry || '').trim()
-  const meansOfTransport = (req.body.meansOfTransport || '').trim()
-  const transportIdentification = (req.body.transportIdentification || '').trim()
-  const transportDocumentReference = (req.body.transportDocumentReference || '').trim()
-  const arrivalDateDay = (req.body['arrivalDate-day'] || req.body.arrivalDateDay || '').trim()
-  const arrivalDateMonth = (req.body['arrivalDate-month'] || req.body.arrivalDateMonth || '').trim()
-  const arrivalDateYear = (req.body['arrivalDate-year'] || req.body.arrivalDateYear || '').trim()
-  const errorList = []
-  const errors = {}
-
-  if (!portOfEntry) {
-    errors.portOfEntry = { text: 'Enter the port of entry' }
-    errorList.push({ text: 'Enter the port of entry', href: '#port-of-entry' })
-  } else if (!isValidPortOfEntry(portOfEntry)) {
-    errors.portOfEntry = { text: 'Select a port of entry from the search results' }
-    errorList.push({ text: 'Select a port of entry from the search results', href: '#port-of-entry' })
-  }
-
-  if (!arrivalDateDay || !arrivalDateMonth || !arrivalDateYear) {
-    errors.arrivalDate = { text: 'Enter the arrival date at destination' }
-    errorList.push({ text: 'Enter the arrival date at destination', href: '#arrival-date-day' })
-  }
-
-  if (!meansOfTransport) {
-    errors.meansOfTransport = { text: 'Select the means of transport' }
-    errorList.push({ text: 'Select the means of transport', href: '#means-of-transport' })
-  } else if (!meansOfTransportOptions.includes(meansOfTransport)) {
-    errors.meansOfTransport = { text: 'Select the means of transport' }
-    errorList.push({ text: 'Select the means of transport', href: '#means-of-transport' })
-  }
-
-  if (!transportIdentification) {
-    errors.transportIdentification = { text: 'Enter the transport identification' }
-    errorList.push({ text: 'Enter the transport identification', href: '#transport-identification' })
-  }
-
-  if (!transportDocumentReference) {
-    errors.transportDocumentReference = { text: 'Enter the transport document reference' }
-    errorList.push({ text: 'Enter the transport document reference', href: '#transport-document-reference' })
-  }
-
-  if (errorList.length > 0) {
-    req.session.data.errorList = errorList
-    req.session.data.errors = errors
-    req.session.data.portOfEntry = portOfEntry
-    req.session.data.meansOfTransport = meansOfTransport
-    req.session.data.transportIdentification = transportIdentification
-    req.session.data.transportDocumentReference = transportDocumentReference
-    req.session.data.arrivalDateDay = arrivalDateDay
-    req.session.data.arrivalDateMonth = arrivalDateMonth
-    req.session.data.arrivalDateYear = arrivalDateYear
-    return res.render('arrival-details', {
-      backLink: getBackLink(req, '/notification-tasklist'),
-      ukAirportItemsJson: JSON.stringify(getUkAirportDisplayOptions()),
-      meansOfTransportItems: buildMeansOfTransportItems(meansOfTransport)
-    })
-  }
-
-  req.session.data.errorList = null
-  req.session.data.errors = null
-  req.session.data.portOfEntry = portOfEntry
-  req.session.data.meansOfTransport = meansOfTransport
-  req.session.data.transportIdentification = transportIdentification
-  req.session.data.transportDocumentReference = transportDocumentReference
-  req.session.data.arrivalDateDay = arrivalDateDay
-  req.session.data.arrivalDateMonth = arrivalDateMonth
-  req.session.data.arrivalDateYear = arrivalDateYear
-
-  return res.redirect('/notification-tasklist')
-})
-
-router.get('/transport-details', (req, res) => {
-  if (redirectIfNoMovementTaskAccess(req, res)) {
-    return
-  }
-
-  return res.render('transport-details', {
-    backLink: getBackLink(req, '/notification-tasklist'),
-    transporters
-  })
-})
-
-router.post('/transport-details', (req, res) => {
-  if (redirectIfNoMovementTaskAccess(req, res)) {
-    return
-  }
-
-  const transporterSearch = (req.body.transporterSearch || '').trim()
-  const transporterId = (req.body.transporterId || '').trim()
-  const transporter = getTransporterById(transporterId)
-
-  if (!transporter) {
-    req.session.data.errorList = [
-      {
-        text: 'Select a transporter',
-        href: `#transporter-${transporters[0].id}`
-      }
-    ]
-    req.session.data.errors = {
-      transporterId: {
-        text: 'Select a transporter'
-      }
-    }
-    req.session.data.transporterSearch = transporterSearch
-    req.session.data.transporterId = null
-
-    return res.redirect('/transport-details')
-  }
-
-  req.session.data.errorList = null
-  req.session.data.errors = null
-  req.session.data.transporterSearch = transporterSearch
-  syncTransporterSession(req.session.data, transporter)
-
-  return res.redirect('/notification-tasklist')
-})
-
-router.post('/consignment-addresses', (req, res) => {
-  if (redirectIfNoAddressSectionAccess(req, res)) {
-    return
-  }
-
-  const errorList = []
-  const errors = {}
-
-  if (commodityRequiresCph(req.session.data) && !hasCphDetails(req.session.data)) {
-    errorList.push({
-      text: 'Add the County Parish Holding number (CPH)',
-      href: '#cph-number-link'
-    })
-    errors.cphNumber = {
-      text: 'Add the County Parish Holding number (CPH)'
-    }
-  }
-
-  if (!hasAllConsignmentAddressFields(req.session.data)) {
-    errorList.push({
-      text: 'Add all consignment addresses before continuing',
-      href: '#place-of-origin-link'
-    })
-    errors.consignmentAddresses = {
-      text: 'Add all consignment addresses before continuing'
-    }
-  }
-
-  if (errorList.length > 0) {
-    req.session.data.errorList = errorList
-    req.session.data.errors = errors
-    return res.redirect('/consignment-addresses')
-  }
-
-  req.session.data.errorList = null
-  req.session.data.errors = null
-
-  return res.redirect('/contact-address-for-consignment')
-})
-
-router.get('/contact-address-for-consignment', (req, res) => {
-  if (redirectIfNoAddressSectionAccess(req, res)) {
-    return
-  }
-
-  return res.render('contact-address-for-consignment', {
-    backLink: getBackLink(req, '/consignment-addresses'),
-    addresses: contactAddresses,
-    addressId: req.session.data.contactAddressId || '',
-    addressSearch: req.session.data.contactAddressSearch || ''
-  })
-})
-
-router.post('/contact-address-for-consignment', (req, res) => {
-  if (redirectIfNoAddressSectionAccess(req, res)) {
-    return
-  }
-
-  const addressSearch = (req.body.addressSearch || '').trim()
-  const addressId = (req.body.addressId || '').trim()
-  const address = getContactAddressById(addressId)
-
-  if (!address) {
-    req.session.data.errorList = [
-      {
-        text: 'Select an address',
-        href: `#address-${contactAddresses[0].id}`
-      }
-    ]
-    req.session.data.errors = {
-      addressId: {
-        text: 'Select an address'
-      }
-    }
-    req.session.data.contactAddressSearch = addressSearch
-    clearContactAddressSession(req.session.data)
-
-    return res.redirect('/contact-address-for-consignment')
-  }
-
-  req.session.data.errorList = null
-  req.session.data.errors = null
-  req.session.data.contactAddressSearch = addressSearch
-  syncContactAddressSession(req.session.data, address)
-
-  return res.redirect('/notification-tasklist')
-})
-
-router.get('/consignment-addresses/add/:addressType', (req, res) => {
-  if (redirectIfNoAddressSectionAccess(req, res)) {
-    return
-  }
-
-  const config = getConsignmentAddressConfig(req.params.addressType)
-
-  if (!config) {
-    return res.redirect('/consignment-addresses')
-  }
-
-  const addressList = getConsignmentAddressList(req.params.addressType)
-
-  return res.render('consignment-address-entry', {
-    addressType: req.params.addressType,
-    heading: config.heading,
-    hint: config.hint,
-    addresses: addressList,
-    addressId: req.session.data[config.addressIdKey] || '',
-    addressSearch: req.session.data[config.searchKey] || ''
-  })
-})
-
-router.post('/consignment-addresses/add/:addressType', (req, res) => {
-  if (redirectIfNoAddressSectionAccess(req, res)) {
-    return
-  }
-
-  const config = getConsignmentAddressConfig(req.params.addressType)
-
-  if (!config) {
-    return res.redirect('/consignment-addresses')
-  }
-
-  const addressSearch = (req.body.addressSearch || '').trim()
-  const addressId = (req.body.addressId || '').trim()
-  const addressList = getConsignmentAddressList(req.params.addressType)
-  const address = getTraderAddressById(addressId, req.params.addressType)
-
-  if (!address) {
-    req.session.data.errorList = [
-      {
-        text: 'Select an address',
-        href: `#address-${addressList[0].id}`
-      }
-    ]
-    req.session.data.errors = {
-      addressId: {
-        text: 'Select an address'
-      }
-    }
-    req.session.data[config.searchKey] = addressSearch
-    clearConsignmentAddressSession(req.session.data, config)
-
-    return res.redirect(`/consignment-addresses/add/${req.params.addressType}`)
-  }
-
-  req.session.data.errorList = null
-  req.session.data.errors = null
-  req.session.data[config.searchKey] = addressSearch
-  syncConsignmentAddressSession(req.session.data, config, address)
-
-  return res.redirect('/consignment-addresses')
-})
-
-router.post('/commodity-hub', (req, res) => {
-  if (redirectIfNoCommodity(req, res)) {
-    return
-  }
-
-  if (!req.session.data.animalsAdded || !req.session.data.animals || req.session.data.animals.length === 0) {
-    return res.redirect('/animal-identification-details')
-  }
-
-  if (!hasAdditionalAnimalDetailsComplete(req.session.data)) {
-    return res.redirect('/additional-animal-details')
-  }
+  req.session.data.certificationPurpose = config.showCertificationPurposeQuestion ? certificationPurpose : null
+  req.session.data.unweanedAnimals = config.showUnweanedQuestion ? unweanedAnimals : null
 
   return res.redirect('/reason-for-import')
 })
 
-router.post('/reason-for-import', (req, res) => {
+router.get('/reason-for-import', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (redirectIfNoOrigin(req, res)) {
+    return
+  }
+
   if (redirectIfNoCommodity(req, res)) {
     return
   }
 
-  if (!req.session.data.animalsAdded || !req.session.data.animals || req.session.data.animals.length === 0) {
-    return res.redirect('/animal-identification-details')
+  if (redirectIfNoConsignmentDetails(req, res)) {
+    return
   }
 
-  if (!hasAdditionalAnimalDetailsComplete(req.session.data)) {
-    return res.redirect('/additional-animal-details')
+  if (redirectIfNoAdditionalAnimalDetails(req, res)) {
+    return
+  }
+
+  return renderReasonForImportPage(req, res, {
+    selectedImportReason: null,
+    selectedInternalMarketPurpose: null
+  })
+})
+
+router.get('/notification-hub', (req, res) => {
+  return renderNotificationHubPage(req, res)
+})
+
+router.post('/reason-for-import', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (redirectIfNoOrigin(req, res)) {
+    return
+  }
+
+  if (redirectIfNoCommodity(req, res)) {
+    return
+  }
+
+  if (redirectIfNoConsignmentDetails(req, res)) {
+    return
+  }
+
+  if (redirectIfNoAdditionalAnimalDetails(req, res)) {
+    return
   }
 
   const importReason = (req.body.importReason || '').trim()
-  const allowedReasons = getAllowedImportReasons(req.session.data)
+  const internalMarketPurpose = (req.body.internalMarketPurpose || '').trim()
 
-  if (!importReason || !allowedReasons.includes(importReason)) {
-    req.session.data.errorList = [
-      {
-        text: 'Select the main reason for importing the animals',
-        href: '#import-reason'
-      }
-    ]
-    req.session.data.errors = {
-      importReason: {
-        text: 'Select the main reason for importing the animals'
+  if (req.body.action === 'hub') {
+    if (importReasonValues.includes(importReason)) {
+      req.session.data.importReason = importReason
+
+      if (importReason === 'Internal market' && internalMarketPurposeValues.includes(internalMarketPurpose)) {
+        req.session.data.internalMarketPurpose = internalMarketPurpose
+      } else if (importReason !== 'Internal market') {
+        req.session.data.internalMarketPurpose = null
       }
     }
 
-    return res.redirect('/reason-for-import')
+    return res.redirect('/notification-hub')
+  }
+
+  const errors = {}
+  const errorList = []
+
+  if (!importReasonValues.includes(importReason)) {
+    errors.importReason = {
+      text: 'Select the main reason for importing the animals'
+    }
+    errorList.push({
+      text: 'Select the main reason for importing the animals',
+      href: '#import-reason'
+    })
+  }
+
+  if (importReason === 'Internal market' && !internalMarketPurposeValues.includes(internalMarketPurpose)) {
+    errors.internalMarketPurpose = {
+      text: 'Select the purpose in the internal market'
+    }
+    errorList.push({
+      text: 'Select the purpose in the internal market',
+      href: '#internal-market-purpose'
+    })
+  }
+
+  if (errorList.length) {
+    req.session.data.errorList = errorList
+    req.session.data.errors = errors
+    req.session.data.importReason = importReason || null
+    req.session.data.internalMarketPurpose = internalMarketPurpose || null
+
+    return renderReasonForImportPage(req, res, {
+      selectedImportReason: importReason || null,
+      selectedInternalMarketPurpose: internalMarketPurpose || null
+    })
   }
 
   req.session.data.errorList = null
   req.session.data.errors = null
   req.session.data.importReason = importReason
+  req.session.data.internalMarketPurpose = importReason === 'Internal market'
+    ? internalMarketPurpose
+    : null
 
-  return res.redirect('/notification-tasklist')
+  return res.redirect(getReasonForImportContinuePath(req.session.data))
+})
+
+router.get('/animal-identification-details', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (redirectIfNoOrigin(req, res)) {
+    return
+  }
+
+  if (redirectIfNoCommodity(req, res)) {
+    return
+  }
+
+  if (redirectIfNoConsignmentDetails(req, res)) {
+    return
+  }
+
+  if (redirectIfNoAdditionalAnimalDetails(req, res)) {
+    return
+  }
+
+  if (redirectIfNoImportReason(req, res)) {
+    return
+  }
+
+  return renderAnimalIdentificationDetailsPage(req, res)
+})
+
+router.post('/animal-identification-details', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (redirectIfNoOrigin(req, res)) {
+    return
+  }
+
+  if (redirectIfNoCommodity(req, res)) {
+    return
+  }
+
+  if (redirectIfNoConsignmentDetails(req, res)) {
+    return
+  }
+
+  if (redirectIfNoAdditionalAnimalDetails(req, res)) {
+    return
+  }
+
+  if (redirectIfNoImportReason(req, res)) {
+    return
+  }
+
+  const action = (req.body.action || '').trim()
+
+  if (action.startsWith('remove:')) {
+    const separatorIndex = action.lastIndexOf(':')
+    const removeIndex = Number(action.slice(separatorIndex + 1))
+    const speciesId = action.slice('remove:'.length, separatorIndex)
+
+    removeSavedAnimal(req.session.data, speciesId, removeIndex)
+    req.session.data.errorList = null
+    req.session.data.errors = null
+
+    return res.redirect('/animal-identification-details')
+  }
+
+  if (action.startsWith('save:')) {
+    const speciesId = action.slice('save:'.length)
+    const panel = getSpeciesIdentificationState(req.session.data, speciesId)
+
+    if (!panel || !panel.activeAnimal) {
+      return res.redirect('/animal-identification-details')
+    }
+
+    const rawIdentifiers = req.body.identifiers &&
+      typeof req.body.identifiers === 'object' &&
+      req.body.identifiers[speciesId] &&
+      typeof req.body.identifiers[speciesId] === 'object'
+      ? req.body.identifiers[speciesId]
+      : {}
+    const { errors, errorList, values } = validateAnimalIdentifiers(
+      panel.identifierFields,
+      rawIdentifiers,
+      speciesId
+    )
+
+    if (errorList.length) {
+      req.session.data.errorList = errorList
+      req.session.data.errors = errors
+
+      return renderAnimalIdentificationDetailsPage(req, res, {
+        errorSpeciesId: speciesId,
+        identifierValues: values
+      })
+    }
+
+    req.session.data.errorList = null
+    req.session.data.errors = null
+
+    if (!req.session.data.animalIdentifiers || typeof req.session.data.animalIdentifiers !== 'object') {
+      req.session.data.animalIdentifiers = {}
+    }
+
+    if (!Array.isArray(req.session.data.animalIdentifiers[speciesId])) {
+      req.session.data.animalIdentifiers[speciesId] = []
+    }
+
+    const saveIndex = panel.activeAnimal.animalNumber - 1
+    const speciesSaved = req.session.data.animalIdentifiers[speciesId]
+
+    if (speciesSaved.length === saveIndex) {
+      speciesSaved.push(values)
+    } else {
+      speciesSaved[saveIndex] = values
+    }
+
+    return res.redirect('/animal-identification-details')
+  }
+
+  if (action === 'hub') {
+    req.session.data.errorList = null
+    req.session.data.errors = null
+
+    return res.redirect('/notification-hub')
+  }
+
+  if (action === 'continue') {
+    if (!hasAnimalIdentifiersComplete(req.session.data)) {
+      req.session.data.errorList = [{
+        text: 'Add identification details for all animals before continuing',
+        href: '#animal-identification-panels'
+      }]
+
+      return renderAnimalIdentificationDetailsPage(req, res)
+    }
+
+    req.session.data.errorList = null
+    req.session.data.errors = null
+
+    return res.redirect('/notification-hub')
+  }
+
+  return res.redirect('/animal-identification-details')
+})
+
+router.get('/arrival-details', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (redirectIfNoOrigin(req, res)) {
+    return
+  }
+
+  if (redirectIfNoImportReason(req, res)) {
+    return
+  }
+
+  return renderArrivalDetailsPage(req, res)
+})
+
+router.post('/arrival-details', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (redirectIfNoOrigin(req, res)) {
+    return
+  }
+
+  if (redirectIfNoImportReason(req, res)) {
+    return
+  }
+
+  const values = parseArrivalDetailsBody(req.body)
+  const action = (req.body.action || '').trim()
+
+  if (action === 'hub') {
+    saveArrivalDetailsToSession(req.session.data, values)
+    req.session.data.errorList = null
+    req.session.data.errors = null
+
+    return res.redirect('/notification-hub')
+  }
+
+  const { errors, errorList } = validateArrivalDetails(values)
+
+  if (errorList.length) {
+    req.session.data.errorList = errorList
+    req.session.data.errors = errors
+    saveArrivalDetailsToSession(req.session.data, values)
+
+    return renderArrivalDetailsPage(req, res)
+  }
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+  saveArrivalDetailsToSession(req.session.data, values)
+
+  return res.redirect(getArrivalDetailsContinuePath(values))
+})
+
+router.get('/transit-countries', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (redirectIfNoOrigin(req, res)) {
+    return
+  }
+
+  if (redirectIfNoImportReason(req, res)) {
+    return
+  }
+
+  if (redirectIfNoArrivalDetails(req, res)) {
+    return
+  }
+
+  if (redirectIfTransitCountriesNotRequired(req, res)) {
+    return
+  }
+
+  return renderTransitCountriesPage(req, res)
+})
+
+router.post('/transit-countries', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (redirectIfNoOrigin(req, res)) {
+    return
+  }
+
+  if (redirectIfNoImportReason(req, res)) {
+    return
+  }
+
+  if (redirectIfNoArrivalDetails(req, res)) {
+    return
+  }
+
+  if (redirectIfTransitCountriesNotRequired(req, res)) {
+    return
+  }
+
+  const countries = parseTransitCountriesBody(req.body)
+  const action = (req.body.action || '').trim()
+
+  if (action === 'hub') {
+    saveTransitCountriesToSession(req.session.data, countries)
+    req.session.data.errorList = null
+    req.session.data.errors = null
+
+    return res.redirect('/notification-hub')
+  }
+
+  const { errors, errorList, normalisedCountries } = validateTransitCountries(countries)
+
+  if (errorList.length) {
+    req.session.data.errorList = errorList
+    req.session.data.errors = errors
+    saveTransitCountriesToSession(req.session.data, normalisedCountries)
+
+    return renderTransitCountriesPage(req, res)
+  }
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+  saveTransitCountriesToSession(req.session.data, normalisedCountries)
+
+  return res.redirect('/notification-hub')
+})
+
+router.get('/contact-address-for-consignment', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  return renderContactAddressPage(req, res)
+})
+
+router.post('/contact-address-for-consignment', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  const addressId = (req.body.contactAddressId || '').trim()
+  const action = (req.body.action || '').trim()
+  const address = getContactAddressById(addressId)
+
+  if (action === 'hub') {
+    if (address) {
+      syncContactAddressSession(req.session.data, address)
+    } else {
+      clearContactAddressSession(req.session.data)
+    }
+
+    req.session.data.errorList = null
+    req.session.data.errors = null
+
+    return res.redirect('/notification-hub')
+  }
+
+  const validation = validateContactAddress(addressId)
+
+  if (validation.errorList.length) {
+    req.session.data.errorList = validation.errorList
+    req.session.data.errors = validation.errors
+    clearContactAddressSession(req.session.data)
+
+    return renderContactAddressPage(req, res)
+  }
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+  syncContactAddressSession(req.session.data, validation.address)
+
+  return res.redirect('/notification-hub')
 })

@@ -1,105 +1,29 @@
-const importReasonDefinitions = {
-  breeding: {
-    value: 'Breeding',
-    text: 'Breeding'
-  },
-  fattening: {
-    value: 'Fattening',
-    text: 'Fattening'
-  },
-  production: {
-    value: 'Production',
-    text: 'Production'
-  },
-  'rejected-or-returned': {
-    value: 'Rejected or Returned consignment',
-    text: 'Rejected or Returned consignment'
-  },
-  slaughter: {
-    value: 'Slaughter',
-    text: 'Slaughter'
-  },
-  transit: {
-    value: 'Transit',
-    text: 'Transit'
-  },
-  'internal-market': {
+// Main reasons for importing animals — EU notification service design
+
+module.exports = [
+  {
     value: 'Internal market',
-    text: 'Internal market'
+    text: 'Internal market',
+    hint: 'For imports of animals intended for sale or use in Great Britain (England, Scotland or Wales).'
   },
-  'racing-competition': {
-    value: 'Racing/Competition',
-    text: 'Racing/Competition'
+  {
+    value: 'Transhipment or onward travel',
+    text: 'Transhipment or onward travel',
+    hint: 'For animals intended for direct travel to a third country, that will stay only within the same port or airport in Great Britain while moving to another means of transport.'
   },
-  'registered-equidae': {
-    value: 'Registered equidae',
-    text: 'Registered equidae'
+  {
+    value: 'Transit',
+    text: 'Transit',
+    hint: 'For animals moving through Great Britain for direct travel to a third country, that will enter Great Britain at one port or airport and leave from a different one within England, Scotland or Wales.'
   },
-  other: {
-    value: 'Other',
-    text: 'Other'
-  },
-  're-entry': {
+  {
     value: 'Re-entry',
-    text: 'Re-entry'
+    text: 'Re-entry',
+    hint: 'For animals authorised for re-entry, or rejected exports re-entering Great Britain.'
   },
-  research: {
-    value: 'Research',
-    text: 'Research'
-  },
-  'pharmaceutical-use': {
-    value: 'Pharmaceutical use',
-    text: 'Pharmaceutical use'
-  },
-  'technical-use': {
-    value: 'Technical use',
-    text: 'Technical use'
+  {
+    value: 'Temporary admission horses',
+    text: 'Temporary admission horses',
+    hint: 'For horses authorised for temporary entry.'
   }
-}
-
-const cowPigReasonKeys = [
-  'breeding',
-  'fattening',
-  'production',
-  'rejected-or-returned',
-  'slaughter',
-  'transit'
 ]
-
-const importReasonsByCommodityId = {
-  cow: cowPigReasonKeys,
-  pig: cowPigReasonKeys,
-  dog: ['internal-market', 'transit'],
-  horse: [
-    'breeding',
-    'racing-competition',
-    'registered-equidae',
-    'rejected-or-returned',
-    'transit',
-    'other'
-  ],
-  'embryos-horse': [
-    'breeding',
-    'production',
-    're-entry',
-    'research',
-    'transit',
-    'pharmaceutical-use',
-    'technical-use',
-    'other'
-  ]
-}
-
-function getImportReasonsForCommodity (commodityId) {
-  const reasonKeys = importReasonsByCommodityId[commodityId]
-
-  if (!reasonKeys) {
-    return []
-  }
-
-  return reasonKeys.map((key) => importReasonDefinitions[key]).filter(Boolean)
-}
-
-module.exports = {
-  getImportReasonsForCommodity
-}

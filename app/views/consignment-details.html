@@ -1,0 +1,106 @@
+{% extends "layouts/journey.html" %}
+
+{% set journeyPageClass = "app-consignment-details-page" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+
+{% set pageName = "Consignment details" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block journeyContent %}
+
+    {% include "partials/notification-status.html" %}
+
+    {% if data.errorList %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: data.errorList
+      }) }}
+    {% endif %}
+
+    <div class="app-consignment-details-page__header">
+      <p class="app-consignment-details-page__caption">About the consignment</p>
+      <h1 class="app-consignment-details-page__heading">Consignment details</h1>
+    </div>
+
+    <form method="post" action="/consignment-details" novalidate class="app-consignment-details-form">
+
+      {% if selectedCommodity %}
+        <div class="app-consignment-details-page__selected">
+          <p class="app-consignment-details-page__selected-text">
+            Selected: <strong>{{ selectedCommodity.text }}</strong>
+          </p>
+          <p class="app-consignment-details-page__selected-change">
+            <a class="govuk-link" href="/what-are-you-importing">Change</a>
+          </p>
+        </div>
+      {% endif %}
+
+      {% for entry in speciesEntries %}
+        <div class="app-consignment-details-page__species">
+          <div class="app-consignment-details-page__species-header">
+            <h2 class="app-consignment-details-page__species-heading">{{ entry.heading }}</h2>
+            <button
+              class="govuk-link app-govuk-body-link app-consignment-details-page__species-remove"
+              type="submit"
+              name="removeSpecies"
+              value="{{ entry.speciesId }}"
+            >
+              Remove
+            </button>
+          </div>
+
+          {% set numberOfAnimalsError = data.errors["numberOfAnimals-" + entry.speciesId] if data.errors and data.errors["numberOfAnimals-" + entry.speciesId] %}
+
+          {{ govukInput({
+            label: {
+              text: "Number of animals"
+            },
+            id: "number-of-animals-" + entry.speciesId,
+            name: "numberOfAnimals[" + entry.speciesId + "]",
+            value: entry.numberOfAnimals,
+            classes: "govuk-input--width-10",
+            errorMessage: numberOfAnimalsError
+          }) }}
+        </div>
+      {% endfor %}
+
+      <div class="app-origin-form-actions">
+        <div class="app-origin-actions">
+          {{ govukButton({
+            text: "Save and continue",
+            name: "action",
+            value: "continue"
+          }) }}
+
+          {{ govukButton({
+            text: "Save and return to hub",
+            name: "action",
+            value: "hub",
+            classes: "govuk-button--secondary"
+          }) }}
+        </div>
+
+        <p class="app-origin-form-actions__cancel">
+          <a class="govuk-link" href="/notification-hub">Cancel and return to hub</a>
+        </p>
+      </div>
+
+    </form>
+
+{% endblock %}
