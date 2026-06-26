@@ -52,28 +52,30 @@
     <section class="app-notification-hub__tasklist" aria-labelledby="notification-hub-tasklist-heading">
       <h2 class="app-notification-hub__tasklist-heading" id="notification-hub-tasklist-heading">Notification tasklist</h2>
 
-      {% for section in sections %}
-        <section class="app-notification-hub-section" aria-labelledby="notification-hub-section-{{ loop.index }}">
-          <h3 class="app-notification-hub-section__heading" id="notification-hub-section-{{ loop.index }}">{{ section.title }}</h3>
+      <div class="app-notification-hub__tasklist-sections">
+        {% for section in sections %}
+          <section class="app-notification-hub-section" aria-labelledby="notification-hub-section-{{ loop.index }}">
+            <h3 class="app-notification-hub-section__heading" id="notification-hub-section-{{ loop.index }}">{{ section.title }}</h3>
 
-          <ul class="app-notification-hub-tasklist" role="list">
-            {% for item in section.items %}
-              <li class="app-notification-hub-tasklist__item{% if item.hint %} app-notification-hub-tasklist__item--with-hint{% endif %}">
-                <div class="app-notification-hub-tasklist__content">
-                  <a class="govuk-link app-notification-hub-tasklist__link" href="{{ item.href }}">{{ item.text }}</a>
-                  {% if item.hint %}
-                    <p class="app-notification-hub-tasklist__hint">{{ item.hint }}</p>
-                  {% endif %}
-                </div>
-                {{ govukTag({
-                  text: item.status.text,
-                  classes: item.status.class + " app-notification-hub-tasklist__tag"
-                }) }}
-              </li>
-            {% endfor %}
-          </ul>
-        </section>
-      {% endfor %}
+            <ul class="app-notification-hub-tasklist" role="list">
+              {% for item in section.items %}
+                <li class="app-notification-hub-tasklist__item{% if item.hint %} app-notification-hub-tasklist__item--with-hint{% endif %}">
+                  <div class="app-notification-hub-tasklist__content">
+                    <a class="govuk-link app-notification-hub-tasklist__link" href="{{ item.href }}">{{ item.text }}</a>
+                    {% if item.hint %}
+                      <p class="app-notification-hub-tasklist__hint">{{ item.hint }}</p>
+                    {% endif %}
+                  </div>
+                  {{ govukTag({
+                    text: item.status.text,
+                    classes: item.status.class + " app-notification-hub-tasklist__tag"
+                  }) }}
+                </li>
+              {% endfor %}
+            </ul>
+          </section>
+        {% endfor %}
+      </div>
     </section>
 
     <div class="app-notification-hub-actions">

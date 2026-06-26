@@ -2832,34 +2832,39 @@ function getNotificationHubViewModel (sessionData) {
             status: hasOriginDetails(sessionData) ? statusComplete : statusTodo
           },
           {
-            text: 'Your commodities',
+            text: 'What are you importing?',
             href: '/what-are-you-importing',
             status: hasCommoditySelection(sessionData) ? statusComplete : statusTodo
-          },
-          {
-            text: 'Consignment details',
-            href: '/consignment-details',
-            status: hasConsignmentDetails(sessionData) ? statusComplete : statusTodo
-          },
-          {
-            text: 'Additional animal details',
-            href: '/additional-animal-details',
-            status: hasAdditionalAnimalDetailsComplete(sessionData) ? statusComplete : statusTodo
           },
           {
             text: 'Main reason for importing the animals',
             href: '/reason-for-import',
             status: hasImportReasonComplete(sessionData) ? statusComplete : statusTodo
-          },
-          ...(hasAnimalIdentifiersRequired(sessionData) ? [{
-            text: 'Animal identifiers',
-            href: '/animal-identification-details',
-            status: hasAnimalIdentifiersComplete(sessionData) ? statusComplete : statusTodo
-          }] : [])
+          }
         ]
       },
       {
-        title: '2. Movement',
+        title: '2. Commodity details',
+        items: [
+          {
+            text: 'Consignment details',
+            href: '/consignment-details',
+            status: hasConsignmentDetails(sessionData) ? statusComplete : statusTodo
+          },
+          ...(hasAnimalIdentifiersRequired(sessionData) ? [{
+            text: 'Animal identification details',
+            href: '/animal-identification-details',
+            status: hasAnimalIdentifiersComplete(sessionData) ? statusComplete : statusTodo
+          }] : []),
+          {
+            text: 'Additional commodity details',
+            href: '/additional-animal-details',
+            status: hasAdditionalAnimalDetailsComplete(sessionData) ? statusComplete : statusTodo
+          }
+        ]
+      },
+      {
+        title: '3. Transport and arrival',
         items: [
           {
             text: 'Arrival details',
@@ -2879,7 +2884,7 @@ function getNotificationHubViewModel (sessionData) {
         ]
       },
       {
-        title: '3. Addresses',
+        title: '4. Consignment parties',
         items: [
           {
             text: 'Roles and addresses',
