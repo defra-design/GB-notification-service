@@ -868,8 +868,8 @@ button.govuk-link.app-govuk-body-link--small {
   }
 
   &__summary-value {
-    flex: 0 0 240px;
-    max-width: 240px;
+    flex: 1 1 auto;
+    min-width: 0;
     font-weight: 300;
   }
 
@@ -890,6 +890,7 @@ button.govuk-link.app-govuk-body-link--small {
   }
 
   &__summary-action {
+    margin-left: auto;
     flex: 0 0 120px;
     max-width: 120px;
     text-align: right;
