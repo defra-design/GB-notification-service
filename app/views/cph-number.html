@@ -7,7 +7,7 @@
 {% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
 
-{% set pageName = "Add the County Parish Holding number (CPH)" %}
+{% set pageName = "Add the county parish holding number (CPH)" %}
 
 {% block beforeContent %}
   {{ govukPhaseBanner({
@@ -31,7 +31,7 @@
 
     <div class="app-cph-number-page__header">
       <p class="app-cph-number-page__caption">Consignment parties</p>
-      <h1 class="app-cph-number-page__heading">Add the County Parish Holding number (CPH)</h1>
+      <h1 class="app-cph-number-page__heading">Add the county parish holding number (CPH)</h1>
     </div>
 
     <form method="post" action="/cph-number" novalidate class="app-cph-number-form">
@@ -47,7 +47,7 @@
         summaryText: "What is a CPH number?",
         classes: "app-cph-number-page__details",
         html: '
-          <p class="govuk-body">A County Parish Holding (CPH) number is a unique 9-digit number used to identify land and buildings where livestock are kept, moved or handled.</p>
+          <p class="govuk-body">A county parish holding (CPH) number is a unique 9-digit number used to identify land and buildings where livestock are kept, moved or handled.</p>
           <p class="govuk-body">You can find your CPH number on documents from the Animal and Plant Health Agency (APHA) or by <a class="govuk-link" href="#">checking your holding details on GOV.UK</a>.</p>'
       }) }}
 

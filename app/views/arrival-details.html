@@ -41,6 +41,10 @@
 
     <form method="post" action="/arrival-details" novalidate class="app-arrival-details-form">
 
+      {% if fromHub %}
+        <input type="hidden" name="from" value="hub">
+      {% endif %}
+
       {% include "partials/arrival-date-picker.html" %}
 
       <div class="govuk-form-group{% if data.errors and data.errors.portOfEntry %} govuk-form-group--error{% endif %} app-arrival-details-page__port">

@@ -108,6 +108,10 @@ function redirectIfNoOrigin (req, res) {
   return false
 }
 
+function isFromHub (req) {
+  return req.query.from === 'hub' || (req.body && req.body.from === 'hub')
+}
+
 function normalizeSelectedSpecies (value) {
   if (Array.isArray(value)) {
     return value.filter(Boolean)
@@ -1272,10 +1276,11 @@ function parseTransitCountriesBody (body) {
 function renderTransitCountriesPage (req, res) {
   const sessionData = req.session.data
   const transitCountries = normalizeTransitCountries(sessionData.transitCountries)
-  const backLink = req.query.from === 'hub' ? '/notification-hub' : '/arrival-details'
+  const backLink = isFromHub(req) ? '/notification-hub' : '/arrival-details'
 
   return res.render('transit-countries', {
     backLink,
+    fromHub: isFromHub(req),
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     countriesJson: JSON.stringify(countryOptions),
     transitCountriesJson: JSON.stringify(transitCountries),
@@ -2296,6 +2301,7 @@ function renderArrivalDetailsPage (req, res) {
 
   return res.render('arrival-details', {
     backLink: '/notification-hub',
+    fromHub: isFromHub(req),
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     ukAirportItemsJson: JSON.stringify(getUkAirportDisplayOptions()),
     meansOfTransportItems: buildMeansOfTransportItems(sessionData.meansOfTransport),
@@ -2320,7 +2326,7 @@ function getTotalAnimalCount (sessionData) {
 
 function formatReviewValueOrNa (value) {
   if (value == null || (typeof value === 'string' && !value.trim())) {
-    return 'N/A'
+    return 'Not applicable'
   }
 
   return String(value).trim()
@@ -2330,7 +2336,7 @@ function formatAddressForReviewValue (address) {
   const formatted = formatConsignmentAddressForDisplay(address)
 
   if (!formatted) {
-    return 'N/A'
+    return 'Not applicable'
   }
 
   return {
@@ -2347,7 +2353,7 @@ function formatContactAddressForReviewValue (sessionData) {
     .filter(Boolean)
 
   if (!lines.length) {
-    return 'N/A'
+    return 'Not applicable'
   }
 
   if (lines.length === 1) {
@@ -2372,7 +2378,7 @@ function formatCommaSeparatedAddressForReviewValue (addressString) {
     .filter(Boolean)
 
   if (!parts.length) {
-    return 'N/A'
+    return 'Not applicable'
   }
 
   if (parts.length === 1) {
@@ -2412,7 +2418,7 @@ function getTransporterCountryLabel (sessionData) {
     return 'Finland'
   }
 
-  return 'N/A'
+  return 'Not applicable'
 }
 
 function getSelectedSpeciesLabelsForReview (sessionData) {
@@ -3023,7 +3029,7 @@ function getNotificationHubViewModel (sessionData) {
   return {
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     animalCountDisplay: totalAnimals > 0 ? String(totalAnimals) : '0',
-    packagesDisplay: totalPackages > 0 ? String(totalPackages) : 'N/A',
+    packagesDisplay: totalPackages > 0 ? String(totalPackages) : '0',
     sections: [
       {
         title: '1. About the consignment',
@@ -3070,7 +3076,7 @@ function getNotificationHubViewModel (sessionData) {
         items: [
           {
             text: 'Arrival details',
-            href: '/arrival-details',
+            href: '/arrival-details?from=hub',
             status: hasArrivalDetailsComplete(sessionData) ? statusComplete : statusTodo
           },
           ...(requiresTransitCountries(sessionData) ? [{
@@ -3359,7 +3365,7 @@ function renderReasonForImportPage (req, res, locals = {}) {
 }
 
 const documentTypeOptions = [
-  { value: 'itahc', text: 'ITAHC' },
+  { value: 'itahc', text: 'Intra Trade Animal Health Certificate (ITAHC)' },
   { value: 'veterinary-health-certificate', text: 'Veterinary health certificate' },
   { value: 'air-waybill', text: 'Air waybill' },
   { value: 'import-permit', text: 'Import permit' },
@@ -4321,7 +4327,7 @@ router.get('/arrival-details', (req, res) => {
     return
   }
 
-  if (redirectIfNoImportReason(req, res)) {
+  if (!isFromHub(req) && redirectIfNoImportReason(req, res)) {
     return
   }
 
@@ -4335,7 +4341,7 @@ router.post('/arrival-details', (req, res) => {
     return
   }
 
-  if (redirectIfNoImportReason(req, res)) {
+  if (!isFromHub(req) && redirectIfNoImportReason(req, res)) {
     return
   }
 
@@ -4364,7 +4370,7 @@ router.get('/transit-countries', (req, res) => {
     return
   }
 
-  if (redirectIfNoImportReason(req, res)) {
+  if (!isFromHub(req) && redirectIfNoImportReason(req, res)) {
     return
   }
 
@@ -4386,7 +4392,7 @@ router.post('/transit-countries', (req, res) => {
     return
   }
 
-  if (redirectIfNoImportReason(req, res)) {
+  if (!isFromHub(req) && redirectIfNoImportReason(req, res)) {
     return
   }
 
@@ -4661,15 +4667,6 @@ router.post('/roles-and-addresses', (req, res) => {
     return res.redirect('/roles-and-addresses')
   }
 
-  const validation = validateConsignmentAddressesComplete(req.session.data)
-
-  if (validation.errorList.length) {
-    req.session.data.errorList = validation.errorList
-    req.session.data.errors = null
-
-    return renderRolesAndAddressesPage(req, res)
-  }
-
   req.session.data.errorList = null
   req.session.data.errors = null
 
@@ -4680,35 +4677,16 @@ router.post('/contact-address-for-consignment', (req, res) => {
   ensurePrototypeNotificationReference(req.session.data)
 
   const addressId = (req.body.contactAddressId || '').trim()
-  const action = (req.body.action || '').trim()
   const address = getContactAddressById(addressId)
 
-  if (action === 'hub') {
-    if (address) {
-      syncContactAddressSession(req.session.data, address)
-    } else {
-      clearContactAddressSession(req.session.data)
-    }
-
-    req.session.data.errorList = null
-    req.session.data.errors = null
-
-    return res.redirect('/notification-hub')
-  }
-
-  const validation = validateContactAddress(addressId)
-
-  if (validation.errorList.length) {
-    req.session.data.errorList = validation.errorList
-    req.session.data.errors = validation.errors
+  if (address) {
+    syncContactAddressSession(req.session.data, address)
+  } else {
     clearContactAddressSession(req.session.data)
-
-    return renderContactAddressPage(req, res)
   }
 
   req.session.data.errorList = null
   req.session.data.errors = null
-  syncContactAddressSession(req.session.data, validation.address)
 
   return res.redirect('/notification-hub')
 })

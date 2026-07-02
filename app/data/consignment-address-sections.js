@@ -68,8 +68,8 @@ const consignmentAddressSections = [
   },
   {
     id: 'cph',
-    heading: 'County Parish Holding number (CPH)',
-    hint: 'The County Parish Holding (CPH) number identifies the holding where the animals will be kept.',
+    heading: 'County parish holding number (CPH)',
+    hint: 'The county parish holding (CPH) number identifies the holding where the animals will be kept.',
     linkText: 'Add a CPH number',
     path: '/cph-number',
     sessionCphKey: 'cphNumber',

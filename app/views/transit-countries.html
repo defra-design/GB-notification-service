@@ -49,6 +49,10 @@
 
         <form method="post" action="/transit-countries" novalidate class="app-transit-countries-form">
 
+          {% if fromHub %}
+            <input type="hidden" name="from" value="hub">
+          {% endif %}
+
           <div class="app-transit-countries-page__country{% if data.errors and data.errors.transitCountries %} app-transit-countries-page__country--error{% endif %}">
             <div class="govuk-form-group{% if data.errors and data.errors.transitCountries %} govuk-form-group--error{% endif %} app-transit-countries-page__search">
               <label class="govuk-label app-eu-heading-m app-transit-countries-page__field-label" for="transit-country-search">
