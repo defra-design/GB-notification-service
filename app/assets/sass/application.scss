@@ -525,13 +525,69 @@ button.govuk-link.app-govuk-body-link--small {
     color: #0b0c0c;
   }
 
+  &__selected-clear {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 20px;
+    color: #1d70b8;
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:hover {
+      color: #003078;
+    }
+
+    &:focus {
+      outline: 3px solid transparent;
+      color: #0b0c0c;
+      background-color: #fd0;
+      box-shadow: 0 -2px #fd0, 0 4px #0b0c0c;
+      text-decoration: none;
+    }
+  }
+
   &__selected-list {
     display: flex;
-    flex-direction: column;
-    gap: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+
+  &__selected-entry {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+  }
+
+  &__selected-chips {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+  }
+
+  &__selected-entry-label {
+    margin: 0;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 20px;
+    color: #0b0c0c;
+  }
+
+  &__selected-entry-name {
+    font-weight: 700;
   }
 
   &__selected-group {
@@ -555,15 +611,6 @@ button.govuk-link.app-govuk-body-link--small {
     flex-shrink: 0;
   }
 
-  &__selected-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
   &__selected-item {
     display: inline-flex;
     align-items: center;
@@ -573,6 +620,7 @@ button.govuk-link.app-govuk-body-link--small {
     border: 1px solid #b1b4b6;
     background-color: #f3f2f1;
     box-sizing: border-box;
+    flex-shrink: 0;
   }
 
   &__selected-label {
@@ -744,16 +792,32 @@ button.govuk-link.app-govuk-body-link--small {
   }
 }
 
+.app-consignment-details-shell {
+  width: 100%;
+  max-width: 960px;
+}
+
 .app-consignment-details-page {
-  &__header {
+  width: 100%;
+
+  .app-notification-status {
     margin-bottom: 30px;
+  }
+
+  .govuk-error-summary {
+    margin-bottom: 30px;
+  }
+
+  &__header {
+    max-width: 630px;
+    margin: 0;
   }
 
   &__caption {
     margin: 0 0 5px;
     font-family: "GDS Transport", arial, sans-serif;
     font-size: 24px;
-    font-weight: 400;
+    font-weight: 300;
     line-height: 30px;
     color: #505a5f;
   }
@@ -767,91 +831,139 @@ button.govuk-link.app-govuk-body-link--small {
     color: #0b0c0c;
   }
 
-  &__selected {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    width: 100%;
+  &__selected-commodities-heading {
     margin: 0;
-    padding: 15px 15px 15px 25px;
-    border-left: 10px solid #b1b4b6;
-    background-color: #ffffff;
-    box-sizing: border-box;
+    max-width: 633px;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 30px;
+    color: #0b0c0c;
   }
 
-  &__selected-text {
-    margin: 0;
+  &__summary {
+    width: 100%;
+  }
+
+  &__summary-row {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    padding: 10px 0;
+    border-bottom: 1px solid #b1b4b6;
     font-family: "GDS Transport", arial, sans-serif;
     font-size: 19px;
-    font-weight: 300;
     line-height: 25px;
     color: #0b0c0c;
 
-    strong {
+    &--header {
       font-weight: 700;
-      line-height: 24px;
     }
   }
 
-  &__selected-change {
-    margin: 0;
-    padding: 4px 0 2px;
-    font-size: 19px;
-    line-height: 25px;
+  &__summary-key {
+    flex: 0 0 240px;
+    max-width: 240px;
+    font-weight: inherit;
   }
 
-  &__species {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    width: 100%;
+  &__summary-value {
+    flex: 0 0 240px;
+    max-width: 240px;
+    font-weight: 300;
   }
 
-  &__species + &__species {
-    margin-top: 10px;
+  &__summary-animals {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-weight: 300;
   }
 
-  &__species-header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 15px;
-  }
-
-  &__species-heading {
-    margin: 0;
-    font-family: "GDS Transport", arial, sans-serif;
-    font-size: 27px;
+  &__summary-row--header &__summary-value,
+  &__summary-row--header &__summary-animals {
     font-weight: 700;
-    line-height: 34px;
-    color: #0b0c0c;
   }
 
-  &__species-remove {
+  &__summary-row:not(&__summary-row--header) &__summary-value,
+  &__summary-row:not(&__summary-row--header) &__summary-animals {
+    font-weight: 300;
+  }
+
+  &__summary-action {
+    flex: 0 0 120px;
+    max-width: 120px;
+    text-align: right;
+  }
+
+  &__summary-remove {
     margin: 0;
     padding: 0;
     border: 0;
     background: transparent;
+    font-family: inherit;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 25px;
+    color: #1d70b8;
+    text-decoration: underline;
     cursor: pointer;
+
+    &:hover {
+      color: #003078;
+    }
+
+    &:focus {
+      outline: 3px solid transparent;
+      color: #0b0c0c;
+      background-color: #fd0;
+      box-shadow: 0 -2px #fd0, 0 4px #0b0c0c;
+      text-decoration: none;
+    }
+  }
+
+  &__add-commodity {
+    margin: 0;
+    width: 100%;
     font-size: 19px;
     line-height: 25px;
-    text-align: inherit;
+    text-align: left;
   }
 
-  &__packaging {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+  &__commodity-heading {
+    margin: 0;
+    max-width: 630px;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 40px;
+    color: #0b0c0c;
+  }
+
+  &__species-heading {
     width: 100%;
+    max-width: 630px;
   }
 
-  &__packaging-heading {
+  &__species-caption {
+    margin: 0;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 24px;
+    color: #505a5f;
+  }
+
+  &__species-name {
     margin: 0;
     font-family: "GDS Transport", arial, sans-serif;
     font-size: 24px;
     font-weight: 700;
     line-height: 30px;
     color: #0b0c0c;
+  }
+
+  &__input {
+    max-width: 210px;
   }
 
   .govuk-label {
@@ -861,27 +973,68 @@ button.govuk-link.app-govuk-body-link--small {
     line-height: 25px;
   }
 
-  .govuk-input--width-10 {
-    max-width: 210px;
+  .govuk-hint {
+    margin-bottom: 10px;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 25px;
+    color: #505a5f;
   }
 }
 
 .app-consignment-details-form {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 30px;
   width: 100%;
-
-  > * {
-    margin-top: 0;
-    margin-bottom: 0;
-  }
 
   .govuk-form-group {
     width: 100%;
+    max-width: 630px;
     margin-bottom: 0;
   }
+
+  .app-origin-form-actions {
+    width: 100%;
+    max-width: 630px;
+
+    &__cancel {
+      margin: 30px 0 0;
+    }
+  }
+}
+
+.app-consignment-details-page__intro {
+  width: 100%;
+
+  > * + * {
+    margin-top: 30px;
+  }
+}
+
+.app-consignment-details-page__details {
+  width: 100%;
+  margin-top: 60px;
+
+  > * + * {
+    margin-top: 30px;
+  }
+
+  > .app-consignment-details-page__section-break {
+    margin-top: 50px;
+    margin-bottom: 50px;
+  }
+
+  > .app-consignment-details-page__section-break + * {
+    margin-top: 0;
+  }
+}
+
+.app-consignment-details-page__section-break {
+  margin: 50px 0;
+  padding: 0;
+  width: 100%;
+  border: 0;
+  border-top: 1px solid #b1b4b6;
+  background: transparent;
+  box-sizing: border-box;
 }
 
 .app-additional-animal-details-page {
@@ -942,6 +1095,11 @@ button.govuk-link.app-govuk-body-link--small {
     width: 100%;
     margin-bottom: 0;
   }
+}
+
+.app-reason-for-import-shell {
+  width: 100%;
+  max-width: 960px;
 }
 
 .app-reason-for-import-page {
@@ -1090,7 +1248,6 @@ button.govuk-link.app-govuk-body-link--small {
 
   > .govuk-radios__conditional:not(.govuk-radios__conditional--hidden) {
     grid-column: 1 / -1;
-    margin-top: 5px;
     display: flex;
     gap: 34px;
     align-items: stretch;
@@ -1104,6 +1261,7 @@ button.govuk-link.app-govuk-body-link--small {
       content: "";
       flex-shrink: 0;
       width: 4px;
+      margin-top: 10px;
       background: #b1b4b6;
     }
 
@@ -1122,18 +1280,92 @@ button.govuk-link.app-govuk-body-link--small {
 .app-internal-market-purpose-reveal {
   width: 100%;
 
+  &__group.govuk-form-group {
+    margin-bottom: 0;
+  }
+
+  .govuk-fieldset__legend {
+    margin-bottom: 15px;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 30px;
+    color: #0b0c0c;
+  }
+
+  .app-internal-market-purpose-radios {
+    &.govuk-radios {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+    }
+
+    > .govuk-radios__item {
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr);
+      grid-template-rows: auto auto;
+      column-gap: 15px;
+      row-gap: 5px;
+      align-items: start;
+      margin-bottom: 0;
+    }
+
+    > .govuk-radios__item > .govuk-radios__input {
+      grid-column: 1;
+      grid-row: 1 / 3;
+      align-self: start;
+      width: 44px;
+      height: 44px;
+      margin: 0;
+    }
+
+    > .govuk-radios__item > .govuk-radios__label {
+      grid-column: 2;
+      grid-row: 1;
+      align-self: start;
+      max-width: none;
+      margin: 0;
+      padding: 8px 15px 0 0;
+      font-size: 19px;
+      font-weight: 300;
+      line-height: 25px;
+      color: #0b0c0c;
+    }
+
+    > .govuk-radios__item > .govuk-radios__label::before {
+      top: 2px;
+      left: 2px;
+      width: 40px;
+      height: 40px;
+    }
+
+    > .govuk-radios__item > .govuk-radios__hint {
+      grid-column: 2;
+      grid-row: 2;
+      margin: 0;
+      padding: 0 15px 0 0;
+      font-size: 19px;
+      font-weight: 300;
+      line-height: 25px;
+      color: #505a5f;
+    }
+  }
+}
+
+.app-transhipment-destination-reveal,
+.app-transit-options-reveal {
+  width: 100%;
+
   .govuk-form-group {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 5px;
     margin-bottom: 0;
   }
 
   .govuk-label {
     margin: 0;
-    font-family: "GDS Transport", arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
     font-size: 19px;
     font-weight: 300;
     line-height: 25px;
@@ -1141,17 +1373,20 @@ button.govuk-link.app-govuk-body-link--small {
   }
 
   .govuk-select {
-    width: 218px;
-    max-width: 100%;
+    width: 100%;
+    max-width: 396px;
     margin: 0;
-    font-family: "GDS Transport", arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
     font-size: 19px;
     font-weight: 300;
     line-height: 25px;
     color: #0b0c0c;
   }
+}
+
+.app-transit-options-reveal {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
 }
 
 .app-origin-radios-block {
@@ -1534,12 +1769,19 @@ button.govuk-link.app-govuk-body-link--small {
   }
 }
 
+.app-animal-identification-shell {
+  width: 100%;
+  max-width: 960px;
+}
+
 .app-animal-identification-page {
-  &__intro {
-    max-width: 630px;
+  width: 100%;
+
+  .app-notification-status {
+    margin-bottom: 30px;
   }
 
-  &__header {
+  .govuk-error-summary {
     margin-bottom: 30px;
   }
 
@@ -1547,7 +1789,7 @@ button.govuk-link.app-govuk-body-link--small {
     margin: 0 0 5px;
     font-family: "GDS Transport", arial, sans-serif;
     font-size: 24px;
-    font-weight: 400;
+    font-weight: 300;
     line-height: 30px;
     color: #505a5f;
   }
@@ -1561,12 +1803,87 @@ button.govuk-link.app-govuk-body-link--small {
     color: #0b0c0c;
   }
 
-  &__inset {
-    margin-bottom: 30px;
+  &__header {
+    max-width: 630px;
+    margin: 0;
   }
 
-  &__panel-column {
-    max-width: 960px;
+  &__inset {
+    margin: 0;
+    max-width: 630px;
+  }
+
+  &__selected-commodities-heading {
+    margin: 0;
+    max-width: 633px;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 30px;
+    color: #0b0c0c;
+  }
+
+  &__summary {
+    width: 100%;
+  }
+
+  &__summary-row {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    padding: 10px 0;
+    border-bottom: 1px solid #b1b4b6;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 19px;
+    line-height: 25px;
+    color: #0b0c0c;
+
+    &--header {
+      font-weight: 700;
+    }
+  }
+
+  &__summary-key {
+    flex: 0 0 240px;
+    max-width: 240px;
+    font-weight: inherit;
+  }
+
+  &__summary-value {
+    flex: 0 0 240px;
+    max-width: 240px;
+    font-weight: 300;
+  }
+
+  &__summary-animals {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-weight: 300;
+  }
+
+  &__summary-row--header &__summary-value,
+  &__summary-row--header &__summary-animals {
+    font-weight: 700;
+  }
+
+  &__summary-row:not(&__summary-row--header) &__summary-value,
+  &__summary-row:not(&__summary-row--header) &__summary-animals {
+    font-weight: 300;
+  }
+
+  &__summary-action {
+    flex: 0 0 120px;
+    max-width: 120px;
+    text-align: right;
+    font-weight: 300;
+  }
+
+  &__add-commodity {
+    margin: 0;
+    width: 100%;
+    font-size: 19px;
+    line-height: 25px;
+    text-align: left;
   }
 
   &__input {
@@ -1574,44 +1891,82 @@ button.govuk-link.app-govuk-body-link--small {
   }
 
   &__form-actions {
-    margin-top: 0;
     max-width: 630px;
   }
 }
 
-.app-animal-identification-panels {
-  margin-bottom: 30px;
+.app-animal-identification-form {
+  width: 100%;
+}
+
+.app-animal-identification-page__intro {
+  width: 100%;
+
+  > * + * {
+    margin-top: 30px;
+  }
+}
+
+.app-animal-identification-page__groups {
+  width: 100%;
+  margin-top: 60px;
+}
+
+.app-animal-identification-commodity {
+  width: 100%;
+
+  & + & {
+    margin-top: 60px;
+  }
+
+  &__heading {
+    margin: 0;
+    max-width: 633px;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 30px;
+    color: #0b0c0c;
+  }
 }
 
 .app-animal-identification-panel {
+  width: 100%;
+  margin-top: 30px;
   border: 1px solid #b1b4b6;
 
   &--spaced {
-    margin-bottom: 30px;
+    margin-top: 30px;
   }
 
   &__header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 20px;
+    gap: 68px;
     padding: 20px;
     background: #f3f2f1;
-    border-bottom: 1px solid #b1b4b6;
+    border-bottom: 1px solid #f3f2f1;
   }
 
   &__species-name {
+    flex: 1 1 auto;
     margin: 0;
+    min-width: 0;
     font-family: "GDS Transport", arial, sans-serif;
     font-size: 19px;
     font-weight: 700;
-    line-height: 24px;
+    line-height: 25px;
     color: #0b0c0c;
   }
 
-  &__change-species {
+  &__change-count {
     flex-shrink: 0;
+    font-size: 19px;
     font-weight: 700;
+    line-height: 19px;
+    text-decoration: none;
+    box-shadow: inset 0 -1px 0 #1d70b8;
   }
 
   &__body {
@@ -1619,21 +1974,18 @@ button.govuk-link.app-govuk-body-link--small {
     background: #ffffff;
   }
 
-  &__heading {
-    margin: 0 0 10px;
+  &__entry-heading {
+    margin: 10px 0 30px;
     font-family: "GDS Transport", arial, sans-serif;
     font-size: 24px;
     font-weight: 700;
-    line-height: 32px;
+    line-height: 30px;
     color: #0b0c0c;
-  }
-
-  &__change-count {
-    margin: 0 0 30px;
   }
 
   .govuk-form-group {
     margin-bottom: 30px;
+    max-width: 630px;
   }
 
   .govuk-button {
@@ -1642,56 +1994,85 @@ button.govuk-link.app-govuk-body-link--small {
 
   &__saved {
     margin-top: 30px;
+    width: 100%;
   }
-}
 
-.app-animal-identification-table {
-  margin-bottom: 0;
-
-  .govuk-table__header {
-    font-size: 19px;
-    font-weight: 700;
-    line-height: 25px;
+  &__saved-row {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
     padding: 10px 0;
-    vertical-align: top;
-  }
-
-  .govuk-table__cell {
+    border-bottom: 1px solid #b1b4b6;
+    font-family: "GDS Transport", arial, sans-serif;
     font-size: 19px;
-    font-weight: 300;
     line-height: 25px;
-    padding: 17px 0;
-    vertical-align: top;
+    color: #0b0c0c;
+
+    &--header {
+      font-weight: 700;
+      padding-top: 0;
+    }
+
+    &:not(&--header) {
+      padding-top: 17px;
+      padding-bottom: 17px;
+    }
   }
 
-  .govuk-table__header:first-child,
-  .govuk-table__cell:first-child {
-    width: 240px;
-    padding-right: 20px;
+  &__saved-key {
+    flex: 0 0 240px;
+    max-width: 240px;
+    font-weight: inherit;
   }
 
-  .govuk-table__header--numeric,
-  .govuk-table__cell--numeric {
-    width: 66px;
-    padding-left: 20px;
+  &__saved-value {
+    flex: 0 0 210px;
+    max-width: 210px;
+    font-weight: 300;
   }
 
-  &__remove-button {
+  &__saved-row--header &__saved-value {
+    font-weight: 700;
+  }
+
+  &__saved-action {
+    flex: 1 1 auto;
+    min-width: 66px;
+    text-align: right;
+  }
+
+  &__saved-remove {
     margin: 0;
     padding: 0;
     border: 0;
-    background: none;
-    cursor: pointer;
+    background: transparent;
     font-family: inherit;
     font-size: 19px;
     font-weight: 300;
     line-height: 25px;
-    text-decoration: underline;
     color: #1d70b8;
+    text-decoration: underline;
+    cursor: pointer;
 
     &:hover {
       color: #003078;
     }
+
+    &:focus {
+      outline: 3px solid transparent;
+      color: #0b0c0c;
+      background-color: #fd0;
+      box-shadow: 0 -2px #fd0, 0 4px #0b0c0c;
+      text-decoration: none;
+    }
+  }
+}
+
+.app-animal-identification-page__form-actions {
+  margin-top: 60px;
+
+  .app-origin-form-actions__cancel {
+    margin: 30px 0 0;
   }
 }
 
@@ -1927,16 +2308,32 @@ button.govuk-link.app-govuk-body-link--small {
   }
 }
 
+.app-transit-countries-shell {
+  width: 100%;
+  max-width: 960px;
+}
+
 .app-transit-countries-page {
-  &__header {
+  width: 100%;
+
+  .app-notification-status {
     margin-bottom: 30px;
+  }
+
+  .govuk-error-summary {
+    margin-bottom: 30px;
+  }
+
+  &__header {
+    max-width: 630px;
+    margin: 0;
   }
 
   &__caption {
     margin: 0 0 5px;
     font-family: "GDS Transport", arial, sans-serif;
     font-size: 24px;
-    font-weight: 400;
+    font-weight: 300;
     line-height: 30px;
     color: #505a5f;
   }
@@ -1951,7 +2348,8 @@ button.govuk-link.app-govuk-body-link--small {
   }
 
   &__intro {
-    margin-bottom: 30px;
+    max-width: 630px;
+    margin-top: 30px;
 
     .govuk-body {
       margin: 0 0 24px;
@@ -1983,30 +2381,77 @@ button.govuk-link.app-govuk-body-link--small {
     color: #505a5f;
   }
 
+  &__country {
+    width: 100%;
+  }
+
+  &__search {
+    max-width: 630px;
+    margin-bottom: 0;
+  }
+
   &__country-search {
     max-width: 630px;
+  }
 
-    .app-transit-country-search__selected {
-      margin-top: 20px;
+  &__add-country {
+    margin: 20px 0 0;
+    font-size: 19px;
+    line-height: 25px;
+    text-align: left;
+  }
+
+  &__summary {
+    width: 100%;
+    margin-top: 30px;
+  }
+
+  &__summary-row {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    padding: 10px 0;
+    border-bottom: 1px solid #b1b4b6;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 19px;
+    line-height: 25px;
+    color: #0b0c0c;
+
+    &--header {
+      font-weight: 700;
     }
+  }
+
+  &__summary-key {
+    flex: 0 0 240px;
+    max-width: 240px;
+    font-weight: inherit;
+  }
+
+  &__summary-value {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-weight: 300;
+  }
+
+  &__summary-action {
+    flex: 0 0 121px;
+    max-width: 121px;
+    text-align: right;
+    font-weight: 300;
+  }
+
+  &__form-actions {
+    max-width: 630px;
   }
 }
 
 .app-transit-countries-form {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 30px;
   width: 100%;
+  margin-top: 30px;
 
-  > * {
-    margin-top: 0;
-    margin-bottom: 0;
-  }
-
-  .govuk-form-group {
-    width: 100%;
-    margin-bottom: 0;
+  .app-origin-form-actions {
+    margin-top: 30px;
   }
 }
 
@@ -4152,6 +4597,26 @@ button.govuk-link.app-govuk-body-link--small {
     color: #0b0c0c;
   }
 
+  &__groups {
+    padding: 25px 20px 15px;
+    background: #ffffff;
+  }
+
+  &__group {
+    & + & {
+      margin-top: 30px;
+    }
+  }
+
+  &__group-heading {
+    margin: 0 0 20px;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 24px;
+    color: #0b0c0c;
+  }
+
   &__animal-details {
     padding: 0 20px 15px;
     background: #ffffff;
@@ -4172,10 +4637,39 @@ button.govuk-link.app-govuk-body-link--small {
     .govuk-table__header {
       font-weight: 700;
     }
+
+    .govuk-table__header,
+    .govuk-table__cell {
+      padding-right: 20px;
+      vertical-align: top;
+    }
+
+    .govuk-table__header:first-child,
+    .govuk-table__cell:first-child {
+      width: 240px;
+    }
+
+    .govuk-table__header:nth-child(2),
+    .govuk-table__cell:nth-child(2) {
+      width: 210px;
+    }
+
+    .govuk-table__header:last-child,
+    .govuk-table__cell:last-child {
+      padding-right: 0;
+    }
   }
 
   &__rows--packaging {
     padding: 0;
+  }
+
+  &__rows--grouped {
+    padding: 0;
+
+    .app-review-card__row:last-child {
+      border-bottom: 1px solid #b1b4b6;
+    }
   }
 
   &__packaging {

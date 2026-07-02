@@ -6,7 +6,7 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
 
-{% set pageName = "Additional animal details" %}
+{% set pageName = "Additional details" %}
 
 {% block beforeContent %}
   {{ govukPhaseBanner({
@@ -35,7 +35,7 @@
 
     <div class="app-additional-animal-details-page__header">
       <p class="app-additional-animal-details-page__caption">Commodity details</p>
-      <h1 class="app-additional-animal-details-page__heading">Additional animal details</h1>
+      <h1 class="app-additional-animal-details-page__heading">Additional details</h1>
     </div>
 
     <form method="post" action="/additional-animal-details" novalidate class="app-additional-animal-details-form">

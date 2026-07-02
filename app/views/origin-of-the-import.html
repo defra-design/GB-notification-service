@@ -67,7 +67,7 @@
                 id="country-of-origin"
                 type="search"
                 autocomplete="off"
-                placeholder="Select a country"
+                placeholder="Search for a country"
                 aria-controls="country-search-results"
                 {% if data.errors and data.errors.countryOfOrigin %}aria-describedby="country-of-origin-error"{% endif %}
                 value="{{ data.countryOfOrigin or '' }}"
@@ -171,18 +171,7 @@
             name: "action",
             value: "continue"
           }) }}
-
-          {{ govukButton({
-            text: "Save and return to hub",
-            name: "action",
-            value: "hub",
-            classes: "govuk-button--secondary"
-          }) }}
         </div>
-
-        <p class="app-origin-form-actions__cancel">
-          <a class="govuk-link" href="/notification-hub">Cancel and return to hub</a>
-        </p>
       </div>
 
     </form>

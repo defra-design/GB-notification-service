@@ -265,9 +265,7 @@ function initCommoditySearch (root) {
     return
   }
 
-  const selectedValues = new Set(
-    getInitialSelections(root).filter((value) => !value.startsWith('commodity:'))
-  )
+  const selectedValues = new Set(getInitialSelections(root))
 
   function getCommodityById (commodityId) {
     return commodities.find((commodity) => commodity.id === commodityId)
@@ -283,32 +281,6 @@ function initCommoditySearch (root) {
     }
 
     return null
-  }
-
-  function getSelectedCommodityIds () {
-    const commodityIds = new Set()
-
-    selectedValues.forEach((value) => {
-      const parsed = parseSelectionValue(value)
-
-      if (!parsed || parsed.type !== 'species') {
-        return
-      }
-
-      const match = getSpeciesById(parsed.id)
-
-      if (match) {
-        commodityIds.add(match.commodity.id)
-      }
-    })
-
-    return Array.from(commodityIds)
-  }
-
-  function isCommodityDisabled (commodityId) {
-    const selectedCommodityIds = getSelectedCommodityIds()
-
-    return selectedCommodityIds.length > 0 && !selectedCommodityIds.includes(commodityId)
   }
 
   function setExpanded (isExpanded) {
@@ -362,6 +334,26 @@ function initCommoditySearch (root) {
     return records
   }
 
+  function getSelectedCommodityIds () {
+    const commodityIds = new Set()
+
+    selectedValues.forEach((value) => {
+      const parsed = parseSelectionValue(value)
+
+      if (!parsed || parsed.type !== 'species') {
+        return
+      }
+
+      const match = getSpeciesById(parsed.id)
+
+      if (match) {
+        commodityIds.add(match.commodity.id)
+      }
+    })
+
+    return Array.from(commodityIds)
+  }
+
   function getPrimaryCommodityId () {
     const selectedCommodityIds = getSelectedCommodityIds()
 
@@ -399,7 +391,7 @@ function initCommoditySearch (root) {
     renderResults(input.value)
   }
 
-  function getGroupedSelectionItems () {
+  function getSelectedCommodityGroups () {
     const groups = new Map()
 
     selectedValues.forEach((value) => {
@@ -419,14 +411,15 @@ function initCommoditySearch (root) {
 
       if (!groups.has(commodity.id)) {
         groups.set(commodity.id, {
-          commodity,
+          commodityName: commodity.name,
+          commodityCode: commodity.code,
           items: []
         })
       }
 
       groups.get(commodity.id).items.push({
         value,
-        label: species.commonName || species.label
+        chipLabel: species.label
       })
     })
 
@@ -434,7 +427,7 @@ function initCommoditySearch (root) {
   }
 
   function getSelectionCount () {
-    return getGroupedSelectionItems().reduce((count, group) => count + group.items.length, 0)
+    return selectedValues.size
   }
 
   function announceSelectionCount () {
@@ -449,7 +442,7 @@ function initCommoditySearch (root) {
   }
 
   function renderSelectedPanel () {
-    const groups = getGroupedSelectionItems()
+    const groups = getSelectedCommodityGroups()
     const count = getSelectionCount()
     const hasSelections = count > 0
 
@@ -466,24 +459,24 @@ function initCommoditySearch (root) {
     selectedHeading.textContent = `${count} selected`
 
     selectedList.innerHTML = groups.map((group) => `
-      <li class="app-commodity-search__selected-group">
-        <div class="app-commodity-search__selected-group-row">
-          <p class="app-commodity-search__selected-group-label">${escapeHtml(formatCommodity(group.commodity))}:</p>
-          <ul class="app-commodity-search__selected-chips" role="list">
-            ${group.items.map((item) => `
-              <li class="app-commodity-search__selected-item">
-                <span class="app-commodity-search__selected-label">${escapeHtml(item.label)}</span>
-                <button
-                  class="app-commodity-search__selected-remove"
-                  type="button"
-                  data-selection-value="${escapeHtml(item.value)}"
-                  aria-label="Remove ${escapeHtml(item.label)}"
-                >
-                  <span class="govuk-visually-hidden">Remove ${escapeHtml(item.label)}</span>
-                </button>
-              </li>
-            `).join('')}
-          </ul>
+      <li class="app-commodity-search__selected-entry">
+        <p class="app-commodity-search__selected-entry-label">
+          <strong class="app-commodity-search__selected-entry-name">${escapeHtml(group.commodityName)} (${escapeHtml(group.commodityCode)})</strong>:
+        </p>
+        <div class="app-commodity-search__selected-chips">
+          ${group.items.map((item) => `
+            <div class="app-commodity-search__selected-item">
+              <span class="app-commodity-search__selected-label">${escapeHtml(item.chipLabel)}</span>
+              <button
+                class="app-commodity-search__selected-remove"
+                type="button"
+                data-selection-value="${escapeHtml(item.value)}"
+                aria-label="Remove ${escapeHtml(item.chipLabel)}"
+              >
+                <span class="govuk-visually-hidden">Remove ${escapeHtml(item.chipLabel)}</span>
+              </button>
+            </div>
+          `).join('')}
         </div>
       </li>
     `).join('')
@@ -623,10 +616,8 @@ function initCommoditySearch (root) {
     const rowsHtml = []
 
     groups.forEach(({ commodity, species }) => {
-      const disabled = isCommodityDisabled(commodity.id)
-
       rowsHtml.push(buildCommodityHeaderRow({
-        disabled,
+        disabled: false,
         labelHtml: highlightMatch(escapeHtml(formatCommodity(commodity)), trimmedQuery),
         rowIndex: rowIndex++
       }))
@@ -638,7 +629,7 @@ function initCommoditySearch (root) {
         rowsHtml.push(buildSpeciesRow({
           rowIndex: rowIndex++,
           commodity,
-          disabled,
+          disabled: false,
           checkboxId: `commodity-species-${speciesItem.id}`,
           labelHtml: highlightMatch(escapeHtml(optionLabel), trimmedQuery),
           selectionValue: speciesValue,

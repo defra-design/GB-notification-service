@@ -1,13 +1,20 @@
-{% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
 
 <div class="app-internal-market-purpose-reveal">
-  {{ govukSelect({
-    id: "internal-market-purpose",
+  {{ govukRadios({
+    idPrefix: "internal-market-purpose",
     name: "internalMarketPurpose",
-    label: {
-      text: "Purpose in the internal market"
+    fieldset: {
+      legend: {
+        text: "Purpose in the internal market",
+        classes: "govuk-fieldset__legend--m"
+      }
     },
-    items: internalMarketPurposeItems,
-    errorMessage: data.errors.internalMarketPurpose if data.errors and data.errors.internalMarketPurpose
+    errorMessage: data.errors.internalMarketPurpose if data.errors and data.errors.internalMarketPurpose,
+    classes: "app-internal-market-purpose-radios",
+    formGroup: {
+      classes: "app-origin-radios-block app-internal-market-purpose-reveal__group"
+    },
+    items: internalMarketPurposeItems
   }) }}
 </div>

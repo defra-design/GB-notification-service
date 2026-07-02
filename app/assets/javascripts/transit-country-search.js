@@ -1,5 +1,5 @@
 //
-// Transit country search — multi-select with commodity search styling (max 12)
+// Transit country search — select from dropdown, add to table, reset search (max 12)
 //
 
 const MIN_SEARCH_LENGTH = 3
@@ -73,51 +73,26 @@ function parseSelectedCountries (valueInput) {
   }
 }
 
-function buildCountryRow ({ rowIndex, option, labelHtml, isChecked, disabled }) {
-  const altClass = rowIndex % 2 === 1 ? ' app-commodity-search__row--alt' : ''
-  const disabledClass = disabled ? ' app-commodity-search__row--disabled' : ''
-  const checkboxId = `transit-country-${rowIndex}`
-
-  return `
-    <li class="app-commodity-search__row app-commodity-search__row--species${altClass}${disabledClass}">
-      <div class="govuk-checkboxes app-commodity-search__checkbox-item">
-        <div class="govuk-checkboxes__item">
-          <input
-            class="govuk-checkboxes__input app-commodity-search__checkbox-input"
-            id="${checkboxId}"
-            name="transit-country-selection"
-            type="checkbox"
-            value="${option.value.replace(/"/g, '&quot;')}"
-            ${isChecked ? 'checked' : ''}
-            ${disabled ? 'disabled' : ''}
-          >
-          <label class="govuk-checkboxes__label app-commodity-search__row-label" for="${checkboxId}">
-            ${labelHtml}
-          </label>
-        </div>
-      </div>
-    </li>
-  `
-}
-
 function initTransitCountrySearch (root) {
   const countryOptions = getCountries(root)
+  const form = root.closest('form')
   const input = root.querySelector('.app-commodity-search__input')
   const button = root.querySelector('.app-commodity-search__button')
   const results = root.querySelector('.app-commodity-search__results')
   const status = root.querySelector('.app-transit-country-search__status')
   const valueInput = root.querySelector('.app-transit-country-search__value')
   const searchBox = root.querySelector('.app-commodity-search')
-  const selectedPanel = root.querySelector('.app-transit-country-search__selected')
-  const selectedHeading = root.querySelector('.app-transit-country-search__selected-heading')
-  const selectedList = root.querySelector('.app-transit-country-search__selected-list')
-  const clearAllButton = root.querySelector('.app-transit-country-search__selected-clear')
+  const addCountryButton = root.querySelector('.app-transit-country-search__add-country')
+  const addCountryWrapper = root.querySelector('.app-transit-countries-page__add-country')
+  const summaryPanel = root.querySelector('.app-transit-countries-page__summary')
+  const selectedRows = root.querySelector('.app-transit-country-search__selected-rows')
 
-  if (!input || !button || !results || !valueInput || !selectedPanel || !selectedHeading || !selectedList || !clearAllButton) {
+  if (!form || !input || !button || !results || !valueInput || !addCountryButton || !addCountryWrapper || !summaryPanel || !selectedRows) {
     return
   }
 
-  const selectedCountries = new Set(parseSelectedCountries(valueInput))
+  let selectedCountries = parseSelectedCountries(valueInput)
+  let pendingCountry = ''
 
   function setExpanded (isExpanded) {
     if (searchBox) {
@@ -133,96 +108,30 @@ function initTransitCountrySearch (root) {
   }
 
   function syncValueInput () {
-    valueInput.value = JSON.stringify(Array.from(selectedCountries).sort((left, right) => left.localeCompare(right)))
+    valueInput.value = JSON.stringify(selectedCountries)
   }
 
   function isAtMaxCountries () {
-    return selectedCountries.size >= MAX_COUNTRIES
+    return selectedCountries.length >= MAX_COUNTRIES
   }
 
-  function announceSelectionCount () {
-    const count = selectedCountries.size
+  function updateCountryLimitState () {
+    const atMax = isAtMaxCountries()
 
-    if (count === 0) {
-      announce('')
-      return
+    addCountryWrapper.hidden = atMax
+    input.disabled = atMax
+    button.disabled = atMax
+    searchBox.classList.toggle('app-commodity-search--disabled', atMax)
+
+    if (atMax) {
+      clearSearch()
     }
-
-    announce(`${count} of ${MAX_COUNTRIES} countries selected`)
   }
 
-  function renderSelectedPanel () {
-    const countries = Array.from(selectedCountries).sort((left, right) => left.localeCompare(right))
-    const hasSelections = countries.length > 0
-
-    selectedPanel.hidden = !hasSelections
-    selectedPanel.classList.toggle('app-commodity-search__selected--visible', hasSelections)
-    clearAllButton.hidden = !hasSelections
-
-    if (!hasSelections) {
-      selectedHeading.textContent = ''
-      selectedList.innerHTML = ''
-      syncValueInput()
-      return
-    }
-
-    selectedHeading.textContent = `${countries.length} selected`
-
-    selectedList.innerHTML = `
-      <li class="app-commodity-search__selected-group">
-        <div class="app-commodity-search__selected-group-row">
-          <ul class="app-commodity-search__selected-chips" role="list">
-            ${countries.map((country) => `
-              <li class="app-commodity-search__selected-item">
-                <span class="app-commodity-search__selected-label">${escapeHtml(country)}</span>
-                <button
-                  class="app-commodity-search__selected-remove"
-                  type="button"
-                  data-country="${country.replace(/"/g, '&quot;')}"
-                  aria-label="Remove ${escapeHtml(country)}"
-                >
-                  <span class="govuk-visually-hidden">Remove ${escapeHtml(country)}</span>
-                </button>
-              </li>
-            `).join('')}
-          </ul>
-        </div>
-      </li>
-    `
-
-    syncValueInput()
-  }
-
-  function removeCountry (country) {
-    selectedCountries.delete(country)
-    renderSelectedPanel()
-    renderResults(input.value)
-    announceSelectionCount()
-  }
-
-  function clearAllSelections () {
-    selectedCountries.clear()
-    renderSelectedPanel()
+  function clearSearch () {
+    pendingCountry = ''
+    input.value = ''
     closeResults()
-    announce('')
-  }
-
-  function toggleCountry (country, checked) {
-    if (checked) {
-      if (isAtMaxCountries()) {
-        announce(`Maximum of ${MAX_COUNTRIES} countries reached`)
-        renderResults(input.value)
-        return
-      }
-
-      selectedCountries.add(country)
-    } else {
-      selectedCountries.delete(country)
-    }
-
-    renderSelectedPanel()
-    renderResults(input.value)
-    announceSelectionCount()
   }
 
   function closeResults () {
@@ -238,12 +147,87 @@ function initTransitCountrySearch (root) {
       return []
     }
 
+    const takenCountries = new Set(selectedCountries)
+
     return countryOptions
       .filter((option) => countryOptionMatchesQuery(option, normalisedQuery))
+      .filter((option) => !takenCountries.has(option.value))
       .sort((left, right) => left.label.localeCompare(right.label))
   }
 
+  function setPendingCountry (country) {
+    if (isAtMaxCountries()) {
+      announce(`Maximum of ${MAX_COUNTRIES} countries reached. Remove a country to add another.`)
+      return
+    }
+
+    pendingCountry = country
+    input.value = country
+    closeResults()
+    announce(`Selected ${country}`)
+  }
+
+  function addPendingCountry () {
+    if (!pendingCountry || selectedCountries.includes(pendingCountry)) {
+      return
+    }
+
+    if (selectedCountries.length >= MAX_COUNTRIES) {
+      announce(`Maximum of ${MAX_COUNTRIES} countries reached`)
+      return
+    }
+
+    const countryToAdd = pendingCountry
+    selectedCountries = [...selectedCountries, countryToAdd].sort((left, right) => left.localeCompare(right))
+    clearSearch()
+    renderSelectedTable()
+    syncValueInput()
+    announce(`Added ${countryToAdd}`)
+    input.focus()
+  }
+
+  function addPendingCountryForSubmit () {
+    if (!pendingCountry || selectedCountries.includes(pendingCountry) || isAtMaxCountries()) {
+      return
+    }
+
+    selectedCountries = [...selectedCountries, pendingCountry].sort((left, right) => left.localeCompare(right))
+    clearSearch()
+    renderSelectedTable()
+    syncValueInput()
+  }
+
+  function removeCountry (country) {
+    selectedCountries = selectedCountries.filter((item) => item !== country)
+    renderSelectedTable()
+    syncValueInput()
+    announce(`Removed ${country}`)
+  }
+
+  function renderSelectedTable () {
+    const hasSelections = selectedCountries.length > 0
+
+    summaryPanel.hidden = !hasSelections
+    summaryPanel.classList.toggle('app-transit-countries-page__summary--empty', !hasSelections)
+
+    selectedRows.innerHTML = selectedCountries.map((country) => `
+      <div class="app-transit-countries-page__summary-row" data-transit-country="${country.replace(/"/g, '&quot;')}">
+        <div class="app-transit-countries-page__summary-value">${escapeHtml(country)}</div>
+        <div class="app-transit-countries-page__summary-action">
+          <a class="govuk-link app-transit-country-search__remove-country" href="#">Remove</a>
+        </div>
+      </div>
+    `).join('')
+
+    updateCountryLimitState()
+  }
+
   function renderResults (query) {
+    if (isAtMaxCountries()) {
+      closeResults()
+      return
+    }
+
     const trimmedQuery = query.trim()
 
     if (trimmedQuery.length < MIN_SEARCH_LENGTH) {
@@ -266,75 +250,69 @@ function initTransitCountrySearch (root) {
       return
     }
 
-    const atMax = isAtMaxCountries()
-
     results.innerHTML = matches.map((option, index) => {
-      const isChecked = selectedCountries.has(option.value)
-      const disabled = atMax && !isChecked
+      const altClass = index % 2 === 1 ? ' app-commodity-search__row--alt' : ''
+      const isSelected = pendingCountry === option.value
 
-      return buildCountryRow({
-        rowIndex: index,
-        option,
-        labelHtml: highlightMatch(option.label, trimmedQuery),
-        isChecked,
-        disabled
-      })
+      return `
+        <li class="app-commodity-search__row${altClass}">
+          <button
+            type="button"
+            class="app-country-search__option${isSelected ? ' app-country-search__option--selected' : ''}"
+            data-country="${option.value.replace(/"/g, '&quot;')}"
+          >
+            ${highlightMatch(option.label, trimmedQuery)}
+          </button>
+        </li>
+      `
     }).join('')
+
+    results.querySelectorAll('.app-country-search__option').forEach((optionButton) => {
+      optionButton.addEventListener('click', () => {
+        setPendingCountry(optionButton.getAttribute('data-country'))
+      })
+    })
 
     results.hidden = false
     setExpanded(true)
-
-    if (selectedCountries.size > 0) {
-      announceSelectionCount()
-    } else {
-      announce(`${matches.length} result${matches.length === 1 ? '' : 's'} available`)
-    }
+    announce(`${matches.length} result${matches.length === 1 ? '' : 's'} available`)
   }
 
   results.addEventListener('mousedown', (event) => {
     event.preventDefault()
   })
 
-  results.addEventListener('change', (event) => {
-    const checkbox = event.target.closest('.app-commodity-search__checkbox-input')
-
-    if (!checkbox || checkbox.disabled) {
-      return
-    }
-
-    toggleCountry(checkbox.value, checkbox.checked)
-  })
-
-  selectedList.addEventListener('click', (event) => {
-    const removeButton = event.target.closest('.app-commodity-search__selected-remove')
-
-    if (!removeButton) {
-      return
-    }
-
-    event.preventDefault()
-    removeCountry(removeButton.getAttribute('data-country'))
-  })
-
-  clearAllButton.addEventListener('click', (event) => {
-    event.preventDefault()
-    clearAllSelections()
-  })
-
   input.addEventListener('input', () => {
+    if (isAtMaxCountries()) {
+      return
+    }
+
+    if (input.value.trim() !== pendingCountry) {
+      pendingCountry = ''
+    }
+
     renderResults(input.value)
   })
 
   input.addEventListener('focus', () => {
+    if (isAtMaxCountries()) {
+      announce(`Maximum of ${MAX_COUNTRIES} countries reached. Remove a country to add another.`)
+      return
+    }
+
     if (input.value.trim().length >= MIN_SEARCH_LENGTH) {
       renderResults(input.value)
     }
   })
 
-  document.addEventListener('pointerdown', (event) => {
-    if (!root.contains(event.target)) {
+  input.addEventListener('blur', () => {
+    window.setTimeout(() => {
       closeResults()
-    }
+
+      if (pendingCountry && input.value.trim() !== pendingCountry) {
+        input.value = pendingCountry
+      }
+    }, 200)
   })
 
   input.addEventListener('keydown', (event) => {
@@ -346,17 +324,47 @@ function initTransitCountrySearch (root) {
   button.addEventListener('click', (event) => {
     event.preventDefault()
 
-    if (input.value.trim().length >= MIN_SEARCH_LENGTH) {
-      renderResults(input.value)
-      input.focus()
+    if (isAtMaxCountries()) {
+      announce(`Maximum of ${MAX_COUNTRIES} countries reached. Remove a country to add another.`)
+      return
+    }
+
+    renderResults(input.value)
+    input.focus()
+  })
+
+  addCountryButton.addEventListener('click', (event) => {
+    event.preventDefault()
+    addPendingCountry()
+  })
+
+  selectedRows.addEventListener('click', (event) => {
+    const removeButton = event.target.closest('.app-transit-country-search__remove-country')
+
+    if (!removeButton) {
+      return
+    }
+
+    event.preventDefault()
+
+    const row = removeButton.closest('[data-transit-country]')
+
+    if (row) {
+      removeCountry(row.getAttribute('data-transit-country'))
     }
   })
 
-  renderSelectedPanel()
+  document.addEventListener('pointerdown', (event) => {
+    if (!root.contains(event.target)) {
+      closeResults()
+    }
+  })
 
-  if (input.value.trim().length >= MIN_SEARCH_LENGTH) {
-    renderResults(input.value)
-  }
+  form.addEventListener('submit', () => {
+    addPendingCountryForSubmit()
+  })
+
+  updateCountryLimitState()
 }
 
 window.GOVUKPrototypeKit.documentReady(() => {

@@ -149,5 +149,18 @@ function getActiveConsignmentAddressSections (commodityCode) {
   return consignmentAddressSections.filter((section) => sectionIds.includes(section.id))
 }
 
+function getActiveConsignmentAddressSectionsForCommodityCodes (commodityCodes) {
+  const sectionIdSet = new Set()
+
+  commodityCodes.forEach((commodityCode) => {
+    getConsignmentAddressSectionIdsForCommodityCode(commodityCode).forEach((sectionId) => {
+      sectionIdSet.add(sectionId)
+    })
+  })
+
+  return consignmentAddressSections.filter((section) => sectionIdSet.has(section.id))
+}
+
 module.exports = consignmentAddressSections
 module.exports.getActiveConsignmentAddressSections = getActiveConsignmentAddressSections
+module.exports.getActiveConsignmentAddressSectionsForCommodityCodes = getActiveConsignmentAddressSectionsForCommodityCodes

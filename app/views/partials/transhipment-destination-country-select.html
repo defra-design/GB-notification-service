@@ -1,0 +1,13 @@
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+
+<div class="app-transhipment-destination-reveal">
+  {{ govukSelect({
+    id: "transhipment-destination-country",
+    name: "transhipmentDestinationCountry",
+    label: {
+      text: "Destination country"
+    },
+    items: destinationCountryItems,
+    errorMessage: data.errors.transhipmentDestinationCountry if data.errors and data.errors.transhipmentDestinationCountry
+  }) }}
+</div>

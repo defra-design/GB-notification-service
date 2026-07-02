@@ -1,12 +1,11 @@
-{% extends "layouts/journey.html" %}
+{% extends "layouts/main.html" %}
 
-{% set journeyPageClass = "app-reason-for-import-page" %}
+{% set pageName = "Main reason for import" %}
 
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
-
-{% set pageName = "Reason for import" %}
 
 {% block beforeContent %}
   {{ govukPhaseBanner({
@@ -22,62 +21,71 @@
   }) }}
 {% endblock %}
 
-{% block journeyContent %}
+{% block content %}
 
-    {% include "partials/notification-status.html" %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+    <div class="app-reason-for-import-shell">
 
-    {% if data.errorList %}
-      {{ govukErrorSummary({
-        titleText: "There is a problem",
-        errorList: data.errorList
-      }) }}
-    {% endif %}
+      {% include "partials/notification-status.html" %}
 
-    <div class="app-reason-for-import-page__header">
-      <p class="app-reason-for-import-page__caption">About the consignment</p>
-      <h1 class="app-reason-for-import-page__heading">What is the main reason for importing the animals?</h1>
-    </div>
+      {% if data.errorList %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: data.errorList
+        }) }}
+      {% endif %}
 
-    <form method="post" action="/reason-for-import" novalidate class="app-reason-for-import-form">
-
-      {{ govukRadios({
-        idPrefix: "import-reason",
-        name: "importReason",
-        fieldset: {
-          legend: {
-            text: "What is the main reason for importing the animals?",
-            classes: "govuk-visually-hidden"
-          }
-        },
-        errorMessage: data.errors.importReason if data.errors and data.errors.importReason,
-        classes: "app-reason-for-import-radios",
-        formGroup: {
-          classes: "app-reason-for-import-page__question"
-        },
-        items: importReasonItems
-      }) }}
-
-      <div class="app-origin-form-actions">
-        <div class="app-origin-actions">
-          {{ govukButton({
-            text: "Save and continue",
-            name: "action",
-            value: "continue"
-          }) }}
-
-          {{ govukButton({
-            text: "Save and return to hub",
-            name: "action",
-            value: "hub",
-            classes: "govuk-button--secondary"
-          }) }}
+      <div class="app-reason-for-import-page">
+        <div class="app-reason-for-import-page__header">
+          <p class="app-reason-for-import-page__caption">About the consignment</p>
+          <h1 class="app-reason-for-import-page__heading">Main reason for import</h1>
         </div>
 
-        <p class="app-origin-form-actions__cancel">
-          <a class="govuk-link" href="/notification-hub">Cancel and return to hub</a>
-        </p>
-      </div>
+        <form method="post" action="/reason-for-import" novalidate class="app-reason-for-import-form">
 
-    </form>
+          {{ govukRadios({
+            idPrefix: "import-reason",
+            name: "importReason",
+            fieldset: {
+              legend: {
+                text: "What is the main reason for importing the animals?",
+                classes: "govuk-visually-hidden"
+              }
+            },
+            errorMessage: data.errors.importReason if data.errors and data.errors.importReason,
+            classes: "app-reason-for-import-radios",
+            formGroup: {
+              classes: "app-reason-for-import-page__question"
+            },
+            items: importReasonItems
+          }) }}
+
+          <div class="app-origin-form-actions">
+            <div class="app-origin-actions">
+              {{ govukButton({
+                text: "Save and continue",
+                name: "action",
+                value: "continue"
+              }) }}
+
+              {{ govukButton({
+                text: "Save and return to hub",
+                name: "action",
+                value: "hub",
+                classes: "govuk-button--secondary"
+              }) }}
+            </div>
+
+            <p class="app-origin-form-actions__cancel">
+              <a class="govuk-link" href="/notification-hub">Cancel and return to hub</a>
+            </p>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% endblock %}

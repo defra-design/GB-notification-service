@@ -26,7 +26,7 @@ function restoreScrollPosition () {
 }
 
 function initAnimalIdentificationScroll () {
-  const form = document.querySelector('.app-animal-identification-page__form')
+  const form = document.querySelector('.app-animal-identification-form')
 
   if (!form) {
     return

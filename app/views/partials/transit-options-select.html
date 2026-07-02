@@ -1,0 +1,23 @@
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+
+<div class="app-transit-options-reveal">
+  {{ govukSelect({
+    id: "transit-exit-border-control-post",
+    name: "transitExitBorderControlPost",
+    label: {
+      text: "Exit border control post"
+    },
+    items: exitBorderControlPostItems,
+    errorMessage: data.errors.transitExitBorderControlPost if data.errors and data.errors.transitExitBorderControlPost
+  }) }}
+
+  {{ govukSelect({
+    id: "transit-destination-country",
+    name: "transitDestinationCountry",
+    label: {
+      text: "Destination country"
+    },
+    items: destinationCountryItems,
+    errorMessage: data.errors.transitDestinationCountry if data.errors and data.errors.transitDestinationCountry
+  }) }}
+</div>

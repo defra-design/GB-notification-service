@@ -1,0 +1,28 @@
+<div class="app-animal-identification-panel__saved">
+  <div class="app-animal-identification-panel__saved-row app-animal-identification-panel__saved-row--header">
+    <div class="app-animal-identification-panel__saved-key">Animal</div>
+    {% for field in panel.identifierFields %}
+      <div class="app-animal-identification-panel__saved-value">{{ field.label }}</div>
+    {% endfor %}
+    <div class="app-animal-identification-panel__saved-action"></div>
+  </div>
+
+  {% for animal in panel.savedAnimals %}
+    <div class="app-animal-identification-panel__saved-row">
+      <div class="app-animal-identification-panel__saved-key">{{ animal.label }}</div>
+      {% for item in animal.identifierValues %}
+        <div class="app-animal-identification-panel__saved-value">{{ item.value }}</div>
+      {% endfor %}
+      <div class="app-animal-identification-panel__saved-action">
+        <button
+          type="submit"
+          name="action"
+          value="remove:{{ panel.speciesId }}:{{ animal.index }}"
+          class="app-animal-identification-panel__saved-remove"
+        >
+          Remove
+        </button>
+      </div>
+    </div>
+  {% endfor %}
+</div>

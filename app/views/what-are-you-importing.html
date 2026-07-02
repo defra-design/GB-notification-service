@@ -48,8 +48,7 @@
 
       <div class="govuk-form-group{% if data.errors and data.errors.commoditySearch %} govuk-form-group--error{% endif %}">
         <label class="govuk-label app-eu-heading-m" for="commodity-search">
-          Search for a common name, commodity code or<br>
-          scientific name
+          Search for a commodity
         </label>
         {% if data.errors and data.errors.commoditySearch %}
           <p id="commodity-search-error" class="govuk-error-message">
@@ -58,7 +57,7 @@
           </p>
         {% endif %}
         <div id="commodity-search-hint" class="govuk-hint">
-          For example, Cattle, 0102, or Bos taurus
+          You can search by common name (for example, cattle), commodity code (0102), or species (Bos taurus).
         </div>
         <div
           class="app-commodity-search-wrapper"
@@ -101,7 +100,7 @@
           <div class="app-commodity-search__selected" id="commodity-search-selected" hidden>
             <div class="app-commodity-search__selected-header">
               <p class="app-commodity-search__selected-heading" id="commodity-search-selected-heading"></p>
-              <button class="govuk-link app-govuk-body-link app-govuk-body-link--small app-commodity-search__selected-clear" type="button">
+              <button class="app-commodity-search__selected-clear" type="button">
                 Clear all
               </button>
             </div>

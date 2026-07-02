@@ -42,6 +42,12 @@ const territories = [
   { name: 'Saint Martin', parent: 'France' }
 ]
 
+const crownDependencies = [
+  { name: 'Guernsey', parent: 'United Kingdom' },
+  { name: 'Jersey', parent: 'United Kingdom' },
+  { name: 'Isle of Man', parent: 'United Kingdom' }
+]
+
 function formatTerritoryLabel (name, parent) {
   return `${name} (${parent})`
 }
@@ -56,6 +62,11 @@ const options = [
     label: formatTerritoryLabel(name, parent),
     value: formatTerritoryLabel(name, parent),
     parent
+  })),
+  ...crownDependencies.map(({ name, parent }) => ({
+    label: formatTerritoryLabel(name, parent),
+    value: formatTerritoryLabel(name, parent),
+    parent
   }))
 ].sort((left, right) => left.label.localeCompare(right.label))
 
@@ -65,3 +76,4 @@ module.exports = options
 module.exports.labels = labels
 module.exports.memberStates = memberStates
 module.exports.territories = territories
+module.exports.crownDependencies = crownDependencies

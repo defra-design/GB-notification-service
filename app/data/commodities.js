@@ -71,6 +71,9 @@ const commodities = [
       'Breeding and/or production',
       'Slaughter'
     ],
+    packagingFields: [
+      { id: 'number-of-packages', label: 'Number of packages', type: 'number', hint: 'Such as crates, bags or boxes' }
+    ],
     species: [
       { id: 'sheep-ovis-aries', label: 'Ovis aries' }
     ]
@@ -86,6 +89,9 @@ const commodities = [
       'Approved bodies',
       'Breeding and/or production',
       'Slaughter'
+    ],
+    packagingFields: [
+      { id: 'number-of-packages', label: 'Number of packages', type: 'number', hint: 'Such as crates, bags or boxes' }
     ],
     species: [
       { id: 'goat-capra-hircus', label: 'Capra hircus' }

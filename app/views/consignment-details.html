@@ -1,12 +1,11 @@
-{% extends "layouts/journey.html" %}
+{% extends "layouts/main.html" %}
 
-{% set journeyPageClass = "app-consignment-details-page" %}
+{% set pageName = "Commodity details" %}
 
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
-
-{% set pageName = "Consignment details" %}
 
 {% block beforeContent %}
   {{ govukPhaseBanner({
@@ -22,109 +21,140 @@
   }) }}
 {% endblock %}
 
-{% block journeyContent %}
+{% block content %}
 
-    {% include "partials/notification-status.html" %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+    <div class="app-consignment-details-shell">
+      <div class="app-consignment-details-page">
 
-    {% if data.errorList %}
-      {{ govukErrorSummary({
-        titleText: "There is a problem",
-        errorList: data.errorList
-      }) }}
-    {% endif %}
+        {% include "partials/notification-status.html" %}
 
-    <div class="app-consignment-details-page__header">
-      <p class="app-consignment-details-page__caption">Commodity details</p>
-      <h1 class="app-consignment-details-page__heading">Consignment details</h1>
-    </div>
+        {% if data.errorList %}
+          {{ govukErrorSummary({
+            titleText: "There is a problem",
+            errorList: data.errorList
+          }) }}
+        {% endif %}
 
-    <form method="post" action="/consignment-details" novalidate class="app-consignment-details-form">
+        <form method="post" action="/consignment-details" novalidate class="app-consignment-details-form">
 
-      {% if selectedCommodity %}
-        <div class="app-consignment-details-page__selected">
-          <p class="app-consignment-details-page__selected-text">
-            Selected: <strong>{{ selectedCommodity.text }}</strong>
-          </p>
-          <p class="app-consignment-details-page__selected-change">
-            <a class="govuk-link" href="/what-are-you-importing">Change</a>
-          </p>
-        </div>
-      {% endif %}
+          <div class="app-consignment-details-page__intro">
+            <div class="app-consignment-details-page__header">
+              <p class="app-consignment-details-page__caption">About the consignment</p>
+              <h1 class="app-consignment-details-page__heading">Commodity details</h1>
+            </div>
 
-      {% for entry in speciesEntries %}
-        <div class="app-consignment-details-page__species">
-          <div class="app-consignment-details-page__species-header">
-            <h2 class="app-consignment-details-page__species-heading">{{ entry.heading }}</h2>
-            {% if speciesEntries.length > 1 %}
-            <button
-              class="govuk-link app-govuk-body-link app-consignment-details-page__species-remove"
-              type="submit"
-              name="removeSpecies"
-              value="{{ entry.speciesId }}"
-            >
-              Remove
-            </button>
+            {% if selectedCommodityRows and selectedCommodityRows.length %}
+              <h2 class="app-consignment-details-page__selected-commodities-heading" id="selected-commodities-heading">
+                Selected commodities
+              </h2>
+
+              <div class="app-consignment-details-page__summary" aria-labelledby="selected-commodities-heading">
+                <div class="app-consignment-details-page__summary-row app-consignment-details-page__summary-row--header">
+                  <div class="app-consignment-details-page__summary-key">Commodity code</div>
+                  <div class="app-consignment-details-page__summary-value">Common name</div>
+                </div>
+
+                {% for row in selectedCommodityRows %}
+                  <div class="app-consignment-details-page__summary-row">
+                    <div class="app-consignment-details-page__summary-key">{{ row.code }}</div>
+                    <div class="app-consignment-details-page__summary-value">{{ row.name }}</div>
+                    <div class="app-consignment-details-page__summary-action">
+                      <button
+                        class="app-consignment-details-page__summary-remove"
+                        type="submit"
+                        name="removeCommodity"
+                        value="{{ row.commodityId }}"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+
+              <p class="app-consignment-details-page__add-commodity">
+                <a class="govuk-link" href="/what-are-you-importing">Add another commodity</a>
+              </p>
             {% endif %}
           </div>
 
-          {% set numberOfAnimalsError = data.errors["numberOfAnimals-" + entry.speciesId] if data.errors and data.errors["numberOfAnimals-" + entry.speciesId] %}
+          <div class="app-consignment-details-page__details">
+            {% for group in commodityGroups %}
+              {% if not loop.first %}
+                <hr class="app-consignment-details-page__section-break">
+              {% endif %}
 
-          {{ govukInput({
-            label: {
-              text: "Number of animals"
-            },
-            id: "number-of-animals-" + entry.speciesId,
-            name: "numberOfAnimals[" + entry.speciesId + "]",
-            value: entry.numberOfAnimals,
-            classes: "govuk-input--width-10",
-            errorMessage: numberOfAnimalsError
-          }) }}
+              <h2 class="app-consignment-details-page__commodity-heading" id="commodity-group-{{ group.commodityId }}">
+                {{ group.heading }}
+              </h2>
 
-          {% if entry.showPackaging %}
-            <div class="app-consignment-details-page__packaging">
-              <h3 class="app-consignment-details-page__packaging-heading">Packaging details</h3>
+              {% for species in group.speciesEntries %}
+                <div class="app-consignment-details-page__species-heading">
+                  <p class="app-consignment-details-page__species-caption">{{ group.heading }}</p>
+                  <h3 class="app-consignment-details-page__species-name">{{ species.speciesName }}</h3>
+                </div>
 
-              {% for field in entry.packagingFields %}
+                {% set numberOfAnimalsError = data.errors["numberOfAnimals-" + species.speciesId] if data.errors and data.errors["numberOfAnimals-" + species.speciesId] %}
+
                 {{ govukInput({
                   label: {
-                    text: field.label
+                    text: "Number of animals"
                   },
-                  hint: {
-                    text: field.hint
-                  },
-                  id: field.id,
-                  name: field.name,
-                  value: field.value,
-                  classes: "govuk-input--width-10",
-                  errorMessage: field.errorMessage
+                  id: "number-of-animals-" + species.speciesId,
+                  name: "numberOfAnimals[" + species.speciesId + "]",
+                  value: species.numberOfAnimals,
+                  classes: "govuk-input--width-10 app-consignment-details-page__input",
+                  errorMessage: numberOfAnimalsError
                 }) }}
+
+                {% if species.showPackaging %}
+                  {% for field in species.packagingFields %}
+                    {{ govukInput({
+                      label: {
+                        text: field.label
+                      },
+                      hint: {
+                        text: field.hint
+                      },
+                      id: field.id,
+                      name: field.name,
+                      value: field.value,
+                      classes: "govuk-input--width-10 app-consignment-details-page__input",
+                      errorMessage: field.errorMessage
+                    }) }}
+                  {% endfor %}
+                {% endif %}
               {% endfor %}
+            {% endfor %}
+
+            <div class="app-origin-form-actions">
+              <div class="app-origin-actions">
+                {{ govukButton({
+                  text: "Save and continue",
+                  name: "action",
+                  value: "continue"
+                }) }}
+
+                {{ govukButton({
+                  text: "Save and return to hub",
+                  name: "action",
+                  value: "hub",
+                  classes: "govuk-button--secondary"
+                }) }}
+              </div>
+
+              <p class="app-origin-form-actions__cancel">
+                <a class="govuk-link" href="/notification-hub">Cancel and return to hub</a>
+              </p>
             </div>
-          {% endif %}
-        </div>
-      {% endfor %}
+          </div>
 
-      <div class="app-origin-form-actions">
-        <div class="app-origin-actions">
-          {{ govukButton({
-            text: "Save and continue",
-            name: "action",
-            value: "continue"
-          }) }}
-
-          {{ govukButton({
-            text: "Save and return to hub",
-            name: "action",
-            value: "hub",
-            classes: "govuk-button--secondary"
-          }) }}
-        </div>
-
-        <p class="app-origin-form-actions__cancel">
-          <a class="govuk-link" href="/notification-hub">Cancel and return to hub</a>
-        </p>
+        </form>
       </div>
-
-    </form>
+    </div>
+  </div>
+</div>
 
 {% endblock %}
