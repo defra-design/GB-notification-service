@@ -3,6 +3,7 @@
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
 
 {% set pageName = heading %}
@@ -27,27 +28,28 @@
 
     {% include "partials/notification-status.html" %}
 
-    <div class="app-consignment-address-select-page__title-row">
-      <div class="app-consignment-address-select-page__title">
-        <p class="app-consignment-address-select-page__caption">Consignment parties</p>
-        <h1 class="app-consignment-address-select-page__heading">{{ heading }}</h1>
-        <p class="app-consignment-address-select-page__intro">
-          {{ intro }}
-        </p>
-        {% if introList %}
-          <ul class="govuk-list govuk-list--bullet app-consignment-address-select-page__intro-list">
-            {% for item in introList %}
-              <li>{{ item }}</li>
-            {% endfor %}
-          </ul>
-        {% endif %}
-      </div>
-
-      {{ govukButton({
-        text: "Add a new address",
-        href: "#",
-        classes: "govuk-button--secondary app-consignment-address-select-page__add-button"
+    {% if successMessage %}
+      {{ govukNotificationBanner({
+        type: "success",
+        titleText: "Success",
+        text: successMessage,
+        classes: "app-consignment-address-select-page__success-banner"
       }) }}
+    {% endif %}
+
+    <div class="app-consignment-address-select-page__title">
+      <p class="app-consignment-address-select-page__caption">Consignment parties</p>
+      <h1 class="app-consignment-address-select-page__heading">{{ heading }}</h1>
+      <p class="app-consignment-address-select-page__intro">
+        {{ intro }}
+      </p>
+      {% if introList %}
+        <ul class="govuk-list govuk-list--bullet app-consignment-address-select-page__intro-list">
+          {% for item in introList %}
+            <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
     </div>
 
     <form method="post" action="{{ formAction }}" novalidate class="app-consignment-address-select-form">
@@ -155,6 +157,12 @@
           </table>
         </fieldset>
       </div>
+
+      {{ govukButton({
+        text: "Add a new address",
+        href: addAddressHref,
+        classes: "govuk-button--secondary app-consignment-address-select-page__add-button"
+      }) }}
 
       {{ govukButton({
         text: "Save and continue",
