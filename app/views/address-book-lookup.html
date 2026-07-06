@@ -4,7 +4,6 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
-{% from "govuk/components/select/macro.njk" import govukSelect %}
 
 {% set pageName = "Add address details" %}
 
@@ -35,30 +34,11 @@
 
       <div class="app-address-book-lookup-page">
         <div class="app-address-book-lookup-page__header">
-          {% if not consignmentReturn %}
-            <p class="app-address-book-lookup-page__caption">Add a new address</p>
-          {% endif %}
           <h1 class="app-address-book-lookup-page__heading">Add address details</h1>
         </div>
 
         <form method="post" action="/address-book/add/lookup" novalidate class="app-address-book-lookup-form">
-          {% if consignmentReturn %}
-            <input type="hidden" name="addressType" value="{{ selectedAddressType }}">
-          {% else %}
-            {{ govukSelect({
-              id: "address-book-type",
-              name: "addressType",
-              label: {
-                text: "Address type"
-              },
-              classes: "app-address-book-lookup-page__type-select",
-              formGroup: {
-                classes: "app-address-book-lookup-page__type"
-              },
-              items: addressTypeItems,
-              errorMessage: data.errors.addressType if data.errors and data.errors.addressType
-            }) }}
-          {% endif %}
+          <input type="hidden" name="addressType" value="{{ selectedAddressType }}">
 
           <div
             class="app-address-book-lookup-page__search{% if data.errors and data.errors.addressLookup %} app-address-book-lookup-page__search--error{% endif %}"

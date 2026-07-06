@@ -2117,7 +2117,7 @@ function renderConsignmentAddressSelectPage (section, req, res, locals = {}) {
       ? locals.selectedAddressId
       : sessionData[section.sessionAddressIdKey] || '',
     searchQuery,
-    addAddressHref: `/address-book/add/lookup?from=${section.id}`,
+    addAddressHref: `/address-book/add?from=${section.id}`,
     successMessage,
     data: sessionData,
     ...locals
@@ -3328,7 +3328,15 @@ function clearAddressBookConsignmentReturn (sessionData) {
 function getAddressBookBackLink (sessionData, defaultLink = '/address-book') {
   const consignmentReturn = getAddressBookConsignmentReturn(sessionData)
 
-  return consignmentReturn ? consignmentReturn.path : defaultLink
+  if (consignmentReturn) {
+    return consignmentReturn.path
+  }
+
+  if (hasAddressBookAddressType(sessionData)) {
+    return '/address-book/add'
+  }
+
+  return defaultLink
 }
 
 function getAddressBookCancelHref (sessionData) {
@@ -3459,6 +3467,21 @@ const addressBookAddressTypeValues = addressBookAddressTypes
   .filter((item) => !item.divider)
   .map((item) => item.value)
 
+function renderAddressBookAddPage (req, res, locals = {}) {
+  const sessionData = req.session.data
+
+  return res.render('address-book-add', {
+    serviceNavActive: 'address-book',
+    backLink: '/address-book',
+    addressTypeOptions: addressBookAddressTypes,
+    selectedAddressType: locals.selectedAddressType != null
+      ? locals.selectedAddressType
+      : sessionData.addressBookAddressType || '',
+    data: sessionData,
+    ...locals
+  })
+}
+
 function validateAddressBookAddressType (addressType) {
   const value = (addressType || '').trim()
   const errors = {}
@@ -3468,7 +3491,7 @@ function validateAddressBookAddressType (addressType) {
     errors.addressType = { text: 'Select an address type' }
     errorList.push({
       text: 'Select an address type',
-      href: '#address-book-type'
+      href: '#address-type-importer'
     })
   }
 
@@ -3483,6 +3506,17 @@ function getAddressBookAddressTypeLabel (addressType) {
 
 function hasAddressBookAddressType (sessionData) {
   return addressBookAddressTypeValues.includes(sessionData.addressBookAddressType)
+}
+
+function redirectIfNoAddressBookAddressType (req, res) {
+  const sessionData = req.session.data
+
+  if (getAddressBookConsignmentReturn(sessionData) || hasAddressBookAddressType(sessionData)) {
+    return false
+  }
+
+  res.redirect('/address-book/add')
+  return true
 }
 
 function renderAddressBookLookupPage (req, res, locals = {}) {
@@ -4392,15 +4426,36 @@ router.get('/address-book/add', (req, res) => {
     if (!setAddressBookConsignmentReturn(req.session.data, fromSection)) {
       return res.redirect('/address-book/add/lookup')
     }
-  } else {
-    clearAddressBookConsignmentReturn(req.session.data)
-    req.session.data.addressBookAddressType = null
+
+    return res.redirect('/address-book/add/lookup')
   }
 
-  return res.redirect('/address-book/add/lookup')
+  clearAddressBookConsignmentReturn(req.session.data)
+  req.session.data.addressBookAddressType = null
+  req.session.data.addressBookShowManualAddress = false
+  req.session.data.addressBookManualAddress = null
+  req.session.data.addressBookLookup = null
+  req.session.data.addressBookLookupAddressId = null
+
+  return renderAddressBookAddPage(req, res)
 })
 
 router.post('/address-book/add', (req, res) => {
+  const validation = validateAddressBookAddressType(req.body.addressType)
+
+  if (validation.errorList.length) {
+    req.session.data.errorList = validation.errorList
+    req.session.data.errors = validation.errors
+
+    return renderAddressBookAddPage(req, res, {
+      selectedAddressType: validation.value
+    })
+  }
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+  req.session.data.addressBookAddressType = validation.value
+
   return res.redirect('/address-book/add/lookup')
 })
 
@@ -4409,6 +4464,10 @@ router.get('/address-book/add/lookup', (req, res) => {
 
   if (fromSection) {
     setAddressBookConsignmentReturn(req.session.data, fromSection)
+  }
+
+  if (redirectIfNoAddressBookAddressType(req, res)) {
+    return
   }
 
   return renderAddressBookLookupPage(req, res)
@@ -4435,24 +4494,12 @@ router.post('/address-book/add/lookup', (req, res) => {
     return res.redirect(getAddressBookCancelHref(req.session.data))
   }
 
-  const addressTypeValidation = validateAddressBookAddressType(req.body.addressType)
-
-  if (addressTypeValidation.errorList.length) {
-    req.session.data.errorList = addressTypeValidation.errorList
-    req.session.data.errors = addressTypeValidation.errors
-
-    return renderAddressBookLookupPage(req, res, {
-      selectedAddressType: addressTypeValidation.value,
-      manualAddress,
-      showManualAddress: req.body.manualAddressEntry === 'true',
-      addressLookup: (req.body.addressLookup || '').trim(),
-      selectedLookupAddressId: addressBookLookupAddressId
-    })
+  if (redirectIfNoAddressBookAddressType(req, res)) {
+    return
   }
 
   req.session.data.errorList = null
   req.session.data.errors = null
-  req.session.data.addressBookAddressType = addressTypeValidation.value
 
   const { redirectTo } = saveAddressBookEntry(req.session.data, manualAddress)
 

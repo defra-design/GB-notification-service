@@ -1,0 +1,90 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+
+{% set pageName = "Choose an address type" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+    <div class="app-address-book-add-shell">
+      {% if data.errorList %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: data.errorList
+        }) }}
+      {% endif %}
+
+      <div class="app-address-book-add-page">
+        <div class="app-address-book-add-page__header">
+          <p class="app-address-book-add-page__caption">Add a new address</p>
+          <h1 class="app-address-book-add-page__heading">Choose an address type</h1>
+        </div>
+
+        <form method="post" action="/address-book/add" novalidate class="app-address-book-add-form">
+          <div class="govuk-form-group app-address-book-add-page__question{% if data.errors and data.errors.addressType %} govuk-form-group--error{% endif %}">
+            <fieldset class="govuk-fieldset">
+              <legend class="govuk-fieldset__legend govuk-visually-hidden">Choose an address type</legend>
+
+              {% if data.errors and data.errors.addressType %}
+                <p id="address-type-error" class="govuk-error-message">
+                  <span class="govuk-visually-hidden">Error:</span>
+                  {{ data.errors.addressType.text }}
+                </p>
+              {% endif %}
+
+              <div class="govuk-radios app-reason-for-import-radios app-address-book-add-radios">
+                {% for item in addressTypeOptions %}
+                  {% if item.divider %}
+                    <p class="app-address-book-add-page__divider">or</p>
+                  {% else %}
+                    <div class="govuk-radios__item">
+                      <input
+                        class="govuk-radios__input"
+                        id="address-type-{{ item.value }}"
+                        name="addressType"
+                        type="radio"
+                        value="{{ item.value }}"
+                        {% if selectedAddressType == item.value %}checked{% endif %}
+                        {% if data.errors and data.errors.addressType %}aria-describedby="address-type-error"{% endif %}
+                      >
+                      <label class="govuk-label govuk-radios__label" for="address-type-{{ item.value }}">
+                        {{ item.text }}
+                      </label>
+                      <div class="govuk-hint govuk-radios__hint" id="address-type-{{ item.value }}-hint">
+                        {{ item.hint }}
+                      </div>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            </fieldset>
+          </div>
+
+          {{ govukButton({
+            text: "Continue",
+            classes: "app-address-book-add-page__continue-button"
+          }) }}
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
