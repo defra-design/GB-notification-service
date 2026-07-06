@@ -5352,3 +5352,432 @@ button.govuk-link.app-govuk-body-link--small {
 .app-address-book-lookup-search__option-detail {
   color: #505a5f;
 }
+
+.app-dashboard-page {
+  max-width: 960px;
+  font-family: "GDS Transport", arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.app-dashboard-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  margin-bottom: 30px;
+
+  > * {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  &__caption {
+    margin: 0 0 5px;
+    font-size: 24px;
+    font-weight: 300;
+    line-height: 30px;
+    color: #505a5f;
+  }
+
+  &__heading {
+    margin: 0;
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 40px;
+    color: #0b0c0c;
+  }
+
+  &__create-button.govuk-button {
+    align-self: flex-start;
+    margin: 0;
+  }
+}
+
+.app-dashboard-alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  margin-bottom: 60px;
+
+  > * {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  &__heading {
+    margin: 0;
+    font-size: 27px;
+    font-weight: 700;
+    line-height: 30px;
+    color: #0b0c0c;
+  }
+
+  &__cards {
+    display: grid;
+    grid-template-columns: repeat(3, 300px);
+    gap: 31px;
+    justify-content: space-between;
+  }
+}
+
+.app-dashboard-alert-card {
+  display: flex;
+  flex-direction: column;
+  width: 300px;
+
+  &__title {
+    margin: 0 0 21px;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 32px;
+    color: #0b0c0c;
+  }
+
+  &__panel {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
+    height: 75px;
+    padding: 20px;
+    background: #f3f2f1;
+
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 5px;
+    }
+  }
+
+  &--alerts &__panel::before {
+    background: #ffdd00;
+  }
+
+  &--errors &__panel::before {
+    background: #d4351c;
+  }
+
+  &--messages &__panel::before {
+    background: #1d70b8;
+  }
+
+  &__icon {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 35px;
+    height: 35px;
+    margin-left: 5px;
+  }
+
+  &__icon-image {
+    display: block;
+    width: 35px;
+    height: 35px;
+  }
+
+  &__count {
+    margin: 0;
+    font-size: 27px;
+    font-weight: 700;
+    line-height: 30px;
+    color: #0b0c0c;
+    text-align: right;
+  }
+
+  &__link {
+    margin-top: 20px;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 24px;
+    text-align: right;
+  }
+}
+
+.app-dashboard-notifications {
+  > * {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  &__heading {
+    margin: 0 0 30px;
+    font-size: 27px;
+    font-weight: 700;
+    line-height: 30px;
+    color: #0b0c0c;
+  }
+
+  &__layout {
+    display: grid;
+    grid-template-columns: 300px 628px;
+    gap: 31px;
+    align-items: start;
+    justify-content: space-between;
+  }
+}
+
+.app-dashboard-filters {
+  &__panel {
+    box-sizing: border-box;
+    min-height: 291px;
+    padding: 20px 10px 10px;
+    background: #f3f2f1;
+  }
+
+  &__label {
+    margin: 0 0 35px;
+    padding: 0 10px;
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 20px;
+    color: #0b0c0c;
+  }
+
+  &__section {
+    border-top: 1px solid #b1b4b6;
+
+    &:first-of-type {
+      border-top: 0;
+    }
+
+    &--last {
+      border-bottom: 0;
+    }
+  }
+
+  &__summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 25px;
+    color: #0b0c0c;
+    list-style: none;
+    cursor: pointer;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+  }
+
+  &__summary-text {
+    flex: 1 1 auto;
+  }
+
+  &__chevron {
+    display: block;
+    flex-shrink: 0;
+    width: 17px;
+    height: 9px;
+    transition: transform 0.2s ease;
+  }
+
+  &__section[open] &__chevron {
+    transform: rotate(180deg);
+  }
+}
+
+.app-dashboard-results {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  width: 628px;
+
+  &__toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: flex-start;
+    margin: 0;
+    padding-top: 0;
+  }
+
+  &__count {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 20px;
+    color: #0b0c0c;
+  }
+
+  &__sort.govuk-form-group {
+    width: 191px;
+    margin: 0;
+  }
+
+  &__sort .govuk-select {
+    appearance: none;
+    -webkit-appearance: none;
+    min-width: 0;
+    height: 40px;
+    padding: 8px 35px 7px 11px;
+    background-color: #fff;
+    background-image: url("/public/images/dashboard/icon-select-chevron.svg");
+    background-repeat: no-repeat;
+    background-position: right 11px center;
+    background-size: 9px 5px;
+  }
+
+  &__sort-label {
+    margin-bottom: 5px;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 25px;
+  }
+
+  &__sort-select {
+    width: 100%;
+    max-width: 191px;
+  }
+
+  &__pagination {
+    margin: 0;
+  }
+}
+
+.app-dashboard-notification-list {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.app-dashboard-notification-card {
+  border: 1px solid #b1b4b6;
+
+  &__header {
+    display: flex;
+    gap: 68px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    background: #f3f2f1;
+    border-bottom: 1px solid #f3f2f1;
+  }
+
+  &__reference {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 25px;
+    color: #0b0c0c;
+  }
+
+  &__actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: 10px;
+    align-items: center;
+  }
+
+  &__action {
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 19px;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+  }
+
+  &__action-divider {
+    width: 1px;
+    height: 19px;
+    background: #b1b4b6;
+  }
+
+  &__details {
+    margin: 0;
+    padding: 15px 20px;
+  }
+
+  &__row {
+    display: flex;
+    gap: 20px;
+    padding: 10px 0;
+    border-bottom: 1px solid #b1b4b6;
+
+    &--last {
+      border-bottom: 0;
+    }
+  }
+
+  &__pair {
+    display: flex;
+    flex: 1 1 0;
+    gap: 20px;
+    align-items: flex-start;
+    min-width: 0;
+    margin: 0;
+  }
+
+  &__key {
+    flex-shrink: 0;
+    width: 180px;
+    margin: 0;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 25px;
+    color: #0b0c0c;
+  }
+
+  &__value {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 25px;
+    color: #0b0c0c;
+  }
+
+  &__status {
+    margin: 0;
+    padding: 3px 8px 2px;
+    border: 0;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 20px;
+    color: #083d29;
+    background: #cfe4dc;
+  }
+}
+
+@media (max-width: 40.0625em) {
+  .app-dashboard-alerts__cards {
+    grid-template-columns: 1fr;
+    justify-content: stretch;
+  }
+
+  .app-dashboard-alert-card {
+    width: 100%;
+  }
+
+  .app-dashboard-notifications__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .app-dashboard-results {
+    width: 100%;
+  }
+
+  .app-dashboard-notification-card__row {
+    flex-direction: column;
+  }
+
+  .app-dashboard-notification-card__pair {
+    width: 100%;
+  }
+
+  .app-dashboard-notification-card__key {
+    width: auto;
+  }
+}

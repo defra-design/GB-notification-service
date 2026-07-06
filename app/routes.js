@@ -25,6 +25,7 @@ const transporters = require('./data/transporters')
 const addressBookData = require('./data/address-book')
 const addressBookAddressTypes = require('./data/address-book-address-types')
 const addressBookLookupAddresses = require('./data/address-book-lookup-addresses')
+const dashboardData = require('./data/dashboard-notifications')
 const { getCommoditySearchData } = require('./utils/commodity-search-data')
 
 const TRANSIT_MEANS_OF_TRANSPORT = ['Railway', 'Road Vehicle']
@@ -3138,8 +3139,107 @@ function renderNotificationHubPage (req, res) {
   ensurePrototypeNotificationReference(req.session.data)
 
   return res.render('notification-hub', {
-    serviceNavActive: 'dashboard',
     ...getNotificationHubViewModel(req.session.data)
+  })
+}
+
+function buildDashboardPageHref (page, sort) {
+  const params = new URLSearchParams()
+
+  if (sort) {
+    params.set('sort', sort)
+  }
+
+  if (page > 1) {
+    params.set('page', String(page))
+  }
+
+  const queryString = params.toString()
+
+  return queryString ? `/?${queryString}` : '/'
+}
+
+function buildDashboardPagination (currentPage, totalPages, sort) {
+  if (totalPages <= 1) {
+    return {
+      items: null,
+      next: null,
+      previous: null
+    }
+  }
+
+  const items = []
+
+  for (let page = 1; page <= totalPages; page++) {
+    items.push({
+      number: String(page),
+      href: buildDashboardPageHref(page, sort),
+      current: page === currentPage
+    })
+  }
+
+  return {
+    items,
+    next: currentPage < totalPages
+      ? {
+          href: buildDashboardPageHref(currentPage + 1, sort),
+          text: 'Next'
+        }
+      : null,
+    previous: currentPage > 1
+      ? {
+          href: buildDashboardPageHref(currentPage - 1, sort),
+          text: 'Previous'
+        }
+      : null
+  }
+}
+
+function buildDashboardResultsText (start, end, total) {
+  if (!total) {
+    return 'Show 0 of 0 results'
+  }
+
+  return `Show ${start}-${end} of ${total} results`
+}
+
+function buildDashboardSortItems (selectedValue) {
+  return dashboardData.sortItems.map((item) => ({
+    ...item,
+    selected: selectedValue === item.value
+  }))
+}
+
+function getDashboardViewModel (query = {}) {
+  const sort = (query.sort || '').trim()
+  const requestedPage = Math.max(1, Number(query.page) || 1)
+  const pageSize = dashboardData.pageSize
+  const totalCount = dashboardData.notifications.length
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
+  const currentPage = Math.min(requestedPage, totalPages)
+  const startIndex = (currentPage - 1) * pageSize
+  const endIndex = Math.min(startIndex + pageSize, totalCount)
+  const notifications = dashboardData.notifications.slice(startIndex, endIndex)
+
+  return {
+    alertCounts: {
+      alerts: 0,
+      errors: 0,
+      messages: 0
+    },
+    notifications,
+    sort,
+    sortItems: buildDashboardSortItems(sort),
+    resultsText: buildDashboardResultsText(startIndex + 1, endIndex, totalCount),
+    pagination: buildDashboardPagination(currentPage, totalPages, sort),
+    currentPage
+  }
+}
+
+function renderDashboardPage (req, res) {
+  return res.render('dashboard', {
+    serviceNavActive: 'dashboard',
+    ...getDashboardViewModel(req.query)
   })
 }
 
@@ -3342,7 +3442,7 @@ function getAddressBookBackLink (sessionData, defaultLink = '/address-book') {
 function getAddressBookCancelHref (sessionData) {
   const consignmentReturn = getAddressBookConsignmentReturn(sessionData)
 
-  return consignmentReturn ? consignmentReturn.path : '/notification-hub'
+  return consignmentReturn ? consignmentReturn.path : '/'
 }
 
 function buildConsignmentAddressFromManual (manualAddress, sectionId) {
@@ -4409,6 +4509,16 @@ router.get('/reason-for-import', (req, res) => {
   }
 
   return renderReasonForImportPage(req, res)
+})
+
+router.get('/', (req, res) => {
+  return renderDashboardPage(req, res)
+})
+
+router.get('/dashboard', (req, res) => {
+  const queryString = new URLSearchParams(req.query).toString()
+
+  return res.redirect(queryString ? `/?${queryString}` : '/')
 })
 
 router.get('/notification-hub', (req, res) => {

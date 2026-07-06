@@ -1,0 +1,200 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/pagination/macro.njk" import govukPagination %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+
+{% set pageName = "Dashboard" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full app-dashboard-page">
+
+    <section class="app-dashboard-intro" aria-labelledby="dashboard-page-heading">
+      <div class="app-dashboard-intro__header">
+        <p class="app-dashboard-intro__caption">Dashboard</p>
+        <h1 class="app-dashboard-intro__heading" id="dashboard-page-heading">Import notification service</h1>
+      </div>
+
+      {{ govukButton({
+        text: "Create a new notification",
+        href: "/origin-of-the-import",
+        classes: "app-dashboard-intro__create-button"
+      }) }}
+    </section>
+
+    <section class="app-dashboard-alerts" aria-labelledby="dashboard-alerts-heading">
+      <h2 class="app-dashboard-alerts__heading" id="dashboard-alerts-heading">My alerts</h2>
+
+      <div class="app-dashboard-alerts__cards">
+        <article class="app-dashboard-alert-card app-dashboard-alert-card--alerts">
+          <h3 class="app-dashboard-alert-card__title">Alerts</h3>
+          <div class="app-dashboard-alert-card__panel">
+            <div class="app-dashboard-alert-card__icon" aria-hidden="true">
+              <img class="app-dashboard-alert-card__icon-image" src="/public/images/dashboard/icon-alert.svg" width="35" height="35" alt="">
+            </div>
+            <p class="app-dashboard-alert-card__count">{{ alertCounts.alerts }}</p>
+          </div>
+          <a class="govuk-link app-dashboard-alert-card__link" href="#">View alerts</a>
+        </article>
+
+        <article class="app-dashboard-alert-card app-dashboard-alert-card--errors">
+          <h3 class="app-dashboard-alert-card__title">Errors</h3>
+          <div class="app-dashboard-alert-card__panel">
+            <div class="app-dashboard-alert-card__icon" aria-hidden="true">
+              <img class="app-dashboard-alert-card__icon-image" src="/public/images/dashboard/icon-error.svg" width="35" height="35" alt="">
+            </div>
+            <p class="app-dashboard-alert-card__count">{{ alertCounts.errors }}</p>
+          </div>
+          <a class="govuk-link app-dashboard-alert-card__link" href="#">View errors</a>
+        </article>
+
+        <article class="app-dashboard-alert-card app-dashboard-alert-card--messages">
+          <h3 class="app-dashboard-alert-card__title">Messages</h3>
+          <div class="app-dashboard-alert-card__panel">
+            <div class="app-dashboard-alert-card__icon" aria-hidden="true">
+              <img class="app-dashboard-alert-card__icon-image" src="/public/images/dashboard/icon-message.svg" width="35" height="35" alt="">
+            </div>
+            <p class="app-dashboard-alert-card__count">{{ alertCounts.messages }}</p>
+          </div>
+          <a class="govuk-link app-dashboard-alert-card__link" href="#">View messages</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="app-dashboard-notifications" aria-labelledby="dashboard-notifications-heading">
+      <h2 class="app-dashboard-notifications__heading" id="dashboard-notifications-heading">My notifications</h2>
+
+      <div class="app-dashboard-notifications__layout">
+        <aside class="app-dashboard-filters" aria-label="Filter notifications">
+          <div class="app-dashboard-filters__panel">
+            <p class="app-dashboard-filters__label">Filter notifications</p>
+
+            <details class="app-dashboard-filters__section">
+              <summary class="app-dashboard-filters__summary">
+                <span class="app-dashboard-filters__summary-text">Search by</span>
+                <img class="app-dashboard-filters__chevron" src="/public/images/dashboard/icon-chevron-down.svg" width="17" height="9" alt="">
+              </summary>
+            </details>
+
+            <details class="app-dashboard-filters__section">
+              <summary class="app-dashboard-filters__summary">
+                <span class="app-dashboard-filters__summary-text">Status</span>
+                <img class="app-dashboard-filters__chevron" src="/public/images/dashboard/icon-chevron-down.svg" width="17" height="9" alt="">
+              </summary>
+            </details>
+
+            <details class="app-dashboard-filters__section">
+              <summary class="app-dashboard-filters__summary">
+                <span class="app-dashboard-filters__summary-text">Notification type</span>
+                <img class="app-dashboard-filters__chevron" src="/public/images/dashboard/icon-chevron-down.svg" width="17" height="9" alt="">
+              </summary>
+            </details>
+
+            <details class="app-dashboard-filters__section app-dashboard-filters__section--last">
+              <summary class="app-dashboard-filters__summary">
+                <span class="app-dashboard-filters__summary-text">By date</span>
+                <img class="app-dashboard-filters__chevron" src="/public/images/dashboard/icon-chevron-down.svg" width="17" height="9" alt="">
+              </summary>
+            </details>
+          </div>
+        </aside>
+
+        <div class="app-dashboard-results">
+          <form method="get" action="/" class="app-dashboard-results__toolbar">
+            {% if currentPage > 1 %}
+              <input type="hidden" name="page" value="{{ currentPage }}">
+            {% endif %}
+
+            <p class="app-dashboard-results__count">{{ resultsText }}</p>
+
+            {{ govukSelect({
+              id: "dashboard-sort",
+              name: "sort",
+              label: {
+                text: "Sort by:",
+                classes: "app-dashboard-results__sort-label"
+              },
+              classes: "app-dashboard-results__sort-select",
+              formGroup: {
+                classes: "app-dashboard-results__sort"
+              },
+              items: sortItems
+            }) }}
+          </form>
+
+          <div class="app-dashboard-notification-list">
+            {% for notification in notifications %}
+              <article class="app-dashboard-notification-card" aria-label="Notification {{ notification.reference }}">
+                <div class="app-dashboard-notification-card__header">
+                  <h3 class="app-dashboard-notification-card__reference">{{ notification.reference }}</h3>
+                  <div class="app-dashboard-notification-card__actions">
+                    <a class="govuk-link app-dashboard-notification-card__action" href="#">Copy as new</a>
+                    <span class="app-dashboard-notification-card__action-divider" aria-hidden="true"></span>
+                    <a class="govuk-link app-dashboard-notification-card__action" href="{{ notification.viewHref }}">View</a>
+                  </div>
+                </div>
+
+                <dl class="app-dashboard-notification-card__details">
+                  <div class="app-dashboard-notification-card__row">
+                    <div class="app-dashboard-notification-card__pair">
+                      <dt class="app-dashboard-notification-card__key">Commodity</dt>
+                      <dd class="app-dashboard-notification-card__value">{{ notification.commodities }}</dd>
+                    </div>
+                    <div class="app-dashboard-notification-card__pair">
+                      <dt class="app-dashboard-notification-card__key">Status</dt>
+                      <dd class="app-dashboard-notification-card__value">
+                        {{ govukTag({
+                          text: notification.statusText,
+                          classes: "app-dashboard-notification-card__status"
+                        }) }}
+                      </dd>
+                    </div>
+                  </div>
+
+                  <div class="app-dashboard-notification-card__row app-dashboard-notification-card__row--last">
+                    <div class="app-dashboard-notification-card__pair">
+                      <dt class="app-dashboard-notification-card__key">Origin</dt>
+                      <dd class="app-dashboard-notification-card__value">{{ notification.origin }}</dd>
+                    </div>
+                    <div class="app-dashboard-notification-card__pair">
+                      <dt class="app-dashboard-notification-card__key">Arrival date at destination</dt>
+                      <dd class="app-dashboard-notification-card__value">{{ notification.arrivalDate }}</dd>
+                    </div>
+                  </div>
+                </dl>
+              </article>
+            {% endfor %}
+          </div>
+
+          {% if pagination.items %}
+            {{ govukPagination({
+              previous: pagination.previous,
+              next: pagination.next,
+              items: pagination.items,
+              classes: "app-dashboard-results__pagination"
+            }) }}
+          {% elif pagination.next %}
+            {{ govukPagination({
+              next: pagination.next,
+              classes: "app-dashboard-results__pagination"
+            }) }}
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+{% endblock %}
