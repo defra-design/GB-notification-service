@@ -1,10 +1,13 @@
 {% extends "layouts/main.html" %}
 
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/pagination/macro.njk" import govukPagination %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
 {% from "govuk/components/select/macro.njk" import govukSelect %}
 {% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
 
 {% set pageName = "Dashboard" %}
 
@@ -81,32 +84,145 @@
           <div class="app-dashboard-filters__panel">
             <p class="app-dashboard-filters__label">Filter notifications</p>
 
-            <details class="app-dashboard-filters__section">
+            <details class="app-dashboard-filters__section" open>
               <summary class="app-dashboard-filters__summary">
                 <span class="app-dashboard-filters__summary-text">Search by</span>
                 <img class="app-dashboard-filters__chevron" src="/public/images/dashboard/icon-chevron-down.svg" width="17" height="9" alt="">
               </summary>
+              <div class="app-dashboard-filters__content">
+                {{ govukInput({
+                  id: "dashboard-search-keyword",
+                  name: "keyword",
+                  label: {
+                    text: "Keyword or notification number",
+                    classes: "app-dashboard-filters__field-label"
+                  },
+                  classes: "app-dashboard-filters__input",
+                  formGroup: {
+                    classes: "app-dashboard-filters__field"
+                  }
+                }) }}
+
+                {{ govukInput({
+                  id: "dashboard-search-commodity",
+                  name: "commodity",
+                  label: {
+                    text: "Commodity code or name",
+                    classes: "app-dashboard-filters__field-label"
+                  },
+                  classes: "app-dashboard-filters__input",
+                  formGroup: {
+                    classes: "app-dashboard-filters__field"
+                  }
+                }) }}
+
+                {{ govukInput({
+                  id: "dashboard-search-consignee",
+                  name: "consignee",
+                  label: {
+                    text: "Consignee/Importer",
+                    classes: "app-dashboard-filters__field-label"
+                  },
+                  classes: "app-dashboard-filters__input",
+                  formGroup: {
+                    classes: "app-dashboard-filters__field app-dashboard-filters__field--last"
+                  }
+                }) }}
+              </div>
             </details>
 
-            <details class="app-dashboard-filters__section">
+            <details class="app-dashboard-filters__section" open>
               <summary class="app-dashboard-filters__summary">
                 <span class="app-dashboard-filters__summary-text">Status</span>
                 <img class="app-dashboard-filters__chevron" src="/public/images/dashboard/icon-chevron-down.svg" width="17" height="9" alt="">
               </summary>
+              <div class="app-dashboard-filters__content">
+                {{ govukSelect({
+                  id: "dashboard-filter-status",
+                  name: "status",
+                  label: {
+                    text: "Status",
+                    classes: "app-dashboard-filters__field-label"
+                  },
+                  classes: "app-dashboard-filters__status-select",
+                  formGroup: {
+                    classes: "app-dashboard-filters__field app-dashboard-filters__field--last"
+                  },
+                  items: [
+                    { value: "", text: "Select one" },
+                    { value: "draft", text: "Draft" },
+                    { value: "submitted", text: "Submitted" },
+                    { value: "in-progress", text: "In progress" },
+                    { value: "approved", text: "Approved" },
+                    { value: "action-required", text: "Action required" },
+                    { value: "rejected", text: "Rejected" },
+                    { value: "complete", text: "Complete" }
+                  ]
+                }) }}
+              </div>
             </details>
 
-            <details class="app-dashboard-filters__section">
-              <summary class="app-dashboard-filters__summary">
-                <span class="app-dashboard-filters__summary-text">Notification type</span>
-                <img class="app-dashboard-filters__chevron" src="/public/images/dashboard/icon-chevron-down.svg" width="17" height="9" alt="">
-              </summary>
-            </details>
-
-            <details class="app-dashboard-filters__section app-dashboard-filters__section--last">
+            <details class="app-dashboard-filters__section app-dashboard-filters__section--last" open>
               <summary class="app-dashboard-filters__summary">
                 <span class="app-dashboard-filters__summary-text">By date</span>
                 <img class="app-dashboard-filters__chevron" src="/public/images/dashboard/icon-chevron-down.svg" width="17" height="9" alt="">
               </summary>
+              <div class="app-dashboard-filters__content">
+                {{ govukRadios({
+                  idPrefix: "dashboard-date-range",
+                  name: "dateRange",
+                  classes: "app-dashboard-filters__radios",
+                  formGroup: {
+                    classes: "app-dashboard-filters__field"
+                  },
+                  fieldset: {
+                    legend: {
+                      text: "Choose a date range",
+                      classes: "govuk-visually-hidden"
+                    }
+                  },
+                  items: [
+                    { value: "today", text: "Today" },
+                    { value: "tomorrow", text: "Tomorrow" },
+                    { value: "next-seven-days", text: "Next seven days" }
+                  ]
+                }) }}
+
+                <div class="app-dashboard-filters__date-range">
+                  <p class="app-dashboard-filters__date-range-title">Select date range</p>
+                  <p class="app-dashboard-filters__date-range-hint">For example, 27/3/2026</p>
+                </div>
+
+                <div class="app-dashboard-filters__date-picker">
+                  {{ mojDatePicker({
+                    id: "dashboard-start-date",
+                    name: "startDate",
+                    value: "",
+                    label: {
+                      text: "Start date",
+                      classes: "app-dashboard-filters__field-label"
+                    },
+                    formGroup: {
+                      classes: "app-dashboard-filters__field"
+                    }
+                  }) }}
+                </div>
+
+                <div class="app-dashboard-filters__date-picker">
+                  {{ mojDatePicker({
+                    id: "dashboard-end-date",
+                    name: "endDate",
+                    value: "",
+                    label: {
+                      text: "End date",
+                      classes: "app-dashboard-filters__field-label"
+                    },
+                    formGroup: {
+                      classes: "app-dashboard-filters__field app-dashboard-filters__field--last"
+                    }
+                  }) }}
+                </div>
+              </div>
             </details>
           </div>
         </aside>

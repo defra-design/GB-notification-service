@@ -5525,13 +5525,12 @@ button.govuk-link.app-govuk-body-link--small {
 .app-dashboard-filters {
   &__panel {
     box-sizing: border-box;
-    min-height: 291px;
-    padding: 20px 10px 10px;
+    padding: 20px 10px;
     background: #f3f2f1;
   }
 
   &__label {
-    margin: 0 0 35px;
+    margin: 0 0 30px;
     padding: 0 10px;
     font-size: 16px;
     font-weight: 300;
@@ -5540,6 +5539,7 @@ button.govuk-link.app-govuk-body-link--small {
   }
 
   &__section {
+    margin: 0;
     border-top: 1px solid #b1b4b6;
 
     &:first-of-type {
@@ -5556,7 +5556,7 @@ button.govuk-link.app-govuk-body-link--small {
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    padding: 10px;
+    padding: 16px 10px;
     font-size: 19px;
     font-weight: 700;
     line-height: 25px;
@@ -5567,6 +5567,10 @@ button.govuk-link.app-govuk-body-link--small {
     &::-webkit-details-marker {
       display: none;
     }
+  }
+
+  &__content {
+    padding: 4px 10px 20px;
   }
 
   &__summary-text {
@@ -5583,6 +5587,201 @@ button.govuk-link.app-govuk-body-link--small {
 
   &__section[open] &__chevron {
     transform: rotate(180deg);
+  }
+
+  &__field.govuk-form-group {
+    margin: 0 0 15px;
+  }
+
+  &__field--last.govuk-form-group {
+    margin-bottom: 0;
+  }
+
+  &__field-label {
+    margin-bottom: 5px;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 25px;
+  }
+
+  &__input.govuk-input {
+    width: 100%;
+    height: 40px;
+    margin: 0;
+    font-size: 19px;
+    line-height: 25px;
+  }
+
+  &__status-select.govuk-select {
+    width: 191px;
+    max-width: 100%;
+    height: 40px;
+    margin: 0;
+    padding: 0 28px 0 11px;
+    border: 2px solid #0b0c0c;
+    border-radius: 0;
+    background-color: #ffffff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'%3E%3Cpath d='M0 0.5 4 4.5 8 0.5' fill='none' stroke='%230b0c0c' stroke-width='1.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 7px center;
+    background-size: 8px 5px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    box-shadow: none;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 36px;
+    color: #0b0c0c;
+
+    &:focus {
+      outline: 3px solid #ffdd00;
+      outline-offset: 0;
+      box-shadow: inset 0 0 0 2px #0b0c0c;
+    }
+  }
+
+  &__radios.govuk-radios {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+  }
+
+  &__radios > .govuk-radios__item {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    align-items: start;
+    column-gap: 10px;
+    min-height: 24px;
+    margin: 0;
+    padding: 0;
+  }
+
+  &__radios > .govuk-radios__item > .govuk-radios__input {
+    grid-column: 1;
+    grid-row: 1;
+    width: 24px;
+    height: 24px;
+    margin: 0;
+  }
+
+  &__radios > .govuk-radios__item > .govuk-radios__label {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    max-width: none;
+    margin: 0;
+    padding: 0 0 0 34px;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 25px;
+    color: #0b0c0c;
+  }
+
+  &__radios > .govuk-radios__item > .govuk-radios__label::before {
+    top: 0;
+    left: 0;
+    width: 24px;
+    height: 24px;
+    border-width: 2px;
+    background: #ffffff;
+  }
+
+  &__radios > .govuk-radios__item > .govuk-radios__label::after {
+    top: 7px;
+    left: 7px;
+    border-width: 5px;
+  }
+
+  &__date-range {
+    margin: 30px 0 10px;
+  }
+
+  &__date-range-title {
+    margin: 0 0 5px;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 25px;
+    color: #0b0c0c;
+  }
+
+  &__date-range-hint {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 25px;
+    color: #505a5f;
+  }
+
+  &__date-picker {
+    width: 100%;
+    margin-bottom: 30px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .moj-datepicker .govuk-form-group {
+      margin-bottom: 0;
+    }
+
+    .moj-datepicker__wrapper {
+      width: 100%;
+    }
+
+    .moj-js-datepicker-input {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .moj-datepicker__toggle {
+      background-color: #1d70b8;
+      box-shadow: inset 0 -1px 0 #003078;
+      color: #ffffff;
+      border: 0;
+      border-bottom: 0;
+      outline-offset: 0;
+
+      &:hover,
+      &:focus,
+      &:focus:hover,
+      &:focus-visible,
+      &:focus-visible:hover {
+        border: 0;
+        border-bottom: 0;
+        color: #ffffff;
+      }
+
+      &:hover,
+      &:focus-visible:hover {
+        background-color: #003078;
+        box-shadow: inset 0 -1px 0 #003078;
+      }
+
+      &:focus-visible {
+        outline: 3px solid #ffdd00;
+        outline-offset: 0;
+        background-color: #1d70b8;
+        box-shadow: inset 0 -1px 0 #003078;
+      }
+    }
+
+    .moj-js-datepicker-input:focus:not(:focus-visible) {
+      outline: none;
+      box-shadow: none;
+    }
+
+    .moj-datepicker__toggle:focus:not(:focus-visible) {
+      border: 0;
+      border-bottom: 0;
+      outline: none;
+      color: #ffffff;
+      background-color: #1d70b8;
+      box-shadow: inset 0 -1px 0 #003078;
+    }
   }
 }
 
@@ -5615,16 +5814,32 @@ button.govuk-link.app-govuk-body-link--small {
   }
 
   &__sort .govuk-select {
-    appearance: none;
-    -webkit-appearance: none;
     min-width: 0;
     height: 40px;
-    padding: 8px 35px 7px 11px;
-    background-color: #fff;
-    background-image: url("/public/images/dashboard/icon-select-chevron.svg");
+    margin: 0;
+    padding: 0 28px 0 11px;
+    border: 2px solid #0b0c0c;
+    border-radius: 0;
+    background-color: #ffffff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'%3E%3Cpath d='M0 0.5 4 4.5 8 0.5' fill='none' stroke='%230b0c0c' stroke-width='1.5'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 11px center;
-    background-size: 9px 5px;
+    background-position: right 7px center;
+    background-size: 8px 5px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    box-shadow: none;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 36px;
+    color: #0b0c0c;
+
+    &:focus {
+      outline: 3px solid #ffdd00;
+      outline-offset: 0;
+      box-shadow: inset 0 0 0 2px #0b0c0c;
+    }
   }
 
   &__sort-label {
