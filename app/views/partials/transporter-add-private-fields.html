@@ -1,0 +1,100 @@
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+
+<div class="app-transporter-add-private-fields">
+  {{ govukInput({
+    label: {
+      text: "Transporter name"
+    },
+    id: "transporter-private-name",
+    name: "transporterPrivateName",
+    value: formValues.name,
+    classes: "app-transporter-add-private-fields__input app-transporter-add-private-fields__input--full",
+    errorMessage: data.errors.transporterPrivateName if data.errors and data.errors.transporterPrivateName
+  }) }}
+
+  {{ govukInput({
+    label: {
+      text: "Address line 1"
+    },
+    id: "transporter-private-address-line-1",
+    name: "transporterPrivateAddressLine1",
+    value: formValues.addressLine1,
+    classes: "app-transporter-add-private-fields__input app-transporter-add-private-fields__input--full",
+    errorMessage: data.errors.transporterPrivateAddressLine1 if data.errors and data.errors.transporterPrivateAddressLine1
+  }) }}
+
+  {{ govukInput({
+    label: {
+      text: "Address line 2 (optional)"
+    },
+    id: "transporter-private-address-line-2",
+    name: "transporterPrivateAddressLine2",
+    value: formValues.addressLine2,
+    classes: "app-transporter-add-private-fields__input app-transporter-add-private-fields__input--full",
+    errorMessage: data.errors.transporterPrivateAddressLine2 if data.errors and data.errors.transporterPrivateAddressLine2
+  }) }}
+
+  {{ govukInput({
+    label: {
+      text: "Town or city"
+    },
+    id: "transporter-private-town-or-city",
+    name: "transporterPrivateTownOrCity",
+    value: formValues.townOrCity,
+    classes: "app-transporter-add-private-fields__input app-transporter-add-private-fields__input--one-half",
+    errorMessage: data.errors.transporterPrivateTownOrCity if data.errors and data.errors.transporterPrivateTownOrCity
+  }) }}
+
+  {{ govukInput({
+    label: {
+      text: "Postcode or Zip code"
+    },
+    id: "transporter-private-postcode",
+    name: "transporterPrivatePostcode",
+    value: formValues.postcode,
+    classes: "app-transporter-add-private-fields__input app-transporter-add-private-fields__input--one-half",
+    errorMessage: data.errors.transporterPrivatePostcode if data.errors and data.errors.transporterPrivatePostcode
+  }) }}
+
+  {{ govukSelect({
+    id: "transporter-private-country",
+    name: "transporterPrivateCountry",
+    label: {
+      text: "Country"
+    },
+    classes: "app-transporter-add-private-fields__select",
+    formGroup: {
+      classes: "app-transporter-add-private-fields__country"
+    },
+    items: countryItems,
+    errorMessage: data.errors.transporterPrivateCountry if data.errors and data.errors.transporterPrivateCountry
+  }) }}
+
+  <h2 class="app-transporter-add-private-fields__section-heading">Enter contact details</h2>
+
+  {{ govukInput({
+    label: {
+      text: "Email address"
+    },
+    id: "transporter-private-email",
+    name: "transporterPrivateEmail",
+    value: formValues.email,
+    classes: "app-transporter-add-private-fields__input app-transporter-add-private-fields__input--full",
+    errorMessage: data.errors.transporterPrivateEmail if data.errors and data.errors.transporterPrivateEmail
+  }) }}
+
+  {{ govukInput({
+    label: {
+      text: "Phone number"
+    },
+    hint: {
+      text: "For international numbers include the country code"
+    },
+    id: "transporter-private-phone",
+    name: "transporterPrivatePhone",
+    value: formValues.phone,
+    classes: "app-transporter-add-private-fields__input app-transporter-add-private-fields__input--two-thirds",
+    errorMessage: data.errors.transporterPrivatePhone if data.errors and data.errors.transporterPrivatePhone
+  }) }}
+</div>

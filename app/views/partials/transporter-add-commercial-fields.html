@@ -1,0 +1,111 @@
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+
+<div class="app-transporter-add-commercial-fields">
+  {{ govukInput({
+    label: {
+      text: "Transporter authorisation number"
+    },
+    id: "transporter-commercial-authorisation-number",
+    name: "transporterCommercialAuthorisationNumber",
+    value: formValues.authorisationNumber,
+    classes: "app-transporter-add-commercial-fields__input app-transporter-add-commercial-fields__input--two-thirds",
+    errorMessage: data.errors.transporterCommercialAuthorisationNumber if data.errors and data.errors.transporterCommercialAuthorisationNumber
+  }) }}
+
+  {{ govukInput({
+    label: {
+      text: "Transporter name"
+    },
+    id: "transporter-commercial-name",
+    name: "transporterCommercialName",
+    value: formValues.name,
+    classes: "app-transporter-add-commercial-fields__input app-transporter-add-commercial-fields__input--full",
+    errorMessage: data.errors.transporterCommercialName if data.errors and data.errors.transporterCommercialName
+  }) }}
+
+  {{ govukInput({
+    label: {
+      text: "Address line 1"
+    },
+    id: "transporter-commercial-address-line-1",
+    name: "transporterCommercialAddressLine1",
+    value: formValues.addressLine1,
+    classes: "app-transporter-add-commercial-fields__input app-transporter-add-commercial-fields__input--full",
+    errorMessage: data.errors.transporterCommercialAddressLine1 if data.errors and data.errors.transporterCommercialAddressLine1
+  }) }}
+
+  {{ govukInput({
+    label: {
+      text: "Address line 2 (optional)"
+    },
+    id: "transporter-commercial-address-line-2",
+    name: "transporterCommercialAddressLine2",
+    value: formValues.addressLine2,
+    classes: "app-transporter-add-commercial-fields__input app-transporter-add-commercial-fields__input--full",
+    errorMessage: data.errors.transporterCommercialAddressLine2 if data.errors and data.errors.transporterCommercialAddressLine2
+  }) }}
+
+  {{ govukInput({
+    label: {
+      text: "Town or city"
+    },
+    id: "transporter-commercial-town-or-city",
+    name: "transporterCommercialTownOrCity",
+    value: formValues.townOrCity,
+    classes: "app-transporter-add-commercial-fields__input app-transporter-add-commercial-fields__input--one-half",
+    errorMessage: data.errors.transporterCommercialTownOrCity if data.errors and data.errors.transporterCommercialTownOrCity
+  }) }}
+
+  {{ govukInput({
+    label: {
+      text: "Postcode or Zip code"
+    },
+    id: "transporter-commercial-postcode",
+    name: "transporterCommercialPostcode",
+    value: formValues.postcode,
+    classes: "app-transporter-add-commercial-fields__input app-transporter-add-commercial-fields__input--one-half",
+    errorMessage: data.errors.transporterCommercialPostcode if data.errors and data.errors.transporterCommercialPostcode
+  }) }}
+
+  {{ govukSelect({
+    id: "transporter-commercial-country",
+    name: "transporterCommercialCountry",
+    label: {
+      text: "Country"
+    },
+    classes: "app-transporter-add-commercial-fields__select",
+    formGroup: {
+      classes: "app-transporter-add-commercial-fields__country"
+    },
+    items: countryItems,
+    errorMessage: data.errors.transporterCommercialCountry if data.errors and data.errors.transporterCommercialCountry
+  }) }}
+
+  <h2 class="app-transporter-add-commercial-fields__section-heading">Enter contact details</h2>
+
+  {{ govukInput({
+    label: {
+      text: "Email address"
+    },
+    id: "transporter-commercial-email",
+    name: "transporterCommercialEmail",
+    value: formValues.email,
+    classes: "app-transporter-add-commercial-fields__input app-transporter-add-commercial-fields__input--full",
+    errorMessage: data.errors.transporterCommercialEmail if data.errors and data.errors.transporterCommercialEmail
+  }) }}
+
+  {{ govukInput({
+    label: {
+      text: "Phone number"
+    },
+    hint: {
+      text: "For international numbers include the country code"
+    },
+    id: "transporter-commercial-phone",
+    name: "transporterCommercialPhone",
+    value: formValues.phone,
+    classes: "app-transporter-add-commercial-fields__input app-transporter-add-commercial-fields__input--two-thirds",
+    errorMessage: data.errors.transporterCommercialPhone if data.errors and data.errors.transporterCommercialPhone
+  }) }}
+</div>

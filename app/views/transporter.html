@@ -3,6 +3,7 @@
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
 
 {% set pageName = "Transporter details" %}
@@ -26,6 +27,15 @@
   <div class="govuk-grid-column-full app-transporter-page">
 
     {% include "partials/notification-status.html" %}
+
+    {% if successMessage %}
+      {{ govukNotificationBanner({
+        type: "success",
+        titleText: "Success",
+        text: successMessage,
+        classes: "app-transporter-page__success-banner"
+      }) }}
+    {% endif %}
 
     <div class="app-transporter-page__title">
       <p class="app-transporter-page__caption">Transport and arrival</p>
@@ -150,7 +160,7 @@
 
       {{ govukButton({
         text: "Add a transporter",
-        href: "#",
+        href: "/transporter/add",
         classes: "govuk-button--secondary app-transporter-page__add-button"
       }) }}
 

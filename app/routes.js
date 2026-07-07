@@ -22,6 +22,7 @@ const getActiveConsignmentAddressSections = consignmentAddressSections.getActive
 const getActiveConsignmentAddressSectionsForCommodityCodes = consignmentAddressSections.getActiveConsignmentAddressSectionsForCommodityCodes
 const consignmentAddresses = require('./data/consignment-addresses')
 const transporters = require('./data/transporters')
+const transporterTypes = require('./data/transporter-types')
 const addressBookData = require('./data/address-book')
 const addressBookAddressTypes = require('./data/address-book-address-types')
 const addressBookLookupAddresses = require('./data/address-book-lookup-addresses')
@@ -2008,15 +2009,24 @@ function formatTransporterForSearch (transporter) {
   ].join(' ').toLowerCase()
 }
 
-function getTransporterById (transporterId) {
-  return transporters.find((transporter) => transporter.id === transporterId)
+function getTransporterById (transporterId, sessionData = {}) {
+  return getAllTransporters(sessionData).find((transporter) => transporter.id === transporterId)
 }
 
-function buildTransporterResults (searchQuery = '') {
+function getSessionTransporters (sessionData) {
+  return sessionData.addedTransporters || []
+}
+
+function getAllTransporters (sessionData = {}) {
+  return [...getSessionTransporters(sessionData), ...transporters]
+}
+
+function buildTransporterResults (searchQuery = '', sessionData = {}) {
   const query = searchQuery.trim().toLowerCase()
+  const allTransporters = getAllTransporters(sessionData)
   const filtered = query
-    ? transporters.filter((transporter) => formatTransporterForSearch(transporter).includes(query))
-    : transporters
+    ? allTransporters.filter((transporter) => formatTransporterForSearch(transporter).includes(query))
+    : allTransporters
 
   return {
     transporters: filtered.map((transporter) => ({
@@ -2029,15 +2039,21 @@ function buildTransporterResults (searchQuery = '') {
 function renderTransporterPage (req, res, locals = {}) {
   const sessionData = req.session.data
   const searchQuery = locals.searchQuery != null ? locals.searchQuery : ''
+  const successMessage = sessionData.transporterSuccessMessage || null
+
+  if (successMessage) {
+    delete sessionData.transporterSuccessMessage
+  }
 
   return res.render('transporter', {
     backLink: '/notification-hub',
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
-    transporterResults: buildTransporterResults(searchQuery),
+    transporterResults: buildTransporterResults(searchQuery, sessionData),
     selectedTransporterId: locals.selectedTransporterId != null
       ? locals.selectedTransporterId
       : sessionData.transporterId || '',
     searchQuery,
+    successMessage,
     data: sessionData,
     ...locals
   })
@@ -2052,6 +2068,284 @@ function syncTransporterSession (sessionData, transporter) {
     type: transporter.type,
     status: transporter.status
   }
+}
+
+const transporterTypeValues = transporterTypes.map((item) => item.value)
+
+function renderTransporterAddPage (req, res, locals = {}) {
+  const sessionData = req.session.data
+
+  return res.render('transporter-add', {
+    backLink: '/transporter',
+    transporterTypeOptions: transporterTypes,
+    selectedTransporterType: locals.selectedTransporterType != null
+      ? locals.selectedTransporterType
+      : sessionData.transporterAddType || '',
+    data: sessionData,
+    ...locals
+  })
+}
+
+function validateTransporterType (transporterType) {
+  const value = (transporterType || '').trim()
+  const errors = {}
+  const errorList = []
+
+  if (!value || !transporterTypeValues.includes(value)) {
+    errors.transporterType = { text: 'Select a transporter type' }
+    errorList.push({
+      text: 'Select a transporter type',
+      href: '#transporter-type-private'
+    })
+  }
+
+  return { errors, errorList, value }
+}
+
+function redirectIfTransporterAddTypeNot (req, res, expectedType) {
+  if (req.session.data.transporterAddType === expectedType) {
+    return false
+  }
+
+  res.redirect('/transporter/add')
+  return true
+}
+
+function getTransporterPrivateForm (sessionData) {
+  return {
+    name: '',
+    addressLine1: '',
+    addressLine2: '',
+    townOrCity: '',
+    postcode: '',
+    country: 'United Kingdom',
+    email: '',
+    phone: '',
+    ...(sessionData.transporterPrivateForm || {})
+  }
+}
+
+function parseTransporterPrivateFormBody (body) {
+  return {
+    name: (body.transporterPrivateName || '').trim(),
+    addressLine1: (body.transporterPrivateAddressLine1 || '').trim(),
+    addressLine2: (body.transporterPrivateAddressLine2 || '').trim(),
+    townOrCity: (body.transporterPrivateTownOrCity || '').trim(),
+    postcode: (body.transporterPrivatePostcode || '').trim(),
+    country: (body.transporterPrivateCountry || '').trim(),
+    email: (body.transporterPrivateEmail || '').trim(),
+    phone: (body.transporterPrivatePhone || '').trim()
+  }
+}
+
+function validateTransporterPrivateForm (form) {
+  const errors = {}
+  const errorList = []
+
+  const addError = (field, message, href) => {
+    errors[field] = { text: message }
+    errorList.push({ text: message, href })
+  }
+
+  if (!form.name) {
+    addError('transporterPrivateName', 'Enter a transporter name', '#transporter-private-name')
+  }
+
+  if (!form.addressLine1) {
+    addError('transporterPrivateAddressLine1', 'Enter address line 1', '#transporter-private-address-line-1')
+  }
+
+  if (!form.townOrCity) {
+    addError('transporterPrivateTownOrCity', 'Enter a town or city', '#transporter-private-town-or-city')
+  }
+
+  if (!form.postcode) {
+    addError('transporterPrivatePostcode', 'Enter a postcode or Zip code', '#transporter-private-postcode')
+  }
+
+  if (!form.country) {
+    addError('transporterPrivateCountry', 'Select a country', '#transporter-private-country')
+  }
+
+  if (!form.email) {
+    addError('transporterPrivateEmail', 'Enter an email address', '#transporter-private-email')
+  }
+
+  if (!form.phone) {
+    addError('transporterPrivatePhone', 'Enter a phone number', '#transporter-private-phone')
+  }
+
+  return { errors, errorList, value: form }
+}
+
+function formatTransporterFormAddress (form) {
+  return [
+    form.addressLine1,
+    form.addressLine2,
+    form.townOrCity,
+    form.postcode,
+    form.country
+  ].filter(Boolean).join(', ')
+}
+
+function buildPrivateTransporterFromForm (form) {
+  return {
+    id: `added-transporter-${Date.now()}`,
+    name: form.name,
+    address: formatTransporterFormAddress(form),
+    approvalNumber: 'Not applicable',
+    type: 'Private',
+    status: 'New',
+    statusTagClass: 'app-transporter-table__tag--new'
+  }
+}
+
+function getTransporterCommercialForm (sessionData) {
+  return {
+    authorisationNumber: '',
+    name: '',
+    addressLine1: '',
+    addressLine2: '',
+    townOrCity: '',
+    postcode: '',
+    country: 'United Kingdom',
+    email: '',
+    phone: '',
+    ...(sessionData.transporterCommercialForm || {})
+  }
+}
+
+function parseTransporterCommercialFormBody (body) {
+  return {
+    authorisationNumber: (body.transporterCommercialAuthorisationNumber || '').trim(),
+    name: (body.transporterCommercialName || '').trim(),
+    addressLine1: (body.transporterCommercialAddressLine1 || '').trim(),
+    addressLine2: (body.transporterCommercialAddressLine2 || '').trim(),
+    townOrCity: (body.transporterCommercialTownOrCity || '').trim(),
+    postcode: (body.transporterCommercialPostcode || '').trim(),
+    country: (body.transporterCommercialCountry || '').trim(),
+    email: (body.transporterCommercialEmail || '').trim(),
+    phone: (body.transporterCommercialPhone || '').trim()
+  }
+}
+
+function validateTransporterCommercialForm (form) {
+  const errors = {}
+  const errorList = []
+
+  const addError = (field, message, href) => {
+    errors[field] = { text: message }
+    errorList.push({ text: message, href })
+  }
+
+  if (!form.authorisationNumber) {
+    addError(
+      'transporterCommercialAuthorisationNumber',
+      'Enter a transporter authorisation number',
+      '#transporter-commercial-authorisation-number'
+    )
+  }
+
+  if (!form.name) {
+    addError('transporterCommercialName', 'Enter a transporter name', '#transporter-commercial-name')
+  }
+
+  if (!form.addressLine1) {
+    addError(
+      'transporterCommercialAddressLine1',
+      'Enter address line 1',
+      '#transporter-commercial-address-line-1'
+    )
+  }
+
+  if (!form.townOrCity) {
+    addError(
+      'transporterCommercialTownOrCity',
+      'Enter a town or city',
+      '#transporter-commercial-town-or-city'
+    )
+  }
+
+  if (!form.postcode) {
+    addError(
+      'transporterCommercialPostcode',
+      'Enter a postcode or Zip code',
+      '#transporter-commercial-postcode'
+    )
+  }
+
+  if (!form.country) {
+    addError('transporterCommercialCountry', 'Select a country', '#transporter-commercial-country')
+  }
+
+  if (!form.email) {
+    addError('transporterCommercialEmail', 'Enter an email address', '#transporter-commercial-email')
+  }
+
+  if (!form.phone) {
+    addError('transporterCommercialPhone', 'Enter a phone number', '#transporter-commercial-phone')
+  }
+
+  return { errors, errorList, value: form }
+}
+
+function buildCommercialTransporterFromForm (form) {
+  return {
+    id: `added-transporter-${Date.now()}`,
+    name: form.name,
+    address: formatTransporterFormAddress(form),
+    approvalNumber: form.authorisationNumber,
+    type: 'Commercial',
+    status: 'New',
+    statusTagClass: 'app-transporter-table__tag--new'
+  }
+}
+
+function formatTransporterSuccessMessage (name) {
+  const trimmed = (name || '').trim()
+
+  if (!trimmed) {
+    return 'Transporter added'
+  }
+
+  return `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1).toLowerCase()} transporter added`
+}
+
+function saveAddedTransporter (sessionData, transporter) {
+  if (!sessionData.addedTransporters) {
+    sessionData.addedTransporters = []
+  }
+
+  sessionData.addedTransporters.unshift(transporter)
+  syncTransporterSession(sessionData, transporter)
+  sessionData.transporterSuccessMessage = formatTransporterSuccessMessage(transporter.name)
+}
+
+function renderTransporterAddPrivatePage (req, res, locals = {}) {
+  const sessionData = req.session.data
+  const formValues = locals.formValues || getTransporterPrivateForm(sessionData)
+
+  return res.render('transporter-add-private', {
+    backLink: '/transporter/add',
+    formValues,
+    countryItems: buildAddressBookCountryItems(formValues.country),
+    data: sessionData,
+    ...locals
+  })
+}
+
+function renderTransporterAddCommercialPage (req, res, locals = {}) {
+  const sessionData = req.session.data
+  const formValues = locals.formValues || getTransporterCommercialForm(sessionData)
+
+  return res.render('transporter-add-commercial', {
+    backLink: '/transporter/add',
+    notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    formValues,
+    countryItems: buildAddressBookCountryItems(formValues.country),
+    data: sessionData,
+    ...locals
+  })
 }
 
 function formatConsignmentAddressForSearch (address) {
@@ -5153,13 +5447,150 @@ router.get('/transporter', (req, res) => {
   })
 })
 
+router.get('/transporter/add', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  return renderTransporterAddPage(req, res)
+})
+
+router.post('/transporter/add', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  const validation = validateTransporterType(req.body.transporterType)
+
+  if (validation.errorList.length) {
+    req.session.data.errorList = validation.errorList
+    req.session.data.errors = validation.errors
+
+    return renderTransporterAddPage(req, res, {
+      selectedTransporterType: validation.value
+    })
+  }
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+  req.session.data.transporterAddType = validation.value
+
+  if (validation.value === 'private') {
+    return res.redirect('/transporter/add/private')
+  }
+
+  if (validation.value === 'commercial') {
+    return res.redirect('/transporter/add/commercial')
+  }
+
+  return res.redirect('/transporter')
+})
+
+router.get('/transporter/add/private', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (redirectIfTransporterAddTypeNot(req, res, 'private')) {
+    return
+  }
+
+  return renderTransporterAddPrivatePage(req, res)
+})
+
+router.post('/transporter/add/private', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (redirectIfTransporterAddTypeNot(req, res, 'private')) {
+    return
+  }
+
+  const action = (req.body.action || '').trim()
+  const formValues = parseTransporterPrivateFormBody(req.body)
+
+  if (action === 'cancel') {
+    req.session.data.errorList = null
+    req.session.data.errors = null
+    req.session.data.transporterAddType = null
+    req.session.data.transporterPrivateForm = null
+
+    return res.redirect('/')
+  }
+
+  const validation = validateTransporterPrivateForm(formValues)
+
+  if (validation.errorList.length) {
+    req.session.data.errorList = validation.errorList
+    req.session.data.errors = validation.errors
+    req.session.data.transporterPrivateForm = validation.value
+
+    return renderTransporterAddPrivatePage(req, res, {
+      formValues: validation.value
+    })
+  }
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+  req.session.data.transporterPrivateForm = null
+  req.session.data.transporterAddType = null
+
+  saveAddedTransporter(req.session.data, buildPrivateTransporterFromForm(validation.value))
+
+  return res.redirect('/transporter')
+})
+
+router.get('/transporter/add/commercial', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (redirectIfTransporterAddTypeNot(req, res, 'commercial')) {
+    return
+  }
+
+  return renderTransporterAddCommercialPage(req, res)
+})
+
+router.post('/transporter/add/commercial', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (redirectIfTransporterAddTypeNot(req, res, 'commercial')) {
+    return
+  }
+
+  const action = (req.body.action || '').trim()
+  const formValues = parseTransporterCommercialFormBody(req.body)
+
+  if (action === 'cancel') {
+    req.session.data.errorList = null
+    req.session.data.errors = null
+    req.session.data.transporterAddType = null
+    req.session.data.transporterCommercialForm = null
+
+    return res.redirect('/')
+  }
+
+  const validation = validateTransporterCommercialForm(formValues)
+
+  if (validation.errorList.length) {
+    req.session.data.errorList = validation.errorList
+    req.session.data.errors = validation.errors
+    req.session.data.transporterCommercialForm = validation.value
+
+    return renderTransporterAddCommercialPage(req, res, {
+      formValues: validation.value
+    })
+  }
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+  req.session.data.transporterCommercialForm = null
+  req.session.data.transporterAddType = null
+
+  saveAddedTransporter(req.session.data, buildCommercialTransporterFromForm(validation.value))
+
+  return res.redirect('/transporter')
+})
+
 router.post('/transporter', (req, res) => {
   ensurePrototypeNotificationReference(req.session.data)
 
   const transporterId = (req.body.transporterId || '').trim()
   const searchQuery = (req.body.search || '').trim()
   const action = (req.body.action || '').trim()
-  const transporter = getTransporterById(transporterId)
+  const transporter = getTransporterById(transporterId, req.session.data)
 
   if (action === 'hub') {
     if (transporter) {

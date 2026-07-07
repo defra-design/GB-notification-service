@@ -1,0 +1,94 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+
+{% set pageName = "Choose a transporter type" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+    <div class="app-transporter-add-shell">
+      <div class="app-transporter-add-page">
+        <div class="app-transporter-add-page__header">
+          <p class="app-transporter-add-page__caption">Add a new transporter</p>
+          <h1 class="app-transporter-add-page__heading">Choose a transporter type</h1>
+        </div>
+
+        {{ govukWarningText({
+          text: "Before you add this transporter, please ensure you have already searched for it first.",
+          classes: "app-transporter-add-page__warning"
+        }) }}
+
+        {% if data.errorList %}
+          {{ govukErrorSummary({
+            titleText: "There is a problem",
+            errorList: data.errorList
+          }) }}
+        {% endif %}
+
+        <form method="post" action="/transporter/add" novalidate class="app-transporter-add-form">
+          <div class="govuk-form-group app-transporter-add-page__question{% if data.errors and data.errors.transporterType %} govuk-form-group--error{% endif %}">
+            <fieldset class="govuk-fieldset">
+              <legend class="govuk-fieldset__legend govuk-visually-hidden">Choose a transporter type</legend>
+
+              {% if data.errors and data.errors.transporterType %}
+                <p id="transporter-type-error" class="govuk-error-message">
+                  <span class="govuk-visually-hidden">Error:</span>
+                  {{ data.errors.transporterType.text }}
+                </p>
+              {% endif %}
+
+              <div class="govuk-radios app-reason-for-import-radios app-transporter-add-radios">
+                {% for item in transporterTypeOptions %}
+                  <div class="govuk-radios__item">
+                    <input
+                      class="govuk-radios__input"
+                      id="transporter-type-{{ item.value }}"
+                      name="transporterType"
+                      type="radio"
+                      value="{{ item.value }}"
+                      {% if selectedTransporterType == item.value %}checked{% endif %}
+                      {% if data.errors and data.errors.transporterType %}aria-describedby="transporter-type-error"{% endif %}
+                    >
+                    <label class="govuk-label govuk-radios__label" for="transporter-type-{{ item.value }}">
+                      {{ item.text }}
+                    </label>
+                    {% if item.hint %}
+                      <div class="govuk-hint govuk-radios__hint" id="transporter-type-{{ item.value }}-hint">
+                        {{ item.hint }}
+                      </div>
+                    {% endif %}
+                  </div>
+                {% endfor %}
+              </div>
+            </fieldset>
+          </div>
+
+          {{ govukButton({
+            text: "Continue",
+            classes: "app-transporter-add-page__continue-button"
+          }) }}
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+
+{% set pageName = "Add commercial transporter" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+    <div class="app-transporter-add-shell">
+      <div class="app-transporter-add-page">
+        {% include "partials/notification-status.html" %}
+
+        <div class="app-transporter-add-page__header">
+          <p class="app-transporter-add-page__caption">Add a new transporter</p>
+          <h1 class="app-transporter-add-page__heading">Add commercial transporter</h1>
+        </div>
+
+        {% if data.errorList %}
+          {{ govukErrorSummary({
+            titleText: "There is a problem",
+            errorList: data.errorList
+          }) }}
+        {% endif %}
+
+        <form method="post" action="/transporter/add/commercial" novalidate class="app-transporter-add-commercial-form">
+          {% include "partials/transporter-add-commercial-fields.html" %}
+
+          <div class="app-transporter-add-commercial-form__actions">
+            {{ govukButton({
+              text: "Save and continue",
+              classes: "app-transporter-add-commercial-form__continue-button"
+            }) }}
+
+            {{ govukButton({
+              text: "Cancel and return to dashboard",
+              name: "action",
+              value: "cancel",
+              classes: "govuk-button--secondary app-transporter-add-commercial-form__cancel-button"
+            }) }}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
