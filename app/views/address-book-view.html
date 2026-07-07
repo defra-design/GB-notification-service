@@ -1,0 +1,51 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% set pageName = pageHeading %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds app-address-book-view-page">
+
+    <h1 class="govuk-heading-l app-address-book-view-page__heading">{{ pageHeading }}</h1>
+
+    {{ govukSummaryList({
+      classes: "app-address-book-view-page__summary-list",
+      rows: summaryRows
+    }) }}
+
+    <div class="app-address-book-view-page__actions">
+      {{ govukButton({
+        text: "Edit",
+        href: editHref,
+        classes: "govuk-button--secondary app-address-book-view-page__edit-button"
+      }) }}
+
+      {{ govukButton({
+        text: "Delete",
+        href: deleteHref,
+        classes: "govuk-button--warning app-address-book-view-page__delete-button"
+      }) }}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

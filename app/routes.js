@@ -79,6 +79,18 @@ function ensurePrototypeNotificationReference (sessionData) {
   }
 }
 
+function resetNotificationJourneySession (sessionData) {
+  const addressBookAddedAddresses = sessionData.addressBookAddedAddresses
+
+  Object.keys(sessionData).forEach((key) => {
+    delete sessionData[key]
+  })
+
+  if (addressBookAddedAddresses && addressBookAddedAddresses.length) {
+    sessionData.addressBookAddedAddresses = addressBookAddedAddresses
+  }
+}
+
 function seedPrototypeSessionForReasonForImport (sessionData) {
   sessionData.countryOfOrigin = 'France'
   sessionData.regionOfOriginRequired = 'No'
@@ -2031,7 +2043,8 @@ function buildTransporterResults (searchQuery = '', sessionData = {}) {
   return {
     transporters: filtered.map((transporter) => ({
       ...transporter,
-      searchText: formatTransporterForSearch(transporter)
+      searchText: formatTransporterForSearch(transporter),
+      viewHref: buildAddressViewHref(transporter.id, '/transporter')
     }))
   }
 }
@@ -2188,6 +2201,19 @@ function formatTransporterFormAddress (form) {
   ].filter(Boolean).join(', ')
 }
 
+function buildTransporterAddressDetails (form) {
+  return {
+    nameOrOrganisation: form.name,
+    addressLine1: form.addressLine1,
+    addressLine2: form.addressLine2,
+    townOrCity: form.townOrCity,
+    postcode: form.postcode,
+    country: form.country,
+    email: form.email,
+    phone: form.phone
+  }
+}
+
 function buildPrivateTransporterFromForm (form) {
   return {
     id: `added-transporter-${Date.now()}`,
@@ -2196,7 +2222,8 @@ function buildPrivateTransporterFromForm (form) {
     approvalNumber: 'Not applicable',
     type: 'Private',
     status: 'New',
-    statusTagClass: 'app-transporter-table__tag--new'
+    statusTagClass: 'app-transporter-table__tag--new',
+    details: buildTransporterAddressDetails(form)
   }
 }
 
@@ -2297,7 +2324,8 @@ function buildCommercialTransporterFromForm (form) {
     approvalNumber: form.authorisationNumber,
     type: 'Commercial',
     status: 'New',
-    statusTagClass: 'app-transporter-table__tag--new'
+    statusTagClass: 'app-transporter-table__tag--new',
+    details: buildTransporterAddressDetails(form)
   }
 }
 
@@ -2371,7 +2399,7 @@ function getConsignmentAddressById (addressId, sectionId, sessionData = {}) {
   return getConsignmentAddressesForSection(sectionId, sessionData).find((address) => address.id === addressId)
 }
 
-function buildConsignmentAddressResults (searchQuery = '', sectionId = '', sessionData = {}) {
+function buildConsignmentAddressResults (searchQuery = '', sectionId = '', sessionData = {}, returnPath = '') {
   const sectionAddresses = getConsignmentAddressesForSection(sectionId, sessionData)
   const query = searchQuery.trim().toLowerCase()
   const filtered = query
@@ -2381,7 +2409,8 @@ function buildConsignmentAddressResults (searchQuery = '', sectionId = '', sessi
   return {
     addresses: filtered.map((address) => ({
       ...address,
-      searchText: formatConsignmentAddressForSearch(address)
+      searchText: formatConsignmentAddressForSearch(address),
+      viewHref: buildAddressViewHref(address.id, returnPath)
     })),
     visibleCount: filtered.length,
     totalCount: sectionAddresses.length
@@ -2407,7 +2436,7 @@ function renderConsignmentAddressSelectPage (section, req, res, locals = {}) {
     formFieldName: section.formFieldName,
     inputIdPrefix: section.inputIdPrefix,
     searchInputId: section.searchInputId,
-    addressResults: buildConsignmentAddressResults(searchQuery, section.id, sessionData),
+    addressResults: buildConsignmentAddressResults(searchQuery, section.id, sessionData, section.path),
     selectedAddressId: locals.selectedAddressId != null
       ? locals.selectedAddressId
       : sessionData[section.sessionAddressIdKey] || '',
@@ -3630,7 +3659,197 @@ function getAddressBookAddresses (sessionData = {}) {
   return [
     ...(sessionData.addressBookAddedAddresses || []),
     ...addressBookData.addresses
+  ].map((address) => ({
+    ...address,
+    viewHref: address.viewHref || `/address-book/${address.id}`
+  }))
+}
+
+function buildAddressViewHref (addressId, returnTo) {
+  const baseHref = `/address-book/${encodeURIComponent(addressId)}`
+
+  if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) {
+    return `${baseHref}?return=${encodeURIComponent(returnTo)}`
+  }
+
+  return baseHref
+}
+
+function getSafeReturnPath (returnTo, fallback = '/address-book') {
+  const path = (returnTo || '').trim()
+
+  if (path.startsWith('/') && !path.startsWith('//')) {
+    return path
+  }
+
+  return fallback
+}
+
+function getAllConsignmentAddresses (sessionData = {}) {
+  return [
+    ...(sessionData.consignmentAddedAddresses || []),
+    ...consignmentAddresses
   ]
+}
+
+function findViewableAddress (addressId, sessionData = {}) {
+  const normalisedId = (addressId || '').trim()
+
+  if (!normalisedId) {
+    return null
+  }
+
+  const addressBookAddress = getAddressBookAddresses(sessionData)
+    .find((address) => address.id === normalisedId)
+
+  if (addressBookAddress) {
+    return addressBookAddress
+  }
+
+  const consignmentAddress = getAllConsignmentAddresses(sessionData)
+    .find((address) => address.id === normalisedId)
+
+  if (consignmentAddress) {
+    return consignmentAddress
+  }
+
+  const contactAddress = contactAddresses.find((address) => address.id === normalisedId)
+
+  if (contactAddress) {
+    return contactAddress
+  }
+
+  const transporter = getAllTransporters(sessionData).find((item) => item.id === normalisedId)
+
+  if (transporter) {
+    return transporter
+  }
+
+  return null
+}
+
+function resolveAddressBookDetails (address) {
+  if (address.details) {
+    return address.details
+  }
+
+  if (address.addressLines) {
+    return addressBookLookupAddresses.buildManualFieldsFromAddress({
+      name: address.name,
+      addressLines: address.addressLines,
+      country: address.country,
+      email: address.email,
+      telephone: address.telephone || address.phone
+    }, 0)
+  }
+
+  const baseId = address.id
+    .replace(/-duplicate-\d+$/, '')
+    .replace(/-\d+$/, '')
+
+  const lookupAddress = addressBookLookupAddresses.getAddressById(baseId)
+
+  if (lookupAddress?.manual) {
+    return lookupAddress.manual
+  }
+
+  if (address.address) {
+    return addressBookLookupAddresses.buildManualFieldsFromAddress({
+      name: address.name,
+      addressLines: [address.address],
+      country: address.country || ''
+    }, 0)
+  }
+
+  return {
+    nameOrOrganisation: address.name || '',
+    addressLine1: '',
+    addressLine2: '',
+    townOrCity: '',
+    postcode: '',
+    country: address.country || '',
+    email: address.email || '',
+    phone: address.telephone || address.phone || ''
+  }
+}
+
+function buildAddressBookViewSummaryRows (details) {
+  const rows = [
+    {
+      key: { text: 'Name or organisation' },
+      value: { text: details.nameOrOrganisation || '' }
+    },
+    {
+      key: { text: 'Address line 1' },
+      value: { text: details.addressLine1 || '' }
+    }
+  ]
+
+  if (details.addressLine2) {
+    rows.push({
+      key: { text: 'Address line 2 (optional)' },
+      value: { text: details.addressLine2 }
+    })
+  }
+
+  rows.push(
+    {
+      key: { text: 'Town or city' },
+      value: { text: details.townOrCity || '' }
+    },
+    {
+      key: { text: 'Postcode or Zip code' },
+      value: { text: details.postcode || '' }
+    },
+    {
+      key: { text: 'Country' },
+      value: { text: details.country || '' }
+    },
+    {
+      key: { text: 'Email address' },
+      value: { text: details.email || '' }
+    },
+    {
+      key: { text: 'Phone number' },
+      value: { text: details.phone || '' }
+    }
+  )
+
+  return rows
+}
+
+function getAddressBookEntryViewModel (addressId, sessionData = {}, options = {}) {
+  const address = findViewableAddress(addressId, sessionData)
+
+  if (!address) {
+    return null
+  }
+
+  const details = resolveAddressBookDetails(address)
+
+  return {
+    serviceNavActive: 'address-book',
+    backLink: options.backLink || '/address-book',
+    pageHeading: address.name,
+    summaryRows: buildAddressBookViewSummaryRows(details),
+    editHref: '#',
+    deleteHref: '#'
+  }
+}
+
+function renderAddressBookViewPage (req, res) {
+  const backLink = getSafeReturnPath(req.query.return)
+  const viewModel = getAddressBookEntryViewModel(
+    req.params.addressId,
+    req.session.data,
+    { backLink }
+  )
+
+  if (!viewModel) {
+    return res.redirect(backLink)
+  }
+
+  return res.render('address-book-view', viewModel)
 }
 
 function buildAddressBookSearchText (parts) {
@@ -3667,6 +3886,16 @@ function buildAddressBookEntryFromManual (manualAddress, addressType) {
     typeLabel,
     address: formattedAddress,
     country: manualAddress.country,
+    details: {
+      nameOrOrganisation: manualAddress.nameOrOrganisation,
+      addressLine1: manualAddress.addressLine1,
+      addressLine2: manualAddress.addressLine2,
+      townOrCity: manualAddress.townOrCity,
+      postcode: manualAddress.postcode,
+      country: manualAddress.country,
+      email: manualAddress.email,
+      phone: manualAddress.phone
+    },
     searchText: buildAddressBookSearchText([
       manualAddress.nameOrOrganisation,
       typeLabel,
@@ -3767,7 +3996,10 @@ function saveAddressBookEntry (sessionData, manualAddress, options = {}) {
     sessionData.addressBookAddedAddresses = []
   }
 
-  sessionData.addressBookAddedAddresses.unshift(entry)
+  sessionData.addressBookAddedAddresses.unshift({
+    ...entry,
+    viewHref: `/address-book/${entry.id}`
+  })
 
   if (consignmentReturn) {
     const consignmentAddress = buildConsignmentAddressFromManual(manualAddress, consignmentReturn.sectionId)
@@ -4447,6 +4679,11 @@ function renderUploadDocumentsPage (req, res, locals = {}) {
   })
 }
 
+router.get('/create-notification', (req, res) => {
+  resetNotificationJourneySession(req.session.data)
+  return res.redirect('/origin-of-the-import')
+})
+
 router.get('/origin-of-the-import', (req, res) => {
   ensurePrototypeNotificationReference(req.session.data)
   return renderOriginPage(req, res)
@@ -4908,6 +5145,10 @@ router.post('/address-book/add/lookup', (req, res) => {
   const { redirectTo } = saveAddressBookEntry(req.session.data, manualAddress)
 
   return res.redirect(redirectTo)
+})
+
+router.get('/address-book/:addressId', (req, res) => {
+  return renderAddressBookViewPage(req, res)
 })
 
 router.get('/review-notification', (req, res) => {

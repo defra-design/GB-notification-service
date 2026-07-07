@@ -1,5 +1,6 @@
 const consignmentAddresses = require('./consignment-addresses')
 const contactAddresses = require('./contact-addresses')
+const { buildManualFieldsFromAddress } = require('./address-book-lookup-addresses')
 
 const ADDRESS_TYPE_LABELS = {
   'place-of-origin': 'Place of origin',
@@ -26,8 +27,16 @@ function buildSearchText (parts) {
     .toLowerCase()
 }
 
-function mapAddress (address, type, typeLabel) {
-  const formattedAddress = formatAddressLines(address.addressLines)
+function mapAddress (address, type, typeLabel, index = 0) {
+  const addressLines = address.addressLines || []
+  const formattedAddress = address.address || formatAddressLines(addressLines)
+  const details = address.details || buildManualFieldsFromAddress({
+    name: address.name,
+    addressLines: addressLines.length ? addressLines : [formattedAddress],
+    country: address.country,
+    email: address.email,
+    telephone: address.telephone || address.phone
+  }, index)
 
   return {
     id: address.id,
@@ -36,6 +45,7 @@ function mapAddress (address, type, typeLabel) {
     typeLabel,
     address: formattedAddress,
     country: address.country,
+    details,
     searchText: buildSearchText([address.name, typeLabel, formattedAddress, address.country])
   }
 }
@@ -54,14 +64,10 @@ const prototypeAddresses = [
     name: 'Acorn Farm',
     type: 'importer',
     typeLabel: 'Importer',
-    address: 'Urban Farm, Acorn Venture, Depot Rd, Kirkby, Liverpool L33 3AR',
+    addressLines: ['Urban Farm', 'Acorn Venture', 'Depot Rd', 'Kirkby, Liverpool L33 3AR'],
     country: 'United Kingdom',
-    searchText: buildSearchText([
-      'Acorn Farm',
-      'Importer',
-      'Urban Farm, Acorn Venture, Depot Rd, Kirkby, Liverpool L33 3AR',
-      'United Kingdom'
-    ])
+    email: 'contact@acornfarm.co.uk',
+    telephone: '+44 151 555 0100'
   }
 ]
 
@@ -74,9 +80,12 @@ const baseAddresses = [
 const addresses = []
 
 baseAddresses.forEach((address, index) => {
+  const id = `${address.id}-${index}`
+
   addresses.push({
     ...address,
-    id: `${address.id}-${index}`
+    id,
+    viewHref: `/address-book/${id}`
   })
 })
 
@@ -87,6 +96,7 @@ while (addresses.length < 24) {
   addresses.push({
     ...source,
     id: `${source.id}-duplicate-${duplicateIndex}`,
+    viewHref: `/address-book/${source.id}-duplicate-${duplicateIndex}`,
     searchText: buildSearchText([
       source.name,
       source.typeLabel,

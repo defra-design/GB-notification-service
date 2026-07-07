@@ -149,7 +149,7 @@
                     <strong class="govuk-tag {{ transporter.statusTagClass }} app-transporter-table__tag">{{ transporter.status }}</strong>
                   </td>
                   <td class="govuk-table__cell app-transporter-table__cell app-transporter-table__cell--action">
-                    <a class="govuk-link" href="#">View details</a>
+                    <a class="govuk-link" href="{{ transporter.viewHref }}">View details</a>
                   </td>
                 </tr>
               {% endfor %}

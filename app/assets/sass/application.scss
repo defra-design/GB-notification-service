@@ -5540,6 +5540,28 @@ button.govuk-link.app-govuk-body-link--small {
   color: #505a5f;
 }
 
+.app-address-book-view-page {
+  &__heading {
+    margin-bottom: 30px;
+  }
+
+  &__summary-list {
+    margin-bottom: 30px;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    align-items: center;
+  }
+
+  &__edit-button,
+  &__delete-button {
+    margin-bottom: 0;
+  }
+}
+
 .app-dashboard-page {
   max-width: 960px;
   font-family: "GDS Transport", arial, sans-serif;

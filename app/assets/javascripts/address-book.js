@@ -51,7 +51,7 @@ function createAddressBookRow (address) {
       <td class="govuk-table__cell app-address-book-table__cell">${escapeHtml(address.address)}</td>
       <td class="govuk-table__cell app-address-book-table__cell">${escapeHtml(address.country)}</td>
       <td class="govuk-table__cell app-address-book-table__cell app-address-book-table__cell--action">
-        <a class="govuk-link" href="#">View</a>
+        <a class="govuk-link" href="${escapeHtml(address.viewHref || '#')}">View</a>
       </td>
     </tr>
   `
