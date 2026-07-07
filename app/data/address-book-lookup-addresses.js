@@ -158,6 +158,7 @@ function parseAddressLinesForManualForm (addressLines) {
       addressLine1: '',
       addressLine2: '',
       townOrCity: '',
+      county: '',
       postcode: ''
     }
   }
@@ -170,6 +171,7 @@ function parseAddressLinesForManualForm (addressLines) {
         addressLine1: '',
         addressLine2: '',
         townOrCity: parsed.townOrCity,
+        county: '',
         postcode: parsed.postcode
       }
     }
@@ -178,6 +180,7 @@ function parseAddressLinesForManualForm (addressLines) {
       addressLine1: lines[0],
       addressLine2: '',
       townOrCity: '',
+      county: '',
       postcode: ''
     }
   }
@@ -194,6 +197,7 @@ function parseAddressLinesForManualForm (addressLines) {
       addressLine1: lines[0],
       addressLine2: lines.length > 2 ? lines.slice(1, -2).join(', ') : '',
       townOrCity,
+      county: '',
       postcode: lastLine.toUpperCase()
     }
   }
@@ -205,6 +209,7 @@ function parseAddressLinesForManualForm (addressLines) {
       addressLine1: lines[0],
       addressLine2: lines.length > 2 ? lines.slice(1, -1).join(', ') : '',
       townOrCity: parsedLastLine.townOrCity,
+      county: '',
       postcode: parsedLastLine.postcode
     }
   }
@@ -213,6 +218,7 @@ function parseAddressLinesForManualForm (addressLines) {
     addressLine1: lines[0],
     addressLine2: lines.slice(1).join(', '),
     townOrCity: '',
+    county: '',
     postcode: ''
   }
 }
@@ -277,6 +283,7 @@ function buildManualFieldsFromAddress (address, index = 0) {
     addressLine1: parsed.addressLine1,
     addressLine2: parsed.addressLine2,
     townOrCity: parsed.townOrCity,
+    county: address.county || parsed.county || '',
     postcode: parsed.postcode,
     country: address.country || 'United Kingdom',
     email: address.email || buildPlaceholderEmail(address.name, address.country),

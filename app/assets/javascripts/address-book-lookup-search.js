@@ -84,6 +84,7 @@ function populateManualAddressFields (manualFields) {
   setFieldValue('addressBookManualAddressLine1', manualFields.addressLine1)
   setFieldValue('addressBookManualAddressLine2', manualFields.addressLine2)
   setFieldValue('addressBookManualTownOrCity', manualFields.townOrCity)
+  setFieldValue('addressBookManualCounty', manualFields.county)
   setFieldValue('addressBookManualPostcode', manualFields.postcode)
   setFieldValue('addressBookManualCountry', manualFields.country)
   setFieldValue('addressBookManualEmail', '')

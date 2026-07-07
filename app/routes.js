@@ -661,8 +661,17 @@ function buildRadioItems (options, selectedValue) {
   }))
 }
 
-function getContactAddressById (addressId) {
-  return contactAddresses.find((address) => address.id === addressId)
+const CONTACT_ADDRESS_RETURN_ID = 'contact-address'
+
+function getContactAddresses (sessionData = {}) {
+  return [
+    ...(sessionData.contactAddedAddresses || []),
+    ...contactAddresses
+  ]
+}
+
+function getContactAddressById (addressId, sessionData = {}) {
+  return getContactAddresses(sessionData).find((address) => address.id === addressId)
 }
 
 function formatContactAddressForSession (address) {
@@ -673,7 +682,7 @@ function hasContactAddress (sessionData) {
   return Boolean(
     sessionData.contactAddress &&
     sessionData.contactAddress.trim() &&
-    getContactAddressById(sessionData.contactAddressId)
+    getContactAddressById(sessionData.contactAddressId, sessionData)
   )
 }
 
@@ -687,8 +696,8 @@ function clearContactAddressSession (sessionData) {
   sessionData.contactAddressId = null
 }
 
-function buildContactAddressItems (selectedId) {
-  return contactAddresses.map((address) => ({
+function buildContactAddressItems (sessionData, selectedId) {
+  return getContactAddresses(sessionData).map((address) => ({
     value: address.id,
     text: address.name,
     hint: {
@@ -698,16 +707,58 @@ function buildContactAddressItems (selectedId) {
   }))
 }
 
-function validateContactAddress (addressId) {
+function buildContactAddressFromManual (manualAddress) {
+  const townPostcode = [
+    manualAddress.townOrCity,
+    manualAddress.county,
+    manualAddress.postcode
+  ].filter(Boolean).join(', ')
+  const addressLines = [
+    manualAddress.addressLine1,
+    manualAddress.addressLine2,
+    townPostcode
+  ].filter(Boolean)
+
+  return {
+    id: `contact-added-${Date.now()}`,
+    name: manualAddress.nameOrOrganisation,
+    addressLines,
+    country: manualAddress.country
+  }
+}
+
+function setAddressBookContactReturn (sessionData) {
+  sessionData.addressBookContactReturn = {
+    path: '/contact-address-for-consignment'
+  }
+  sessionData.addressBookAddressType = 'branch-address'
+  sessionData.addressBookShowManualAddress = true
+  sessionData.addressBookManualAddress = null
+  sessionData.addressBookLookup = null
+  sessionData.addressBookLookupAddressId = null
+
+  return true
+}
+
+function getAddressBookContactReturn (sessionData) {
+  return sessionData.addressBookContactReturn || null
+}
+
+function clearAddressBookContactReturn (sessionData) {
+  delete sessionData.addressBookContactReturn
+}
+
+function validateContactAddress (addressId, sessionData = {}) {
   const errors = {}
   const errorList = []
-  const address = getContactAddressById(addressId)
+  const addresses = getContactAddresses(sessionData)
+  const address = getContactAddressById(addressId, sessionData)
 
   if (!address) {
     errors.contactAddressId = { text: 'Select an address' }
     errorList.push({
       text: 'Select an address',
-      href: `#contact-address-${contactAddresses[0].id}`
+      href: `#contact-address-${addresses[0] ? addresses[0].id : ''}`
     })
   }
 
@@ -1312,7 +1363,11 @@ function renderContactAddressPage (req, res, locals = {}) {
   return res.render('contact-address-for-consignment', {
     backLink: '/notification-hub',
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
-    contactAddressItems: buildContactAddressItems(sessionData.contactAddressId || ''),
+    contactAddressItems: buildContactAddressItems(sessionData, sessionData.contactAddressId || ''),
+    addAddressHref: '/address-book/add?from=contact-address',
+    successMessage: locals.successMessage != null
+      ? locals.successMessage
+      : sessionData.contactAddressSuccessMessage || null,
     data: sessionData,
     ...locals
   })
@@ -2251,6 +2306,7 @@ function getTransporterCommercialForm (sessionData) {
     addressLine1: '',
     addressLine2: '',
     townOrCity: '',
+    county: '',
     postcode: '',
     email: '',
     phone: '',
@@ -2266,6 +2322,7 @@ function parseTransporterCommercialFormBody (body) {
     addressLine1: (body.transporterCommercialAddressLine1 || '').trim(),
     addressLine2: (body.transporterCommercialAddressLine2 || '').trim(),
     townOrCity: (body.transporterCommercialTownOrCity || '').trim(),
+    county: (body.transporterCommercialCounty || '').trim(),
     postcode: (body.transporterCommercialPostcode || '').trim(),
     country: COMMERCIAL_TRANSPORTER_COUNTRY,
     email: (body.transporterCommercialEmail || '').trim(),
@@ -2291,7 +2348,7 @@ function validateTransporterCommercialForm (form) {
   }
 
   if (!form.name) {
-    addError('transporterCommercialName', 'Enter a transporter name', '#transporter-commercial-name')
+    addError('transporterCommercialName', 'Enter a name or organisation name', '#transporter-commercial-name')
   }
 
   if (!form.addressLine1) {
@@ -3780,6 +3837,7 @@ function resolveAddressBookDetails (address) {
     addressLine1: '',
     addressLine2: '',
     townOrCity: '',
+    county: '',
     postcode: '',
     country: address.country || '',
     email: address.email || '',
@@ -3790,7 +3848,7 @@ function resolveAddressBookDetails (address) {
 function buildAddressBookViewSummaryRows (details) {
   const rows = [
     {
-      key: { text: 'Name or organisation' },
+      key: { text: 'Name or organisation name' },
       value: { text: details.nameOrOrganisation || '' }
     },
     {
@@ -3810,6 +3868,10 @@ function buildAddressBookViewSummaryRows (details) {
     {
       key: { text: 'Town or city' },
       value: { text: details.townOrCity || '' }
+    },
+    {
+      key: { text: 'County' },
+      value: { text: details.county || '' }
     },
     {
       key: { text: 'Postcode or Zip code' },
@@ -3889,6 +3951,7 @@ function buildAddressBookEntryFromManual (manualAddress, addressType) {
     manualAddress.addressLine1,
     manualAddress.addressLine2,
     manualAddress.townOrCity,
+    manualAddress.county,
     manualAddress.postcode
   ].filter(Boolean)
   const formattedAddress = addressParts.join(', ')
@@ -3905,6 +3968,7 @@ function buildAddressBookEntryFromManual (manualAddress, addressType) {
       addressLine1: manualAddress.addressLine1,
       addressLine2: manualAddress.addressLine2,
       townOrCity: manualAddress.townOrCity,
+      county: manualAddress.county,
       postcode: manualAddress.postcode,
       country: manualAddress.country,
       email: manualAddress.email,
@@ -3963,7 +4027,12 @@ function clearAddressBookConsignmentReturn (sessionData) {
 }
 
 function getAddressBookBackLink (sessionData, defaultLink = '/address-book') {
+  const contactReturn = getAddressBookContactReturn(sessionData)
   const consignmentReturn = getAddressBookConsignmentReturn(sessionData)
+
+  if (contactReturn) {
+    return contactReturn.path
+  }
 
   if (consignmentReturn) {
     return consignmentReturn.path
@@ -3977,13 +4046,22 @@ function getAddressBookBackLink (sessionData, defaultLink = '/address-book') {
 }
 
 function getAddressBookCancelHref (sessionData) {
+  const contactReturn = getAddressBookContactReturn(sessionData)
   const consignmentReturn = getAddressBookConsignmentReturn(sessionData)
+
+  if (contactReturn) {
+    return contactReturn.path
+  }
 
   return consignmentReturn ? consignmentReturn.path : '/'
 }
 
 function buildConsignmentAddressFromManual (manualAddress, sectionId) {
-  const townPostcode = [manualAddress.townOrCity, manualAddress.postcode].filter(Boolean).join(', ')
+  const townPostcode = [
+    manualAddress.townOrCity,
+    manualAddress.county,
+    manualAddress.postcode
+  ].filter(Boolean).join(', ')
   const addressLines = [
     manualAddress.addressLine1,
     manualAddress.addressLine2,
@@ -4004,6 +4082,7 @@ function buildConsignmentAddressFromManual (manualAddress, sectionId) {
 function saveAddressBookEntry (sessionData, manualAddress, options = {}) {
   const addressType = sessionData.addressBookAddressType
   const consignmentReturn = options.consignmentReturn || getAddressBookConsignmentReturn(sessionData)
+  const contactReturn = options.contactReturn || getAddressBookContactReturn(sessionData)
   const entry = buildAddressBookEntryFromManual(manualAddress, addressType)
 
   if (!sessionData.addressBookAddedAddresses) {
@@ -4036,6 +4115,17 @@ function saveAddressBookEntry (sessionData, manualAddress, options = {}) {
 
     clearAddressBookConsignmentReturn(sessionData)
     sessionData.consignmentAddressSuccessMessage = formatAddressBookSuccessMessage(entry.name)
+  } else if (contactReturn) {
+    const contactAddress = buildContactAddressFromManual(manualAddress)
+
+    if (!sessionData.contactAddedAddresses) {
+      sessionData.contactAddedAddresses = []
+    }
+
+    sessionData.contactAddedAddresses.unshift(contactAddress)
+    syncContactAddressSession(sessionData, contactAddress)
+    clearAddressBookContactReturn(sessionData)
+    sessionData.contactAddressSuccessMessage = formatAddressBookSuccessMessage(entry.name)
   } else {
     sessionData.addressBookSuccessMessage = formatAddressBookSuccessMessage(entry.name)
   }
@@ -4048,7 +4138,11 @@ function saveAddressBookEntry (sessionData, manualAddress, options = {}) {
 
   return {
     entry,
-    redirectTo: consignmentReturn ? consignmentReturn.path : '/address-book'
+    redirectTo: consignmentReturn
+      ? consignmentReturn.path
+      : contactReturn
+        ? contactReturn.path
+        : '/address-book'
   }
 }
 
@@ -4151,7 +4245,9 @@ function hasAddressBookAddressType (sessionData) {
 function redirectIfNoAddressBookAddressType (req, res) {
   const sessionData = req.session.data
 
-  if (getAddressBookConsignmentReturn(sessionData) || hasAddressBookAddressType(sessionData)) {
+  if (getAddressBookConsignmentReturn(sessionData) ||
+    getAddressBookContactReturn(sessionData) ||
+    hasAddressBookAddressType(sessionData)) {
     return false
   }
 
@@ -4269,6 +4365,7 @@ function getAddressDetailsFromLookup (addressId) {
     addressLine1: manual.addressLine1,
     addressLine2: manual.addressLine2,
     townOrCity: manual.townOrCity,
+    county: manual.county,
     postcode: manual.postcode,
     country: manual.country
   }
@@ -4282,6 +4379,7 @@ function getAddressBookManualAddress (sessionData) {
     addressLine1: '',
     addressLine2: '',
     townOrCity: '',
+    county: '',
     postcode: '',
     country: 'United Kingdom',
     email: '',
@@ -4297,6 +4395,7 @@ function parseAddressBookManualAddressBody (body) {
     addressLine1: (body.addressBookManualAddressLine1 || '').trim(),
     addressLine2: (body.addressBookManualAddressLine2 || '').trim(),
     townOrCity: (body.addressBookManualTownOrCity || '').trim(),
+    county: (body.addressBookManualCounty || '').trim(),
     postcode: (body.addressBookManualPostcode || '').trim(),
     country: (body.addressBookManualCountry || '').trim(),
     email: (body.addressBookManualEmail || '').trim(),
@@ -5077,6 +5176,11 @@ router.get('/address-book', (req, res) => {
 router.get('/address-book/add', (req, res) => {
   const fromSection = (req.query.from || '').trim()
 
+  if (fromSection === CONTACT_ADDRESS_RETURN_ID) {
+    setAddressBookContactReturn(req.session.data)
+    return res.redirect('/address-book/add/lookup')
+  }
+
   if (fromSection) {
     if (!setAddressBookConsignmentReturn(req.session.data, fromSection)) {
       return res.redirect('/address-book/add/lookup')
@@ -5117,7 +5221,9 @@ router.post('/address-book/add', (req, res) => {
 router.get('/address-book/add/lookup', (req, res) => {
   const fromSection = (req.query.from || '').trim()
 
-  if (fromSection) {
+  if (fromSection === CONTACT_ADDRESS_RETURN_ID) {
+    setAddressBookContactReturn(req.session.data)
+  } else if (fromSection) {
     setAddressBookConsignmentReturn(req.session.data, fromSection)
   }
 
@@ -5681,7 +5787,13 @@ router.post('/transit-countries', (req, res) => {
 router.get('/contact-address-for-consignment', (req, res) => {
   ensurePrototypeNotificationReference(req.session.data)
 
-  return renderContactAddressPage(req, res)
+  const successMessage = req.session.data.contactAddressSuccessMessage || null
+
+  if (successMessage) {
+    delete req.session.data.contactAddressSuccessMessage
+  }
+
+  return renderContactAddressPage(req, res, { successMessage })
 })
 
 router.get('/roles-and-addresses', (req, res) => {
@@ -6060,7 +6172,7 @@ router.post('/contact-address-for-consignment', (req, res) => {
   ensurePrototypeNotificationReference(req.session.data)
 
   const addressId = (req.body.contactAddressId || '').trim()
-  const address = getContactAddressById(addressId)
+  const address = getContactAddressById(addressId, req.session.data)
 
   if (address) {
     syncContactAddressSession(req.session.data, address)

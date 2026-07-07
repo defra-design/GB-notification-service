@@ -4,6 +4,7 @@
 
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
 
 {% set pageName = "Contact address for consignment" %}
@@ -26,6 +27,15 @@
 
     {% include "partials/notification-status.html" %}
 
+    {% if successMessage %}
+      {{ govukNotificationBanner({
+        type: "success",
+        titleText: "Success",
+        text: successMessage,
+        classes: "app-contact-address-page__success-banner"
+      }) }}
+    {% endif %}
+
     {% if data.errorList %}
       {{ govukErrorSummary({
         titleText: "There is a problem",
@@ -47,7 +57,7 @@
       <h2 class="app-contact-address-page__section-heading">Select an address</h2>
 
       <p class="app-contact-address-page__help">
-        If the correct address is not shown, <a class="govuk-link" href="#">add a new branch address</a>, then return to this page.
+        If the correct address is not shown, <a class="govuk-link" href="{{ addAddressHref }}">add a new branch address</a>, then return to this page.
       </p>
 
       {{ govukRadios({
