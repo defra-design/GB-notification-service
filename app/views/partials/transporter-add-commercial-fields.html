@@ -15,7 +15,7 @@
 
   {{ govukInput({
     label: {
-      text: "Transporter name"
+      text: "Name or organisation name"
     },
     id: "transporter-commercial-name",
     name: "transporterCommercialName",
@@ -59,6 +59,17 @@
 
   {{ govukInput({
     label: {
+      text: "County"
+    },
+    id: "transporter-commercial-county",
+    name: "transporterCommercialCounty",
+    value: formValues.county,
+    classes: "app-transporter-add-commercial-fields__input app-transporter-add-commercial-fields__input--one-half",
+    errorMessage: data.errors.transporterCommercialCounty if data.errors and data.errors.transporterCommercialCounty
+  }) }}
+
+  {{ govukInput({
+    label: {
       text: "Postcode or Zip code"
     },
     id: "transporter-commercial-postcode",
@@ -70,13 +81,17 @@
 
   {{ govukSelect({
     id: "transporter-commercial-country",
-    name: "transporterCommercialCountry",
+    name: "transporterCommercialCountryDisplay",
     label: {
       text: "Country"
     },
+    disabled: true,
     classes: "app-transporter-add-commercial-fields__select",
     formGroup: {
-      classes: "app-transporter-add-commercial-fields__country"
+      classes: "app-transporter-add-commercial-fields__country",
+      beforeInput: {
+        html: '<input type="hidden" name="transporterCommercialCountry" value="' + commercialTransporterCountry + '">'
+      }
     },
     items: countryItems,
     errorMessage: data.errors.transporterCommercialCountry if data.errors and data.errors.transporterCommercialCountry

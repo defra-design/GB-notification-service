@@ -4,7 +4,7 @@
 <div class="app-transporter-add-private-fields">
   {{ govukInput({
     label: {
-      text: "Transporter name"
+      text: "Name or organisation name"
     },
     id: "transporter-private-name",
     name: "transporterPrivateName",
@@ -44,6 +44,17 @@
     value: formValues.townOrCity,
     classes: "app-transporter-add-private-fields__input app-transporter-add-private-fields__input--one-half",
     errorMessage: data.errors.transporterPrivateTownOrCity if data.errors and data.errors.transporterPrivateTownOrCity
+  }) }}
+
+  {{ govukInput({
+    label: {
+      text: "County"
+    },
+    id: "transporter-private-county",
+    name: "transporterPrivateCounty",
+    value: formValues.county,
+    classes: "app-transporter-add-private-fields__input app-transporter-add-private-fields__input--one-half",
+    errorMessage: data.errors.transporterPrivateCounty if data.errors and data.errors.transporterPrivateCounty
   }) }}
 
   {{ govukInput({

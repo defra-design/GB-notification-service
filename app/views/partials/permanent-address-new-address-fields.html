@@ -6,7 +6,7 @@
 <div class="app-permanent-address-new-address-fields">
   {{ govukInput({
     label: {
-      text: "Name or organisation"
+      text: "Name or organisation name"
     },
     id: errorPrefix + "-name",
     name: fieldPrefix + "[name]",
@@ -46,6 +46,17 @@
     value: values.townOrCity,
     classes: "app-permanent-address-new-address-fields__input app-permanent-address-new-address-fields__input--one-half",
     errorMessage: data.errors[errorPrefix + "-town-or-city"] if data.errors and data.errors[errorPrefix + "-town-or-city"]
+  }) }}
+
+  {{ govukInput({
+    label: {
+      text: "County"
+    },
+    id: errorPrefix + "-county",
+    name: fieldPrefix + "[county]",
+    value: values.county,
+    classes: "app-permanent-address-new-address-fields__input app-permanent-address-new-address-fields__input--one-half",
+    errorMessage: data.errors[errorPrefix + "-county"] if data.errors and data.errors[errorPrefix + "-county"]
   }) }}
 
   {{ govukInput({

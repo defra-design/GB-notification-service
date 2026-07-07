@@ -1676,6 +1676,7 @@ function getEmptyPermanentAddressFormValues () {
     addressLine1: '',
     addressLine2: '',
     townOrCity: '',
+    county: '',
     postcode: '',
     email: '',
     phone: ''
@@ -1697,6 +1698,7 @@ function getPermanentAddressFormValuesFromSession (sessionData, animalKey) {
     addressLine1: lines[0] || '',
     addressLine2: lines[1] || '',
     townOrCity: lines[2] || '',
+    county: address.county || '',
     postcode: lines[3] || '',
     email: address.email || '',
     phone: address.phone || ''
@@ -1719,6 +1721,7 @@ function parsePermanentAddressDetails (body) {
         addressLine1: String(values.addressLine1 || '').trim(),
         addressLine2: String(values.addressLine2 || '').trim(),
         townOrCity: String(values.townOrCity || '').trim(),
+        county: String(values.county || '').trim(),
         postcode: String(values.postcode || '').trim(),
         email: String(values.email || '').trim(),
         phone: String(values.phone || '').trim()
@@ -1738,6 +1741,7 @@ function buildAddressFromPermanentAddressForm (form) {
   return {
     name: form.name,
     addressLines,
+    county: form.county,
     country: 'United Kingdom',
     email: form.email,
     phone: form.phone
@@ -2084,6 +2088,15 @@ function syncTransporterSession (sessionData, transporter) {
 }
 
 const transporterTypeValues = transporterTypes.map((item) => item.value)
+const COMMERCIAL_TRANSPORTER_COUNTRY = 'Northern Ireland'
+
+function buildCommercialTransporterCountryItems () {
+  return [{
+    value: COMMERCIAL_TRANSPORTER_COUNTRY,
+    text: COMMERCIAL_TRANSPORTER_COUNTRY,
+    selected: true
+  }]
+}
 
 function renderTransporterAddPage (req, res, locals = {}) {
   const sessionData = req.session.data
@@ -2130,6 +2143,7 @@ function getTransporterPrivateForm (sessionData) {
     addressLine1: '',
     addressLine2: '',
     townOrCity: '',
+    county: '',
     postcode: '',
     country: 'United Kingdom',
     email: '',
@@ -2144,6 +2158,7 @@ function parseTransporterPrivateFormBody (body) {
     addressLine1: (body.transporterPrivateAddressLine1 || '').trim(),
     addressLine2: (body.transporterPrivateAddressLine2 || '').trim(),
     townOrCity: (body.transporterPrivateTownOrCity || '').trim(),
+    county: (body.transporterPrivateCounty || '').trim(),
     postcode: (body.transporterPrivatePostcode || '').trim(),
     country: (body.transporterPrivateCountry || '').trim(),
     email: (body.transporterPrivateEmail || '').trim(),
@@ -2161,7 +2176,7 @@ function validateTransporterPrivateForm (form) {
   }
 
   if (!form.name) {
-    addError('transporterPrivateName', 'Enter a transporter name', '#transporter-private-name')
+    addError('transporterPrivateName', 'Enter a name or organisation name', '#transporter-private-name')
   }
 
   if (!form.addressLine1) {
@@ -2196,6 +2211,7 @@ function formatTransporterFormAddress (form) {
     form.addressLine1,
     form.addressLine2,
     form.townOrCity,
+    form.county,
     form.postcode,
     form.country
   ].filter(Boolean).join(', ')
@@ -2207,6 +2223,7 @@ function buildTransporterAddressDetails (form) {
     addressLine1: form.addressLine1,
     addressLine2: form.addressLine2,
     townOrCity: form.townOrCity,
+    county: form.county,
     postcode: form.postcode,
     country: form.country,
     email: form.email,
@@ -2235,10 +2252,10 @@ function getTransporterCommercialForm (sessionData) {
     addressLine2: '',
     townOrCity: '',
     postcode: '',
-    country: 'United Kingdom',
     email: '',
     phone: '',
-    ...(sessionData.transporterCommercialForm || {})
+    ...(sessionData.transporterCommercialForm || {}),
+    country: COMMERCIAL_TRANSPORTER_COUNTRY
   }
 }
 
@@ -2250,7 +2267,7 @@ function parseTransporterCommercialFormBody (body) {
     addressLine2: (body.transporterCommercialAddressLine2 || '').trim(),
     townOrCity: (body.transporterCommercialTownOrCity || '').trim(),
     postcode: (body.transporterCommercialPostcode || '').trim(),
-    country: (body.transporterCommercialCountry || '').trim(),
+    country: COMMERCIAL_TRANSPORTER_COUNTRY,
     email: (body.transporterCommercialEmail || '').trim(),
     phone: (body.transporterCommercialPhone || '').trim()
   }
@@ -2299,10 +2316,6 @@ function validateTransporterCommercialForm (form) {
       'Enter a postcode or Zip code',
       '#transporter-commercial-postcode'
     )
-  }
-
-  if (!form.country) {
-    addError('transporterCommercialCountry', 'Select a country', '#transporter-commercial-country')
   }
 
   if (!form.email) {
@@ -2370,7 +2383,8 @@ function renderTransporterAddCommercialPage (req, res, locals = {}) {
     backLink: '/transporter/add',
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     formValues,
-    countryItems: buildAddressBookCountryItems(formValues.country),
+    countryItems: buildCommercialTransporterCountryItems(),
+    commercialTransporterCountry: COMMERCIAL_TRANSPORTER_COUNTRY,
     data: sessionData,
     ...locals
   })

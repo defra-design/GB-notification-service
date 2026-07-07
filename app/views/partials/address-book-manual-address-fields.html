@@ -6,7 +6,7 @@
 
   {{ govukInput({
     label: {
-      text: "Name or organisation"
+      text: "Name or organisation name"
     },
     id: "address-book-manual-name",
     name: "addressBookManualName",
@@ -46,6 +46,17 @@
     value: manualAddress.townOrCity,
     classes: "app-address-book-manual-address-fields__input app-address-book-manual-address-fields__input--one-half",
     errorMessage: data.errors.addressBookManualTownOrCity if data.errors and data.errors.addressBookManualTownOrCity
+  }) }}
+
+  {{ govukInput({
+    label: {
+      text: "County"
+    },
+    id: "address-book-manual-county",
+    name: "addressBookManualCounty",
+    value: manualAddress.county,
+    classes: "app-address-book-manual-address-fields__input app-address-book-manual-address-fields__input--one-half",
+    errorMessage: data.errors.addressBookManualCounty if data.errors and data.errors.addressBookManualCounty
   }) }}
 
   {{ govukInput({
