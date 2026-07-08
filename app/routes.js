@@ -707,6 +707,32 @@ function buildContactAddressItems (sessionData, selectedId) {
   }))
 }
 
+function formatContactAddressForSearch (address) {
+  return [
+    address.name,
+    ...(address.addressLines || []),
+    address.country
+  ].join(' ').toLowerCase()
+}
+
+function buildContactAddressResults (searchQuery = '', sessionData = {}, returnPath = '/contact-address-for-consignment') {
+  const addresses = getContactAddresses(sessionData)
+  const query = searchQuery.trim().toLowerCase()
+  const filtered = query
+    ? addresses.filter((address) => formatContactAddressForSearch(address).includes(query))
+    : addresses
+
+  return {
+    addresses: filtered.map((address) => ({
+      ...address,
+      searchText: formatContactAddressForSearch(address),
+      viewHref: buildAddressViewHref(address.id, returnPath)
+    })),
+    visibleCount: filtered.length,
+    totalCount: addresses.length
+  }
+}
+
 function buildContactAddressFromManual (manualAddress) {
   const townPostcode = [
     manualAddress.townOrCity,
@@ -732,10 +758,6 @@ function setAddressBookContactReturn (sessionData) {
     path: '/contact-address-for-consignment'
   }
   sessionData.addressBookAddressType = 'branch-address'
-  sessionData.addressBookShowManualAddress = true
-  sessionData.addressBookManualAddress = null
-  sessionData.addressBookLookup = null
-  sessionData.addressBookLookupAddressId = null
 
   return true
 }
@@ -1359,11 +1381,16 @@ function renderTransitCountriesPage (req, res) {
 
 function renderContactAddressPage (req, res, locals = {}) {
   const sessionData = req.session.data
+  const searchQuery = locals.searchQuery != null ? locals.searchQuery : ''
 
   return res.render('contact-address-for-consignment', {
     backLink: '/notification-hub',
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
-    contactAddressItems: buildContactAddressItems(sessionData, sessionData.contactAddressId || ''),
+    addressResults: buildContactAddressResults(searchQuery, sessionData),
+    selectedAddressId: locals.selectedAddressId != null
+      ? locals.selectedAddressId
+      : sessionData.contactAddressId || '',
+    searchQuery,
     addAddressHref: '/address-book/add?from=contact-address',
     successMessage: locals.successMessage != null
       ? locals.successMessage
@@ -3784,7 +3811,8 @@ function findViewableAddress (addressId, sessionData = {}) {
     return consignmentAddress
   }
 
-  const contactAddress = contactAddresses.find((address) => address.id === normalisedId)
+  const contactAddress = getContactAddresses(sessionData)
+    .find((address) => address.id === normalisedId)
 
   if (contactAddress) {
     return contactAddress
@@ -5793,7 +5821,10 @@ router.get('/contact-address-for-consignment', (req, res) => {
     delete req.session.data.contactAddressSuccessMessage
   }
 
-  return renderContactAddressPage(req, res, { successMessage })
+  return renderContactAddressPage(req, res, {
+    searchQuery: (req.query.search || '').trim(),
+    successMessage
+  })
 })
 
 router.get('/roles-and-addresses', (req, res) => {
@@ -6172,14 +6203,28 @@ router.post('/contact-address-for-consignment', (req, res) => {
   ensurePrototypeNotificationReference(req.session.data)
 
   const addressId = (req.body.contactAddressId || '').trim()
+  const searchQuery = (req.body.search || '').trim()
   const address = getContactAddressById(addressId, req.session.data)
 
-  if (address) {
-    syncContactAddressSession(req.session.data, address)
-  } else {
-    clearContactAddressSession(req.session.data)
+  if (!address) {
+    const addresses = getContactAddresses(req.session.data)
+    const firstAddressId = addresses[0] ? addresses[0].id : ''
+
+    req.session.data.errorList = [{
+      text: 'Select an address',
+      href: `#contact-address-${firstAddressId}`
+    }]
+    req.session.data.errors = {
+      contactAddressId: { text: 'Select an address' }
+    }
+
+    return renderContactAddressPage(req, res, {
+      searchQuery,
+      selectedAddressId: addressId
+    })
   }
 
+  syncContactAddressSession(req.session.data, address)
   req.session.data.errorList = null
   req.session.data.errors = null
 

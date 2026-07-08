@@ -3130,7 +3130,8 @@ button.govuk-link.app-govuk-body-link--small {
 }
 
 .app-consignment-address-select-page,
-.app-place-of-origin-page {
+.app-place-of-origin-page,
+.app-contact-address-page {
   display: flex;
   flex-direction: column;
   gap: 30px;
@@ -3308,7 +3309,8 @@ button.govuk-link.app-govuk-body-link--small {
 }
 
 .app-consignment-address-select-form,
-.app-place-of-origin-form {
+.app-place-of-origin-form,
+.app-contact-address-page .app-consignment-address-select-form {
   display: flex;
   flex-direction: column;
   align-items: flex-start;

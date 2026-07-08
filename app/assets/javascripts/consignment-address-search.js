@@ -11,8 +11,10 @@ function normaliseSearchText (value) {
 function initConsignmentAddressSearch (root) {
   const input = root.querySelector('.app-consignment-address-select-page__search-input')
   const button = root.querySelector('.app-consignment-address-select-page__search-button')
-  const tableBody = document.querySelector('[data-address-results]')
-  const visibleCount = document.querySelector('[data-results-visible]')
+  const form = root.closest('form')
+  const scope = form || root
+  const tableBody = scope.querySelector('[data-address-results]')
+  const visibleCount = scope.querySelector('[data-results-visible]')
 
   if (!input || !tableBody || !visibleCount) {
     return
