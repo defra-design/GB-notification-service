@@ -941,7 +941,15 @@ function getNextJourneyPath (currentPath, sessionData, options = {}) {
   const steps = getJourneySteps(sessionData)
   const currentIndex = steps.indexOf(path)
 
-  if (currentIndex === -1 || currentIndex >= steps.length - 1) {
+  if (currentIndex === -1) {
+    return options.fallback || '/notification-hub'
+  }
+
+  if (path === '/roles-and-addresses' && hasAllNotificationHubSectionsComplete(sessionData)) {
+    return '/notification-hub'
+  }
+
+  if (currentIndex >= steps.length - 1) {
     return options.fallback || '/notification-hub'
   }
 
@@ -3696,6 +3704,54 @@ function getTotalPackageCount (sessionData) {
 
     return Number.isFinite(count) && count > 0 ? total + count : total
   }, 0)
+}
+
+function hasAllNotificationHubSectionsComplete (sessionData) {
+  if (!hasOriginDetails(sessionData)) {
+    return false
+  }
+
+  if (!hasCommoditySelection(sessionData)) {
+    return false
+  }
+
+  if (!hasImportReasonComplete(sessionData)) {
+    return false
+  }
+
+  if (!hasConsignmentDetails(sessionData)) {
+    return false
+  }
+
+  if (hasAnimalIdentifiersRequired(sessionData) && !hasAnimalIdentifiersComplete(sessionData)) {
+    return false
+  }
+
+  if (!hasAdditionalAnimalDetailsComplete(sessionData)) {
+    return false
+  }
+
+  if (!hasArrivalDetailsComplete(sessionData)) {
+    return false
+  }
+
+  if (requiresTransitCountries(sessionData) && !hasTransitCountriesComplete(sessionData)) {
+    return false
+  }
+
+  if (!hasTransportDetailsComplete(sessionData)) {
+    return false
+  }
+
+  if (!hasUploadedDocuments(sessionData)) {
+    return false
+  }
+
+  if (!hasConsignmentAddressesComplete(sessionData)) {
+    return false
+  }
+
+  return true
 }
 
 function getNotificationHubViewModel (sessionData) {
