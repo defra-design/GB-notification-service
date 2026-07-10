@@ -5016,6 +5016,7 @@ function renderReasonForImportPage (req, res, locals = {}) {
           return res.render('reason-for-import', {
             backLink: '/what-are-you-importing',
             notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+            data: sessionData,
             importReasonItems: buildImportReasonItems(
               selectedImportReason,
               internalMarketConditionalHtml,
