@@ -64,8 +64,13 @@
                       <button
                         class="app-consignment-details-page__summary-remove"
                         type="submit"
+                        {% if row.removeBy == 'species' %}
+                        name="removeSpecies"
+                        value="{{ row.speciesId }}"
+                        {% else %}
                         name="removeCommodity"
                         value="{{ row.commodityId }}"
+                        {% endif %}
                       >
                         Remove
                       </button>
@@ -92,7 +97,6 @@
 
               {% for species in group.speciesEntries %}
                 <div class="app-consignment-details-page__species-heading">
-                  <p class="app-consignment-details-page__species-caption">{{ group.heading }}</p>
                   <h3 class="app-consignment-details-page__species-name">{{ species.speciesName }}</h3>
                 </div>
 
@@ -138,7 +142,7 @@
                 }) }}
 
                 {{ govukButton({
-                  text: "Save and return to hub",
+                  text: "Save and return to overview",
                   name: "action",
                   value: "hub",
                   classes: "govuk-button--secondary"
@@ -146,7 +150,7 @@
               </div>
 
               <p class="app-origin-form-actions__cancel">
-                <a class="govuk-link" href="/notification-hub">Cancel and return to hub</a>
+                <a class="govuk-link" href="/notification-hub">Cancel and return to overview</a>
               </p>
             </div>
           </div>

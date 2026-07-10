@@ -32,19 +32,22 @@
       rows: summaryRows
     }) }}
 
-    <div class="app-address-book-view-page__actions">
-      {{ govukButton({
-        text: "Edit",
-        href: editHref,
-        classes: "govuk-button--secondary app-address-book-view-page__edit-button"
-      }) }}
+    {% if canManage %}
+      <div class="app-address-book-view-page__actions">
+        {{ govukButton({
+          text: "Edit",
+          href: editHref,
+          classes: "govuk-button--secondary app-address-book-view-page__edit-button"
+        }) }}
 
-      {{ govukButton({
-        text: "Delete",
-        href: deleteHref,
-        classes: "govuk-button--warning app-address-book-view-page__delete-button"
-      }) }}
-    </div>
+        <form method="post" action="{{ deleteAction }}" class="app-address-book-view-page__delete-form">
+          {{ govukButton({
+            text: "Delete",
+            classes: "govuk-button--warning app-address-book-view-page__delete-button"
+          }) }}
+        </form>
+      </div>
+    {% endif %}
 
   </div>
 </div>

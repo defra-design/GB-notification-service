@@ -1,5 +1,5 @@
 //
-// Transit country search — select from dropdown, add to table, reset search (max 12)
+// Transit country search — select from dropdown to add to table, reset search (max 12)
 //
 
 const MIN_SEARCH_LENGTH = 3
@@ -45,6 +45,37 @@ function countryOptionMatchesQuery (option, normalisedQuery) {
   return false
 }
 
+function sortCountrySearchResults (options, normalisedQuery) {
+  function getSortKey (option) {
+    if (!option.parent) {
+      return { tier: 0, group: '', label: option.label }
+    }
+
+    const parentMatches = option.parent.toLowerCase().includes(normalisedQuery)
+
+    return {
+      tier: parentMatches ? 1 : 2,
+      group: option.parent,
+      label: option.label
+    }
+  }
+
+  return [...options].sort((left, right) => {
+    const leftKey = getSortKey(left)
+    const rightKey = getSortKey(right)
+
+    if (leftKey.tier !== rightKey.tier) {
+      return leftKey.tier - rightKey.tier
+    }
+
+    if (leftKey.group !== rightKey.group) {
+      return leftKey.group.localeCompare(rightKey.group)
+    }
+
+    return leftKey.label.localeCompare(rightKey.label)
+  })
+}
+
 function getCountries (root) {
   const dataEl = root.querySelector('.app-transit-country-search__data')
 
@@ -73,6 +104,24 @@ function parseSelectedCountries (valueInput) {
   }
 }
 
+function getInitialSelectedCountries (root, valueInput) {
+  const initialEl = root.querySelector('.app-transit-country-search__initial')
+
+  if (initialEl) {
+    try {
+      const parsed = JSON.parse(initialEl.textContent)
+
+      if (Array.isArray(parsed)) {
+        return parsed.filter(Boolean)
+      }
+    } catch (error) {
+      // Fall back to hidden input value below.
+    }
+  }
+
+  return parseSelectedCountries(valueInput)
+}
+
 function initTransitCountrySearch (root) {
   const countryOptions = getCountries(root)
   const form = root.closest('form')
@@ -82,17 +131,14 @@ function initTransitCountrySearch (root) {
   const status = root.querySelector('.app-transit-country-search__status')
   const valueInput = root.querySelector('.app-transit-country-search__value')
   const searchBox = root.querySelector('.app-commodity-search')
-  const addCountryButton = root.querySelector('.app-transit-country-search__add-country')
-  const addCountryWrapper = root.querySelector('.app-transit-countries-page__add-country')
   const summaryPanel = root.querySelector('.app-transit-countries-page__summary')
   const selectedRows = root.querySelector('.app-transit-country-search__selected-rows')
 
-  if (!form || !input || !button || !results || !valueInput || !addCountryButton || !addCountryWrapper || !summaryPanel || !selectedRows) {
+  if (!form || !input || !button || !results || !valueInput || !summaryPanel || !selectedRows) {
     return
   }
 
-  let selectedCountries = parseSelectedCountries(valueInput)
-  let pendingCountry = ''
+  let selectedCountries = getInitialSelectedCountries(root, valueInput)
 
   function setExpanded (isExpanded) {
     if (searchBox) {
@@ -118,7 +164,6 @@ function initTransitCountrySearch (root) {
   function updateCountryLimitState () {
     const atMax = isAtMaxCountries()
 
-    addCountryWrapper.hidden = atMax
     input.disabled = atMax
     button.disabled = atMax
     searchBox.classList.toggle('app-commodity-search--disabled', atMax)
@@ -129,7 +174,6 @@ function initTransitCountrySearch (root) {
   }
 
   function clearSearch () {
-    pendingCountry = ''
     input.value = ''
     closeResults()
   }
@@ -149,52 +193,30 @@ function initTransitCountrySearch (root) {
 
     const takenCountries = new Set(selectedCountries)
 
-    return countryOptions
-      .filter((option) => countryOptionMatchesQuery(option, normalisedQuery))
-      .filter((option) => !takenCountries.has(option.value))
-      .sort((left, right) => left.label.localeCompare(right.label))
+    return sortCountrySearchResults(
+      countryOptions
+        .filter((option) => countryOptionMatchesQuery(option, normalisedQuery))
+        .filter((option) => !takenCountries.has(option.value)),
+      normalisedQuery
+    )
   }
 
-  function setPendingCountry (country) {
+  function addCountry (country) {
+    if (!country || selectedCountries.includes(country)) {
+      return
+    }
+
     if (isAtMaxCountries()) {
       announce(`Maximum of ${MAX_COUNTRIES} countries reached. Remove a country to add another.`)
       return
     }
 
-    pendingCountry = country
-    input.value = country
-    closeResults()
-    announce(`Selected ${country}`)
-  }
-
-  function addPendingCountry () {
-    if (!pendingCountry || selectedCountries.includes(pendingCountry)) {
-      return
-    }
-
-    if (selectedCountries.length >= MAX_COUNTRIES) {
-      announce(`Maximum of ${MAX_COUNTRIES} countries reached`)
-      return
-    }
-
-    const countryToAdd = pendingCountry
-    selectedCountries = [...selectedCountries, countryToAdd].sort((left, right) => left.localeCompare(right))
+    selectedCountries = [...selectedCountries, country].sort((left, right) => left.localeCompare(right))
     clearSearch()
     renderSelectedTable()
     syncValueInput()
-    announce(`Added ${countryToAdd}`)
+    announce(`Added ${country}`)
     input.focus()
-  }
-
-  function addPendingCountryForSubmit () {
-    if (!pendingCountry || selectedCountries.includes(pendingCountry) || isAtMaxCountries()) {
-      return
-    }
-
-    selectedCountries = [...selectedCountries, pendingCountry].sort((left, right) => left.localeCompare(right))
-    clearSearch()
-    renderSelectedTable()
-    syncValueInput()
   }
 
   function removeCountry (country) {
@@ -252,13 +274,12 @@ function initTransitCountrySearch (root) {
 
     results.innerHTML = matches.map((option, index) => {
       const altClass = index % 2 === 1 ? ' app-commodity-search__row--alt' : ''
-      const isSelected = pendingCountry === option.value
 
       return `
         <li class="app-commodity-search__row${altClass}">
           <button
             type="button"
-            class="app-country-search__option${isSelected ? ' app-country-search__option--selected' : ''}"
+            class="app-country-search__option"
             data-country="${option.value.replace(/"/g, '&quot;')}"
           >
             ${highlightMatch(option.label, trimmedQuery)}
@@ -269,7 +290,7 @@ function initTransitCountrySearch (root) {
 
     results.querySelectorAll('.app-country-search__option').forEach((optionButton) => {
       optionButton.addEventListener('click', () => {
-        setPendingCountry(optionButton.getAttribute('data-country'))
+        addCountry(optionButton.getAttribute('data-country'))
       })
     })
 
@@ -285,10 +306,6 @@ function initTransitCountrySearch (root) {
   input.addEventListener('input', () => {
     if (isAtMaxCountries()) {
       return
-    }
-
-    if (input.value.trim() !== pendingCountry) {
-      pendingCountry = ''
     }
 
     renderResults(input.value)
@@ -308,10 +325,6 @@ function initTransitCountrySearch (root) {
   input.addEventListener('blur', () => {
     window.setTimeout(() => {
       closeResults()
-
-      if (pendingCountry && input.value.trim() !== pendingCountry) {
-        input.value = pendingCountry
-      }
     }, 200)
   })
 
@@ -331,11 +344,6 @@ function initTransitCountrySearch (root) {
 
     renderResults(input.value)
     input.focus()
-  })
-
-  addCountryButton.addEventListener('click', (event) => {
-    event.preventDefault()
-    addPendingCountry()
   })
 
   selectedRows.addEventListener('click', (event) => {
@@ -360,11 +368,8 @@ function initTransitCountrySearch (root) {
     }
   })
 
-  form.addEventListener('submit', () => {
-    addPendingCountryForSubmit()
-  })
-
-  updateCountryLimitState()
+  syncValueInput()
+  renderSelectedTable()
 }
 
 window.GOVUKPrototypeKit.documentReady(() => {

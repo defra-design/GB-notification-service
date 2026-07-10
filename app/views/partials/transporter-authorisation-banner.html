@@ -1,0 +1,20 @@
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+
+{{ govukNotificationBanner({
+  titleText: "Important",
+  classes: "app-transporter-authorisation-banner",
+  html: '
+    <h2 class="govuk-notification-banner__heading">Help with transporter authorisation</h2>
+    <p class="govuk-body">Your transporter must hold a valid transporter authorisation, issued by DAERA or APHA in the UK if they are:</p>
+    <ul class="govuk-list govuk-list--bullet app-transporter-authorisation-banner__list">
+      <li>transporting any live vertebrate animals in, to, from or through Great Britain (GB)</li>
+      <li>travelling on journeys of over 65 km</li>
+      <li>transporting as part of an economic (commercial) activity</li>
+    </ul>
+    <p class="govuk-body">
+      <a class="govuk-link" href="https://www.gov.uk/guidance/animal-welfare-in-transport?_gl=1*7jtiw*_ga*OTk4MzczMjM2LjE3ODI3Mzg0NDQ.*_ga_YM5VR1KENG*czE3ODM2ODgyNTkkbzI4JGcxJHQxNzgzNjkyMjE3JGoyMyRsMCRoMA..#transporting-animals-in-connection-with-an-economic-activity" rel="noreferrer noopener" target="_blank">Find out how to transport animals in connection with an economic activity (opens in a new tab)</a>
+    </p>
+    <p class="govuk-body">Documents issued by DAERA are valid for use in GB.</p>
+    <p class="govuk-body">Documents issued in any EU member state are not valid for use in GB.</p>
+  '
+}) }}

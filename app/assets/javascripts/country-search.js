@@ -44,6 +44,37 @@ function countryOptionMatchesQuery (option, normalisedQuery) {
   return false
 }
 
+function sortCountrySearchResults (options, normalisedQuery) {
+  function getSortKey (option) {
+    if (!option.parent) {
+      return { tier: 0, group: '', label: option.label }
+    }
+
+    const parentMatches = option.parent.toLowerCase().includes(normalisedQuery)
+
+    return {
+      tier: parentMatches ? 1 : 2,
+      group: option.parent,
+      label: option.label
+    }
+  }
+
+  return [...options].sort((left, right) => {
+    const leftKey = getSortKey(left)
+    const rightKey = getSortKey(right)
+
+    if (leftKey.tier !== rightKey.tier) {
+      return leftKey.tier - rightKey.tier
+    }
+
+    if (leftKey.group !== rightKey.group) {
+      return leftKey.group.localeCompare(rightKey.group)
+    }
+
+    return leftKey.label.localeCompare(rightKey.label)
+  })
+}
+
 function getCountries (root) {
   const dataEl = root.querySelector('.app-country-search__data')
 
@@ -143,9 +174,10 @@ function initCountrySearch (root) {
       return []
     }
 
-    return countryOptions
-      .filter((option) => countryOptionMatchesQuery(option, normalisedQuery))
-      .sort((left, right) => left.label.localeCompare(right.label))
+    return sortCountrySearchResults(
+      countryOptions.filter((option) => countryOptionMatchesQuery(option, normalisedQuery)),
+      normalisedQuery
+    )
   }
 
   function selectCountry (country) {

@@ -1,5 +1,5 @@
 //
-// Reason for import — show Internal market dropdown only when that option is selected
+// Reason for import — reveal conditional fields when a reason option is selected
 //
 
 function initReasonForImport (root) {

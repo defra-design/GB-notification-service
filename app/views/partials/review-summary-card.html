@@ -37,6 +37,17 @@
       </dl>
     {% endif %}
 
+    {% if card.permanentAddressSection %}
+      <div class="app-review-card__permanent-address">
+        <h4 class="app-review-card__document-heading">{{ card.permanentAddressSection.title }}</h4>
+        <dl class="app-review-card__rows app-review-card__rows--nested">
+          {% for row in card.permanentAddressSection.rows %}
+            {{ reviewRow(row) }}
+          {% endfor %}
+        </dl>
+      </div>
+    {% endif %}
+
     {% if card.documents %}
       <div class="app-review-card__documents">
         {% for document in card.documents %}

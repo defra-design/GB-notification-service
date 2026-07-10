@@ -40,6 +40,8 @@
           }) }}
         {% endif %}
 
+        {% include "partials/transporter-authorisation-banner.html" %}
+
         <form method="post" action="/transporter/add/commercial" novalidate class="app-transporter-add-commercial-form">
           {% include "partials/transporter-add-commercial-fields.html" %}
 

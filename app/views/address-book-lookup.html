@@ -5,7 +5,7 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
 
-{% set pageName = "Add address details" %}
+{% set pageName = pageHeading or "Add address details" %}
 
 {% block beforeContent %}
   {{ govukPhaseBanner({
@@ -34,12 +34,13 @@
 
       <div class="app-address-book-lookup-page">
         <div class="app-address-book-lookup-page__header">
-          <h1 class="app-address-book-lookup-page__heading">Add address details</h1>
+          <h1 class="app-address-book-lookup-page__heading">{{ pageHeading or "Add address details" }}</h1>
         </div>
 
-        <form method="post" action="/address-book/add/lookup" novalidate class="app-address-book-lookup-form">
+        <form method="post" action="{{ formAction or '/address-book/add/lookup' }}" novalidate class="app-address-book-lookup-form">
           <input type="hidden" name="addressType" value="{{ selectedAddressType }}">
 
+          {% if not hideSearch %}
           <div
             class="app-address-book-lookup-page__search{% if data.errors and data.errors.addressLookup %} app-address-book-lookup-page__search--error{% endif %}"
             data-module="app-address-book-lookup-search"
@@ -106,7 +107,9 @@
               <div class="app-address-book-lookup-search__status govuk-visually-hidden" aria-live="polite"></div>
             </div>
           </div>
+          {% endif %}
 
+          {% if not isEditMode %}
           <p class="app-address-book-lookup-page__manual-link{% if showManualAddress %} app-address-book-lookup-page__manual-link--hidden{% endif %}">
             <button
               type="button"
@@ -117,6 +120,7 @@
               Enter address manually
             </button>
           </p>
+          {% endif %}
 
           <input
             type="hidden"
@@ -135,14 +139,14 @@
 
           <div class="app-address-book-lookup-page__actions">
             {{ govukButton({
-              text: "Save and continue",
+              text: "Save changes" if isEditMode else "Save and continue",
               name: "action",
               value: "continue",
               classes: "app-address-book-lookup-page__continue-button"
             }) }}
 
             {{ govukButton({
-              text: "Cancel and return to dashboard",
+              text: "Cancel" if isEditMode else "Cancel and return to dashboard",
               name: "action",
               value: "cancel",
               classes: "govuk-button--secondary app-address-book-lookup-page__cancel-button"

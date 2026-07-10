@@ -8,14 +8,14 @@ module.exports = [
   },
   {
     id: 'aberdeen-livestock-harbour-road',
-    name: 'Aberdeen Livestock Ltd',
-    addressLines: ['42 Harbour Road', 'Aberdeen, AB11 5BY'],
+    name: 'West Country Livestock Ltd',
+    addressLines: ['41 Commerce Way', 'Bristol, BS11 9DQ'],
     country: 'United Kingdom'
   },
   {
     id: 'aberdeen-livestock-king-street',
-    name: 'Aberdeen Livestock Ltd',
-    addressLines: ['8 King Street', 'Aberdeen, AB24 5AX'],
+    name: 'Cymru Animal Imports Ltd',
+    addressLines: ['12 Cathedral Road', 'Cardiff, CF11 9LJ'],
     country: 'United Kingdom'
   }
 ]

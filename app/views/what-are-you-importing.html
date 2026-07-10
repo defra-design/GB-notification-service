@@ -40,7 +40,7 @@
     </div>
 
     {{ govukInsetText({
-      text: "Each health certificate requires a separate notification.",
+      text: "A separate notification is required for each health certificate. Consignments that do not require a health certificate must still be notified.",
       classes: "app-what-importing-page__inset"
     }) }}
 
@@ -57,7 +57,7 @@
           </p>
         {% endif %}
         <div id="commodity-search-hint" class="govuk-hint">
-          You can search by common name (for example, cattle), commodity code (0102), or species (Bos taurus).
+          You can search by common name (for example, cattle), commodity code (0102), or latin name (Bos taurus).
         </div>
         <div
           class="app-commodity-search-wrapper"
@@ -140,7 +140,7 @@
           }) }}
 
           {{ govukButton({
-            text: "Save and return to hub",
+            text: "Save and return to overview",
             name: "action",
             value: "hub",
             classes: "govuk-button--secondary"
@@ -148,7 +148,7 @@
         </div>
 
         <p class="app-origin-form-actions__cancel">
-          <a class="govuk-link" href="/notification-hub">Cancel and return to hub</a>
+          <a class="govuk-link" href="/notification-hub">Cancel and return to overview</a>
         </p>
       </div>
 

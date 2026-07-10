@@ -56,10 +56,10 @@
           <div class="app-transit-countries-page__country{% if data.errors and data.errors.transitCountries %} app-transit-countries-page__country--error{% endif %}">
             <div class="govuk-form-group{% if data.errors and data.errors.transitCountries %} govuk-form-group--error{% endif %} app-transit-countries-page__search">
               <label class="govuk-label app-eu-heading-m app-transit-countries-page__field-label" for="transit-country-search">
-                Enter all countries
+                Enter a country
               </label>
               <div id="transit-country-search-hint" class="govuk-hint app-transit-countries-page__field-hint">
-                You can add up to 12 countries
+                Enter each country that the consignment will travel through
               </div>
               {% if data.errors and data.errors.transitCountries %}
                 <p id="transit-countries-error" class="govuk-error-message">
@@ -73,11 +73,12 @@
                 data-module="app-transit-country-search"
               >
                 <script type="application/json" class="app-transit-country-search__data">{{ countriesJson | safe }}</script>
+                <script type="application/json" class="app-transit-country-search__initial">{{ transitCountriesJson | safe }}</script>
                 <input
                   type="hidden"
                   name="transitCountries"
                   class="app-transit-country-search__value"
-                  value="{{ transitCountriesJson | safe }}"
+                  value=""
                 >
                 <div class="app-transit-country-search__status govuk-visually-hidden" aria-live="polite"></div>
 
@@ -116,10 +117,6 @@
                   </div>
                 </div>
 
-                <p class="app-transit-countries-page__add-country"{% if transitCountries.length >= 12 %} hidden{% endif %}>
-                  <a class="govuk-link app-transit-country-search__add-country" href="#">Add another country</a>
-                </p>
-
                 <div
                   class="app-transit-countries-page__summary{% if not transitCountries.length %} app-transit-countries-page__summary--empty{% endif %}"
                   id="transit-countries-summary"
@@ -153,7 +150,7 @@
               }) }}
 
               {{ govukButton({
-                text: "Save and return to hub",
+                text: "Save and return to overview",
                 name: "action",
                 value: "hub",
                 classes: "govuk-button--secondary"
@@ -161,7 +158,7 @@
             </div>
 
             <p class="app-origin-form-actions__cancel">
-              <a class="govuk-link" href="/notification-hub">Cancel and return to hub</a>
+              <a class="govuk-link" href="/notification-hub">Cancel and return to overview</a>
             </p>
           </div>
 

@@ -3,6 +3,136 @@
 // https://prototype-kit.service.gov.uk/docs/adding-css-javascript-and-images
 //
 
+@mixin app-moj-date-picker-field-styles {
+  width: 100%;
+  margin-bottom: 0;
+
+  .moj-datepicker .govuk-form-group {
+    margin-bottom: 0;
+  }
+
+  .govuk-error-message {
+    margin-bottom: 15px;
+  }
+
+  // MOJ date picker — in-flow calendar (pushes content down, no overlay)
+  .moj-datepicker__wrapper {
+    width: 100%;
+  }
+
+  .moj-datepicker__dialog {
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    z-index: auto;
+    width: 100%;
+    max-width: 320px;
+    margin-top: 2px;
+  }
+
+  .moj-datepicker__toggle {
+    background-color: #1d70b8;
+    box-shadow: inset 0 -1px 0 #003078;
+    color: #ffffff;
+    border: 0;
+    border-bottom: 0;
+    outline-offset: 0;
+
+    &:hover,
+    &:focus:hover,
+    &:focus-visible,
+    &:focus-visible:hover {
+      border: 0;
+      border-bottom: 0;
+      color: #ffffff;
+    }
+
+    &:hover,
+    &:focus-visible:hover {
+      background-color: #003078;
+      box-shadow: inset 0 -1px 0 #003078;
+    }
+
+    &:focus {
+      outline: none;
+      background-color: #1d70b8;
+      box-shadow: inset 0 -1px 0 #003078;
+    }
+
+    &:focus-visible {
+      outline: 3px solid #ffdd00;
+      outline-offset: 0;
+      background-color: #1d70b8;
+      box-shadow: inset 0 -1px 0 #003078;
+    }
+  }
+
+  // MOJ date picker — keyboard-only focus styles
+  .moj-js-datepicker-input:focus:not(:focus-visible) {
+    outline: none;
+    box-shadow: none;
+  }
+
+  .moj-datepicker__toggle:focus:not(:focus-visible) {
+    border: 0;
+    border-bottom: 0;
+    outline: none;
+    color: #ffffff;
+    background-color: #1d70b8;
+    box-shadow: inset 0 -1px 0 #003078;
+  }
+
+  .moj-datepicker__button:focus:not(:focus-visible) {
+    outline-color: transparent;
+    color: #0b0c0c;
+    background-color: transparent;
+
+    &::after {
+      background-color: transparent;
+    }
+  }
+
+  .moj-datepicker__button--selected:focus:not(:focus-visible) {
+    color: #ffffff;
+    background-color: #1d70b8;
+
+    &::after {
+      background-color: #1d70b8;
+    }
+  }
+
+  .moj-datepicker__button--current:focus:not(:focus-visible):not(.moj-datepicker__button--selected) {
+    outline-color: #1d70b8;
+    color: #ffffff;
+    background-color: #1d70b8;
+
+    &::after {
+      background-color: #1d70b8;
+    }
+  }
+
+  .moj-datepicker__calendar tbody:focus-within {
+    outline: none;
+  }
+
+  .moj-datepicker__calendar tbody:has(:focus-visible) {
+    outline: 2px solid #fd0;
+  }
+
+  .moj-datepicker__dialog .govuk-button:focus:not(:focus-visible) {
+    outline: none;
+    box-shadow: 0 2px 0 #002d18;
+    background-color: #00703c;
+    border-color: transparent;
+  }
+
+  .moj-datepicker__dialog .govuk-button--secondary:focus:not(:focus-visible) {
+    box-shadow: 0 2px 0 #929793;
+    background-color: #f3f2f1;
+    border-color: transparent;
+  }
+}
+
 .prototype-page-header {
   .govuk-caption-xl {
     margin-bottom: 5px;
@@ -1355,17 +1485,19 @@ button.govuk-link.app-govuk-body-link--small {
 }
 
 .app-transhipment-destination-reveal,
-.app-transit-options-reveal {
+.app-transit-options-reveal,
+.app-temporary-admission-horses-reveal {
   width: 100%;
 
-  .govuk-form-group {
+  > .govuk-form-group {
     display: flex;
     flex-direction: column;
     gap: 5px;
     margin-bottom: 0;
   }
 
-  .govuk-label {
+  > .govuk-form-group .govuk-label,
+  > .govuk-label {
     margin: 0;
     font-size: 19px;
     font-weight: 300;
@@ -1373,7 +1505,8 @@ button.govuk-link.app-govuk-body-link--small {
     color: #0b0c0c;
   }
 
-  .govuk-select {
+  > .govuk-form-group .govuk-select,
+  > .govuk-select {
     width: 100%;
     max-width: 396px;
     margin: 0;
@@ -1384,10 +1517,34 @@ button.govuk-link.app-govuk-body-link--small {
   }
 }
 
-.app-transit-options-reveal {
+.app-transit-options-reveal,
+.app-temporary-admission-horses-reveal {
   display: flex;
   flex-direction: column;
   gap: 30px;
+}
+
+.app-temporary-admission-horses-reveal {
+  .app-arrival-details-page__field-label {
+    display: block;
+    margin: 0 0 5px;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 25px;
+    color: #0b0c0c;
+  }
+
+  .app-arrival-details-page__field-hint {
+    margin: 0 0 10px;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 25px;
+    color: #505a5f;
+  }
+
+  .app-arrival-details-page__date {
+    @include app-moj-date-picker-field-styles;
+  }
 }
 
 .app-origin-radios-block {
@@ -2118,133 +2275,7 @@ button.govuk-link.app-govuk-body-link--small {
   }
 
   &__date {
-    width: 100%;
-    margin-bottom: 0;
-
-    .moj-datepicker .govuk-form-group {
-      margin-bottom: 0;
-    }
-
-    .govuk-error-message {
-      margin-bottom: 15px;
-    }
-
-    // MOJ date picker — in-flow calendar (pushes content down, no overlay)
-    .moj-datepicker__wrapper {
-      width: 100%;
-    }
-
-    .moj-datepicker__dialog {
-      position: static !important;
-      top: auto !important;
-      right: auto !important;
-      z-index: auto;
-      width: 100%;
-      max-width: 320px;
-      margin-top: 2px;
-    }
-
-    .moj-datepicker__toggle {
-      background-color: #1d70b8;
-      box-shadow: inset 0 -1px 0 #003078;
-      color: #ffffff;
-      border: 0;
-      border-bottom: 0;
-      outline-offset: 0;
-
-      &:hover,
-      &:focus:hover,
-      &:focus-visible,
-      &:focus-visible:hover {
-        border: 0;
-        border-bottom: 0;
-        color: #ffffff;
-      }
-
-      &:hover,
-      &:focus-visible:hover {
-        background-color: #003078;
-        box-shadow: inset 0 -1px 0 #003078;
-      }
-
-      &:focus {
-        outline: none;
-        background-color: #1d70b8;
-        box-shadow: inset 0 -1px 0 #003078;
-      }
-
-      &:focus-visible {
-        outline: 3px solid #ffdd00;
-        outline-offset: 0;
-        background-color: #1d70b8;
-        box-shadow: inset 0 -1px 0 #003078;
-      }
-    }
-
-    // MOJ date picker — keyboard-only focus styles
-    .moj-js-datepicker-input:focus:not(:focus-visible) {
-      outline: none;
-      box-shadow: none;
-    }
-
-    .moj-datepicker__toggle:focus:not(:focus-visible) {
-      border: 0;
-      border-bottom: 0;
-      outline: none;
-      color: #ffffff;
-      background-color: #1d70b8;
-      box-shadow: inset 0 -1px 0 #003078;
-    }
-
-    .moj-datepicker__button:focus:not(:focus-visible) {
-      outline-color: transparent;
-      color: #0b0c0c;
-      background-color: transparent;
-
-      &::after {
-        background-color: transparent;
-      }
-    }
-
-    .moj-datepicker__button--selected:focus:not(:focus-visible) {
-      color: #ffffff;
-      background-color: #1d70b8;
-
-      &::after {
-        background-color: #1d70b8;
-      }
-    }
-
-    .moj-datepicker__button--current:focus:not(:focus-visible):not(.moj-datepicker__button--selected) {
-      outline-color: #1d70b8;
-      color: #ffffff;
-      background-color: #1d70b8;
-
-      &::after {
-        background-color: #1d70b8;
-      }
-    }
-
-    .moj-datepicker__calendar tbody:focus-within {
-      outline: none;
-    }
-
-    .moj-datepicker__calendar tbody:has(:focus-visible) {
-      outline: 2px solid #fd0;
-    }
-
-    .moj-datepicker__dialog .govuk-button:focus:not(:focus-visible) {
-      outline: none;
-      box-shadow: 0 2px 0 #002d18;
-      background-color: #00703c;
-      border-color: transparent;
-    }
-
-    .moj-datepicker__dialog .govuk-button--secondary:focus:not(:focus-visible) {
-      box-shadow: 0 2px 0 #929793;
-      background-color: #f3f2f1;
-      border-color: transparent;
-    }
+    @include app-moj-date-picker-field-styles;
   }
 
   &__port {
@@ -2393,13 +2424,6 @@ button.govuk-link.app-govuk-body-link--small {
 
   &__country-search {
     max-width: 630px;
-  }
-
-  &__add-country {
-    margin: 20px 0 0;
-    font-size: 19px;
-    line-height: 25px;
-    text-align: left;
   }
 
   &__summary {
@@ -2675,8 +2699,48 @@ button.govuk-link.app-govuk-body-link--small {
     color: #0b0c0c;
   }
 
-  &__input {
-    max-width: 420px;
+  &__field-hint {
+    margin: 0 0 15px;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 25px;
+    color: #505a5f;
+  }
+
+  &__cph-input {
+    width: 100%;
+    max-width: 630px;
+
+    .govuk-fieldset__legend {
+      margin-bottom: 10px;
+    }
+
+    .govuk-date-input__label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      white-space: nowrap;
+      border-width: 0;
+    }
+
+    .govuk-date-input {
+      margin-bottom: 0;
+    }
+
+    .govuk-date-input__label {
+      font-size: 19px;
+      font-weight: 400;
+      line-height: 25px;
+    }
+
+    .govuk-error-message {
+      margin-bottom: 15px;
+    }
   }
 
   &__continue-button.govuk-button {
@@ -3130,8 +3194,7 @@ button.govuk-link.app-govuk-body-link--small {
 }
 
 .app-consignment-address-select-page,
-.app-place-of-origin-page,
-.app-contact-address-page {
+.app-place-of-origin-page {
   display: flex;
   flex-direction: column;
   gap: 30px;
@@ -3309,8 +3372,7 @@ button.govuk-link.app-govuk-body-link--small {
 }
 
 .app-consignment-address-select-form,
-.app-place-of-origin-form,
-.app-contact-address-page .app-consignment-address-select-form {
+.app-place-of-origin-form {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -3794,6 +3856,10 @@ button.govuk-link.app-govuk-body-link--small {
 
   .app-notification-status {
     margin-bottom: 0;
+  }
+
+  &__success-banner {
+    width: 100%;
   }
 
   &__header {
@@ -4584,6 +4650,12 @@ button.govuk-link.app-govuk-body-link--small {
     }
   }
 
+  &__permanent-address {
+    padding: 15px 20px;
+    background: #ffffff;
+    border-top: 1px solid #b1b4b6;
+  }
+
   &__documents {
     background: #ffffff;
   }
@@ -5169,6 +5241,30 @@ button.govuk-link.app-govuk-body-link--small {
   }
 }
 
+.app-transporter-authorisation-banner {
+  width: 100%;
+  max-width: 630px;
+
+  .govuk-notification-banner__heading {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 24px;
+    line-height: 30px;
+  }
+
+  .govuk-body {
+    margin-bottom: 15px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &__list {
+    margin-bottom: 15px;
+  }
+}
+
 .app-transporter-add-form {
   display: flex;
   flex-direction: column;
@@ -5561,6 +5657,10 @@ button.govuk-link.app-govuk-body-link--small {
   &__edit-button,
   &__delete-button {
     margin-bottom: 0;
+  }
+
+  &__delete-form {
+    margin: 0;
   }
 }
 

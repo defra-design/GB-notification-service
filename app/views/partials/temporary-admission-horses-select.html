@@ -1,0 +1,34 @@
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+
+<div class="app-temporary-admission-horses-reveal">
+  <div class="app-arrival-details-page__date">
+    {{ mojDatePicker({
+      id: "temporary-admission-exit-date",
+      name: "temporaryAdmissionExitDate",
+      value: data.temporaryAdmissionExitDate or "",
+      label: {
+        text: "Exit date",
+        classes: "app-arrival-details-page__field-label"
+      },
+      hint: {
+        text: "For example, 27/3/2026",
+        classes: "app-arrival-details-page__field-hint"
+      },
+      errorMessage: data.errors.temporaryAdmissionExitDate if data.errors and data.errors.temporaryAdmissionExitDate,
+      formGroup: {
+        classes: "govuk-form-group" + (" govuk-form-group--error" if data.errors and data.errors.temporaryAdmissionExitDate else "")
+      }
+    }) }}
+  </div>
+
+  {{ govukSelect({
+    id: "temporary-admission-port-of-exit",
+    name: "temporaryAdmissionPortOfExit",
+    label: {
+      text: "Port of exit"
+    },
+    items: exitBorderControlPostItems,
+    errorMessage: data.errors.temporaryAdmissionPortOfExit if data.errors and data.errors.temporaryAdmissionPortOfExit
+  }) }}
+</div>

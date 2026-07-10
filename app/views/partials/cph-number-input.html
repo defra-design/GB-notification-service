@@ -1,0 +1,42 @@
+{% from "govuk/components/date-input/macro.njk" import govukDateInput %}
+
+<div class="app-cph-number-page__cph-input">
+  {{ govukDateInput({
+    id: "cph-number",
+    namePrefix: "cphNumber",
+    fieldset: {
+      legend: {
+        text: "CPH number",
+        classes: "govuk-fieldset__legend--m app-cph-number-page__field-label"
+      }
+    },
+    hint: {
+      text: "For example 12/345/6789",
+      classes: "app-cph-number-page__field-hint"
+    },
+    items: [
+      {
+        name: "county",
+        label: "County",
+        classes: "govuk-input--width-2",
+        value: cphNumberParts.county
+      },
+      {
+        name: "parish",
+        label: "Parish",
+        classes: "govuk-input--width-3",
+        value: cphNumberParts.parish
+      },
+      {
+        name: "holding",
+        label: "Holding number",
+        classes: "govuk-input--width-4",
+        value: cphNumberParts.holding
+      }
+    ],
+    errorMessage: data.errors.cphNumber if data.errors and data.errors.cphNumber,
+    formGroup: {
+      classes: "app-cph-number-page__field"
+    }
+  }) }}
+</div>

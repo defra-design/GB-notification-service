@@ -4,7 +4,6 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/details/macro.njk" import govukDetails %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
-{% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
 
 {% set pageName = "Add the county parish holding number (CPH)" %}
@@ -51,23 +50,7 @@
           <p class="govuk-body">You can find your CPH number on documents from the Animal and Plant Health Agency (APHA) or by <a class="govuk-link" href="#">checking your holding details on GOV.UK</a>.</p>'
       }) }}
 
-      {{ govukInput({
-        label: {
-          text: "CPH number",
-          classes: "app-cph-number-page__field-label"
-        },
-        hint: {
-          text: "For example 12/345/6789"
-        },
-        id: "cph-number",
-        name: "cphNumber",
-        value: cphNumber,
-        classes: "app-cph-number-page__input",
-        errorMessage: data.errors.cphNumber if data.errors and data.errors.cphNumber,
-        formGroup: {
-          classes: "app-cph-number-page__field"
-        }
-      }) }}
+      {% include "partials/cph-number-input.html" %}
 
       {{ govukButton({
         text: "Save and continue",

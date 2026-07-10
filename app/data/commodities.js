@@ -19,7 +19,7 @@ const commodities = [
     ],
     unweanedOptions: ['Yes', 'No'],
     packagingFields: [
-      { id: 'number-of-packages', label: 'Number of packages', type: 'number', hint: 'Such as crates, bags or boxes' }
+      { id: 'number-of-packages', label: 'Number of packages (when required)', type: 'number', hint: 'Such as crates, bags or boxes' }
     ],
     species: cattleSpecies
   },
@@ -37,7 +37,7 @@ const commodities = [
       'Other'
     ],
     packagingFields: [
-      { id: 'number-of-packages', label: 'Number of packages', type: 'number', hint: 'Such as crates, bags or boxes' }
+      { id: 'number-of-packages', label: 'Number of packages (when required)', type: 'number', hint: 'Such as crates, bags or boxes' }
     ],
     species: horseSpecies
   },
@@ -53,7 +53,7 @@ const commodities = [
     ],
     unweanedOptions: ['Yes', 'No'],
     packagingFields: [
-      { id: 'number-of-packages', label: 'Number of packages', type: 'number', hint: 'Such as crates, bags or boxes' }
+      { id: 'number-of-packages', label: 'Number of packages (when required)', type: 'number', hint: 'Such as crates, bags or boxes' }
     ],
     species: [
       { id: 'pig-sus-scrofa', label: 'Sus scrofa domesticus' }
@@ -72,7 +72,7 @@ const commodities = [
       'Slaughter'
     ],
     packagingFields: [
-      { id: 'number-of-packages', label: 'Number of packages', type: 'number', hint: 'Such as crates, bags or boxes' }
+      { id: 'number-of-packages', label: 'Number of packages (when required)', type: 'number', hint: 'Such as crates, bags or boxes' }
     ],
     species: [
       { id: 'sheep-ovis-aries', label: 'Ovis aries' }
@@ -91,7 +91,7 @@ const commodities = [
       'Slaughter'
     ],
     packagingFields: [
-      { id: 'number-of-packages', label: 'Number of packages', type: 'number', hint: 'Such as crates, bags or boxes' }
+      { id: 'number-of-packages', label: 'Number of packages (when required)', type: 'number', hint: 'Such as crates, bags or boxes' }
     ],
     species: [
       { id: 'goat-capra-hircus', label: 'Capra hircus' }
@@ -147,6 +147,7 @@ const commodities = [
     id: 'cat',
     name: 'Cat',
     code: '01061900',
+    requiresPermanentAddress: true,
     identifiers: getIdentifiersForCommodityCode('01061900'),
     certificationPurposeOptions: [
       'Approved bodies',
@@ -156,7 +157,7 @@ const commodities = [
       'Other'
     ],
     packagingFields: [
-      { id: 'number-of-packages', label: 'Number of packages', type: 'number', hint: 'Such as crates, bags or boxes' }
+      { id: 'number-of-packages', label: 'Number of packages (when required)', type: 'number', hint: 'Such as crates, bags or boxes' }
     ],
     species: [
       { id: 'cat-felis-catus', label: 'Felis catus', commonName: 'Domestic cat' }
@@ -166,6 +167,7 @@ const commodities = [
     id: 'dog',
     name: 'Dog',
     code: '01061900',
+    requiresPermanentAddress: true,
     identifiers: getIdentifiersForCommodityCode('01061900'),
     certificationPurposeOptions: [
       'Approved bodies',
@@ -175,10 +177,30 @@ const commodities = [
       'Other'
     ],
     packagingFields: [
-      { id: 'number-of-packages', label: 'Number of packages', type: 'number', hint: 'Such as crates, bags or boxes' }
+      { id: 'number-of-packages', label: 'Number of packages (when required)', type: 'number', hint: 'Such as crates, bags or boxes' }
     ],
     species: [
       { id: 'dog-canis-familiaris', label: 'Canis familiaris', commonName: 'Domestic dog' }
+    ]
+  },
+  {
+    id: 'ferret',
+    name: 'Ferret',
+    code: '01061900',
+    requiresPermanentAddress: true,
+    identifiers: getIdentifiersForCommodityCode('01061900'),
+    certificationPurposeOptions: [
+      'Approved bodies',
+      'Breeding and/or production',
+      'Circus/exhibition',
+      'Pets',
+      'Other'
+    ],
+    packagingFields: [
+      { id: 'number-of-packages', label: 'Number of packages (when required)', type: 'number', hint: 'Such as crates, bags or boxes' }
+    ],
+    species: [
+      { id: 'ferret-mustela-putorius-furo', label: 'Mustela putorius furo', commonName: 'Ferret' }
     ]
   },
   {
@@ -194,7 +216,7 @@ const commodities = [
       'Other'
     ],
     packagingFields: [
-      { id: 'number-of-packages', label: 'Number of packages', type: 'number', hint: 'Such as crates, bags or boxes' }
+      { id: 'number-of-packages', label: 'Number of packages (when required)', type: 'number', hint: 'Such as crates, bags or boxes' }
     ],
     species: otherLiveMammalsSpecies
   },
