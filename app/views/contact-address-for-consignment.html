@@ -46,6 +46,10 @@
 
     <form method="post" action="/contact-address-for-consignment" novalidate class="app-contact-address-form">
 
+      {% if fromHub %}
+        <input type="hidden" name="from" value="hub">
+      {% endif %}
+
       {% if data.errorList %}
         {{ govukErrorSummary({
           titleText: "There is a problem",

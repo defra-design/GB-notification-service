@@ -30,7 +30,6 @@ const dashboardData = require('./data/dashboard-notifications')
 const { getCommoditySearchData } = require('./utils/commodity-search-data')
 
 const TRANSIT_MEANS_OF_TRANSPORT = ['Railway', 'Road Vehicle']
-const MAX_TRANSIT_COUNTRIES = 12
 
 const importReasonValues = importReasons.map((reason) => reason.value)
 const internalMarketPurposeValues = internalMarketPurposes.map((purpose) => purpose.value)
@@ -928,8 +927,8 @@ function getJourneySteps (sessionData) {
     '/transporter',
     '/upload-documents',
     '/roles-and-addresses',
-    '/review-notification',
     '/contact-address-for-consignment',
+    '/review-notification',
     '/declaration'
   )
 
@@ -1332,6 +1331,7 @@ function hasArrivalDetailsComplete (sessionData) {
 
   return Boolean(
     arrivalDateAtPort &&
+    isArrivalDateWithinAllowedRange(sessionData.arrivalDateAtPort) &&
     sessionData.portOfEntry &&
     sessionData.portOfEntry.trim() &&
     isValidPortOfEntry(sessionData.portOfEntry) &&
@@ -1386,52 +1386,12 @@ function normalizeTransitCountries (value) {
   return []
 }
 
-function isValidTransitCountry (country) {
-  return countryLabels.includes(country)
-}
-
-function hasTransitCountriesComplete (sessionData) {
-  if (!requiresTransitCountries(sessionData)) {
-    return true
-  }
-
-  const transitCountries = normalizeTransitCountries(sessionData.transitCountries)
-
-  return transitCountries.length > 0 &&
-    transitCountries.length <= MAX_TRANSIT_COUNTRIES &&
-    transitCountries.every(isValidTransitCountry)
+function hasTransitCountriesComplete () {
+  return true
 }
 
 function saveTransitCountriesToSession (sessionData, countries) {
   sessionData.transitCountries = normalizeTransitCountries(countries)
-}
-
-function validateTransitCountries (countries) {
-  const errors = {}
-  const errorList = []
-  const normalisedCountries = normalizeTransitCountries(countries)
-
-  if (normalisedCountries.length === 0) {
-    errors.transitCountries = { text: 'Select at least one country' }
-    errorList.push({
-      text: 'Select at least one country',
-      href: '#transit-country-search'
-    })
-  } else if (normalisedCountries.length > MAX_TRANSIT_COUNTRIES) {
-    errors.transitCountries = { text: 'Select a maximum of 12 countries' }
-    errorList.push({
-      text: 'Select a maximum of 12 countries',
-      href: '#transit-country-search'
-    })
-  } else if (!normalisedCountries.every(isValidTransitCountry)) {
-    errors.transitCountries = { text: 'Select countries from the search results' }
-    errorList.push({
-      text: 'Select countries from the search results',
-      href: '#transit-country-search'
-    })
-  }
-
-  return { errors, errorList, normalisedCountries }
 }
 
 function parseTransitCountriesBody (body) {
@@ -1461,7 +1421,8 @@ function renderContactAddressPage (req, res, locals = {}) {
     : sessionData.contactAddressId || ''
 
   return res.render('contact-address-for-consignment', {
-    backLink: '/review-notification',
+    backLink: isFromHub(req) ? '/notification-hub' : '/roles-and-addresses',
+    fromHub: isFromHub(req),
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     contactAddressItems: buildContactAddressItems(sessionData, selectedAddressId),
     selectedAddressId,
@@ -2838,6 +2799,53 @@ function parseArrivalDisplayDate (value) {
   return trimmed
 }
 
+function formatArrivalPickerDate (date) {
+  return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`
+}
+
+function startOfDay (date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate())
+}
+
+function getArrivalDatePickerBounds (referenceDate = new Date()) {
+  const today = startOfDay(referenceDate)
+  const minDate = new Date(today)
+  minDate.setDate(minDate.getDate() - 7)
+  const maxDate = new Date(today)
+  maxDate.setMonth(maxDate.getMonth() + 6)
+
+  return {
+    minDate: formatArrivalPickerDate(minDate),
+    maxDate: formatArrivalPickerDate(maxDate)
+  }
+}
+
+function parseArrivalDisplayDateToDate (value) {
+  const parsed = parseArrivalDisplayDate(value)
+
+  if (!parsed) {
+    return null
+  }
+
+  const match = parsed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
+
+  return new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]))
+}
+
+function isArrivalDateWithinAllowedRange (value, referenceDate = new Date()) {
+  const date = parseArrivalDisplayDateToDate(value)
+
+  if (!date) {
+    return false
+  }
+
+  const bounds = getArrivalDatePickerBounds(referenceDate)
+  const minDate = parseArrivalDisplayDateToDate(bounds.minDate)
+  const maxDate = parseArrivalDisplayDateToDate(bounds.maxDate)
+
+  return date >= minDate && date <= maxDate
+}
+
 function validateArrivalDetails (values) {
   const errors = {}
   const errorList = []
@@ -2852,6 +2860,15 @@ function validateArrivalDetails (values) {
     errors.arrivalDateAtPort = { text: 'Enter the date in the format 27/3/2026' }
     errorList.push({
       text: 'Enter the date in the format 27/3/2026',
+      href: '#arrival-date-at-port'
+    })
+  } else if (!isArrivalDateWithinAllowedRange(values.arrivalDateAtPort)) {
+    const bounds = getArrivalDatePickerBounds()
+    errors.arrivalDateAtPort = {
+      text: `Enter a date between ${bounds.minDate} and ${bounds.maxDate}`
+    }
+    errorList.push({
+      text: `Enter a date between ${bounds.minDate} and ${bounds.maxDate}`,
       href: '#arrival-date-at-port'
     })
   }
@@ -2915,6 +2932,7 @@ function parseArrivalDetailsBody (body) {
 
 function renderArrivalDetailsPage (req, res) {
   const sessionData = req.session.data
+  const arrivalDateBounds = getArrivalDatePickerBounds()
 
   return res.render('arrival-details', {
     backLink: '/notification-hub',
@@ -2922,6 +2940,8 @@ function renderArrivalDetailsPage (req, res) {
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     ukAirportItemsJson: JSON.stringify(getUkAirportDisplayOptions()),
     meansOfTransportItems: buildMeansOfTransportItems(sessionData.meansOfTransport),
+    arrivalDateMinDate: arrivalDateBounds.minDate,
+    arrivalDateMaxDate: arrivalDateBounds.maxDate,
     data: sessionData
   })
 }
@@ -3673,7 +3693,7 @@ function renderDeclarationPage (req, res, locals = {}) {
   const sessionData = req.session.data
 
   return res.render('declaration', {
-    backLink: '/contact-address-for-consignment',
+    backLink: '/review-notification',
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     declarationDate: formatDeclarationDate(),
     declarationConfirmed: isCheckboxChecked(locals.declarationConfirmed) ||
@@ -3748,6 +3768,10 @@ function hasAllNotificationHubSectionsComplete (sessionData) {
   }
 
   if (!hasConsignmentAddressesComplete(sessionData)) {
+    return false
+  }
+
+  if (!hasContactAddress(sessionData)) {
     return false
   }
 
@@ -3843,6 +3867,16 @@ function getNotificationHubViewModel (sessionData) {
             href: '/roles-and-addresses',
             hint: 'Consignor or Exporter, Consignee, Importer and Place of Destination',
             status: hasConsignmentAddressesComplete(sessionData) ? statusComplete : statusTodo
+          }
+        ]
+      },
+      {
+        title: '6. Contact address',
+        items: [
+          {
+            text: 'Contact address for this consignment',
+            href: '/contact-address-for-consignment?from=hub',
+            status: hasContactAddress(sessionData) ? statusComplete : statusTodo
           }
         ]
       }
@@ -5817,7 +5851,7 @@ router.post('/review-notification', (req, res) => {
     return renderReviewNotificationPage(req, res)
   }
 
-  return res.redirect('/contact-address-for-consignment')
+  return res.redirect('/declaration')
 })
 
 router.get('/declaration', (req, res) => {
@@ -5828,7 +5862,7 @@ router.get('/declaration', (req, res) => {
   }
 
   if (!hasContactAddress(req.session.data)) {
-    return res.redirect('/contact-address-for-consignment')
+    return res.redirect('/notification-hub')
   }
 
   return renderDeclarationPage(req, res)
@@ -5842,7 +5876,7 @@ router.post('/declaration', (req, res) => {
   }
 
   if (!hasContactAddress(req.session.data)) {
-    return res.redirect('/contact-address-for-consignment')
+    return res.redirect('/notification-hub')
   }
 
   const validation = validateDeclaration(req.body)
@@ -6297,6 +6331,16 @@ router.post('/arrival-details', (req, res) => {
     return res.redirect('/notification-hub')
   }
 
+  const validation = validateArrivalDetails(values)
+
+  if (validation.errorList.length) {
+    req.session.data.errorList = validation.errorList
+    req.session.data.errors = validation.errors
+    saveArrivalDetailsToSession(req.session.data, values)
+
+    return renderArrivalDetailsPage(req, res)
+  }
+
   req.session.data.errorList = null
   req.session.data.errors = null
   saveArrivalDetailsToSession(req.session.data, values)
@@ -6356,29 +6400,15 @@ router.post('/transit-countries', (req, res) => {
     return res.redirect('/notification-hub')
   }
 
-  const { errors, errorList, normalisedCountries } = validateTransitCountries(countries)
-
-  if (errorList.length) {
-    req.session.data.errorList = errorList
-    req.session.data.errors = errors
-    saveTransitCountriesToSession(req.session.data, normalisedCountries)
-
-    return renderTransitCountriesPage(req, res)
-  }
-
   req.session.data.errorList = null
   req.session.data.errors = null
-  saveTransitCountriesToSession(req.session.data, normalisedCountries)
+  saveTransitCountriesToSession(req.session.data, countries)
 
   return res.redirect(getNextJourneyPath('/transit-countries', req.session.data))
 })
 
 router.get('/contact-address-for-consignment', (req, res) => {
   ensurePrototypeNotificationReference(req.session.data)
-
-  if (!hasReviewNotificationComplete(req.session.data)) {
-    return res.redirect('/notification-hub')
-  }
 
   const successMessage = req.session.data.contactAddressSuccessMessage || null
 
@@ -6791,5 +6821,9 @@ router.post('/contact-address-for-consignment', (req, res) => {
   req.session.data.errorList = null
   req.session.data.errors = null
 
-  return res.redirect('/declaration')
+  if (isFromHub(req)) {
+    return res.redirect('/notification-hub')
+  }
+
+  return res.redirect(getNextJourneyPath('/contact-address-for-consignment', req.session.data))
 })
