@@ -1,19 +1,28 @@
 const consignmentAddresses = require('./consignment-addresses')
 const contactAddresses = require('./contact-addresses')
 const { buildManualFieldsFromAddress } = require('./address-book-lookup-addresses')
+const addressBookAddressTypes = require('./address-book-address-types')
 
 const ADDRESS_TYPE_LABELS = {
-  'place-of-origin': 'Place of origin',
+  'place-of-origin': 'Place of Origin',
+  consignor: 'Consignor',
   'consignor-or-exporter': 'Consignor',
-  'consignee': 'Consignee',
+  consignee: 'Consignee',
   importer: 'Importer',
-  'place-of-destination': 'Place of destination',
-  contact: 'Contact address'
+  'place-of-destination': 'Place of Destination',
+  transporter: 'Transporter',
+  'branch-address': 'Branch Address',
+  contact: 'Contact address',
+  exporter: 'Consignor',
+  packer: 'Packer'
 }
 
 const ADDRESS_TYPE_OPTIONS = [
   { value: '', text: 'Select one' },
-  ...Object.entries(ADDRESS_TYPE_LABELS).map(([value, text]) => ({ value, text }))
+  ...addressBookAddressTypes.map((item) => ({
+    value: item.value,
+    text: item.text
+  }))
 ]
 
 function formatAddressLines (addressLines) {

@@ -121,11 +121,6 @@ function hasOriginDetails (sessionData) {
 }
 
 function redirectIfNoOrigin (req, res) {
-  if (!hasOriginDetails(req.session.data)) {
-    res.redirect('/origin-of-the-import')
-    return true
-  }
-
   return false
 }
 
@@ -585,11 +580,6 @@ function hasCommoditySelection (sessionData) {
 }
 
 function redirectIfNoCommodity (req, res) {
-  if (!hasCommoditySelection(req.session.data)) {
-    res.redirect('/what-are-you-importing')
-    return true
-  }
-
   return false
 }
 
@@ -610,32 +600,7 @@ function parseNumberOfAnimals (body, speciesIds) {
 }
 
 function validateNumberOfAnimals (values, speciesIds) {
-  const errors = {}
-  const errorList = []
-
-  speciesIds.forEach((speciesId) => {
-    const value = values[speciesId]
-    const errorId = `number-of-animals-${speciesId}`
-
-    if (!value) {
-      errors[`numberOfAnimals-${speciesId}`] = { text: 'Enter the number of animals' }
-      errorList.push({
-        text: 'Enter the number of animals',
-        href: `#${errorId}`
-      })
-      return
-    }
-
-    if (!/^\d+$/.test(value) || Number(value) < 1) {
-      errors[`numberOfAnimals-${speciesId}`] = { text: 'Enter a whole number greater than 0' }
-      errorList.push({
-        text: 'Enter a whole number greater than 0',
-        href: `#${errorId}`
-      })
-    }
-  })
-
-  return { errors, errorList }
+  return { errors: {}, errorList: [] }
 }
 
 function parseNumberOfPackages (body, speciesIds) {
@@ -655,33 +620,7 @@ function parseNumberOfPackages (body, speciesIds) {
 }
 
 function validateNumberOfPackages (values, speciesIds) {
-  const errors = {}
-  const errorList = []
-
-  speciesIds.forEach((speciesId) => {
-    const match = getSpeciesMatch(speciesId)
-
-    if (!match || !commodityRequiresPackaging(match.commodity)) {
-      return
-    }
-
-    const value = values[speciesId]
-    const errorId = `number-of-packages-${speciesId}`
-
-    if (!value) {
-      return
-    }
-
-    if (!/^\d+$/.test(value) || Number(value) < 1) {
-      errors[`numberOfPackages-${speciesId}`] = { text: 'Enter a whole number greater than 0' }
-      errorList.push({
-        text: 'Enter a whole number greater than 0',
-        href: `#${errorId}`
-      })
-    }
-  })
-
-  return { errors, errorList }
+  return { errors: {}, errorList: [] }
 }
 
 function buildRadioItems (options, selectedValue) {
@@ -802,20 +741,9 @@ function clearAddressBookContactReturn (sessionData) {
 }
 
 function validateContactAddress (addressId, sessionData = {}) {
-  const errors = {}
-  const errorList = []
-  const addresses = getContactAddresses(sessionData)
   const address = getContactAddressById(addressId, sessionData)
 
-  if (!address) {
-    errors.contactAddressId = { text: 'Select an address' }
-    errorList.push({
-      text: 'Select an address',
-      href: `#contact-address-${addresses[0] ? addresses[0].id : ''}`
-    })
-  }
-
-  return { errors, errorList, address }
+  return { errors: {}, errorList: [], address }
 }
 
 function getUnweanedOptions (sessionData) {
@@ -874,16 +802,15 @@ function hasConsignmentDetails (sessionData) {
 }
 
 function redirectIfNoConsignmentDetails (req, res) {
-  if (!hasConsignmentDetails(req.session.data)) {
-    res.redirect('/consignment-details')
-    return true
-  }
-
   return false
 }
 
 function hasAdditionalAnimalDetailsComplete (sessionData) {
   const config = getAdditionalAnimalDetailsConfig(sessionData)
+
+  if (!config.showCertificationPurposeQuestion && !config.showUnweanedQuestion) {
+    return true
+  }
 
   if (config.showCertificationPurposeQuestion) {
     if (!certificationPurposeOptions.includes(sessionData.certificationPurpose)) {
@@ -897,15 +824,10 @@ function hasAdditionalAnimalDetailsComplete (sessionData) {
     }
   }
 
-  return config.showCertificationPurposeQuestion || config.showUnweanedQuestion
+  return true
 }
 
 function redirectIfNoAdditionalAnimalDetails (req, res) {
-  if (!hasAdditionalAnimalDetailsComplete(req.session.data)) {
-    res.redirect('/additional-animal-details')
-    return true
-  }
-
   return false
 }
 
@@ -1003,11 +925,6 @@ function hasImportReasonComplete (sessionData) {
 }
 
 function redirectIfNoImportReason (req, res) {
-  if (!hasImportReasonComplete(req.session.data)) {
-    res.redirect('/reason-for-import')
-    return true
-  }
-
   return false
 }
 
@@ -1225,30 +1142,15 @@ function buildAnimalIdentificationSpeciesPanels (sessionData, locals = {}) {
 }
 
 function validateAnimalIdentifiers (identifierFields, rawIdentifiers, speciesId = '') {
-  const errors = {}
-  const errorList = []
   const values = {}
-  const errorPrefix = speciesId ? `${speciesId}-` : ''
 
   identifierFields.forEach((field) => {
-    const value = rawIdentifiers && rawIdentifiers[field.id] != null
+    values[field.id] = rawIdentifiers && rawIdentifiers[field.id] != null
       ? String(rawIdentifiers[field.id]).trim()
       : ''
-
-    values[field.id] = value
-
-    if (!value) {
-      const errorId = `identifier-${errorPrefix}${field.id}`
-
-      errors[errorId] = { text: `Enter ${field.label.toLowerCase()}` }
-      errorList.push({
-        text: `Enter ${field.label.toLowerCase()}`,
-        href: `#${errorId}`
-      })
-    }
   })
 
-  return { errors, errorList, values }
+  return { errors: {}, errorList: [], values }
 }
 
 function getSavedAnimalsForSpecies (sessionData, context) {
@@ -1719,33 +1621,11 @@ function copyPlaceOfDestinationToPermanentAddress (sessionData) {
 }
 
 function validatePermanentAddressChoice (choice, sessionData) {
-  const value = (choice || '').trim()
-  const errors = {}
-  const errorList = []
-
-  if (!value || !['yes', 'no'].includes(value)) {
-    errors.permanentAddressSameAsDestination = {
-      text: 'Select yes if all the animals are going to the place of destination'
-    }
-    errorList.push({
-      text: 'Select yes if all the animals are going to the place of destination',
-      href: '#permanent-address-same-as-destination'
-    })
-
-    return { errors, errorList, value }
+  return {
+    errors: {},
+    errorList: [],
+    value: (choice || '').trim()
   }
-
-  if (value === 'yes' && !sessionData.placeOfDestinationAddress) {
-    errors.permanentAddressSameAsDestination = {
-      text: 'Add a place of destination before you can continue'
-    }
-    errorList.push({
-      text: 'Add a place of destination before you can continue',
-      href: '#permanent-address-same-as-destination'
-    })
-  }
-
-  return { errors, errorList, value }
 }
 
 function getPermanentAnimalAddresses (sessionData) {
@@ -2119,31 +1999,7 @@ function parsePermanentAddressChoices (body) {
 }
 
 function validatePermanentAddressAnimalsForm (choices, sessionData, addressDetails = {}) {
-  const animals = buildPermanentAddressAnimalList(sessionData)
-  const errors = {}
-  const errorList = []
-
-  animals.forEach((animal) => {
-    const choice = choices[animal.key]
-
-    if (!choice || !['same-as-pod', 'new-address'].includes(choice)) {
-      return
-    }
-
-    if (choice === 'same-as-pod' && !sessionData.placeOfDestinationAddress) {
-      const errorKey = `permanentAddressChoice-${animal.key}`
-
-      errors[errorKey] = {
-        text: 'Add a place of destination before you can use this address'
-      }
-      errorList.push({
-        text: `Add a place of destination before selecting this address for ${animal.heading}`,
-        href: `#permanent-address-choice-${animal.key.replace(/:/g, '-')}`
-      })
-    }
-  })
-
-  return { errors, errorList, choices, addressDetails }
+  return { errors: {}, errorList: [], choices, addressDetails }
 }
 
 function getPermanentAddressAnimalByKey (sessionData, animalKey) {
@@ -2243,31 +2099,12 @@ function validateCphNumber (input) {
     holding = parts.holding
   }
 
-  const errors = {}
-  const errorList = []
   const isComplete = Boolean(county && parish && holding)
-  const isValidFormat = /^\d{2}$/.test(county) &&
-    /^\d{3}$/.test(parish) &&
-    /^\d{4}$/.test(holding)
-
-  if (!isComplete) {
-    errors.cphNumber = { text: 'Enter a CPH number' }
-    errorList.push({
-      text: 'Enter a CPH number',
-      href: '#cph-number-county'
-    })
-  } else if (!isValidFormat) {
-    errors.cphNumber = { text: 'Enter a CPH number in the correct format, for example 12/345/6789' }
-    errorList.push({
-      text: 'Enter a CPH number in the correct format, for example 12/345/6789',
-      href: '#cph-number-county'
-    })
-  }
 
   return {
-    errors,
-    errorList,
-    value: isComplete && isValidFormat ? `${county}/${parish}/${holding}` : '',
+    errors: {},
+    errorList: [],
+    value: isComplete ? `${county}/${parish}/${holding}` : '',
     parts: { county, parish, holding }
   }
 }
@@ -2389,19 +2226,11 @@ function renderTransporterAddPage (req, res, locals = {}) {
 }
 
 function validateTransporterType (transporterType) {
-  const value = (transporterType || '').trim()
-  const errors = {}
-  const errorList = []
-
-  if (!value || !transporterTypeValues.includes(value)) {
-    errors.transporterType = { text: 'Select a transporter type' }
-    errorList.push({
-      text: 'Select a transporter type',
-      href: '#transporter-type-private'
-    })
+  return {
+    errors: {},
+    errorList: [],
+    value: (transporterType || '').trim()
   }
-
-  return { errors, errorList, value }
 }
 
 function redirectIfTransporterAddTypeNot (req, res, expectedType) {
@@ -2443,43 +2272,7 @@ function parseTransporterPrivateFormBody (body) {
 }
 
 function validateTransporterPrivateForm (form) {
-  const errors = {}
-  const errorList = []
-
-  const addError = (field, message, href) => {
-    errors[field] = { text: message }
-    errorList.push({ text: message, href })
-  }
-
-  if (!form.name) {
-    addError('transporterPrivateName', 'Enter a name or organisation name', '#transporter-private-name')
-  }
-
-  if (!form.addressLine1) {
-    addError('transporterPrivateAddressLine1', 'Enter address line 1', '#transporter-private-address-line-1')
-  }
-
-  if (!form.townOrCity) {
-    addError('transporterPrivateTownOrCity', 'Enter a town or city', '#transporter-private-town-or-city')
-  }
-
-  if (!form.postcode) {
-    addError('transporterPrivatePostcode', 'Enter a postcode or Zip code', '#transporter-private-postcode')
-  }
-
-  if (!form.country) {
-    addError('transporterPrivateCountry', 'Select a country', '#transporter-private-country')
-  }
-
-  if (!form.email) {
-    addError('transporterPrivateEmail', 'Enter an email address', '#transporter-private-email')
-  }
-
-  if (!form.phone) {
-    addError('transporterPrivatePhone', 'Enter a phone number', '#transporter-private-phone')
-  }
-
-  return { errors, errorList, value: form }
+  return { errors: {}, errorList: [], value: form }
 }
 
 function formatTransporterFormAddress (form) {
@@ -2552,59 +2345,7 @@ function parseTransporterCommercialFormBody (body) {
 }
 
 function validateTransporterCommercialForm (form) {
-  const errors = {}
-  const errorList = []
-
-  const addError = (field, message, href) => {
-    errors[field] = { text: message }
-    errorList.push({ text: message, href })
-  }
-
-  if (!form.authorisationNumber) {
-    addError(
-      'transporterCommercialAuthorisationNumber',
-      'Enter a transporter authorisation number',
-      '#transporter-commercial-authorisation-number'
-    )
-  }
-
-  if (!form.name) {
-    addError('transporterCommercialName', 'Enter a name or organisation name', '#transporter-commercial-name')
-  }
-
-  if (!form.addressLine1) {
-    addError(
-      'transporterCommercialAddressLine1',
-      'Enter address line 1',
-      '#transporter-commercial-address-line-1'
-    )
-  }
-
-  if (!form.townOrCity) {
-    addError(
-      'transporterCommercialTownOrCity',
-      'Enter a town or city',
-      '#transporter-commercial-town-or-city'
-    )
-  }
-
-  if (!form.postcode) {
-    addError(
-      'transporterCommercialPostcode',
-      'Enter a postcode or Zip code',
-      '#transporter-commercial-postcode'
-    )
-  }
-
-  if (!form.email) {
-    addError('transporterCommercialEmail', 'Enter an email address', '#transporter-commercial-email')
-  }
-
-  if (!form.phone) {
-    addError('transporterCommercialPhone', 'Enter a phone number', '#transporter-commercial-phone')
-  }
-
-  return { errors, errorList, value: form }
+  return { errors: {}, errorList: [], value: form }
 }
 
 function buildCommercialTransporterFromForm (form) {
@@ -2776,21 +2517,10 @@ function handleConsignmentAddressSelectPost (req, res) {
   const address = getConsignmentAddressById(addressId, section.id, req.session.data)
 
   if (!address) {
-    const sectionAddresses = getConsignmentAddressesForSection(section.id, req.session.data)
-    const firstAddressId = sectionAddresses[0] ? sectionAddresses[0].id : ''
+    req.session.data.errorList = null
+    req.session.data.errors = null
 
-    req.session.data.errorList = [{
-      text: 'Select an address',
-      href: `#${section.inputIdPrefix}-${firstAddressId}`
-    }]
-    req.session.data.errors = {
-      [section.formFieldName]: { text: 'Select an address' }
-    }
-
-    return renderConsignmentAddressSelectPage(section, req, res, {
-      searchQuery,
-      selectedAddressId: addressId
-    })
+    return res.redirect('/roles-and-addresses')
   }
 
   req.session.data.errorList = null
@@ -2894,77 +2624,7 @@ function isArrivalDateWithinAllowedRange (value, referenceDate = new Date()) {
 }
 
 function validateArrivalDetails (values) {
-  const errors = {}
-  const errorList = []
-
-  if (!values.arrivalDateAtPort) {
-    errors.arrivalDateAtPort = { text: 'Enter the arrival date at port of entry' }
-    errorList.push({
-      text: 'Enter the arrival date at port of entry',
-      href: '#arrival-date-at-port'
-    })
-  } else if (!parseArrivalDisplayDate(values.arrivalDateAtPort)) {
-    errors.arrivalDateAtPort = { text: 'Enter the date in the format 27/3/2026' }
-    errorList.push({
-      text: 'Enter the date in the format 27/3/2026',
-      href: '#arrival-date-at-port'
-    })
-  } else if (!isArrivalDateWithinAllowedRange(values.arrivalDateAtPort)) {
-    const bounds = getArrivalDatePickerBounds()
-    errors.arrivalDateAtPort = {
-      text: `Enter a date between ${bounds.minDate} and ${bounds.maxDate}`
-    }
-    errorList.push({
-      text: `Enter a date between ${bounds.minDate} and ${bounds.maxDate}`,
-      href: '#arrival-date-at-port'
-    })
-  }
-
-  if (!values.portOfEntry) {
-    errors.portOfEntry = { text: 'Enter the port of entry' }
-    errorList.push({
-      text: 'Enter the port of entry',
-      href: '#port-of-entry'
-    })
-  } else if (!isValidPortOfEntry(values.portOfEntry)) {
-    errors.portOfEntry = { text: 'Select a port of entry from the search results' }
-    errorList.push({
-      text: 'Select a port of entry from the search results',
-      href: '#port-of-entry'
-    })
-  }
-
-  if (!values.meansOfTransport) {
-    errors.meansOfTransport = { text: 'Select the means of transport' }
-    errorList.push({
-      text: 'Select the means of transport',
-      href: '#means-of-transport'
-    })
-  } else if (!meansOfTransportOptions.includes(values.meansOfTransport)) {
-    errors.meansOfTransport = { text: 'Select the means of transport' }
-    errorList.push({
-      text: 'Select the means of transport',
-      href: '#means-of-transport'
-    })
-  }
-
-  if (!values.transportIdentification) {
-    errors.transportIdentification = { text: 'Enter the transport identification' }
-    errorList.push({
-      text: 'Enter the transport identification',
-      href: '#transport-identification'
-    })
-  }
-
-  if (!values.transportDocumentReference) {
-    errors.transportDocumentReference = { text: 'Enter the transport document reference' }
-    errorList.push({
-      text: 'Enter the transport document reference',
-      href: '#transport-document-reference'
-    })
-  }
-
-  return { errors, errorList }
+  return { errors: {}, errorList: [] }
 }
 
 function parseArrivalDetailsBody (body) {
@@ -3242,19 +2902,17 @@ function buildReviewCommoditySections (sessionData) {
 }
 
 function getSpeciesReviewCardErrorMessage (sessionData, speciesId, speciesLabel) {
-  if (isSpeciesConsignmentComplete(sessionData, speciesId)) {
+  if (isSpeciesIdentifiersComplete(sessionData, speciesId)) {
     return null
   }
 
   const speciesName = speciesLabel.toLowerCase()
-  const numberOfAnimals = sessionData.numberOfAnimals || {}
-  const animalCount = numberOfAnimals[speciesId]
 
-  if (!animalCount || !/^\d+$/.test(String(animalCount)) || Number(animalCount) < 1) {
+  if (!isSpeciesConsignmentComplete(sessionData, speciesId)) {
     return `Enter the number of animals for ${speciesName}`
   }
 
-  return `Complete ${speciesName}`
+  return `Complete identification details for ${speciesName}`
 }
 
 function reviewSpeciesCardErrorState (sessionData, speciesId, speciesLabel) {
@@ -3311,11 +2969,11 @@ function isSpeciesIdentifiersComplete (sessionData, speciesId) {
 }
 
 function hasSpeciesReviewCardComplete (sessionData, speciesId) {
-  return isSpeciesConsignmentComplete(sessionData, speciesId)
+  return isSpeciesIdentifiersComplete(sessionData, speciesId)
 }
 
 function hasAdditionalAnimalDetailsReviewComplete (sessionData) {
-  return hasAdditionalAnimalDetailsComplete(sessionData) && hasImportReasonComplete(sessionData)
+  return hasAdditionalAnimalDetailsComplete(sessionData)
 }
 
 function buildReviewErrorList (cards) {
@@ -3361,6 +3019,14 @@ function hasReviewNotificationComplete (sessionData) {
   }
 
   if (!hasConsignmentAddressesComplete(sessionData)) {
+    return false
+  }
+
+  if (hasAnimalIdentifiersRequired(sessionData) && !hasAnimalIdentifiersComplete(sessionData)) {
+    return false
+  }
+
+  if (!hasUploadedDocuments(sessionData)) {
     return false
   }
 
@@ -3572,7 +3238,7 @@ function getReviewNotificationViewModel (sessionData) {
         title: 'Additional details',
         changeHref: '/additional-animal-details',
         rows: additionalAnimalRows,
-        ...reviewCardErrorState(hasAdditionalAnimalDetailsReviewComplete(sessionData), 'Additional details')
+        ...reviewCardErrorState(hasAdditionalAnimalDetailsComplete(sessionData), 'Additional details')
       },
       speciesSections: buildReviewSpeciesSections(sessionData)
     },
@@ -3651,8 +3317,7 @@ function getReviewNotificationViewModel (sessionData) {
         title: 'Uploaded documents',
         changeHref: '/upload-documents',
         documents: uploadedDocuments,
-        hasError: false,
-        errorMessage: null
+        ...reviewCardErrorState(hasUploadedDocuments(sessionData), 'Uploaded documents')
       }
     }
   }
@@ -4697,11 +4362,11 @@ function buildAddressBookEntryFromManual (manualAddress, addressType, existingId
 }
 
 const CONSIGNMENT_SECTION_ADDRESS_TYPE_MAP = {
-  'place-of-origin': 'exporter',
-  'consignor-or-exporter': 'exporter',
-  consignee: 'importer',
+  'place-of-origin': 'place-of-origin',
+  'consignor-or-exporter': 'consignor',
+  consignee: 'consignee',
   importer: 'importer',
-  'place-of-destination': 'branch-address'
+  'place-of-destination': 'place-of-destination'
 }
 
 function getConsignmentAddressSectionById (sectionId) {
@@ -4930,19 +4595,11 @@ function renderAddressBookAddPage (req, res, locals = {}) {
 }
 
 function validateAddressBookAddressType (addressType) {
-  const value = (addressType || '').trim()
-  const errors = {}
-  const errorList = []
-
-  if (!value || !addressBookAddressTypeValues.includes(value)) {
-    errors.addressType = { text: 'Select an address type' }
-    errorList.push({
-      text: 'Select an address type',
-      href: '#address-type-importer'
-    })
+  return {
+    errors: {},
+    errorList: [],
+    value: (addressType || '').trim()
   }
-
-  return { errors, errorList, value }
 }
 
 function getAddressBookAddressTypeLabel (addressType) {
@@ -5417,57 +5074,7 @@ function parseUploadDocumentBody (body) {
 }
 
 function validateUploadDocument (values, sessionData) {
-  const errors = {}
-  const errorList = []
-  const uploadedCount = ensureUploadedDocuments(sessionData).length
-
-  if (!values.documentReference) {
-    errors.documentReference = { text: 'Enter a document reference' }
-    errorList.push({
-      text: 'Enter a document reference',
-      href: '#document-reference'
-    })
-  }
-
-  if (!values.documentType || !documentTypeValues.includes(values.documentType)) {
-    errors.documentType = { text: 'Select a document type' }
-    errorList.push({
-      text: 'Select a document type',
-      href: '#document-type'
-    })
-  }
-
-  if (!values.dateOfIssue) {
-    errors.dateOfIssue = { text: 'Enter the date of issue' }
-    errorList.push({
-      text: 'Enter the date of issue',
-      href: '#date-of-issue'
-    })
-  } else if (!parseArrivalDisplayDate(values.dateOfIssue)) {
-    errors.dateOfIssue = { text: 'Enter the date of issue in the correct format, for example 27/3/2026' }
-    errorList.push({
-      text: 'Enter the date of issue in the correct format, for example 27/3/2026',
-      href: '#date-of-issue'
-    })
-  }
-
-  if (!values.attachmentFileName) {
-    errors.attachment = { text: 'Select a file to upload' }
-    errorList.push({
-      text: 'Select a file to upload',
-      href: '#attachment'
-    })
-  }
-
-  if (uploadedCount >= MAX_UPLOADED_DOCUMENTS) {
-    errors.attachment = { text: `You can only upload up to ${MAX_UPLOADED_DOCUMENTS} files` }
-    errorList.push({
-      text: `You can only upload up to ${MAX_UPLOADED_DOCUMENTS} files`,
-      href: '#attachment'
-    })
-  }
-
-  return { errors, errorList, values }
+  return { errors: {}, errorList: [], values }
 }
 
 function addUploadedDocument (sessionData, values) {
@@ -5553,70 +5160,23 @@ router.post('/origin-of-the-import', (req, res) => {
   const regionOfOriginRequired = (req.body.regionOfOriginRequired || '').trim()
   const regionOfOriginCodeSuffix = (req.body.regionOfOriginCodeSuffix || '').trim().toUpperCase()
   const internalReference = (req.body.internalReference || '').trim()
-  const errors = {}
-  const errorList = []
-
-  if (!countryOfOrigin || !countryLabels.includes(countryOfOrigin)) {
-    errors.countryOfOrigin = { text: 'Select a country of origin' }
-    errorList.push({ text: 'Select a country of origin', href: '#country-of-origin' })
-  }
-
-  if (regionOfOriginRequired !== 'Yes' && regionOfOriginRequired !== 'No') {
-    errors.regionOfOriginRequired = { text: 'Select whether the consignment has a region of origin code' }
-    errorList.push({
-      text: 'Select whether the consignment has a region of origin code',
-      href: '#region-of-origin'
-    })
-  }
-
-  if (regionOfOriginRequired === 'Yes') {
-    const countryPrefix = getCountryRegionPrefix(countryOfOrigin)
-
-    if (!countryPrefix) {
-      errors.countryOfOrigin = { text: 'Select a country of origin' }
-      if (!errorList.some((error) => error.href === '#country-of-origin')) {
-        errorList.push({ text: 'Select a country of origin', href: '#country-of-origin' })
-      }
-    } else if (!regionOfOriginCodeSuffix) {
-      errors.regionOfOriginCodeSuffix = { text: 'Enter the region of origin code' }
-      errorList.push({
-        text: 'Enter the region of origin code',
-        href: '#region-of-origin-code-suffix'
-      })
-    } else if (!/^[A-Z0-9]{1,5}$/.test(regionOfOriginCodeSuffix)) {
-      errors.regionOfOriginCodeSuffix = { text: 'Enter up to 5 letters or numbers' }
-      errorList.push({
-        text: 'Enter up to 5 letters or numbers',
-        href: '#region-of-origin-code-suffix'
-      })
-    }
-  }
-
-  if (errorList.length > 0) {
-    req.session.data.errorList = errorList
-    req.session.data.errors = errors
-    req.session.data.countryOfOrigin = countryOfOrigin
-    req.session.data.regionOfOriginRequired = regionOfOriginRequired
-
-    return renderOriginPage(req, res, {
-      regionOfOriginCodePrefix: getCountryRegionPrefix(countryOfOrigin),
-      regionOfOriginCodeSuffix,
-      internalReference
-    })
-  }
 
   req.session.data.errorList = null
   req.session.data.errors = null
-  req.session.data.countryOfOrigin = countryOfOrigin
-  req.session.data.regionOfOriginRequired = regionOfOriginRequired
-  req.session.data.internalReference = internalReference
+  req.session.data.countryOfOrigin = countryOfOrigin || null
+  req.session.data.regionOfOriginRequired = regionOfOriginRequired || null
+  req.session.data.internalReference = internalReference || null
 
-  if (regionOfOriginRequired === 'Yes') {
+  if (regionOfOriginRequired === 'Yes' && countryOfOrigin && regionOfOriginCodeSuffix) {
     const countryPrefix = getCountryRegionPrefix(countryOfOrigin)
     req.session.data.regionOfOriginCodeSuffix = regionOfOriginCodeSuffix
-    req.session.data.regionOfOriginCode = `${countryPrefix}-${regionOfOriginCodeSuffix}`
+    req.session.data.regionOfOriginCode = countryPrefix
+      ? `${countryPrefix}-${regionOfOriginCodeSuffix}`
+      : regionOfOriginCodeSuffix
   } else {
-    req.session.data.regionOfOriginCodeSuffix = null
+    req.session.data.regionOfOriginCodeSuffix = regionOfOriginRequired === 'Yes'
+      ? (regionOfOriginCodeSuffix || null)
+      : null
     req.session.data.regionOfOriginCode = null
   }
 
@@ -5661,21 +5221,9 @@ router.post('/what-are-you-importing', (req, res) => {
     return res.redirect('/notification-hub')
   }
 
-  if (!applySpeciesSelectionToSession(req.session.data, selectedSpecies)) {
-    req.session.data.errorList = [
-      {
-        text: 'Select at least one commodity or species',
-        href: '#commodity-search'
-      }
-    ]
-    req.session.data.errors = {
-      commoditySearch: {
-        text: 'Select at least one commodity or species'
-      }
-    }
-    req.session.data.commoditySearch = commoditySearch
-
-    return renderWhatAreYouImportingPage(req, res)
+  applySpeciesSelectionToSession(req.session.data, selectedSpecies)
+  if (commoditySelections.length) {
+    req.session.data.commoditySelections = commoditySelections
   }
 
   req.session.data.errorList = null
@@ -5847,38 +5395,14 @@ router.post('/additional-animal-details', (req, res) => {
     return res.redirect('/notification-hub')
   }
 
-  const errors = {}
-  const errorList = []
-
-  if (config.showCertificationPurposeQuestion && !certificationPurposeOptions.includes(certificationPurpose)) {
-    errors.certificationPurpose = { text: 'Select what the animals are certified for' }
-    errorList.push({
-      text: 'Select what the animals are certified for',
-      href: '#certification-purpose'
-    })
-  }
-
-  if (config.showUnweanedQuestion && !config.unweanedOptions.includes(unweanedAnimals)) {
-    errors.unweanedAnimals = { text: 'Select whether the consignment contains any unweaned animals' }
-    errorList.push({
-      text: 'Select whether the consignment contains any unweaned animals',
-      href: '#unweaned-animals'
-    })
-  }
-
-  if (errorList.length > 0) {
-    req.session.data.errorList = errorList
-    req.session.data.errors = errors
-    req.session.data.certificationPurpose = certificationPurpose || null
-    req.session.data.unweanedAnimals = unweanedAnimals || null
-
-    return renderAdditionalAnimalDetailsPage(req, res)
-  }
-
   req.session.data.errorList = null
   req.session.data.errors = null
-  req.session.data.certificationPurpose = config.showCertificationPurposeQuestion ? certificationPurpose : null
-  req.session.data.unweanedAnimals = config.showUnweanedQuestion ? unweanedAnimals : null
+  req.session.data.certificationPurpose = config.showCertificationPurposeQuestion
+    ? (certificationPurpose || null)
+    : null
+  req.session.data.unweanedAnimals = config.showUnweanedQuestion
+    ? (unweanedAnimals || null)
+    : null
 
   return res.redirect(getNextJourneyPath('/additional-animal-details', req.session.data))
 })
@@ -5946,18 +5470,13 @@ router.get('/address-book/add', (req, res) => {
 router.post('/address-book/add', (req, res) => {
   const validation = validateAddressBookAddressType(req.body.addressType)
 
-  if (validation.errorList.length) {
-    req.session.data.errorList = validation.errorList
-    req.session.data.errors = validation.errors
-
-    return renderAddressBookAddPage(req, res, {
-      selectedAddressType: validation.value
-    })
-  }
-
   req.session.data.errorList = null
   req.session.data.errors = null
-  req.session.data.addressBookAddressType = validation.value
+  req.session.data.addressBookAddressType = validation.value || null
+
+  if (!addressBookAddressTypeValues.includes(validation.value)) {
+    return res.redirect('/address-book')
+  }
 
   return res.redirect('/address-book/add/lookup')
 })
@@ -6083,29 +5602,17 @@ router.get('/review-notification', (req, res) => {
 router.post('/review-notification', (req, res) => {
   ensurePrototypeNotificationReference(req.session.data)
 
-  if (!hasContactAddress(req.session.data)) {
-    return res.redirect('/contact-address-for-consignment?from=review')
-  }
-
   return res.redirect('/declaration')
 })
 
 router.get('/declaration', (req, res) => {
   ensurePrototypeNotificationReference(req.session.data)
 
-  if (!hasContactAddress(req.session.data)) {
-    return res.redirect('/notification-hub')
-  }
-
   return renderDeclarationPage(req, res)
 })
 
 router.post('/declaration', (req, res) => {
   ensurePrototypeNotificationReference(req.session.data)
-
-  if (!hasContactAddress(req.session.data)) {
-    return res.redirect('/notification-hub')
-  }
 
   const validation = validateDeclaration(req.body)
 
@@ -6271,129 +5778,26 @@ router.post('/reason-for-import', (req, res) => {
     return res.redirect('/notification-hub')
   }
 
-  const errors = {}
-  const errorList = []
-
-  if (!importReasonValues.includes(importReason)) {
-    errors.importReason = {
-      text: 'Select the main reason for importing the animals'
-    }
-    errorList.push({
-      text: 'Select the main reason for importing the animals',
-      href: '#import-reason'
-    })
-  }
-
-  if (importReason === 'Internal market' && !internalMarketPurposeValues.includes(internalMarketPurpose)) {
-    errors.internalMarketPurpose = {
-      text: 'Select the purpose in the internal market'
-    }
-    errorList.push({
-      text: 'Select the purpose in the internal market',
-      href: '#internal-market-purpose'
-    })
-  }
-
-  if (importReason === 'Transhipment or onward travel' && !countryLabels.includes(transhipmentDestinationCountry)) {
-    errors.transhipmentDestinationCountry = {
-      text: 'Select the destination country'
-    }
-    errorList.push({
-      text: 'Select the destination country',
-      href: '#transhipment-destination-country'
-    })
-  }
-
-  if (importReason === 'Transit' && !isValidExitBorderControlPost(transitExitBorderControlPost)) {
-    errors.transitExitBorderControlPost = {
-      text: 'Select the exit border control post'
-    }
-    errorList.push({
-      text: 'Select the exit border control post',
-      href: '#transit-exit-border-control-post'
-    })
-  }
-
-  if (importReason === 'Transit' && !countryLabels.includes(transitDestinationCountry)) {
-    errors.transitDestinationCountry = {
-      text: 'Select the destination country'
-    }
-    errorList.push({
-      text: 'Select the destination country',
-      href: '#transit-destination-country'
-    })
-  }
-
-  if (importReason === 'Temporary admission horses' && !temporaryAdmissionExitDate) {
-    errors.temporaryAdmissionExitDate = {
-      text: 'Enter the exit date'
-    }
-    errorList.push({
-      text: 'Enter the exit date',
-      href: '#temporary-admission-exit-date'
-    })
-  } else if (importReason === 'Temporary admission horses' && !parseArrivalDisplayDate(temporaryAdmissionExitDate)) {
-    errors.temporaryAdmissionExitDate = {
-      text: 'Enter the date in the format 27/3/2026'
-    }
-    errorList.push({
-      text: 'Enter the date in the format 27/3/2026',
-      href: '#temporary-admission-exit-date'
-    })
-  }
-
-  if (importReason === 'Temporary admission horses' && !isValidExitBorderControlPost(temporaryAdmissionPortOfExit)) {
-    errors.temporaryAdmissionPortOfExit = {
-      text: 'Select the port of exit'
-    }
-    errorList.push({
-      text: 'Select the port of exit',
-      href: '#temporary-admission-port-of-exit'
-    })
-  }
-
-  if (errorList.length) {
-    req.session.data.errorList = errorList
-    req.session.data.errors = errors
-    req.session.data.importReason = importReason || null
-    req.session.data.internalMarketPurpose = internalMarketPurpose || null
-    req.session.data.transhipmentDestinationCountry = transhipmentDestinationCountry || null
-    req.session.data.transitExitBorderControlPost = transitExitBorderControlPost || null
-    req.session.data.transitDestinationCountry = transitDestinationCountry || null
-    req.session.data.temporaryAdmissionExitDate = temporaryAdmissionExitDate || null
-    req.session.data.temporaryAdmissionPortOfExit = temporaryAdmissionPortOfExit || null
-
-    return renderReasonForImportPage(req, res, {
-      selectedImportReason: importReason || null,
-      selectedInternalMarketPurpose: internalMarketPurpose || null,
-      selectedTranshipmentDestinationCountry: transhipmentDestinationCountry || null,
-      selectedTransitExitBorderControlPost: transitExitBorderControlPost || null,
-      selectedTransitDestinationCountry: transitDestinationCountry || null,
-      selectedTemporaryAdmissionExitDate: temporaryAdmissionExitDate || null,
-      selectedTemporaryAdmissionPortOfExit: temporaryAdmissionPortOfExit || null
-    })
-  }
-
   req.session.data.errorList = null
   req.session.data.errors = null
-  req.session.data.importReason = importReason
+  req.session.data.importReason = importReason || null
   req.session.data.internalMarketPurpose = importReason === 'Internal market'
-    ? internalMarketPurpose
+    ? (internalMarketPurpose || null)
     : null
   req.session.data.transhipmentDestinationCountry = importReason === 'Transhipment or onward travel'
-    ? transhipmentDestinationCountry
+    ? (transhipmentDestinationCountry || null)
     : null
   req.session.data.transitExitBorderControlPost = importReason === 'Transit'
-    ? transitExitBorderControlPost
+    ? (transitExitBorderControlPost || null)
     : null
   req.session.data.transitDestinationCountry = importReason === 'Transit'
-    ? transitDestinationCountry
+    ? (transitDestinationCountry || null)
     : null
   req.session.data.temporaryAdmissionExitDate = importReason === 'Temporary admission horses'
-    ? temporaryAdmissionExitDate
+    ? (temporaryAdmissionExitDate || null)
     : null
   req.session.data.temporaryAdmissionPortOfExit = importReason === 'Temporary admission horses'
-    ? temporaryAdmissionPortOfExit
+    ? (temporaryAdmissionPortOfExit || null)
     : null
 
   return res.redirect('/consignment-details')
@@ -6825,20 +6229,10 @@ router.post('/transporter', (req, res) => {
   }
 
   if (!transporter) {
-    const firstTransporterId = transporters[0] ? transporters[0].id : ''
+    req.session.data.errorList = null
+    req.session.data.errors = null
 
-    req.session.data.errorList = [{
-      text: 'Select a transporter',
-      href: `#transporter-${firstTransporterId}`
-    }]
-    req.session.data.errors = {
-      transporterId: { text: 'Select a transporter' }
-    }
-
-    return renderTransporterPage(req, res, {
-      searchQuery,
-      selectedTransporterId: transporterId
-    })
+    return res.redirect(getNextJourneyPath('/transporter', req.session.data))
   }
 
   req.session.data.errorList = null
@@ -7034,20 +6428,18 @@ router.post('/contact-address-for-consignment', (req, res) => {
   const address = getContactAddressById(addressId, req.session.data)
 
   if (!address) {
-    const addresses = getContactAddresses(req.session.data)
-    const firstAddressId = addresses[0] ? addresses[0].id : ''
+    req.session.data.errorList = null
+    req.session.data.errors = null
 
-    req.session.data.errorList = [{
-      text: 'Select an address',
-      href: firstAddressId ? `#contact-address-${firstAddressId}` : '#contact-address'
-    }]
-    req.session.data.errors = {
-      contactAddressId: { text: 'Select an address' }
+    if (isFromHub(req)) {
+      return res.redirect('/notification-hub')
     }
 
-    return renderContactAddressPage(req, res, {
-      selectedAddressId: addressId
-    })
+    if (isFromReview(req)) {
+      return res.redirect('/review-notification')
+    }
+
+    return res.redirect(getNextJourneyPath('/contact-address-for-consignment', req.session.data))
   }
 
   syncContactAddressSession(req.session.data, address)

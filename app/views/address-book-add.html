@@ -5,7 +5,7 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
 
-{% set pageName = "Choose an address type" %}
+{% set pageName = "What is the new address for?" %}
 
 {% block beforeContent %}
   {{ govukPhaseBanner({
@@ -35,13 +35,13 @@
       <div class="app-address-book-add-page">
         <div class="app-address-book-add-page__header">
           <p class="app-address-book-add-page__caption">Add a new address</p>
-          <h1 class="app-address-book-add-page__heading">Choose an address type</h1>
+          <h1 class="app-address-book-add-page__heading">What is the new address for?</h1>
         </div>
 
         <form method="post" action="/address-book/add" novalidate class="app-address-book-add-form">
           <div class="govuk-form-group app-address-book-add-page__question{% if data.errors and data.errors.addressType %} govuk-form-group--error{% endif %}">
             <fieldset class="govuk-fieldset">
-              <legend class="govuk-fieldset__legend govuk-visually-hidden">Choose an address type</legend>
+              <legend class="govuk-fieldset__legend govuk-visually-hidden">What is the new address for?</legend>
 
               {% if data.errors and data.errors.addressType %}
                 <p id="address-type-error" class="govuk-error-message">
@@ -53,7 +53,7 @@
               <div class="govuk-radios app-reason-for-import-radios app-address-book-add-radios">
                 {% for item in addressTypeOptions %}
                   {% if item.divider %}
-                    <p class="app-address-book-add-page__divider">or</p>
+                    <div class="app-address-book-add-page__divider" aria-hidden="true">or</div>
                   {% else %}
                     <div class="govuk-radios__item">
                       <input
@@ -63,14 +63,22 @@
                         type="radio"
                         value="{{ item.value }}"
                         {% if selectedAddressType == item.value %}checked{% endif %}
-                        {% if data.errors and data.errors.addressType %}aria-describedby="address-type-error"{% endif %}
+                        {% if item.hint and data.errors and data.errors.addressType %}
+                          aria-describedby="address-type-{{ item.value }}-hint address-type-error"
+                        {% elif item.hint %}
+                          aria-describedby="address-type-{{ item.value }}-hint"
+                        {% elif data.errors and data.errors.addressType %}
+                          aria-describedby="address-type-error"
+                        {% endif %}
                       >
                       <label class="govuk-label govuk-radios__label" for="address-type-{{ item.value }}">
                         {{ item.text }}
                       </label>
-                      <div class="govuk-hint govuk-radios__hint" id="address-type-{{ item.value }}-hint">
-                        {{ item.hint }}
-                      </div>
+                      {% if item.hint %}
+                        <div class="govuk-hint govuk-radios__hint" id="address-type-{{ item.value }}-hint">
+                          {{ item.hint }}
+                        </div>
+                      {% endif %}
                     </div>
                   {% endif %}
                 {% endfor %}
