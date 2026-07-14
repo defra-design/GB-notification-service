@@ -35,19 +35,6 @@
 
     <h1 class="app-declaration-page__title">Declaration</h1>
 
-    {% if beforeImportItems.length %}
-      <section class="app-declaration-page__section app-declaration-page__section--conditional" aria-labelledby="declaration-before-import-heading">
-        <h2 class="app-declaration-page__section-heading" id="declaration-before-import-heading">Before the consignment is imported</h2>
-        <p class="app-declaration-page__section-text">You still need to:</p>
-        <ul class="govuk-list govuk-list--bullet app-declaration-page__list">
-          {% for item in beforeImportItems %}
-            <li>{{ item }}</li>
-          {% endfor %}
-        </ul>
-        <p class="app-declaration-page__section-text">You can submit this notification now, but you must complete these tasks before the consignment is imported.</p>
-      </section>
-    {% endif %}
-
     <form method="post" action="/declaration" novalidate class="app-declaration-form">
 
       <section class="app-declaration-page__section" aria-labelledby="declaration-contact-heading">

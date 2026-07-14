@@ -48,6 +48,8 @@
 
       {% if fromHub %}
         <input type="hidden" name="from" value="hub">
+      {% elif fromReview %}
+        <input type="hidden" name="from" value="review">
       {% endif %}
 
       {% if data.errorList %}

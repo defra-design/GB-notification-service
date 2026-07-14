@@ -24,28 +24,40 @@
       </div>
     </div>
 
-    {% if beforeImportItems.length %}
-      <section class="app-notification-submitted-page__section" aria-labelledby="submitted-before-import-heading">
-        <h2 class="app-notification-submitted-page__section-heading" id="submitted-before-import-heading">Before the consignment is imported</h2>
-        <p class="govuk-body">You still need to:</p>
+    {% if isIncompleteSubmission %}
+      <section class="app-notification-submitted-page__section" aria-labelledby="submitted-incomplete-heading">
+        <h2 class="app-notification-submitted-page__section-heading" id="submitted-incomplete-heading">Your notification is not complete</h2>
+        <p class="govuk-body">Before the consignment is imported, you still need to:</p>
         <ul class="govuk-list govuk-list--bullet app-notification-submitted-page__list">
           {% for item in beforeImportItems %}
             <li>{{ item }}</li>
           {% endfor %}
         </ul>
       </section>
-    {% endif %}
 
-    <section class="app-notification-submitted-page__section" aria-labelledby="submitted-transport-heading">
-      <h2 class="app-notification-submitted-page__section-heading" id="submitted-transport-heading">Transporting the consignment</h2>
-      <p class="govuk-body">Tell the transporter that this consignment must go directly to the place of destination on entry to Great Britain.</p>
-      <p class="govuk-body">The animals or consignment may need to be inspected.</p>
-      <p class="govuk-body">If so, the animals must stay at the place of destination for either:</p>
-      <ul class="govuk-list govuk-list--bullet app-notification-submitted-page__list">
-        <li>the time stated on the health certificate</li>
-        <li>48 hours if no time is specified</li>
-      </ul>
-    </section>
+      <section class="app-notification-submitted-page__section" aria-labelledby="submitted-transport-heading">
+        <h2 class="app-notification-submitted-page__section-heading" id="submitted-transport-heading">What you need to inform the transporter</h2>
+        <p class="govuk-body">Tell the transporter that this consignment must go directly to the place of destination on entry to Great Britain.</p>
+
+        <h2 class="app-notification-submitted-page__section-heading app-notification-submitted-page__section-heading--subsequent" id="submitted-inspection-heading">Inspections may still need to be carried out</h2>
+        <p class="govuk-body">The animals or consignment may still need to be inspected at the place of destination by an APHA vet. To enable this, the animals must stay at the place of destination for either:</p>
+        <ul class="govuk-list govuk-list--bullet app-notification-submitted-page__list">
+          <li>the time stated on the health certificate</li>
+          <li>48 hours if no time is specified</li>
+        </ul>
+      </section>
+    {% else %}
+      <section class="app-notification-submitted-page__section" aria-labelledby="submitted-transport-heading">
+        <h2 class="app-notification-submitted-page__section-heading" id="submitted-transport-heading">Transporting the consignment</h2>
+        <p class="govuk-body">Tell the transporter that this consignment must go directly to the place of destination on entry to Great Britain.</p>
+        <p class="govuk-body">The animals or consignment may need to be inspected.</p>
+        <p class="govuk-body">If so, the animals must stay at the place of destination for either:</p>
+        <ul class="govuk-list govuk-list--bullet app-notification-submitted-page__list">
+          <li>the time stated on the health certificate</li>
+          <li>48 hours if no time is specified</li>
+        </ul>
+      </section>
+    {% endif %}
 
     <section class="app-notification-submitted-page__section" aria-labelledby="submitted-amend-heading">
       <h2 class="app-notification-submitted-page__section-heading" id="submitted-amend-heading">How to view or amend this notification</h2>

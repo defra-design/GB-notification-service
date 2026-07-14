@@ -268,9 +268,9 @@
                       <dt class="app-dashboard-notification-card__key">Commodity</dt>
                       <dd class="app-dashboard-notification-card__value">{{ notification.commodities }}</dd>
                     </div>
-                    <div class="app-dashboard-notification-card__pair">
+                    <div class="app-dashboard-notification-card__pair app-dashboard-notification-card__pair--status">
                       <dt class="app-dashboard-notification-card__key">Status</dt>
-                      <dd class="app-dashboard-notification-card__value">
+                      <dd class="app-dashboard-notification-card__value app-dashboard-notification-card__value--status">
                         {{ govukTag({
                           text: notification.statusText,
                           classes: notification.statusTagClass

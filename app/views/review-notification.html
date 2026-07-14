@@ -171,11 +171,20 @@
       {{ reviewCard(addresses.rolesCard) }}
     </section>
 
+    <section class="app-review-notification-page__section" aria-labelledby="review-section-contact-address">
+      <h2 class="app-review-notification-page__section-heading" id="review-section-contact-address">6. Contact address</h2>
+
+      <h3 class="app-review-notification-page__subsection-heading">Contact address for this consignment</h3>
+      {{ reviewCard(contactAddress.contactAddressCard) }}
+    </section>
+
+    {% if not readOnly %}
     <form method="post" action="/review-notification" novalidate class="app-review-notification-page__form">
       {{ govukButton({
         text: "Continue"
       }) }}
     </form>
+    {% endif %}
 
   </div>
 </div>

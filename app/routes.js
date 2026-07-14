@@ -80,6 +80,7 @@ function ensurePrototypeNotificationReference (sessionData) {
 
 function resetNotificationJourneySession (sessionData) {
   const addressBookAddedAddresses = sessionData.addressBookAddedAddresses
+  const submittedNotifications = sessionData.submittedNotifications
 
   Object.keys(sessionData).forEach((key) => {
     delete sessionData[key]
@@ -87,6 +88,10 @@ function resetNotificationJourneySession (sessionData) {
 
   if (addressBookAddedAddresses && addressBookAddedAddresses.length) {
     sessionData.addressBookAddedAddresses = addressBookAddedAddresses
+  }
+
+  if (submittedNotifications && submittedNotifications.length) {
+    sessionData.submittedNotifications = submittedNotifications
   }
 }
 
@@ -126,6 +131,10 @@ function redirectIfNoOrigin (req, res) {
 
 function isFromHub (req) {
   return req.query.from === 'hub' || (req.body && req.body.from === 'hub')
+}
+
+function isFromReview (req) {
+  return req.query.from === 'review' || (req.body && req.body.from === 'review')
 }
 
 function normalizeSelectedSpecies (value) {
@@ -1421,8 +1430,13 @@ function renderContactAddressPage (req, res, locals = {}) {
     : sessionData.contactAddressId || ''
 
   return res.render('contact-address-for-consignment', {
-    backLink: isFromHub(req) ? '/notification-hub' : '/roles-and-addresses',
+    backLink: isFromHub(req)
+      ? '/notification-hub'
+      : isFromReview(req)
+        ? '/review-notification'
+        : '/roles-and-addresses',
     fromHub: isFromHub(req),
+    fromReview: isFromReview(req),
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     contactAddressItems: buildContactAddressItems(sessionData, selectedAddressId),
     selectedAddressId,
@@ -2006,6 +2020,10 @@ function buildPermanentAddressAnimalsViewModel (app, sessionData, submittedChoic
 }
 
 function copyAddressToPermanentAnimalEntry (sessionData, animalKey, address, choice) {
+  if (!address || !address.name) {
+    return false
+  }
+
   if (!sessionData.permanentAnimalAddresses || typeof sessionData.permanentAnimalAddresses !== 'object') {
     sessionData.permanentAnimalAddresses = {}
   }
@@ -2021,6 +2039,8 @@ function copyAddressToPermanentAnimalEntry (sessionData, animalKey, address, cho
       phone: address.phone || ''
     }
   }
+
+  return true
 }
 
 function syncPermanentAddressSummary (sessionData) {
@@ -2034,6 +2054,7 @@ function syncPermanentAddressSummary (sessionData) {
   const allSameAsPod = animals.every((animal) => saved[animal.key] && saved[animal.key].choice === 'same-as-pod')
 
   if (allSameAsPod && sessionData.placeOfDestinationAddress) {
+    sessionData.permanentAddressSameAsDestination = 'yes'
     sessionData.permanentAddressId = sessionData.placeOfDestinationAddressId
     sessionData.permanentAddress = {
       name: sessionData.placeOfDestinationAddress.name,
@@ -2043,6 +2064,8 @@ function syncPermanentAddressSummary (sessionData) {
     sessionData.permanentAddressSummary = null
     return
   }
+
+  sessionData.permanentAddressSameAsDestination = 'no'
 
   const addresses = animals
     .map((animal) => saved[animal.key] && saved[animal.key].address)
@@ -2096,7 +2119,31 @@ function parsePermanentAddressChoices (body) {
 }
 
 function validatePermanentAddressAnimalsForm (choices, sessionData, addressDetails = {}) {
-  return { errors: {}, errorList: [], choices, addressDetails }
+  const animals = buildPermanentAddressAnimalList(sessionData)
+  const errors = {}
+  const errorList = []
+
+  animals.forEach((animal) => {
+    const choice = choices[animal.key]
+
+    if (!choice || !['same-as-pod', 'new-address'].includes(choice)) {
+      return
+    }
+
+    if (choice === 'same-as-pod' && !sessionData.placeOfDestinationAddress) {
+      const errorKey = `permanentAddressChoice-${animal.key}`
+
+      errors[errorKey] = {
+        text: 'Add a place of destination before you can use this address'
+      }
+      errorList.push({
+        text: `Add a place of destination before selecting this address for ${animal.heading}`,
+        href: `#permanent-address-choice-${animal.key.replace(/:/g, '-')}`
+      })
+    }
+  })
+
+  return { errors, errorList, choices, addressDetails }
 }
 
 function getPermanentAddressAnimalByKey (sessionData, animalKey) {
@@ -3163,23 +3210,20 @@ function buildReviewSpeciesSections (sessionData) {
 function buildReviewCommoditySections (sessionData) {
   return getConsignmentSpeciesEntries(sessionData)
     .map((entry) => {
-      const rows = []
-
-      if (entry.commodityCode === '01061900') {
-        rows.push({
+      const rows = [
+        {
           key: 'Commodity code',
           value: formatReviewValueOrNa(entry.commodityCode)
-        })
-        rows.push({
+        },
+        {
           key: 'Common name',
           value: formatReviewValueOrNa(entry.commonName)
-        })
-      }
-
-      rows.push({
-        key: 'Number of animals',
-        value: formatReviewValueOrNa(entry.numberOfAnimals)
-      })
+        },
+        {
+          key: 'Number of animals',
+          value: formatReviewValueOrNa(entry.numberOfAnimals)
+        }
+      ]
 
       if (entry.showPackaging) {
         entry.packagingFields.forEach((field) => {
@@ -3191,7 +3235,7 @@ function buildReviewCommoditySections (sessionData) {
       }
 
       return {
-        title: entry.commodityCode === '01061900' ? entry.commonName : entry.heading,
+        title: entry.commonName,
         rows
       }
     })
@@ -3589,6 +3633,18 @@ function getReviewNotificationViewModel (sessionData) {
         ...reviewCardErrorState(hasConsignmentAddressesComplete(sessionData), 'Roles and addresses')
       }
     },
+    contactAddress: {
+      contactAddressCard: {
+        id: 'review-contact-address',
+        title: 'Contact address for this consignment',
+        changeHref: '/contact-address-for-consignment?from=review',
+        rows: [{
+          key: 'Contact address',
+          value: formatContactAddressForReviewValue(sessionData)
+        }],
+        ...reviewCardErrorState(hasContactAddress(sessionData), 'Contact address for this consignment')
+      }
+    },
     documents: {
       uploadedDocumentsCard: {
         id: 'review-uploaded-documents',
@@ -3615,7 +3671,8 @@ function getReviewNotificationViewModelWithErrors (sessionData) {
     ...(viewModel.movement.transitCountriesCard ? [viewModel.movement.transitCountriesCard] : []),
     viewModel.movement.transportDetailsCard,
     viewModel.documents.uploadedDocumentsCard,
-    viewModel.addresses.rolesCard
+    viewModel.addresses.rolesCard,
+    viewModel.contactAddress.contactAddressCard
   ])
 
   return {
@@ -3624,16 +3681,64 @@ function getReviewNotificationViewModelWithErrors (sessionData) {
   }
 }
 
-function renderReviewNotificationPage (req, res) {
-  const sessionData = req.session.data
-  const viewModel = getReviewNotificationViewModelWithErrors(sessionData)
+function applyReadOnlyReviewViewModel (viewModel) {
+  const stripCard = (card) => {
+    if (!card) {
+      return card
+    }
+
+    return {
+      ...card,
+      changeHref: null,
+      hasError: false,
+      errorMessage: null
+    }
+  }
+
+  return {
+    ...viewModel,
+    errorList: [],
+    aboutConsignment: {
+      importDetailsCard: stripCard(viewModel.aboutConsignment.importDetailsCard),
+      animalDetailsCard: stripCard(viewModel.aboutConsignment.animalDetailsCard),
+      importReasonCard: stripCard(viewModel.aboutConsignment.importReasonCard)
+    },
+    descriptionOfGoods: {
+      commodityDetailsCard: stripCard(viewModel.descriptionOfGoods.commodityDetailsCard),
+      additionalAnimalDetailsCard: stripCard(viewModel.descriptionOfGoods.additionalAnimalDetailsCard),
+      speciesSections: viewModel.descriptionOfGoods.speciesSections.map(stripCard)
+    },
+    movement: {
+      arrivalDetailsCard: stripCard(viewModel.movement.arrivalDetailsCard),
+      transitCountriesCard: stripCard(viewModel.movement.transitCountriesCard),
+      transportDetailsCard: stripCard(viewModel.movement.transportDetailsCard)
+    },
+    addresses: {
+      rolesCard: stripCard(viewModel.addresses.rolesCard)
+    },
+    contactAddress: {
+      contactAddressCard: stripCard(viewModel.contactAddress.contactAddressCard)
+    },
+    documents: {
+      uploadedDocumentsCard: stripCard(viewModel.documents.uploadedDocumentsCard)
+    }
+  }
+}
+
+function renderReviewNotificationPage (req, res, options = {}) {
+  const sessionData = options.sessionData || req.session.data
+  const readOnly = Boolean(options.readOnly)
+  const viewModel = readOnly
+    ? applyReadOnlyReviewViewModel(getReviewNotificationViewModel(sessionData))
+    : getReviewNotificationViewModelWithErrors(sessionData)
 
   return res.render('review-notification', {
-    backLink: '/notification-hub',
+    backLink: options.backLink || '/notification-hub',
+    readOnly,
     ...viewModel,
     data: {
       ...sessionData,
-      errorList: viewModel.errorList.length ? viewModel.errorList : null
+      errorList: readOnly ? null : (viewModel.errorList.length ? viewModel.errorList : null)
     }
   })
 }
@@ -3682,8 +3787,52 @@ function hasDeclarationConfirmed (sessionData) {
 function getConditionalSubmissionItems (sessionData) {
   const items = []
 
+  if (!hasOriginDetails(sessionData)) {
+    items.push('complete where this consignment is coming from')
+  }
+
+  if (!hasCommoditySelection(sessionData)) {
+    items.push('complete what you are importing')
+  }
+
+  if (!hasImportReasonComplete(sessionData)) {
+    items.push('complete the main reason for import')
+  }
+
+  if (!hasConsignmentDetails(sessionData)) {
+    items.push('complete the commodity details')
+  }
+
+  if (hasAnimalIdentifiersRequired(sessionData) && !hasAnimalIdentifiersComplete(sessionData)) {
+    items.push('complete the animal identifier information in the notification')
+  }
+
+  if (!hasAdditionalAnimalDetailsComplete(sessionData)) {
+    items.push('complete the additional animal details')
+  }
+
+  if (!hasArrivalDetailsComplete(sessionData)) {
+    items.push('complete the arrival details')
+  }
+
+  if (requiresTransitCountries(sessionData) && !hasTransitCountriesComplete(sessionData)) {
+    items.push('complete the transit countries')
+  }
+
+  if (!hasTransportDetailsComplete(sessionData)) {
+    items.push('complete the transport details')
+  }
+
   if (!hasUploadedDocuments(sessionData)) {
-    items.push('upload the health certificate and any other required documents')
+    items.push('upload the ITAHC and any other required documents')
+  }
+
+  if (!hasConsignmentAddressesComplete(sessionData)) {
+    items.push('complete the roles and addresses')
+  }
+
+  if (!hasContactAddress(sessionData)) {
+    items.push('add a contact address for this consignment')
   }
 
   return items
@@ -3698,7 +3847,6 @@ function renderDeclarationPage (req, res, locals = {}) {
     declarationDate: formatDeclarationDate(),
     declarationConfirmed: isCheckboxChecked(locals.declarationConfirmed) ||
       isCheckboxChecked(sessionData.declarationConfirmed),
-    beforeImportItems: getConditionalSubmissionItems(sessionData),
     data: sessionData,
     ...locals
   })
@@ -3712,7 +3860,8 @@ function renderNotificationSubmittedPage (req, res) {
 
   return res.render('notification-submitted', {
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
-    beforeImportItems
+    beforeImportItems,
+    isIncompleteSubmission: beforeImportItems.length > 0
   })
 }
 
@@ -3944,6 +4093,77 @@ function buildDashboardPagination (currentPage, totalPages, sort) {
   }
 }
 
+function formatDateForDashboard (value) {
+  const date = parseArrivalDisplayDateToDate(value)
+
+  if (!date) {
+    return value || 'Not applicable'
+  }
+
+  return formatDeclarationDate(date)
+}
+
+function cloneSubmittedNotificationSnapshot (sessionData) {
+  const snapshot = JSON.parse(JSON.stringify(sessionData))
+
+  delete snapshot.errorList
+  delete snapshot.errors
+  delete snapshot.contactAddressSuccessMessage
+  delete snapshot.commoditySearch
+
+  return snapshot
+}
+
+function saveSubmittedNotification (sessionData) {
+  if (!Array.isArray(sessionData.submittedNotifications)) {
+    sessionData.submittedNotifications = []
+  }
+
+  const snapshot = cloneSubmittedNotificationSnapshot(sessionData)
+  const id = `submitted-${Date.now()}`
+
+  sessionData.submittedNotifications.unshift({
+    id,
+    reference: snapshot.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    commodities: getReviewAnimalDetailsCommodityCodes(snapshot),
+    origin: snapshot.countryOfOrigin || 'Not applicable',
+    arrivalDate: formatDateForDashboard(snapshot.arrivalDateAtPort),
+    statusText: 'Submitted',
+    statusTagClass: 'govuk-tag--green',
+    submittedAt: new Date().toISOString(),
+    snapshot
+  })
+
+  return id
+}
+
+function getSubmittedNotificationById (sessionData, submittedId) {
+  if (!submittedId) {
+    return null
+  }
+
+  return (sessionData.submittedNotifications || []).find((notification) => notification.id === submittedId) || null
+}
+
+function getDashboardNotificationList (sessionData = {}) {
+  const submitted = (sessionData.submittedNotifications || []).map((notification) => ({
+    reference: notification.reference,
+    commodities: notification.commodities,
+    statusText: notification.statusText,
+    statusTagClass: notification.statusTagClass,
+    origin: notification.origin,
+    arrivalDate: notification.arrivalDate,
+    viewHref: `/review-notification?submitted=${encodeURIComponent(notification.id)}`
+  }))
+
+  const submittedReferences = new Set(submitted.map((notification) => notification.reference))
+  const staticNotifications = dashboardData.notifications.filter(
+    (notification) => !submittedReferences.has(notification.reference)
+  )
+
+  return [...submitted, ...staticNotifications]
+}
+
 function buildDashboardResultsText (start, end, total) {
   if (!total) {
     return 'Show 0 of 0 results'
@@ -3959,16 +4179,17 @@ function buildDashboardSortItems (selectedValue) {
   }))
 }
 
-function getDashboardViewModel (query = {}) {
+function getDashboardViewModel (sessionData = {}, query = {}) {
   const sort = (query.sort || '').trim()
   const requestedPage = Math.max(1, Number(query.page) || 1)
   const pageSize = dashboardData.pageSize
-  const totalCount = dashboardData.notifications.length
+  const allNotifications = getDashboardNotificationList(sessionData)
+  const totalCount = allNotifications.length
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
   const currentPage = Math.min(requestedPage, totalPages)
   const startIndex = (currentPage - 1) * pageSize
   const endIndex = Math.min(startIndex + pageSize, totalCount)
-  const notifications = dashboardData.notifications.slice(startIndex, endIndex)
+  const notifications = allNotifications.slice(startIndex, endIndex)
 
   return {
     alertCounts: {
@@ -3988,7 +4209,7 @@ function getDashboardViewModel (query = {}) {
 function renderDashboardPage (req, res) {
   return res.render('dashboard', {
     serviceNavActive: 'dashboard',
-    ...getDashboardViewModel(req.query)
+    ...getDashboardViewModel(req.session.data, req.query)
   })
 }
 
@@ -5839,6 +6060,21 @@ router.get('/address-book/:addressId', (req, res) => {
 })
 
 router.get('/review-notification', (req, res) => {
+  const submittedId = (req.query.submitted || '').trim()
+  const submittedNotification = getSubmittedNotificationById(req.session.data, submittedId)
+
+  if (submittedId && !submittedNotification) {
+    return res.redirect('/')
+  }
+
+  if (submittedNotification) {
+    return renderReviewNotificationPage(req, res, {
+      sessionData: submittedNotification.snapshot,
+      readOnly: true,
+      backLink: '/'
+    })
+  }
+
   ensurePrototypeNotificationReference(req.session.data)
 
   return renderReviewNotificationPage(req, res)
@@ -5847,8 +6083,8 @@ router.get('/review-notification', (req, res) => {
 router.post('/review-notification', (req, res) => {
   ensurePrototypeNotificationReference(req.session.data)
 
-  if (!hasReviewNotificationComplete(req.session.data)) {
-    return renderReviewNotificationPage(req, res)
+  if (!hasContactAddress(req.session.data)) {
+    return res.redirect('/contact-address-for-consignment?from=review')
   }
 
   return res.redirect('/declaration')
@@ -5856,10 +6092,6 @@ router.post('/review-notification', (req, res) => {
 
 router.get('/declaration', (req, res) => {
   ensurePrototypeNotificationReference(req.session.data)
-
-  if (!hasReviewNotificationComplete(req.session.data)) {
-    return res.redirect('/notification-hub')
-  }
 
   if (!hasContactAddress(req.session.data)) {
     return res.redirect('/notification-hub')
@@ -5870,10 +6102,6 @@ router.get('/declaration', (req, res) => {
 
 router.post('/declaration', (req, res) => {
   ensurePrototypeNotificationReference(req.session.data)
-
-  if (!hasReviewNotificationComplete(req.session.data)) {
-    return res.redirect('/notification-hub')
-  }
 
   if (!hasContactAddress(req.session.data)) {
     return res.redirect('/notification-hub')
@@ -5894,6 +6122,7 @@ router.post('/declaration', (req, res) => {
   req.session.data.errors = null
   req.session.data.declarationConfirmedAt = formatDeclarationDate()
   req.session.data.conditionalSubmissionItems = getConditionalSubmissionItems(req.session.data)
+  saveSubmittedNotification(req.session.data)
 
   return res.redirect('/notification-submitted')
 })
@@ -6742,6 +6971,10 @@ router.post('/permanent-address/select', (req, res) => {
       return
     }
 
+    if (choice !== 'new-address') {
+      return
+    }
+
     const form = validation.addressDetails[animal.key] || getEmptyPermanentAddressFormValues()
 
     copyAddressToPermanentAnimalEntry(
@@ -6823,6 +7056,10 @@ router.post('/contact-address-for-consignment', (req, res) => {
 
   if (isFromHub(req)) {
     return res.redirect('/notification-hub')
+  }
+
+  if (isFromReview(req)) {
+    return res.redirect('/review-notification')
   }
 
   return res.redirect(getNextJourneyPath('/contact-address-for-consignment', req.session.data))
