@@ -9,12 +9,6 @@
 {% set pageName = "Additional details" %}
 
 {% block beforeContent %}
-  {{ govukPhaseBanner({
-    tag: {
-      text: "Alpha"
-    },
-    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
-  }) }}
 
   {{ govukBackLink({
     text: "Back",
@@ -38,7 +32,7 @@
       <h1 class="app-additional-animal-details-page__heading">Additional details</h1>
     </div>
 
-    <form method="post" action="/additional-animal-details" novalidate class="app-additional-animal-details-form">
+    <form method="post" action="/testing/additional-animal-details" novalidate class="app-additional-animal-details-form">
 
       {% if showCertificationPurposeQuestion %}
         {{ govukRadios({
@@ -101,7 +95,7 @@
         </div>
 
         <p class="app-origin-form-actions__cancel">
-          <a class="govuk-link" href="/notification-hub">Cancel and return to overview</a>
+          <a class="govuk-link" href="/testing/notification-hub">Cancel and return to overview</a>
         </p>
       </div>
 

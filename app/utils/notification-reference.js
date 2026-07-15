@@ -1,50 +1,57 @@
 const DRAFT_NOTIFICATION_YEAR = 2026
-const DRAFT_NOTIFICATION_SEQUENCE = '1000608'
+const DRAFT_NOTIFICATION_SEQUENCE = '7963913'
+const DRAFT_NOTIFICATION_TYPE = 'CHEDA'
 
-const NOTIFICATION_REFERENCE_PATTERN = /^GBN\.GB\.(\d{4})\.(\d{7})$/i
+const NOTIFICATION_REFERENCE_PATTERN = /^GB\.(\d{4})\.(\d{7})\s*-\s*[A-Z0-9]+$/i
 
-function formatNotificationReference (sequence, year = DRAFT_NOTIFICATION_YEAR) {
-  return `GBN.GB.${year}.${sequence}`
+function formatNotificationReference (
+  sequence = DRAFT_NOTIFICATION_SEQUENCE,
+  year = DRAFT_NOTIFICATION_YEAR,
+  type = DRAFT_NOTIFICATION_TYPE
+) {
+  return `GB.${year}.${sequence} - ${type}`
 }
 
-function formatDraftNotificationReference (sequence = DRAFT_NOTIFICATION_SEQUENCE, year = DRAFT_NOTIFICATION_YEAR) {
-  return `${formatNotificationReference(sequence, year)} (Draft)`
+function formatDraftNotificationReference (
+  sequence = DRAFT_NOTIFICATION_SEQUENCE,
+  year = DRAFT_NOTIFICATION_YEAR,
+  type = DRAFT_NOTIFICATION_TYPE
+) {
+  return formatNotificationReference(sequence, year, type)
 }
 
 function isSubmittedNotificationReference (reference) {
   const value = String(reference || '').trim()
 
-  return /^GBN-[A-Z]{2}-\d{2}-[A-Z0-9]+$/i.test(value)
+  return /^GBN-[A-Z]{2}-\d{2}-[A-Z0-9]+$/i.test(value) ||
+    /^GBN\.GB\.\d{4}\.\d{7}/i.test(value)
 }
 
 function isLegacyNotificationReference (reference) {
   const value = String(reference || '').trim()
 
-  return /^IMP\./i.test(value)
+  return /^IMP\./i.test(value) ||
+    /^DRAFT\.GB\./i.test(value) ||
+    /^GBN-[A-Z]{2}-\d{2}-/i.test(value) ||
+    /^GBN\.GB\./i.test(value)
 }
 
 function normalizeNotificationReference (reference) {
   const value = String(reference || '').trim().replace(/\s*\(Draft\)\s*$/i, '')
 
   if (!value || isLegacyNotificationReference(value)) {
-    return formatNotificationReference(DRAFT_NOTIFICATION_SEQUENCE)
+    return formatNotificationReference()
   }
 
   if (NOTIFICATION_REFERENCE_PATTERN.test(value)) {
     return value
   }
 
-  return formatNotificationReference(DRAFT_NOTIFICATION_SEQUENCE)
+  return formatNotificationReference()
 }
 
 function getDisplayNotificationReference (sessionData = {}) {
-  if (sessionData.notificationSubmitted) {
-    return String(sessionData.notificationReference || '').trim().replace(/\s*\(Draft\)\s*$/i, '')
-  }
-
-  const baseReference = normalizeNotificationReference(sessionData.notificationReference)
-
-  return `${baseReference} (Draft)`
+  return normalizeNotificationReference(sessionData.notificationReference)
 }
 
 function ensureDraftNotificationReference (sessionData) {
@@ -52,33 +59,27 @@ function ensureDraftNotificationReference (sessionData) {
     return
   }
 
-  if (!sessionData.notificationReference || isLegacyNotificationReference(sessionData.notificationReference) || isSubmittedNotificationReference(sessionData.notificationReference)) {
-    sessionData.notificationReference = formatNotificationReference(DRAFT_NOTIFICATION_SEQUENCE)
+  if (
+    !sessionData.notificationReference ||
+    isLegacyNotificationReference(sessionData.notificationReference) ||
+    isSubmittedNotificationReference(sessionData.notificationReference)
+  ) {
+    sessionData.notificationReference = formatNotificationReference()
   } else {
     sessionData.notificationReference = normalizeNotificationReference(sessionData.notificationReference)
   }
 }
 
 function generateSubmittedNotificationReference () {
-  const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ'
-  const digits = '0123456789'
-  const pick = (chars, count) => {
-    let result = ''
+  const sequence = String(7000000 + Math.floor(Math.random() * 2999999)).padStart(7, '0')
 
-    for (let index = 0; index < count; index += 1) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length))
-    }
-
-    return result
-  }
-  const year = String(new Date().getFullYear()).slice(-2)
-
-  return `GBN-${pick(letters, 2)}-${year}-${pick(letters, 1)}${pick(digits, 4)}${pick(letters, 1)}`
+  return formatNotificationReference(sequence)
 }
 
 module.exports = {
   DRAFT_NOTIFICATION_SEQUENCE,
   DRAFT_NOTIFICATION_YEAR,
+  DRAFT_NOTIFICATION_TYPE,
   formatNotificationReference,
   formatDraftNotificationReference,
   normalizeNotificationReference,

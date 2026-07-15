@@ -60,6 +60,30 @@ Import notification service
         href: "/create-notification"
       }) }}
     </div>
+
+    <div class="prototype-release-card govuk-!-margin-top-6">
+      {{ govukTag({
+        text: "Testing",
+        classes: "govuk-tag--yellow"
+      }) }}
+
+      <h2 class="govuk-heading-l">
+        Testing version
+      </h2>
+
+      <h3 class="govuk-heading-m">
+        Create a notification
+      </h3>
+
+      <p class="govuk-body">
+        Duplicate of the current notification journey for testing changes without affecting Design release 1.
+      </p>
+
+      {{ govukButton({
+        text: "Start testing version",
+        href: "/testing"
+      }) }}
+    </div>
   </div>
 </div>
 

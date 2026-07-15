@@ -1,0 +1,86 @@
+{% extends "layouts/journey.html" %}
+
+{% set journeyPageClass = "app-contact-address-page" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+
+{% set pageName = "Contact address for consignment" %}
+
+{% block beforeContent %}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block journeyContent %}
+
+    {% include "partials/notification-status.html" %}
+
+    {% if successMessage %}
+      {{ govukNotificationBanner({
+        type: "success",
+        titleText: "Success",
+        text: successMessage,
+        classes: "app-contact-address-page__success-banner"
+      }) }}
+    {% endif %}
+
+    <div class="app-contact-address-page__header">
+      <h1 class="app-contact-address-page__heading">Contact address for consignment</h1>
+    </div>
+
+    <p class="app-contact-address-page__intro">
+      This is the contact address of the person responsible for the consignment from when it enters Great Britain until authorities complete their checks.
+    </p>
+
+    <form method="post" action="/testing/contact-address-for-consignment" novalidate class="app-contact-address-form">
+
+      {% if fromHub %}
+        <input type="hidden" name="from" value="hub">
+      {% elif fromReview %}
+        <input type="hidden" name="from" value="review">
+      {% endif %}
+
+      {% if data.errorList %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: data.errorList
+        }) }}
+      {% endif %}
+
+      <h2 class="app-contact-address-page__section-heading">Select an address</h2>
+
+      <p class="app-contact-address-page__help">
+        If the correct address is not shown, <a class="govuk-link" href="{{ addAddressHref }}">add a new branch address</a>, then return to this page.
+      </p>
+
+      {{ govukRadios({
+        idPrefix: "contact-address",
+        name: "contactAddressId",
+        fieldset: {
+          legend: {
+            text: "Select an address",
+            classes: "govuk-visually-hidden"
+          }
+        },
+        errorMessage: data.errors.contactAddressId if data.errors and data.errors.contactAddressId,
+        classes: "app-contact-address-radios",
+        formGroup: {
+          classes: "app-contact-address-page__question"
+        },
+        items: contactAddressItems
+      }) }}
+
+      {{ govukButton({
+        text: "Continue",
+        classes: "app-contact-address-page__button"
+      }) }}
+
+    </form>
+
+{% endblock %}

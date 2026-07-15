@@ -1,5 +1,24 @@
 module.exports = [
   {
+    id: 'yusen-logistics-romania',
+    name: 'Yusen Logistics (Romania) SRL',
+    address: 'Bulevardul General Paul Teodorescu 4, Sector 6, 061344 Bucharest, Romania',
+    approvalNumber: 'RO/BUCHAREST/T1/00092010',
+    type: 'Commercial',
+    status: 'Approved',
+    statusTagClass: 'govuk-tag--green',
+    telephone: '+40 31 229 2700'
+  },
+  {
+    id: 'roadtrain-ltd',
+    name: 'Roadtrain Ltd',
+    address: 'The Roadtrain Complex, Bluebell Industrial Estate, Dublin 12, D12 P046, Republic of Ireland',
+    approvalNumber: 'IE/DUBLIN/T1/00092011',
+    type: 'Commercial',
+    status: 'Approved',
+    statusTagClass: 'govuk-tag--green'
+  },
+  {
     id: 'aberdeen-livestock',
     name: 'Aberdeen Livestock Ltd',
     address: '15 Union Street, Aberdeen, AB11 5BN',

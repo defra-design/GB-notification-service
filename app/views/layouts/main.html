@@ -9,10 +9,12 @@ https://prototype-kit.service.gov.uk/docs/how-to-use-layouts
 {% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
 
 {% block header %}
+  {% set navDashboardHref = serviceNavDashboardHref if serviceNavDashboardHref else "/" %}
+  {% set navServiceHref = "/index" %}
   {{ govukHeader({
-    homepageUrl: "/",
+    homepageUrl: navServiceHref,
     serviceName: serviceName if not useServiceNavigation,
-    serviceUrl: serviceUrl if not useServiceNavigation,
+    serviceUrl: serviceUrl if not useServiceNavigation else navServiceHref,
     containerClasses: "govuk-width-container"
   }) }}
 
@@ -20,10 +22,10 @@ https://prototype-kit.service.gov.uk/docs/how-to-use-layouts
     {{
       govukServiceNavigation({
         serviceName: serviceName,
-        serviceUrl: "/",
+        serviceUrl: navServiceHref,
         navigation: [
           {
-            href: "/",
+            href: navDashboardHref,
             text: "Dashboard",
             active: serviceNavActive == "dashboard"
           },

@@ -1,0 +1,151 @@
+{% extends "layouts/journey.html" %}
+
+{% set journeyPageClass = "app-what-importing-page" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+
+{% set pageName = "What are you importing?" %}
+
+{% block beforeContent %}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block journeyContent %}
+
+    {% include "partials/notification-status.html" %}
+
+    {% if data.errorList %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: data.errorList
+      }) }}
+    {% endif %}
+
+    <div class="app-what-importing-page__header">
+      <p class="app-what-importing-page__caption">About the consignment</p>
+      <h1 class="app-what-importing-page__heading">What are you importing?</h1>
+    </div>
+
+    {{ govukInsetText({
+      text: "A separate notification is required for each health certificate. Consignments that do not require a health certificate must still be notified.",
+      classes: "app-what-importing-page__inset"
+    }) }}
+
+    <form method="post" action="/testing/what-are-you-importing" novalidate class="app-what-importing-form">
+
+      <div class="govuk-form-group{% if data.errors and data.errors.commoditySearch %} govuk-form-group--error{% endif %}">
+        <label class="govuk-label app-eu-heading-m" for="commodity-search">
+          Search for a commodity
+        </label>
+        {% if data.errors and data.errors.commoditySearch %}
+          <p id="commodity-search-error" class="govuk-error-message">
+            <span class="govuk-visually-hidden">Error:</span>
+            {{ data.errors.commoditySearch.text }}
+          </p>
+        {% endif %}
+        <div id="commodity-search-hint" class="govuk-hint">
+          You can search by common name (for example, cattle), commodity code (0102), or latin name (Bos taurus).
+        </div>
+        <div
+          class="app-commodity-search-wrapper"
+          data-module="app-commodity-search"
+        >
+          <script type="application/json" class="app-commodity-search__data">{{ commoditiesSearchJson | safe }}</script>
+          <div class="app-commodity-search-panel">
+            <div
+              class="app-commodity-search"
+              aria-expanded="false"
+              aria-controls="commodity-search-results"
+            >
+              <input
+                class="app-commodity-search__input"
+                id="commodity-search"
+                name="commoditySearch"
+                type="search"
+                autocomplete="off"
+                aria-controls="commodity-search-results"
+                aria-describedby="commodity-search-hint commodity-search-status{% if data.errors and data.errors.commoditySearch %} commodity-search-error{% endif %}"
+                value="{{ data.commoditySearch or '' }}"
+              >
+              <button class="app-commodity-search__button" type="button">
+                <span class="govuk-visually-hidden">Search</span>
+                <svg class="app-commodity-search__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20.3765 20" width="20" height="20" aria-hidden="true" focusable="false">
+                  <path d="M8.90084 14.4683C12.3848 14.4683 15.2091 11.644 15.2091 8.16008C15.2091 4.67613 12.3848 1.85184 8.90084 1.85184C5.41689 1.85184 2.59259 4.67613 2.59259 8.16008C2.59259 11.644 5.41689 14.4683 8.90084 14.4683Z" stroke="currentColor" stroke-width="2.22222" fill="none"/>
+                  <path d="M13.2347 12.8583L19.5908 19.2143" stroke="currentColor" stroke-width="2.22222" fill="none"/>
+                </svg>
+              </button>
+            </div>
+            <ul
+              id="commodity-search-results"
+              class="app-commodity-search__results"
+              role="list"
+              aria-label="Commodity search results"
+              hidden
+            ></ul>
+          </div>
+
+          <div class="app-commodity-search__selected" id="commodity-search-selected" hidden>
+            <div class="app-commodity-search__selected-header">
+              <p class="app-commodity-search__selected-heading" id="commodity-search-selected-heading"></p>
+              <button class="app-commodity-search__selected-clear" type="button">
+                Clear all
+              </button>
+            </div>
+            <ul class="app-commodity-search__selected-list" id="commodity-search-selected-list" role="list"></ul>
+          </div>
+
+          <script type="application/json" class="app-commodity-search__initial">{{ commoditySelectionsJson | safe }}</script>
+          <input type="hidden" name="commodityId" class="app-commodity-search__commodity-id">
+          <input type="hidden" name="commodityCode" class="app-commodity-search__commodity-code">
+          <input type="hidden" name="selectedSpecies" class="app-commodity-search__species-value">
+          <input type="hidden" name="commoditySelections" class="app-commodity-search__selections-value">
+          <div id="commodity-search-status" class="app-commodity-search__status govuk-visually-hidden" aria-live="polite"></div>
+        </div>
+      </div>
+
+      {% set commodityCodesHelpHtml %}
+        <p class="govuk-body app-what-importing-page__details-paragraph">Commodity codes are internationally recognised reference numbers.</p>
+        <p class="govuk-body app-what-importing-page__details-paragraph">A commodity code describes a specific product when importing or exporting goods.</p>
+        <p class="govuk-body app-what-importing-page__details-paragraph">
+          You can look up commodity codes using the <a class="govuk-link" href="https://www.gov.uk/trade-tariff" rel="noreferrer noopener" target="_blank">Trade Tariff tool</a><br>
+          (opens in a new tab).
+        </p>
+      {% endset %}
+
+      {{ govukDetails({
+        summaryText: "Help with commodity codes",
+        classes: "app-what-importing-page__details",
+        html: commodityCodesHelpHtml
+      }) }}
+
+      <div class="app-origin-form-actions">
+        <div class="app-origin-actions">
+          {{ govukButton({
+            text: "Save and continue",
+            name: "action",
+            value: "continue"
+          }) }}
+
+          {{ govukButton({
+            text: "Save and return to overview",
+            name: "action",
+            value: "hub",
+            classes: "govuk-button--secondary"
+          }) }}
+        </div>
+
+        <p class="app-origin-form-actions__cancel">
+          <a class="govuk-link" href="/testing/notification-hub">Cancel and return to overview</a>
+        </p>
+      </div>
+
+    </form>
+
+{% endblock %}

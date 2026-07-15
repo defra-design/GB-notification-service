@@ -1,5 +1,80 @@
 module.exports = [
   {
+    id: 'green-valley-farm-sanpetru',
+    type: 'place-of-origin',
+    name: 'Green Valley Farm',
+    addressLines: [
+      'Str. Principală nr. 45',
+      'Sat Sânpetru',
+      'Comuna Sânpetru',
+      'Jud. Brașov',
+      '507190'
+    ],
+    country: 'Romania'
+  },
+  {
+    id: 'valea-mare-farm-ciugud',
+    type: 'place-of-origin',
+    name: 'Valea Mare Farm',
+    addressLines: [
+      'Str. Câmpului nr. 18',
+      'Sat Ciugud',
+      'Comuna Ciugud',
+      'Jud. Alba',
+      '517240'
+    ],
+    country: 'Romania'
+  },
+  {
+    id: 'oak-hill-farm-moieciu',
+    type: 'place-of-origin',
+    name: 'Oak Hill Farm',
+    addressLines: [
+      'Str. Livezilor nr. 12',
+      'Sat Moieciu de Jos',
+      'Comuna Moieciu',
+      'Jud. Brașov',
+      '507135'
+    ],
+    country: 'Romania'
+  },
+  {
+    id: 'ballymore-farm-tullamore',
+    type: 'place-of-origin',
+    name: 'Ballymore Farm',
+    addressLines: [
+      'Ballymore',
+      'Tullamore',
+      'Co. Offaly',
+      'R35 X2A4'
+    ],
+    country: 'Republic of Ireland'
+  },
+  {
+    id: 'riverside-farm-bandon',
+    type: 'place-of-origin',
+    name: 'Riverside Farm',
+    addressLines: [
+      'Kilbeg',
+      'Bandon',
+      'Co. Cork',
+      'P72 Y4F8'
+    ],
+    country: 'Republic of Ireland'
+  },
+  {
+    id: 'green-meadow-farm-letterkenny',
+    type: 'place-of-origin',
+    name: 'Green Meadow Farm',
+    addressLines: [
+      'Drumkeen',
+      'Letterkenny',
+      'Co. Donegal',
+      'F92 H3N6'
+    ],
+    country: 'Republic of Ireland'
+  },
+  {
     id: 'green-valley-livestock-farm',
     type: 'place-of-origin',
     name: 'Green Valley Livestock Farm',
@@ -25,6 +100,81 @@ module.exports = [
     country: 'Poland',
     telephone: '+48 58 440 1820',
     email: 'origin@balticanimals.pl'
+  },
+  {
+    id: 'green-valley-farm-sanpetru-consignor',
+    type: 'consignor-or-exporter',
+    name: 'Green Valley Farm',
+    addressLines: [
+      'Str. Principală nr. 45',
+      'Sat Sânpetru',
+      'Comuna Sânpetru',
+      'Jud. Brașov',
+      '507190'
+    ],
+    country: 'Romania'
+  },
+  {
+    id: 'valea-mare-farm-ciugud-consignor',
+    type: 'consignor-or-exporter',
+    name: 'Valea Mare Farm',
+    addressLines: [
+      'Str. Câmpului nr. 18',
+      'Sat Ciugud',
+      'Comuna Ciugud',
+      'Jud. Alba',
+      '517240'
+    ],
+    country: 'Romania'
+  },
+  {
+    id: 'oak-hill-farm-moieciu-consignor',
+    type: 'consignor-or-exporter',
+    name: 'Oak Hill Farm',
+    addressLines: [
+      'Str. Livezilor nr. 12',
+      'Sat Moieciu de Jos',
+      'Comuna Moieciu',
+      'Jud. Brașov',
+      '507135'
+    ],
+    country: 'Romania'
+  },
+  {
+    id: 'ballymore-farm-tullamore-consignor',
+    type: 'consignor-or-exporter',
+    name: 'Ballymore Farm',
+    addressLines: [
+      'Ballymore',
+      'Tullamore',
+      'Co. Offaly',
+      'R35 X2A4'
+    ],
+    country: 'Republic of Ireland'
+  },
+  {
+    id: 'riverside-farm-bandon-consignor',
+    type: 'consignor-or-exporter',
+    name: 'Riverside Farm',
+    addressLines: [
+      'Kilbeg',
+      'Bandon',
+      'Co. Cork',
+      'P72 Y4F8'
+    ],
+    country: 'Republic of Ireland'
+  },
+  {
+    id: 'green-meadow-farm-letterkenny-consignor',
+    type: 'consignor-or-exporter',
+    name: 'Green Meadow Farm',
+    addressLines: [
+      'Drumkeen',
+      'Letterkenny',
+      'Co. Donegal',
+      'F92 H3N6'
+    ],
+    country: 'Republic of Ireland'
   },
   {
     id: 'nordic-livestock-export',
@@ -54,7 +204,7 @@ module.exports = [
     email: 'operations@euroanimalexports.eu'
   },
   {
-    id: 'northern-livestock-imports',
+    id: 'northern-livestock-imports-consignee',
     type: 'consignee',
     name: 'Northern Livestock Imports Ltd',
     addressLines: ['Dockside Business Park', 'Warehouse 3', 'Hull, HU9 5PX'],
@@ -63,7 +213,7 @@ module.exports = [
     email: 'imports@northernlivestock.co.uk'
   },
   {
-    id: 'west-coast-animal-imports',
+    id: 'west-coast-animal-imports-consignee',
     type: 'consignee',
     name: 'West Coast Animal Imports Ltd',
     addressLines: ['Harbour Trade Centre', 'Suite 8', 'Liverpool, L21 1LA'],
@@ -72,8 +222,62 @@ module.exports = [
     email: 'arrivals@westcoastimports.co.uk'
   },
   {
-    id: 'east-midlands-animal-imports',
+    id: 'east-midlands-animal-imports-consignee',
     type: 'consignee',
+    name: 'East Midlands Animal Imports Ltd',
+    addressLines: ['Cargo Terminal Estate', 'Unit 12', 'Nottingham, NG2 4GH'],
+    country: 'United Kingdom',
+    telephone: '+44 115 555 1840',
+    email: 'consignee@emimports.co.uk'
+  },
+  {
+    id: 'britannia-trade-livestock-consignee',
+    type: 'consignee',
+    name: 'Britannia Trade & Livestock Ltd',
+    addressLines: ['41 Commerce Way', 'Bristol, BS11 9DQ'],
+    country: 'United Kingdom',
+    telephone: '+44 117 555 4402',
+    email: 'importer@britanniatrade.co.uk'
+  },
+  {
+    id: 'prime-livestock-uk-consignee',
+    type: 'consignee',
+    name: 'Prime Livestock UK Ltd',
+    addressLines: ['102 Kingsway Industrial Estate', 'Manchester, M17 1RW'],
+    country: 'United Kingdom',
+    telephone: '+44 161 555 3812',
+    email: 'importer@primelivestockuk.co.uk'
+  },
+  {
+    id: 'gb-animal-trade-services-consignee',
+    type: 'consignee',
+    name: 'GB Animal Trade Services Ltd',
+    addressLines: ['7 Market Yard', 'Birmingham, B5 6DR'],
+    country: 'United Kingdom',
+    telephone: '+44 121 555 6620',
+    email: 'compliance@gbanimaltrade.co.uk'
+  },
+  {
+    id: 'northern-livestock-imports-importer',
+    type: 'importer',
+    name: 'Northern Livestock Imports Ltd',
+    addressLines: ['Dockside Business Park', 'Warehouse 3', 'Hull, HU9 5PX'],
+    country: 'United Kingdom',
+    telephone: '+44 1482 555921',
+    email: 'imports@northernlivestock.co.uk'
+  },
+  {
+    id: 'west-coast-animal-imports-importer',
+    type: 'importer',
+    name: 'West Coast Animal Imports Ltd',
+    addressLines: ['Harbour Trade Centre', 'Suite 8', 'Liverpool, L21 1LA'],
+    country: 'United Kingdom',
+    telephone: '+44 151 555 7400',
+    email: 'arrivals@westcoastimports.co.uk'
+  },
+  {
+    id: 'east-midlands-animal-imports-importer',
+    type: 'importer',
     name: 'East Midlands Animal Imports Ltd',
     addressLines: ['Cargo Terminal Estate', 'Unit 12', 'Nottingham, NG2 4GH'],
     country: 'United Kingdom',

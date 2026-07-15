@@ -1,0 +1,86 @@
+{% extends "layouts/journey.html" %}
+
+{% set journeyPageClass = "app-notification-submitted-page" %}
+
+{% set pageName = "Import notification submitted" %}
+
+{% block beforeContent %}
+{% endblock %}
+
+{% block journeyContent %}
+
+    <div class="govuk-panel govuk-panel--confirmation app-notification-submitted-page__panel">
+      <h1 class="govuk-panel__title">Import notification submitted</h1>
+      <div class="govuk-panel__body">
+        Your reference number<br><strong>{{ notificationReference }}</strong>
+      </div>
+    </div>
+
+    {% if isIncompleteSubmission %}
+      <section class="app-notification-submitted-page__section" aria-labelledby="submitted-incomplete-heading">
+        <h2 class="app-notification-submitted-page__section-heading" id="submitted-incomplete-heading">Your notification is not complete</h2>
+        <p class="govuk-body">Before the consignment is imported, you still need to:</p>
+        <ul class="govuk-list govuk-list--bullet app-notification-submitted-page__list">
+          {% for item in beforeImportItems %}
+            <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <section class="app-notification-submitted-page__section" aria-labelledby="submitted-transport-heading">
+        <h2 class="app-notification-submitted-page__section-heading" id="submitted-transport-heading">What you need to inform the transporter</h2>
+        <p class="govuk-body">Tell the transporter that this consignment must go directly to the place of destination on entry to Great Britain.</p>
+
+        <h2 class="app-notification-submitted-page__section-heading app-notification-submitted-page__section-heading--subsequent" id="submitted-inspection-heading">Inspections may still need to be carried out</h2>
+        <p class="govuk-body">The animals or consignment may still need to be inspected at the place of destination by an APHA vet. To enable this, the animals must stay at the place of destination for either:</p>
+        <ul class="govuk-list govuk-list--bullet app-notification-submitted-page__list">
+          <li>the time stated on the health certificate</li>
+          <li>48 hours if no time is specified</li>
+        </ul>
+      </section>
+    {% else %}
+      <section class="app-notification-submitted-page__section" aria-labelledby="submitted-transport-heading">
+        <h2 class="app-notification-submitted-page__section-heading" id="submitted-transport-heading">Transporting the consignment</h2>
+        <p class="govuk-body">Tell the transporter that this consignment must go directly to the place of destination on entry to Great Britain.</p>
+        <p class="govuk-body">The animals or consignment may need to be inspected.</p>
+        <p class="govuk-body">If so, the animals must stay at the place of destination for either:</p>
+        <ul class="govuk-list govuk-list--bullet app-notification-submitted-page__list">
+          <li>the time stated on the health certificate</li>
+          <li>48 hours if no time is specified</li>
+        </ul>
+      </section>
+    {% endif %}
+
+    <section class="app-notification-submitted-page__section" aria-labelledby="submitted-amend-heading">
+      <h2 class="app-notification-submitted-page__section-heading" id="submitted-amend-heading">How to view or amend this notification</h2>
+      <p class="govuk-body">You can view or change this notification from your dashboard.</p>
+      <p class="govuk-body">
+        <a class="govuk-link" href="/testing">Return to your dashboard</a>
+      </p>
+      <p class="govuk-body">
+        <a class="govuk-link" href="/testing/create-notification">Create a new notification</a>
+      </p>
+    </section>
+
+    <section class="app-notification-submitted-page__section" aria-labelledby="submitted-help-heading">
+      <h2 class="app-notification-submitted-page__section-heading" id="submitted-help-heading">Getting help</h2>
+      <p class="govuk-body">
+        To get help with import notifications for live animals or germinal products, email
+        <a class="govuk-link" href="mailto:importsriskmanagement@apha.gov.uk">importsriskmanagement@apha.gov.uk</a>.
+      </p>
+      <p class="govuk-body">Contact the Animal and Plant Health Agency (APHA) if you need technical help with this service:</p>
+      <ul class="govuk-list govuk-list--bullet app-notification-submitted-page__list">
+        <li>Telephone: 0330 041 6999</li>
+        <li>Email: <a class="govuk-link" href="mailto:APHAServiceDesk@apha.gov.uk">APHAServiceDesk@apha.gov.uk</a></li>
+      </ul>
+      <p class="govuk-body">Monday to Friday, 8:30am to 5pm, except bank holidays</p>
+      <p class="govuk-body">
+        If you need help with your customs declaration,
+        <a class="govuk-link" href="https://www.gov.uk/government/organisations/hm-revenue-customs/contact/customs-international-trade-and-excise-enquiries" rel="noreferrer noopener" target="_blank">contact HMRC</a>.
+      </p>
+      <p class="govuk-body">
+        <a class="govuk-link" href="https://www.gov.uk/call-charges" rel="noreferrer noopener" target="_blank">Find out about call charges</a>
+      </p>
+    </section>
+
+{% endblock %}

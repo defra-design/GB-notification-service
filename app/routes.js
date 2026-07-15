@@ -34,7 +34,7 @@ const TRANSIT_MEANS_OF_TRANSPORT = ['Railway', 'Road Vehicle']
 const importReasonValues = importReasons.map((reason) => reason.value)
 const internalMarketPurposeValues = internalMarketPurposes.map((purpose) => purpose.value)
 
-const PROTOTYPE_NOTIFICATION_REFERENCE = 'GBN-AG-26-7K8M2P'
+const PROTOTYPE_NOTIFICATION_REFERENCE = 'GB.2026.7963913 - CHEDA'
 
 function getCommodityById (commodityId) {
   return commodities.find((commodity) => commodity.id === commodityId)
@@ -73,7 +73,10 @@ function getRegionOfOriginCodeSuffix (sessionData) {
 }
 
 function ensurePrototypeNotificationReference (sessionData) {
-  if (!sessionData.notificationReference) {
+  const value = String(sessionData.notificationReference || '').trim()
+  const isNewFormat = /^GB\.\d{4}\.\d{7}\s*-\s*[A-Z0-9]+$/i.test(value)
+
+  if (!value || !isNewFormat) {
     sessionData.notificationReference = PROTOTYPE_NOTIFICATION_REFERENCE
   }
 }
@@ -81,6 +84,7 @@ function ensurePrototypeNotificationReference (sessionData) {
 function resetNotificationJourneySession (sessionData) {
   const addressBookAddedAddresses = sessionData.addressBookAddedAddresses
   const submittedNotifications = sessionData.submittedNotifications
+  const testingSession = sessionData._testing
 
   Object.keys(sessionData).forEach((key) => {
     delete sessionData[key]
@@ -92,6 +96,10 @@ function resetNotificationJourneySession (sessionData) {
 
   if (submittedNotifications && submittedNotifications.length) {
     sessionData.submittedNotifications = submittedNotifications
+  }
+
+  if (testingSession && typeof testingSession === 'object') {
+    sessionData._testing = testingSession
   }
 }
 
@@ -2754,6 +2762,10 @@ function getTransporterCountryLabel (sessionData) {
     return 'Romania'
   }
 
+  if (approvalNumber.startsWith('IE/')) {
+    return 'Republic of Ireland'
+  }
+
   if (approvalNumber.startsWith('SK/')) {
     return 'Slovakia'
   }
@@ -3489,7 +3501,7 @@ function getConditionalSubmissionItems (sessionData) {
   }
 
   if (!hasUploadedDocuments(sessionData)) {
-    items.push('upload the ITAHC and any other required documents')
+    items.push('upload the health certificate and any other required documents')
   }
 
   if (!hasConsignmentAddressesComplete(sessionData)) {
@@ -5001,7 +5013,7 @@ function renderReasonForImportPage (req, res, locals = {}) {
 }
 
 const documentTypeOptions = [
-  { value: 'itahc', text: 'Intra Trade Animal Health Certificate (ITAHC)' },
+  { value: 'health-certificate', text: 'Health certificate' },
   { value: 'veterinary-health-certificate', text: 'Veterinary health certificate' },
   { value: 'air-waybill', text: 'Air waybill' },
   { value: 'import-permit', text: 'Import permit' },
@@ -5012,7 +5024,6 @@ const documentTypeOptions = [
   { value: 'bill-of-lading', text: 'Bill of lading' },
   { value: 'catch-certificate', text: 'Catch certificate' },
   { value: 'laboratory-sampling-results-for-aflatoxin-reg-2019-1793', text: 'Laboratory sampling results for aflatoxin (Reg 2019/1793)' },
-  { value: 'health-certificate', text: 'Health certificate' },
   { value: 'journey-log', text: 'Journey log' },
   { value: 'other', text: 'Other' }
 ]
@@ -5022,6 +5033,10 @@ const MAX_UPLOADED_DOCUMENTS = 15
 const VIRUS_CHECK_DELAY_MS = 2500
 
 function getDocumentTypeLabel (documentType) {
+  if (documentType === 'itahc') {
+    return 'Health certificate'
+  }
+
   const match = documentTypeOptions.find((option) => option.value === documentType)
 
   return match ? match.text : documentType
@@ -5425,6 +5440,10 @@ router.get('/reason-for-import', (req, res) => {
 
 router.get('/', (req, res) => {
   return renderDashboardPage(req, res)
+})
+
+router.get('/index', (req, res) => {
+  return res.render('index')
 })
 
 router.get('/dashboard', (req, res) => {
@@ -6456,3 +6475,6 @@ router.post('/contact-address-for-consignment', (req, res) => {
 
   return res.redirect(getNextJourneyPath('/contact-address-for-consignment', req.session.data))
 })
+
+const { mountTestingVersion } = require('./lib/testing-version')
+mountTestingVersion(govukPrototypeKit, router)

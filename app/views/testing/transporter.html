@@ -1,0 +1,184 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+
+{% set pageName = "Transporter details" %}
+
+{% block beforeContent %}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full app-transporter-page">
+
+    {% include "partials/notification-status.html" %}
+
+    {% if successMessage %}
+      {{ govukNotificationBanner({
+        type: "success",
+        titleText: "Success",
+        text: successMessage,
+        classes: "app-transporter-page__success-banner"
+      }) }}
+    {% endif %}
+
+    <div class="app-transporter-page__title">
+      <p class="app-transporter-page__caption">Transport and arrival</p>
+      <h1 class="app-transporter-page__heading">Transporter details</h1>
+      <p class="app-transporter-page__intro">
+        This is the person or company responsible for transporting the consignment.
+      </p>
+    </div>
+
+    <div class="app-transporter-page__guidance">
+      <p class="app-transporter-page__guidance-text">
+        Your transporter must hold a valid transporter authorisation, issued by DAERA or APHA in the UK if they are:
+      </p>
+      <ul class="govuk-list govuk-list--bullet app-transporter-page__guidance-list">
+        <li>transporting any live vertebrate animals in, to, from or through Great Britain (GB)</li>
+        <li>travelling on journeys of over 65 km</li>
+        <li>transporting as part of an economic (commercial) activity</li>
+      </ul>
+      <p class="app-transporter-page__guidance-link">
+        <a class="govuk-link" href="https://www.gov.uk/guidance/animal-welfare-in-transport?_gl=1*7jtiw*_ga*OTk4MzczMjM2LjE3ODI3Mzg0NDQ.*_ga_YM5VR1KENG*czE3ODM2ODgyNTkkbzI4JGcxJHQxNzgzNjkyMjE3JGoyMyRsMCRoMA..#transporting-animals-in-connection-with-an-economic-activity" rel="noreferrer noopener" target="_blank">Find out how to transport animals in connection with an economic activity (opens in a new tab)</a>
+      </p>
+      <p class="app-transporter-page__guidance-text">Documents issued by DAERA are valid for use in GB.</p>
+      <p class="app-transporter-page__guidance-text">Documents issued in any EU member state are not valid for use in GB.</p>
+    </div>
+
+    <form method="post" action="/testing/transporter" novalidate class="app-transporter-form">
+
+      {% if data.errorList %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: data.errorList
+        }) }}
+      {% endif %}
+
+      <h2 class="app-transporter-page__results-heading">Select a transporter</h2>
+
+      <div class="app-transporter-page__search" data-module="app-transporter-search">
+        <label class="govuk-label app-transporter-page__search-label" for="transporter-search">
+          Search
+        </label>
+        <div id="transporter-search-hint" class="govuk-hint app-transporter-page__search-hint">
+          Name, address or approval number
+        </div>
+        <div class="app-transporter-page__search-field">
+          <input
+            class="govuk-input app-transporter-page__search-input"
+            id="transporter-search"
+            name="search"
+            type="search"
+            autocomplete="off"
+            value="{{ searchQuery or '' }}"
+            aria-describedby="transporter-search-hint"
+          >
+          <button class="app-transporter-page__search-button" type="button" aria-label="Search">
+            <span class="app-transporter-page__search-button-icon" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="app-transporter-page__table-panel">
+        <fieldset class="govuk-fieldset app-transporter-page__fieldset">
+          <legend class="govuk-fieldset__legend govuk-visually-hidden">Select a transporter</legend>
+
+          {% if data.errors and data.errors.transporterId %}
+            <p class="govuk-error-message app-transporter-page__table-error">
+              <span class="govuk-visually-hidden">Error:</span> {{ data.errors.transporterId.text }}
+            </p>
+          {% endif %}
+
+          <table class="govuk-table app-transporter-table">
+            <thead class="govuk-table__head">
+              <tr class="govuk-table__row">
+                <th scope="col" class="govuk-table__header app-transporter-table__header app-transporter-table__header--select">
+                  <span class="govuk-visually-hidden">Select</span>
+                </th>
+                <th scope="col" class="govuk-table__header app-transporter-table__header">Name</th>
+                <th scope="col" class="govuk-table__header app-transporter-table__header">Address</th>
+                <th scope="col" class="govuk-table__header app-transporter-table__header">Approval number</th>
+                <th scope="col" class="govuk-table__header app-transporter-table__header">Type</th>
+                <th scope="col" class="govuk-table__header app-transporter-table__header">Status</th>
+                <th scope="col" class="govuk-table__header app-transporter-table__header app-transporter-table__header--action">
+                  <span class="govuk-visually-hidden">Action</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody class="govuk-table__body" data-transporter-results>
+              {% for transporter in transporterResults.transporters %}
+                <tr class="govuk-table__row app-transporter-table__row" data-transporter-row data-search-text="{{ transporter.searchText }}">
+                  <td class="govuk-table__cell app-transporter-table__cell app-transporter-table__cell--select">
+                    <div class="govuk-radios app-transporter-table__radio">
+                      <div class="govuk-radios__item">
+                        <input
+                          class="govuk-radios__input"
+                          id="transporter-{{ transporter.id }}"
+                          name="transporterId"
+                          type="radio"
+                          value="{{ transporter.id }}"
+                          {% if selectedTransporterId == transporter.id %}checked{% endif %}
+                        >
+                        <label class="govuk-radios__label" for="transporter-{{ transporter.id }}">
+                          <span class="govuk-visually-hidden">Select {{ transporter.name }}</span>
+                        </label>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="govuk-table__cell app-transporter-table__cell">{{ transporter.name }}</td>
+                  <td class="govuk-table__cell app-transporter-table__cell">{{ transporter.address }}</td>
+                  <td class="govuk-table__cell app-transporter-table__cell">{{ transporter.approvalNumber }}</td>
+                  <td class="govuk-table__cell app-transporter-table__cell">{{ transporter.type }}</td>
+                  <td class="govuk-table__cell app-transporter-table__cell app-transporter-table__cell--status">
+                    <strong class="govuk-tag {{ transporter.statusTagClass }} app-transporter-table__tag">{{ transporter.status }}</strong>
+                  </td>
+                  <td class="govuk-table__cell app-transporter-table__cell app-transporter-table__cell--action">
+                    <a class="govuk-link" href="{{ transporter.viewHref }}">View details</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </fieldset>
+      </div>
+
+      {{ govukButton({
+        text: "Add a transporter",
+        href: "/testing/transporter/add",
+        classes: "govuk-button--secondary app-transporter-page__add-button"
+      }) }}
+
+      <div class="app-transporter-page__actions">
+        <div class="app-transporter-page__action-buttons">
+          {{ govukButton({
+            text: "Save and continue",
+            classes: "app-transporter-page__continue-button"
+          }) }}
+
+          {{ govukButton({
+            text: "Save and return to overview",
+            name: "action",
+            value: "hub",
+            classes: "govuk-button--secondary app-transporter-page__hub-button"
+          }) }}
+        </div>
+
+        <p class="app-transporter-page__cancel">
+          <a class="govuk-link" href="/testing/notification-hub">Cancel and return to overview</a>
+        </p>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+{% endblock %}

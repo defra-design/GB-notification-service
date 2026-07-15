@@ -1,0 +1,57 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% set pageName = "Add private transporter" %}
+
+{% block beforeContent %}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+    <div class="app-transporter-add-shell">
+      <div class="app-transporter-add-page">
+        <div class="app-transporter-add-page__header">
+          <p class="app-transporter-add-page__caption">Add a new transporter</p>
+          <h1 class="app-transporter-add-page__heading">Add private transporter</h1>
+        </div>
+
+        {% if data.errorList %}
+          {{ govukErrorSummary({
+            titleText: "There is a problem",
+            errorList: data.errorList
+          }) }}
+        {% endif %}
+
+        {% include "partials/transporter-authorisation-banner.html" %}
+
+        <form method="post" action="/testing/transporter/add/private" novalidate class="app-transporter-add-private-form">
+          {% include "partials/transporter-add-private-fields.html" %}
+
+          <div class="app-transporter-add-private-form__actions">
+            {{ govukButton({
+              text: "Save and continue",
+              classes: "app-transporter-add-private-form__continue-button"
+            }) }}
+
+            {{ govukButton({
+              text: "Cancel and return to dashboard",
+              name: "action",
+              value: "cancel",
+              classes: "govuk-button--secondary app-transporter-add-private-form__cancel-button"
+            }) }}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

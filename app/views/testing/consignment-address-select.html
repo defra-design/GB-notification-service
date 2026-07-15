@@ -1,0 +1,169 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+
+{% set pageName = heading %}
+
+{% block beforeContent %}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full app-consignment-address-select-page">
+
+    {% include "partials/notification-status.html" %}
+
+    {% if successMessage %}
+      {{ govukNotificationBanner({
+        type: "success",
+        titleText: "Success",
+        text: successMessage,
+        classes: "app-consignment-address-select-page__success-banner"
+      }) }}
+    {% endif %}
+
+    <div class="app-consignment-address-select-page__title">
+      <p class="app-consignment-address-select-page__caption">Consignment parties</p>
+      <h1 class="app-consignment-address-select-page__heading">{{ heading }}</h1>
+      <p class="app-consignment-address-select-page__intro">
+        {{ intro }}
+      </p>
+      {% if introList %}
+        <ul class="govuk-list govuk-list--bullet app-consignment-address-select-page__intro-list">
+          {% for item in introList %}
+            <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+
+    <form method="post" action="{{ formAction }}" novalidate class="app-consignment-address-select-form">
+
+      {% if hiddenFields %}
+        {% for name, value in hiddenFields %}
+          <input type="hidden" name="{{ name }}" value="{{ value }}">
+        {% endfor %}
+      {% endif %}
+
+      {% if data.errorList %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: data.errorList
+        }) }}
+      {% endif %}
+
+      <div class="app-consignment-address-select-page__search" data-module="app-consignment-address-search">
+        <label class="govuk-label app-consignment-address-select-page__search-label" for="{{ searchInputId }}">
+          Search
+        </label>
+        <div id="{{ searchInputId }}-hint" class="govuk-hint app-consignment-address-select-page__search-hint">
+          Name, address or country
+        </div>
+        <div class="app-consignment-address-select-page__search-field">
+          <input
+            class="govuk-input app-consignment-address-select-page__search-input"
+            id="{{ searchInputId }}"
+            name="search"
+            type="search"
+            autocomplete="off"
+            value="{{ searchQuery or '' }}"
+            aria-describedby="{{ searchInputId }}-hint"
+          >
+          <button class="app-consignment-address-select-page__search-button" type="button" aria-label="Search">
+            <span class="app-consignment-address-select-page__search-button-icon" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="app-consignment-address-select-page__results">
+        <h2 class="app-consignment-address-select-page__results-heading">Select an address</h2>
+        <p class="app-consignment-address-select-page__results-count" data-results-count>
+          Showing <span data-results-visible>{{ addressResults.visibleCount }}</span> out of <span data-results-total>{{ addressResults.totalCount }}</span> results
+        </p>
+      </div>
+
+      <div class="app-consignment-address-select-page__table-panel">
+        <fieldset class="govuk-fieldset app-consignment-address-select-page__fieldset">
+          <legend class="govuk-fieldset__legend govuk-visually-hidden">Select an address</legend>
+
+          {% if data.errors and data.errors[formFieldName] %}
+            <p class="govuk-error-message app-consignment-address-select-page__table-error">
+              <span class="govuk-visually-hidden">Error:</span> {{ data.errors[formFieldName].text }}
+            </p>
+          {% endif %}
+
+          <table class="govuk-table app-consignment-address-select-table">
+            <thead class="govuk-table__head">
+              <tr class="govuk-table__row">
+                <th scope="col" class="govuk-table__header app-consignment-address-select-table__header app-consignment-address-select-table__header--select">
+                  <span class="govuk-visually-hidden">Select</span>
+                </th>
+                <th scope="col" class="govuk-table__header app-consignment-address-select-table__header">Name</th>
+                <th scope="col" class="govuk-table__header app-consignment-address-select-table__header">Address</th>
+                <th scope="col" class="govuk-table__header app-consignment-address-select-table__header">Country</th>
+                <th scope="col" class="govuk-table__header app-consignment-address-select-table__header app-consignment-address-select-table__header--action">
+                  <span class="govuk-visually-hidden">Action</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody class="govuk-table__body" data-address-results>
+              {% for address in addressResults.addresses %}
+                <tr class="govuk-table__row app-consignment-address-select-table__row" data-address-row data-search-text="{{ address.searchText }}">
+                  <td class="govuk-table__cell app-consignment-address-select-table__cell app-consignment-address-select-table__cell--select">
+                    <div class="govuk-radios app-consignment-address-select-table__radio">
+                      <div class="govuk-radios__item">
+                        <input
+                          class="govuk-radios__input"
+                          id="{{ inputIdPrefix }}-{{ address.id }}"
+                          name="{{ formFieldName }}"
+                          type="radio"
+                          value="{{ address.id }}"
+                          {% if selectedAddressId == address.id %}checked{% endif %}
+                        >
+                        <label class="govuk-radios__label" for="{{ inputIdPrefix }}-{{ address.id }}">
+                          <span class="govuk-visually-hidden">Select {{ address.name }}</span>
+                        </label>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="govuk-table__cell app-consignment-address-select-table__cell">{{ address.name }}</td>
+                  <td class="govuk-table__cell app-consignment-address-select-table__cell">
+                    {% for line in address.addressLines %}
+                      {{ line }}{% if not loop.last %}<br>{% endif %}
+                    {% endfor %}
+                  </td>
+                  <td class="govuk-table__cell app-consignment-address-select-table__cell">{{ address.country }}</td>
+                  <td class="govuk-table__cell app-consignment-address-select-table__cell app-consignment-address-select-table__cell--action">
+                    <a class="govuk-link" href="{{ address.viewHref }}">View details</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </fieldset>
+      </div>
+
+      {{ govukButton({
+        text: "Add a new address",
+        href: addAddressHref,
+        classes: "govuk-button--secondary app-consignment-address-select-page__add-button"
+      }) }}
+
+      {{ govukButton({
+        text: "Save and continue",
+        classes: "app-consignment-address-select-page__continue-button"
+      }) }}
+
+    </form>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends "layouts/journey.html" %}
+
+{% set journeyPageClass = "app-declaration-page" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% set pageName = "Declaration" %}
+
+{% block beforeContent %}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block journeyContent %}
+
+    {% if data.errorList %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: data.errorList
+      }) }}
+    {% endif %}
+
+    <h1 class="app-declaration-page__title">Declaration</h1>
+
+    <form method="post" action="/testing/declaration" novalidate class="app-declaration-form">
+
+      <section class="app-declaration-page__section" aria-labelledby="declaration-contact-heading">
+        <h2 class="app-declaration-page__section-heading" id="declaration-contact-heading">I am the contact for the authorities and located in the UK.</h2>
+        <p class="app-declaration-page__section-text">I am complying with the requirements of Regulation (EU) 2017/625 including on animal health and welfare.</p>
+      </section>
+
+      <section class="app-declaration-page__section" aria-labelledby="declaration-responsibility-heading">
+        <h2 class="app-declaration-page__section-heading" id="declaration-responsibility-heading">I confirm I am responsible for this consignment.</h2>
+        <p class="app-declaration-page__section-text">I am responsible from the submission of this notification to when it enters Great Britain. And I am responsible until it has either:</p>
+        <ul class="govuk-list govuk-list--bullet app-declaration-page__list">
+          <li>cleared official checks at the border</li>
+          <li>reached the Place of Destination as stated on the health certificate or notification</li>
+        </ul>
+      </section>
+
+      <section class="app-declaration-page__section" aria-labelledby="declaration-accountability-heading">
+        <h2 class="app-declaration-page__section-heading" id="declaration-accountability-heading">I confirm that I am accountable for:</h2>
+        <ul class="govuk-list govuk-list--bullet app-declaration-page__list">
+          <li>any payment for the official controls at the border</li>
+          <li>any arrangements to re-dispatch the consignment</li>
+          <li>any costs needed for quarantine or isolation of consignments</li>
+          <li>any costs needed for destruction and disposal of consignments, when instructed by the authorities</li>
+        </ul>
+        <p class="app-declaration-page__section-text">I am authorised as being accountable for these things if raising notifications on behalf of a third party.</p>
+        <p class="app-declaration-page__section-text">I can legally act on behalf of a third party in relation to the conditions of this declaration.</p>
+      </section>
+
+      <div class="app-declaration-page__checkbox">
+        {{ govukCheckboxes({
+          name: "declarationConfirmed",
+          classes: "govuk-checkboxes--small",
+          fieldset: {
+            legend: {
+              text: "Declaration confirmation",
+              classes: "govuk-visually-hidden"
+            }
+          },
+          errorMessage: data.errors.declarationConfirmed if data.errors and data.errors.declarationConfirmed,
+          items: [{
+            value: "yes",
+            text: "I confirm that I have reviewed and comply with this declaration and that the information submitted in this notification is true and correct.",
+            checked: declarationConfirmed,
+            id: "declaration-confirmed"
+          }]
+        }) }}
+      </div>
+
+      <p class="app-declaration-page__date">
+        Date of declaration: <strong class="app-declaration-page__date-value">{{ declarationDate }}</strong>
+      </p>
+
+      {{ govukButton({
+        text: "Continue"
+      }) }}
+
+    </form>
+
+{% endblock %}

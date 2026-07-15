@@ -1,6 +1,6 @@
 const notifications = [
   {
-    reference: 'GBN-AG-26-7K8M2P',
+    reference: 'GB.2026.7963913 - CHEDA',
     commodities: '010410, 010420',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -9,7 +9,7 @@ const notifications = [
     viewHref: '/notification-hub'
   },
   {
-    reference: 'GBN-AG-26-B3N9QW',
+    reference: 'GB.2026.7963914 - CHEDA',
     commodities: '0102',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -18,16 +18,16 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-C4R2TX',
+    reference: 'GB.2026.7963915 - CHEDA',
     commodities: '0101',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
-    origin: 'Ireland',
+    origin: 'Republic of Ireland',
     arrivalDate: '15 March 2026',
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-D5M7HK',
+    reference: 'GB.2026.7963916 - CHEDA',
     commodities: '0103',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -36,7 +36,7 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-E6P1VN',
+    reference: 'GB.2026.7963917 - CHEDA',
     commodities: '01061900',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -45,7 +45,7 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-F8L4JD',
+    reference: 'GB.2026.7963918 - CHEDA',
     commodities: '010511, 010512',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -54,7 +54,7 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-G2W9RC',
+    reference: 'GB.2026.7963919 - CHEDA',
     commodities: '010614',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -63,7 +63,7 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-H7Y3MB',
+    reference: 'GB.2026.7963920 - CHEDA',
     commodities: '010410',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -72,7 +72,7 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-J1K6PF',
+    reference: 'GB.2026.7963921 - CHEDA',
     commodities: '0102, 0103',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -81,7 +81,7 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-K9D2SL',
+    reference: 'GB.2026.7963922 - CHEDA',
     commodities: '010420',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -90,16 +90,16 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-L4H8WQ',
+    reference: 'GB.2026.7963923 - CHEDA',
     commodities: '0101',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
-    origin: 'Ireland',
+    origin: 'Republic of Ireland',
     arrivalDate: '11 April 2026',
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-M3T5NZ',
+    reference: 'GB.2026.7963924 - CHEDA',
     commodities: '010511',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -108,7 +108,7 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-N6V1GC',
+    reference: 'GB.2026.7963925 - CHEDA',
     commodities: '01061900',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -117,7 +117,7 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-P2X7RA',
+    reference: 'GB.2026.7963926 - CHEDA',
     commodities: '010614',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -126,7 +126,7 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-Q8B4UE',
+    reference: 'GB.2026.7963927 - CHEDA',
     commodities: '010410, 010420',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -135,7 +135,7 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-R5C9HM',
+    reference: 'GB.2026.7963928 - CHEDA',
     commodities: '0102',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -144,7 +144,7 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-S1F3KT',
+    reference: 'GB.2026.7963929 - CHEDA',
     commodities: '0103',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -153,7 +153,7 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-T7J2WD',
+    reference: 'GB.2026.7963930 - CHEDA',
     commodities: '0101, 0102',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -162,16 +162,16 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-U4L6YP',
+    reference: 'GB.2026.7963931 - CHEDA',
     commodities: '010512',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
-    origin: 'Ireland',
+    origin: 'Republic of Ireland',
     arrivalDate: '6 May 2026',
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-V9N8QJ',
+    reference: 'GB.2026.7963932 - CHEDA',
     commodities: '01061900',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -180,7 +180,7 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-W2P5MC',
+    reference: 'GB.2026.7963933 - CHEDA',
     commodities: '010614',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -189,7 +189,7 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-X6R1HB',
+    reference: 'GB.2026.7963934 - CHEDA',
     commodities: '010410',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -198,7 +198,7 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-Y3S7LF',
+    reference: 'GB.2026.7963935 - CHEDA',
     commodities: '01064100',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -207,7 +207,7 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-Z8T4NG',
+    reference: 'GB.2026.7963936 - CHEDA',
     commodities: '0102',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -216,7 +216,7 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-A5U9VK',
+    reference: 'GB.2026.7963937 - CHEDA',
     commodities: '0101',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -225,7 +225,7 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-B1W2XD',
+    reference: 'GB.2026.7963938 - CHEDA',
     commodities: '0103, 010614',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -234,16 +234,16 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-C7Y6PM',
+    reference: 'GB.2026.7963939 - CHEDA',
     commodities: '010512',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
-    origin: 'Ireland',
+    origin: 'Republic of Ireland',
     arrivalDate: '30 May 2026',
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-D4Z3QS',
+    reference: 'GB.2026.7963940 - CHEDA',
     commodities: '01061900',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -252,7 +252,7 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-E9A8RT',
+    reference: 'GB.2026.7963941 - CHEDA',
     commodities: '010410, 010420',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -261,7 +261,7 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-F2B5UW',
+    reference: 'GB.2026.7963942 - CHEDA',
     commodities: '010614',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -270,7 +270,7 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-G6C1VX',
+    reference: 'GB.2026.7963943 - CHEDA',
     commodities: '0102',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
@@ -279,7 +279,7 @@ const notifications = [
     viewHref: '#'
   },
   {
-    reference: 'GBN-AG-26-H3D7WY',
+    reference: 'GB.2026.7963944 - CHEDA',
     commodities: '0101, 0103',
     statusText: 'Draft',
     statusTagClass: 'govuk-tag--blue',
