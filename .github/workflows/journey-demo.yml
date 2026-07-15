@@ -1,0 +1,40 @@
+name: Journey demo
+
+# Records the notification-journey walk-throughs and publishes the HTML report
+# (with videos) as a downloadable, shareable artefact.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: # lets you run it by hand from the Actions tab, on any branch
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install the browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Record the walk-throughs
+        run: npm run test:prototype
+
+      - name: Publish the report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: journey-demo-report
+          path: journey-demo/playwright-report
+          retention-days: 30

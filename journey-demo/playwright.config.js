@@ -1,3 +1,4 @@
+const path = require('path')
 const { defineConfig, devices } = require('@playwright/test')
 
 // This suite exists to DEMONSTRATE the notification journey — the video and
@@ -6,23 +7,30 @@ const { defineConfig, devices } = require('@playwright/test')
 module.exports = defineConfig({
   testDir: './e2e',
   testMatch: '**/*.spec.js',
-  // Each test resets its own session via /create-notification before walking,
-  // so parallel runs don't clobber each other.
   // Run serially: the kit's dev server shares journey state in a way that races
   // across concurrent sessions, intermittently dropping a page's data. The suite
   // is small, so serial is both reliable and plenty fast.
   fullyParallel: false,
   workers: 1,
-  timeout: 240_000,
+  timeout: 600_000,
   expect: { timeout: 15_000 },
-  reporter: [['html', { open: 'never' }], ['list']],
+  // Keep every artefact inside journey-demo/ (resolved from this config's
+  // location) so nothing lands in the prototype root, wherever it's run from.
+  outputDir: path.join(__dirname, 'test-results'),
+  reporter: [
+    ['html', { open: 'never', outputFolder: path.join(__dirname, 'playwright-report') }],
+    ['list']
+  ],
   use: {
     baseURL: 'http://localhost:3000',
     actionTimeout: 15_000,
     navigationTimeout: 30_000,
+    // Pacing is done explicitly in the specs (natural typing + short pauses on
+    // each new page), so no global slow-mo by default. Set DEMO_SLOWMO to add a
+    // uniform delay to every action if you want to slow everything down further.
     launchOptions: {
       slowMo:
-        process.env.DEMO_SLOWMO !== undefined ? Number(process.env.DEMO_SLOWMO) : 600
+        process.env.DEMO_SLOWMO !== undefined ? Number(process.env.DEMO_SLOWMO) : 0
     },
     // A tall viewport so the full page fits in frame (GDS journey pages are
     // long), recorded at full resolution so the video stays legible.
@@ -35,10 +43,12 @@ module.exports = defineConfig({
     { name: 'chromium', use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 1200 } } }
   ],
   webServer: {
-    // Development mode, NOT `serve`: production mode applies the kit's
+    // Boots the prototype from the repo root (see serve-prototype.js). It runs
+    // the kit in development mode, NOT `serve`: production mode applies the kit's
     // forceHttps redirect (http → https on a plaintext server = SSL error) and
     // sets secure-only session cookies that break yar over http.
-    command: 'npm run dev',
+    command: 'node serve-prototype.js',
+    cwd: __dirname,
     // Wait on the TCP port rather than an HTTP GET: the kit's server accepts
     // connections well before an HTTP probe settles under Node 24, so a port
     // check is both faster and reliable here.

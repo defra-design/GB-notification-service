@@ -3,6 +3,7 @@ const journeyHelpers = require('./journey')
 
 const {
   JOURNEYS,
+  pause,
   resetSession,
   saveToHub,
   fillOrigin,
@@ -21,6 +22,8 @@ const {
   fillReview,
   fillDeclaration
 } = journeyHelpers
+
+const STEP_PAUSE_HUB = 1400 // pause so viewers can read the task list
 
 // One demo walk per journey variant. The video + trace are the deliverable;
 // the assertions only pin that each conditional branch appeared (or didn't) and
@@ -104,9 +107,11 @@ test.describe('walk — task list (save to the hub and submit)', () => {
     await expect(page).toHaveURL(/\/notification-hub$/)
     await expect(page.getByRole('link', { name: 'Arrival details' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Roles and addresses' })).toBeVisible()
+    await pause(page, STEP_PAUSE_HUB)
 
     // Review and submit from here.
     await page.goto('/review-notification')
+    await pause(page, STEP_PAUSE_HUB)
     await fillReview(page)
     await expect(page).toHaveURL(/\/declaration$/)
     await fillDeclaration(page)

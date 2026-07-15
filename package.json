@@ -3,8 +3,8 @@
     "dev": "govuk-prototype-kit dev",
     "serve": "govuk-prototype-kit serve",
     "start": "govuk-prototype-kit start",
-    "test:prototype": "DEMO_SLOWMO=600 playwright test",
-    "test:prototype:report": "playwright show-report"
+    "test:prototype": "playwright test --config journey-demo/playwright.config.js",
+    "test:prototype:report": "playwright show-report journey-demo/playwright-report"
   },
   "dependencies": {
     "@govuk-prototype-kit/common-templates": "3.0.0",
