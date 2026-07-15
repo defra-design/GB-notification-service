@@ -51,8 +51,15 @@ the point of the exercise. They live under `journey-demo/`:
   zip this folder to share it.
 - `journey-demo/test-results/` — the raw videos and traces.
 
-Both are regenerated on every run and are git-ignored. A GitHub Actions run also
-publishes the report as a downloadable artefact (see below).
+Both are regenerated on every run and are git-ignored.
+
+On every push to `main` (or a manual run from the Actions tab), a GitHub Actions
+workflow records the walks and publishes the report to **GitHub Pages** at a
+stable URL — `https://defra-design.github.io/GB-notification-service/`. Each run
+**replaces** the previous report (the `gh-pages` branch is force-orphaned to a
+single commit), so nothing accumulates. One-time setup: an org/repo admin needs
+to turn on Pages once — Settings → Pages → Build and deployment → Deploy from a
+branch → `gh-pages` / root.
 
 ## Keeping the demo up to date when the prototype changes
 
