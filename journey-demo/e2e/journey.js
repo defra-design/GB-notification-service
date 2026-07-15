@@ -89,13 +89,34 @@ const JOURNEYS = [
 const TYPE_DELAY = 80    // ms per character while typing
 const FIELD_PAUSE = 500  // ms after filling or choosing a field
 const STEP_PAUSE = 1400  // ms after the page changes, to take it in
+const SCROLL_PAUSE = 400 // ms for the scroll-to-centre to settle
 
 function pause (page, ms) {
   return page.waitForTimeout(ms)
 }
 
+// Scrolls a target to the middle of the frame before we touch it, so it (and
+// the page around it) stays comfortably in shot rather than at the very bottom
+// edge, where Playwright's default "scroll just enough" leaves it.
+async function scrollTo (locator) {
+  await locator.scrollIntoViewIfNeeded()
+  await locator.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'smooth' }))
+  await locator.page().waitForTimeout(SCROLL_PAUSE)
+}
+
+async function clickAt (locator) {
+  await scrollTo(locator)
+  await locator.click()
+}
+
+async function checkAt (locator) {
+  await scrollTo(locator)
+  await locator.check()
+}
+
 // Types a value character by character into a text box, as a person would.
 async function typeInto (locator, value) {
+  await scrollTo(locator)
   await locator.click()
   await locator.fill('')
   await locator.pressSequentially(String(value), { delay: TYPE_DELAY })
@@ -109,12 +130,14 @@ async function fillText (page, name, value) {
 }
 
 async function pickRadio (page, name, value) {
-  await page.locator(`input[name="${name}"][value="${value}"]`).check()
+  await checkAt(page.locator(`input[name="${name}"][value="${value}"]`))
   await pause(page, FIELD_PAUSE)
 }
 
 async function selectValue (page, name, value) {
-  await page.locator(`select[name="${name}"]`).selectOption(value)
+  const select = page.locator(`select[name="${name}"]`)
+  await scrollTo(select)
+  await select.selectOption(value)
   await pause(page, FIELD_PAUSE)
 }
 
@@ -123,21 +146,19 @@ async function selectValue (page, name, value) {
 // submit ("Save and continue" / "Accept and submit").
 async function clickContinue (page) {
   const action = page.locator('button[name="action"][value="continue"]')
-  if (await action.count()) {
-    await action.first().click()
-  } else {
-    await page
+  const button = (await action.count())
+    ? action.first()
+    : page
       .getByRole('button', { name: /save and continue|continue|accept and submit|confirm|submit/i })
       .first()
-      .click()
-  }
+  await clickAt(button)
   await pause(page, STEP_PAUSE)
 }
 
 // Clicks the "Save and return to overview" button (action=hub) to jump to the
 // task list mid-journey.
 async function saveToHub (page) {
-  await page.locator('button[name="action"][value="hub"]').first().click()
+  await clickAt(page.locator('button[name="action"][value="hub"]').first())
   await pause(page, STEP_PAUSE)
 }
 
@@ -150,6 +171,7 @@ async function pickFromAutocomplete (page, inputId, field) {
   const option = page
     .locator('button.app-country-search__option', { hasText: field.option })
     .first()
+  await scrollTo(input)
   await input.click()
   await input.fill('')
   await input.pressSequentially(field.search, { delay: TYPE_DELAY })
@@ -163,7 +185,7 @@ async function pickFromAutocomplete (page, inputId, field) {
     await input.pressSequentially(field.search.slice(-1), { delay: TYPE_DELAY })
     await option.waitFor({ state: 'visible', timeout: 8000 })
   }
-  await option.click()
+  await clickAt(option)
   await pause(page, FIELD_PAUSE)
 }
 
@@ -179,7 +201,7 @@ async function fillOrigin (page, journey) {
 async function fillCommodity (page, journey) {
   const search = page.locator('#commodity-search')
   await typeInto(search, journey.species.search)
-  await page.locator(`#commodity-species-${journey.species.id}`).check()
+  await checkAt(page.locator(`#commodity-species-${journey.species.id}`))
   await pause(page, FIELD_PAUSE)
   // The checkbox's change handler writes the selection into the hidden
   // selectedSpecies field asynchronously — wait for it so the POST carries the
@@ -221,10 +243,10 @@ async function fillAnimalIdentification (page, journey) {
       await typeInto(fields.nth(i), `UK-${journey.species.id}-${a + 1}-${i + 1}`)
       await pause(page, FIELD_PAUSE)
     }
-    await page.locator('button[name="action"][value^="save:"]').first().click()
+    await clickAt(page.locator('button[name="action"][value^="save:"]').first())
     await pause(page, STEP_PAUSE)
   }
-  await page.locator('button[name="action"][value="continue"]').first().click()
+  await clickAt(page.locator('button[name="action"][value="continue"]').first())
   await pause(page, STEP_PAUSE)
 }
 
@@ -273,7 +295,7 @@ async function fillUploadDocuments (page) {
 // between sections; the caller then continues off the roles page.
 async function fillAddressSections (page, journey) {
   for (const section of journey.addressSections || []) {
-    await page.locator(`a[href="${section.href}"]`).first().click()
+    await clickAt(page.locator(`a[href="${section.href}"]`).first())
     await pause(page, STEP_PAUSE)
     if (section.kind === 'radio') {
       await pickRadio(page, section.field, section.value)
@@ -286,11 +308,11 @@ async function fillAddressSections (page, journey) {
       const sameAsPod = page.locator('input[value="same-as-pod"]')
       const n = await sameAsPod.count()
       for (let i = 0; i < n; i += 1) {
-        await sameAsPod.nth(i).check()
+        await checkAt(sameAsPod.nth(i))
         await pause(page, FIELD_PAUSE)
       }
     }
-    await page.getByRole('button', { name: /save and continue/i }).first().click()
+    await clickAt(page.getByRole('button', { name: /save and continue/i }).first())
     await page.waitForURL('**/roles-and-addresses')
     await pause(page, STEP_PAUSE)
   }
@@ -310,7 +332,7 @@ async function fillReview (page) {
 }
 
 async function fillDeclaration (page) {
-  await page.locator('#declaration-confirmed').check()
+  await checkAt(page.locator('#declaration-confirmed'))
   await pause(page, FIELD_PAUSE)
   await clickContinue(page)
 }

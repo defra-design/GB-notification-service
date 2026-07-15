@@ -90,5 +90,7 @@ walk-throughs reflect recent changes to the prototype:
   makes sure the kit's usage-data prompt can't hang a non-interactive run.
 - Readiness waits on the TCP **port**, not an HTTP GET — the kit accepts
   connections before an HTTP probe settles under Node 24.
-- The walks run **serially** (`workers: 1`): the kit's dev server races journey
-  state across concurrent sessions, so parallel runs intermittently drop data.
+- The walks run in **parallel** (`workers: 4`). Each uses its own browser
+  context and the prototype keeps state in `req.session.data` (per session), so
+  they stay isolated. Text-entry helpers wait for the page to catch up before
+  moving on, which keeps the parallel runs reliable.

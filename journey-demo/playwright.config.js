@@ -7,11 +7,11 @@ const { defineConfig, devices } = require('@playwright/test')
 module.exports = defineConfig({
   testDir: './e2e',
   testMatch: '**/*.spec.js',
-  // Run serially: the kit's dev server shares journey state in a way that races
-  // across concurrent sessions, intermittently dropping a page's data. The suite
-  // is small, so serial is both reliable and plenty fast.
-  fullyParallel: false,
-  workers: 1,
+  // Run the walks in parallel to save wall-clock time. Each test uses its own
+  // browser context (separate cookies), and the prototype keeps journey state in
+  // req.session.data (per session), so the walks don't tread on each other.
+  fullyParallel: true,
+  workers: 4,
   timeout: 600_000,
   expect: { timeout: 15_000 },
   // Keep every artefact inside journey-demo/ (resolved from this config's
