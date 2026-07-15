@@ -1,7 +1,6 @@
 // Exit border control posts for transit imports — EU notification service design
 
 module.exports = [
-  'APHA - GBAPHA1A',
   'Edinburgh Airport (animals) - GBEDI4',
   'Gatwick Airport (animals) - GBLGW4',
   'Glasgow Airport (animals) - GBGLA002',

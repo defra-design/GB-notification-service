@@ -608,7 +608,32 @@ function parseNumberOfAnimals (body, speciesIds) {
 }
 
 function validateNumberOfAnimals (values, speciesIds) {
-  return { errors: {}, errorList: [] }
+  const errors = {}
+  const errorList = []
+
+  speciesIds.forEach((speciesId) => {
+    const value = values[speciesId]
+    const errorId = `number-of-animals-${speciesId}`
+
+    if (!value) {
+      errors[`numberOfAnimals-${speciesId}`] = { text: 'Enter the number of animals' }
+      errorList.push({
+        text: 'Enter the number of animals',
+        href: `#${errorId}`
+      })
+      return
+    }
+
+    if (!/^\d+$/.test(value) || Number(value) < 1) {
+      errors[`numberOfAnimals-${speciesId}`] = { text: 'Enter a whole number greater than 0' }
+      errorList.push({
+        text: 'Enter a whole number greater than 0',
+        href: `#${errorId}`
+      })
+    }
+  })
+
+  return { errors, errorList }
 }
 
 function parseNumberOfPackages (body, speciesIds) {
@@ -6436,6 +6461,10 @@ router.post('/roles-and-addresses', (req, res) => {
 
   req.session.data.errorList = null
   req.session.data.errors = null
+
+  if (action === 'hub') {
+    return res.redirect('/notification-hub')
+  }
 
   return res.redirect(getNextJourneyPath('/roles-and-addresses', req.session.data))
 })
