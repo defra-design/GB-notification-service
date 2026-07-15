@@ -24,12 +24,16 @@ module.exports = defineConfig({
       slowMo:
         process.env.DEMO_SLOWMO !== undefined ? Number(process.env.DEMO_SLOWMO) : 600
     },
-    // Retain video + trace for every run — these ARE the demo artefacts.
-    video: 'on',
+    // A tall viewport so the full page fits in frame (GDS journey pages are
+    // long), recorded at full resolution so the video stays legible.
+    viewport: { width: 1280, height: 1200 },
+    video: { mode: 'on', size: { width: 1280, height: 1200 } },
     trace: 'on',
     screenshot: 'only-on-failure'
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 1200 } } }
+  ],
   webServer: {
     // Development mode, NOT `serve`: production mode applies the kit's
     // forceHttps redirect (http → https on a plaintext server = SSL error) and

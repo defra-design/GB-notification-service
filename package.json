@@ -3,8 +3,7 @@
     "dev": "govuk-prototype-kit dev",
     "serve": "govuk-prototype-kit serve",
     "start": "govuk-prototype-kit start",
-    "test:prototype": "DEMO_SLOWMO=0 playwright test",
-    "test:prototype:demo": "DEMO_SLOWMO=600 playwright test",
+    "test:prototype": "DEMO_SLOWMO=600 playwright test",
     "test:prototype:report": "playwright show-report"
   },
   "dependencies": {

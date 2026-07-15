@@ -13,21 +13,20 @@ and the data-driven variants exercise the journey's conditional branches.
 npm install
 npx playwright install chromium   # one-off, installs the browser
 
-npm run test:prototype        # fast walk (no pauses) — quick pass/fail check
-npm run test:prototype:demo   # recording pace (~600ms/action) — for the video
+npm run test:prototype        # runs the walks at demo pace and records them
 npm run test:prototype:report # open the HTML report (videos + traces attached)
 ```
 
 Playwright boots the prototype itself (`npm run dev`, in development mode) and
 tears it down after — you don't need a server running. Each test resets its own
-session first (`GET /create-notification`), so runs are independent and parallel.
+session first (`GET /create-notification`).
 
-Pacing is controlled by the `DEMO_SLOWMO` environment variable (milliseconds per
-action). Override it directly for a custom pace:
+The walks run at a watchable demo pace (~600ms per action) and record in a tall
+1280×1200 frame so the full page stays in shot. Adjust the pace with the
+`DEMO_SLOWMO` environment variable (milliseconds per action):
 
 ```bash
-DEMO_SLOWMO=1000 npx playwright test        # very slow, presentation pace
-DEMO_SLOWMO=0 npx playwright test --headed   # watch it live at full speed
+DEMO_SLOWMO=1000 npm run test:prototype   # slower, presentation pace
 ```
 
 ## Artefacts
