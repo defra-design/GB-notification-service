@@ -8,7 +8,11 @@ module.exports = defineConfig({
   testMatch: '**/*.spec.js',
   // Each test resets its own session via /create-notification before walking,
   // so parallel runs don't clobber each other.
-  fullyParallel: true,
+  // Run serially: the kit's dev server shares journey state in a way that races
+  // across concurrent sessions, intermittently dropping a page's data. The suite
+  // is small, so serial is both reliable and plenty fast.
+  fullyParallel: false,
+  workers: 1,
   timeout: 240_000,
   expect: { timeout: 15_000 },
   reporter: [['html', { open: 'never' }], ['list']],

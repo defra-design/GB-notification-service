@@ -43,10 +43,12 @@ npx playwright show-trace test-results/.../trace.zip   # step-by-step trace view
 
 ## What the walks cover
 
-| Variant | Branch demonstrated |
+| Walk | What it demonstrates |
 |---|---|
-| Cattle imported by air | `animal-identification-details` inserted (species with identifiers); transit skipped |
-| Poultry imported by rail | `transit-countries` inserted (rail); animal identification skipped |
+| Cattle imported by air | `animal-identification-details` branch; identifiers entered; **every** address sub-section filled (a complete notification); transit skipped |
+| Poultry imported by rail | `transit-countries` branch (rail); animal identification skipped |
+| Pet cat imported by air | `animal-identification-details` branch; the **permanent-address** sub-journey |
+| Task list | Part-fill, save to the `notification-hub` task list, then review and submit from there |
 
 ## Files
 
@@ -63,3 +65,5 @@ npx playwright show-trace test-results/.../trace.zip   # step-by-step trace view
   sets secure-only session cookies.
 - The `webServer` readiness check waits on the TCP **port**, not an HTTP GET —
   the kit's server accepts connections before an HTTP probe settles under Node 24.
+- Runs serially (`workers: 1`): the kit's dev server races journey state across
+  concurrent sessions, so parallel runs intermittently drop a page's data.

@@ -4,6 +4,7 @@ const journeyHelpers = require('./journey')
 const {
   JOURNEYS,
   resetSession,
+  saveToHub,
   fillOrigin,
   fillCommodity,
   fillReason,
@@ -14,6 +15,7 @@ const {
   fillTransitCountries,
   fillTransporter,
   fillUploadDocuments,
+  fillAddressSections,
   fillRolesAndAddresses,
   fillContactAddress,
   fillReview,
@@ -39,7 +41,7 @@ for (const journey of JOURNEYS) {
       // Conditional — animal identification (inserted for species with identifiers)
       if (journey.hasAnimalIdentification) {
         await expect(page).toHaveURL(/\/animal-identification-details$/)
-        await fillAnimalIdentification(page)
+        await fillAnimalIdentification(page, journey)
       } else {
         await expect(page).not.toHaveURL(/\/animal-identification-details$/)
       }
@@ -61,6 +63,10 @@ for (const journey of JOURNEYS) {
       await fillUploadDocuments(page)
 
       // Section 3 — roles, addresses and declaration
+      await expect(page).toHaveURL(/\/roles-and-addresses$/)
+      if (journey.addressSections) {
+        await fillAddressSections(page, journey)
+      }
       await fillRolesAndAddresses(page)
       await fillContactAddress(page, journey)
       await fillReview(page)
@@ -75,3 +81,39 @@ for (const journey of JOURNEYS) {
     })
   })
 }
+
+// Task-list walk: part-fill the journey, save to the hub to surface the task
+// list, then submit straight from the task list.
+test.describe('walk — task list (save to the hub and submit)', () => {
+  test('saves progress to the hub, then submits from the task list', async ({ page }) => {
+    const journey = JOURNEYS[0] // cattle
+
+    await resetSession(page)
+    await fillOrigin(page, journey)
+    await fillCommodity(page, journey)
+    await fillReason(page, journey)
+
+    // On commodity details, return to the overview instead of continuing.
+    const count = page.locator(`input[name="numberOfAnimals[${journey.species.id}]"]`)
+    if (await count.count()) {
+      await count.fill(journey.animalCount)
+    }
+    await saveToHub(page)
+
+    // The task list, showing the sections completed so far.
+    await expect(page).toHaveURL(/\/notification-hub$/)
+    await expect(page.getByRole('link', { name: 'Arrival details' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Roles and addresses' })).toBeVisible()
+
+    // Review and submit from here.
+    await page.goto('/review-notification')
+    await fillReview(page)
+    await expect(page).toHaveURL(/\/declaration$/)
+    await fillDeclaration(page)
+
+    await expect(page).toHaveURL(/\/notification-submitted$/)
+    await expect(
+      page.getByRole('heading', { name: 'Import notification submitted' })
+    ).toBeVisible()
+  })
+})
