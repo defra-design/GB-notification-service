@@ -34,7 +34,9 @@ const TRANSIT_MEANS_OF_TRANSPORT = ['Railway', 'Road Vehicle']
 const importReasonValues = importReasons.map((reason) => reason.value)
 const internalMarketPurposeValues = internalMarketPurposes.map((purpose) => purpose.value)
 
-const PROTOTYPE_NOTIFICATION_REFERENCE = 'GB.2026.7963913 - CHEDA'
+const DESIGN_RELEASE_NOTIFICATION_REFERENCE = 'GBN-AG-26-7K8M2P'
+const TESTING_NOTIFICATION_REFERENCE = 'GB.2026.7963913 - CHEDA'
+const PROTOTYPE_NOTIFICATION_REFERENCE = DESIGN_RELEASE_NOTIFICATION_REFERENCE
 
 function getCommodityById (commodityId) {
   return commodities.find((commodity) => commodity.id === commodityId)
@@ -72,13 +74,61 @@ function getRegionOfOriginCodeSuffix (sessionData) {
   return code.slice(separatorIndex + 1).trim()
 }
 
+function isTestingSessionData (sessionData) {
+  return Boolean(sessionData && sessionData._isTestingVersion)
+}
+
+function getPrototypeNotificationReference (sessionData) {
+  return isTestingSessionData(sessionData)
+    ? TESTING_NOTIFICATION_REFERENCE
+    : DESIGN_RELEASE_NOTIFICATION_REFERENCE
+}
+
+function isDesignReleaseNotificationReference (reference) {
+  return /^GBN-[A-Z]{2}-\d{2}-[A-Z0-9]+$/i.test(String(reference || '').trim())
+}
+
+function isTestingNotificationReference (reference) {
+  return /^GB\.\d{4}\.\d{7}\s*-\s*[A-Z0-9]+$/i.test(String(reference || '').trim())
+}
+
 function ensurePrototypeNotificationReference (sessionData) {
   const value = String(sessionData.notificationReference || '').trim()
-  const isNewFormat = /^GB\.\d{4}\.\d{7}\s*-\s*[A-Z0-9]+$/i.test(value)
+  const expected = getPrototypeNotificationReference(sessionData)
 
-  if (!value || !isNewFormat) {
-    sessionData.notificationReference = PROTOTYPE_NOTIFICATION_REFERENCE
+  if (isTestingSessionData(sessionData)) {
+    if (!value || !isTestingNotificationReference(value)) {
+      sessionData.notificationReference = expected
+    }
+    return
   }
+
+  if (!value || !isDesignReleaseNotificationReference(value)) {
+    sessionData.notificationReference = expected
+  }
+}
+
+function toDesignReleaseDashboardReference (reference, index = 0) {
+  const value = String(reference || '').trim()
+
+  if (isDesignReleaseNotificationReference(value)) {
+    return value
+  }
+
+  const match = value.match(/^GB\.(\d{4})\.(\d{7})\s*-\s*[A-Z0-9]+$/i)
+
+  if (match && match[2] === '7963913') {
+    return DESIGN_RELEASE_NOTIFICATION_REFERENCE
+  }
+
+  if (index === 0) {
+    return DESIGN_RELEASE_NOTIFICATION_REFERENCE
+  }
+
+  const sequence = match ? Number(match[2]) : (7963913 + index)
+  const code = sequence.toString(36).toUpperCase().padStart(6, '0').slice(-6)
+
+  return `GBN-AG-26-${code}`
 }
 
 function resetNotificationJourneySession (sessionData) {
@@ -125,7 +175,37 @@ function seedPrototypeSessionForReasonForImport (sessionData) {
 }
 
 function hasOriginDetails (sessionData) {
-  return Boolean(sessionData.countryOfOrigin)
+  const countryOfOrigin = (sessionData.countryOfOrigin || '').trim()
+  const regionOfOriginRequired = (sessionData.regionOfOriginRequired || '').trim()
+
+  if (!countryOfOrigin || !regionOfOriginRequired) {
+    return false
+  }
+
+  if (regionOfOriginRequired === 'Yes') {
+    return Boolean(getRegionOfOriginCodeSuffix(sessionData))
+  }
+
+  return regionOfOriginRequired === 'No'
+}
+
+function validateOriginOfImport ({
+  countryOfOrigin,
+  regionOfOriginRequired,
+  regionOfOriginCodeSuffix
+}) {
+  const errors = {}
+  const errorList = []
+
+  if (regionOfOriginRequired === 'Yes' && !regionOfOriginCodeSuffix) {
+    errors.regionOfOriginCodeSuffix = { text: 'Enter the region of origin code' }
+    errorList.push({
+      text: 'Enter the region of origin code',
+      href: '#region-of-origin-code-suffix'
+    })
+  }
+
+  return { errors, errorList }
 }
 
 function redirectIfNoOrigin (req, res) {
@@ -587,6 +667,25 @@ function hasCommoditySelection (sessionData) {
   return normalizeSelectedSpecies(sessionData.selectedSpecies).length > 0
 }
 
+function validateCommoditySelection (selectedSpecies, commoditySelections) {
+  const hasSelection = normalizeSelectedSpecies(selectedSpecies).length > 0 ||
+    parseCommoditySelections(commoditySelections).length > 0
+
+  if (hasSelection) {
+    return { errors: {}, errorList: [] }
+  }
+
+  return {
+    errors: {
+      commoditySearch: { text: 'Select a commodity' }
+    },
+    errorList: [{
+      text: 'Select a commodity',
+      href: '#commodity-search'
+    }]
+  }
+}
+
 function redirectIfNoCommodity (req, res) {
   return false
 }
@@ -776,7 +875,20 @@ function clearAddressBookContactReturn (sessionData) {
 function validateContactAddress (addressId, sessionData = {}) {
   const address = getContactAddressById(addressId, sessionData)
 
-  return { errors: {}, errorList: [], address }
+  if (address) {
+    return { errors: {}, errorList: [], address }
+  }
+
+  return {
+    errors: {
+      contactAddressId: { text: 'Select a contact address' }
+    },
+    errorList: [{
+      text: 'Select a contact address',
+      href: '#contact-address'
+    }],
+    address: null
+  }
 }
 
 function getUnweanedOptions (sessionData) {
@@ -957,6 +1069,83 @@ function hasImportReasonComplete (sessionData) {
   return true
 }
 
+function validateImportReasonProceed ({
+  importReason,
+  internalMarketPurpose,
+  transhipmentDestinationCountry,
+  transitExitBorderControlPost,
+  transitDestinationCountry,
+  temporaryAdmissionExitDate,
+  temporaryAdmissionPortOfExit
+}) {
+  const errors = {}
+  const errorList = []
+
+  // Soft validation: a main reason is optional to proceed, but once selected
+  // any further information required for that reason must be completed.
+  if (!importReasonValues.includes(importReason)) {
+    return { errors, errorList }
+  }
+
+  if (importReason === 'Internal market' &&
+    !internalMarketPurposeValues.includes(internalMarketPurpose)) {
+    errors.internalMarketPurpose = { text: 'Select a purpose in the internal market' }
+    errorList.push({
+      text: 'Select a purpose in the internal market',
+      href: '#internal-market-purpose'
+    })
+  }
+
+  if (importReason === 'Transhipment or onward travel' &&
+    !countryLabels.includes(transhipmentDestinationCountry)) {
+    errors.transhipmentDestinationCountry = { text: 'Select a destination country' }
+    errorList.push({
+      text: 'Select a destination country',
+      href: '#transhipment-destination-country'
+    })
+  }
+
+  if (importReason === 'Transit') {
+    if (!isValidExitBorderControlPost(transitExitBorderControlPost)) {
+      errors.transitExitBorderControlPost = { text: 'Select a port of exit' }
+      errorList.push({
+        text: 'Select a port of exit',
+        href: '#transit-exit-border-control-post'
+      })
+    }
+
+    if (!countryLabels.includes(transitDestinationCountry)) {
+      errors.transitDestinationCountry = { text: 'Select a destination country' }
+      errorList.push({
+        text: 'Select a destination country',
+        href: '#transit-destination-country'
+      })
+    }
+  }
+
+  if (importReason === 'Temporary admission horses') {
+    if (!parseArrivalDisplayDate(temporaryAdmissionExitDate)) {
+      errors.temporaryAdmissionExitDate = {
+        text: temporaryAdmissionExitDate ? 'Enter a real date' : 'Enter an exit date'
+      }
+      errorList.push({
+        text: errors.temporaryAdmissionExitDate.text,
+        href: '#temporary-admission-exit-date'
+      })
+    }
+
+    if (!isValidExitBorderControlPost(temporaryAdmissionPortOfExit)) {
+      errors.temporaryAdmissionPortOfExit = { text: 'Select a port of exit' }
+      errorList.push({
+        text: 'Select a port of exit',
+        href: '#temporary-admission-port-of-exit'
+      })
+    }
+  }
+
+  return { errors, errorList }
+}
+
 function redirectIfNoImportReason (req, res) {
   return false
 }
@@ -988,6 +1177,37 @@ function getIdentifierFieldsForSpecies (speciesId) {
 function hasAnimalIdentifiersRequired (sessionData) {
   return normalizeSelectedSpecies(sessionData.selectedSpecies).some((speciesId) => {
     return getIdentifierFieldsForSpecies(speciesId).length > 0
+  })
+}
+
+function hasMultipleSpeciesSelected (sessionData) {
+  return normalizeSelectedSpecies(sessionData.selectedSpecies).length > 1
+}
+
+function hasAtLeastOneAnimalIdentifierForSpecies (sessionData, speciesId) {
+  const fields = getIdentifierFieldsForSpecies(speciesId)
+
+  if (!fields.length) {
+    return true
+  }
+
+  const animals = getAnimalIdentifiers(sessionData)[speciesId] || []
+
+  return animals.some((animal) => isAnimalIdentifierEntryComplete(animal, fields))
+}
+
+function requiresAnimalIdentifiersForSubmit (sessionData) {
+  return hasMultipleSpeciesSelected(sessionData) && hasAnimalIdentifiersRequired(sessionData)
+}
+
+function hasMinimumAnimalIdentifiersForSubmit (sessionData) {
+  if (!requiresAnimalIdentifiersForSubmit(sessionData)) {
+    return true
+  }
+
+  // Multiple species: at least one complete identifier entry per species.
+  return normalizeSelectedSpecies(sessionData.selectedSpecies).every((speciesId) => {
+    return hasAtLeastOneAnimalIdentifierForSpecies(sessionData, speciesId)
   })
 }
 
@@ -1164,14 +1384,67 @@ function buildAnimalIdentificationSpeciesPanels (sessionData, locals = {}) {
 
       if (panel.activeAnimal) {
         const remainingForSpecies = getRemainingAnimalIdentifierCountForSpecies(sessionData, speciesId)
-        panel.saveButtonText = remainingForSpecies === 1
-          ? 'Save and finish'
-          : 'Save and add another'
+
+        if (panel.totalAnimals <= 1) {
+          panel.showSaveButton = false
+          panel.saveButtonText = null
+        } else {
+          panel.showSaveButton = true
+          panel.saveButtonText = remainingForSpecies === 1
+            ? 'Save and finish'
+            : 'Save and add another'
+        }
       }
 
       return panel
     })
     .filter(Boolean)
+}
+
+function saveActiveAnimalIdentifiersFromBody (sessionData, body, options = {}) {
+  const onlySingleAnimalSpecies = Boolean(options.onlySingleAnimalSpecies)
+  const speciesIds = normalizeSelectedSpecies(sessionData.selectedSpecies)
+
+  speciesIds.forEach((speciesId) => {
+    const panel = getSpeciesIdentificationState(sessionData, speciesId)
+
+    if (!panel || !panel.activeAnimal) {
+      return
+    }
+
+    if (onlySingleAnimalSpecies && panel.totalAnimals > 1) {
+      return
+    }
+
+    const rawIdentifiers = body.identifiers &&
+      typeof body.identifiers === 'object' &&
+      body.identifiers[speciesId] &&
+      typeof body.identifiers[speciesId] === 'object'
+      ? body.identifiers[speciesId]
+      : {}
+    const { values } = validateAnimalIdentifiers(
+      panel.identifierFields,
+      rawIdentifiers,
+      speciesId
+    )
+
+    if (!sessionData.animalIdentifiers || typeof sessionData.animalIdentifiers !== 'object') {
+      sessionData.animalIdentifiers = {}
+    }
+
+    if (!Array.isArray(sessionData.animalIdentifiers[speciesId])) {
+      sessionData.animalIdentifiers[speciesId] = []
+    }
+
+    const saveIndex = panel.activeAnimal.animalNumber - 1
+    const speciesSaved = sessionData.animalIdentifiers[speciesId]
+
+    if (speciesSaved.length === saveIndex) {
+      speciesSaved.push(values)
+    } else {
+      speciesSaved[saveIndex] = values
+    }
+  })
 }
 
 function validateAnimalIdentifiers (identifierFields, rawIdentifiers, speciesId = '') {
@@ -1330,8 +1603,13 @@ function normalizeTransitCountries (value) {
   return []
 }
 
-function hasTransitCountriesComplete () {
+function hasTransitCountriesComplete (sessionData) {
+  // Transit countries are optional — any saved list (including empty) is acceptable.
   return true
+}
+
+function hasTransitCountriesSelected (sessionData) {
+  return normalizeTransitCountries(sessionData && sessionData.transitCountries).length > 0
 }
 
 function saveTransitCountriesToSession (sessionData, countries) {
@@ -2032,7 +2310,91 @@ function parsePermanentAddressChoices (body) {
 }
 
 function validatePermanentAddressAnimalsForm (choices, sessionData, addressDetails = {}) {
-  return { errors: {}, errorList: [], choices, addressDetails }
+  const animals = buildPermanentAddressAnimalList(sessionData)
+  const errors = {}
+  const errorList = []
+
+  animals.forEach((animal) => {
+    const choice = choices[animal.key]
+    const errorPrefix = getPermanentAddressDetailsErrorPrefix(animal.key)
+
+    if (!choice) {
+      return
+    }
+
+    if (!['same-as-pod', 'new-address'].includes(choice)) {
+      return
+    }
+
+    if (choice === 'same-as-pod' && !sessionData.placeOfDestinationAddress) {
+      const errorKey = `permanentAddressChoice-${animal.key}`
+
+      errors[errorKey] = {
+        text: 'Add a place of destination before you can continue'
+      }
+      errorList.push({
+        text: 'Add a place of destination before you can continue',
+        href: `#permanent-address-choice-${animal.key}`
+      })
+      return
+    }
+
+    if (choice !== 'new-address') {
+      return
+    }
+
+    const form = addressDetails[animal.key] || getEmptyPermanentAddressFormValues()
+
+    if (!form.name) {
+      errors[`${errorPrefix}-name`] = { text: 'Enter a name or organisation name' }
+      errorList.push({
+        text: `Enter a name or organisation name for ${animal.heading}`,
+        href: `#${errorPrefix}-name`
+      })
+    }
+
+    if (!form.addressLine1) {
+      errors[`${errorPrefix}-address-line-1`] = { text: 'Enter address line 1' }
+      errorList.push({
+        text: `Enter address line 1 for ${animal.heading}`,
+        href: `#${errorPrefix}-address-line-1`
+      })
+    }
+
+    if (!form.townOrCity) {
+      errors[`${errorPrefix}-town-or-city`] = { text: 'Enter a town or city' }
+      errorList.push({
+        text: `Enter a town or city for ${animal.heading}`,
+        href: `#${errorPrefix}-town-or-city`
+      })
+    }
+
+    if (!form.postcode) {
+      errors[`${errorPrefix}-postcode`] = { text: 'Enter a postcode or Zip code' }
+      errorList.push({
+        text: `Enter a postcode or Zip code for ${animal.heading}`,
+        href: `#${errorPrefix}-postcode`
+      })
+    }
+
+    if (!form.email) {
+      errors[`${errorPrefix}-email`] = { text: 'Enter an email address' }
+      errorList.push({
+        text: `Enter an email address for ${animal.heading}`,
+        href: `#${errorPrefix}-email`
+      })
+    }
+
+    if (!form.phone) {
+      errors[`${errorPrefix}-phone`] = { text: 'Enter a phone number' }
+      errorList.push({
+        text: `Enter a phone number for ${animal.heading}`,
+        href: `#${errorPrefix}-phone`
+      })
+    }
+  })
+
+  return { errors, errorList, choices, addressDetails }
 }
 
 function getPermanentAddressAnimalByKey (sessionData, animalKey) {
@@ -2305,7 +2667,43 @@ function parseTransporterPrivateFormBody (body) {
 }
 
 function validateTransporterPrivateForm (form) {
-  return { errors: {}, errorList: [], value: form }
+  const errors = {}
+  const errorList = []
+
+  const addError = (field, message, href) => {
+    errors[field] = { text: message }
+    errorList.push({ text: message, href })
+  }
+
+  if (!form.name) {
+    addError('transporterPrivateName', 'Enter a name or organisation name', '#transporter-private-name')
+  }
+
+  if (!form.addressLine1) {
+    addError('transporterPrivateAddressLine1', 'Enter address line 1', '#transporter-private-address-line-1')
+  }
+
+  if (!form.townOrCity) {
+    addError('transporterPrivateTownOrCity', 'Enter a town or city', '#transporter-private-town-or-city')
+  }
+
+  if (!form.postcode) {
+    addError('transporterPrivatePostcode', 'Enter a postcode or Zip code', '#transporter-private-postcode')
+  }
+
+  if (!form.country) {
+    addError('transporterPrivateCountry', 'Select a country', '#transporter-private-country')
+  }
+
+  if (!form.email) {
+    addError('transporterPrivateEmail', 'Enter an email address', '#transporter-private-email')
+  }
+
+  if (!form.phone) {
+    addError('transporterPrivatePhone', 'Enter a phone number', '#transporter-private-phone')
+  }
+
+  return { errors, errorList, value: form }
 }
 
 function formatTransporterFormAddress (form) {
@@ -2378,7 +2776,63 @@ function parseTransporterCommercialFormBody (body) {
 }
 
 function validateTransporterCommercialForm (form) {
-  return { errors: {}, errorList: [], value: form }
+  const errors = {}
+  const errorList = []
+
+  const addError = (field, message, href) => {
+    errors[field] = { text: message }
+    errorList.push({ text: message, href })
+  }
+
+  if (!form.authorisationNumber) {
+    addError(
+      'transporterCommercialAuthorisationNumber',
+      'Enter a transporter authorisation number',
+      '#transporter-commercial-authorisation-number'
+    )
+  }
+
+  if (!form.name) {
+    addError('transporterCommercialName', 'Enter a name or organisation name', '#transporter-commercial-name')
+  }
+
+  if (!form.addressLine1) {
+    addError(
+      'transporterCommercialAddressLine1',
+      'Enter address line 1',
+      '#transporter-commercial-address-line-1'
+    )
+  }
+
+  if (!form.townOrCity) {
+    addError(
+      'transporterCommercialTownOrCity',
+      'Enter a town or city',
+      '#transporter-commercial-town-or-city'
+    )
+  }
+
+  if (!form.postcode) {
+    addError(
+      'transporterCommercialPostcode',
+      'Enter a postcode or Zip code',
+      '#transporter-commercial-postcode'
+    )
+  }
+
+  if (!form.country) {
+    addError('transporterCommercialCountry', 'Select a country', '#transporter-commercial-country')
+  }
+
+  if (!form.email) {
+    addError('transporterCommercialEmail', 'Enter an email address', '#transporter-commercial-email')
+  }
+
+  if (!form.phone) {
+    addError('transporterCommercialPhone', 'Enter a phone number', '#transporter-commercial-phone')
+  }
+
+  return { errors, errorList, value: form }
 }
 
 function buildCommercialTransporterFromForm (form) {
@@ -2657,7 +3111,20 @@ function isArrivalDateWithinAllowedRange (value, referenceDate = new Date()) {
 }
 
 function validateArrivalDetails (values) {
-  return { errors: {}, errorList: [] }
+  const errors = {}
+  const errorList = []
+
+  // Soft validation: other arrival fields are optional to proceed, but means of
+  // transport is required (it also drives whether transit countries are shown).
+  if (!values.meansOfTransport || !meansOfTransportOptions.includes(values.meansOfTransport)) {
+    errors.meansOfTransport = { text: 'Select a means of transport to the port of entry' }
+    errorList.push({
+      text: 'Select a means of transport to the port of entry',
+      href: '#means-of-transport'
+    })
+  }
+
+  return { errors, errorList }
 }
 
 function parseArrivalDetailsBody (body) {
@@ -2707,6 +3174,106 @@ function formatReviewValueOrNa (value) {
   }
 
   return String(value).trim()
+}
+
+function isReviewValueEmpty (value) {
+  return value == null ||
+    value === '' ||
+    value === 'Not applicable'
+}
+
+function blankReviewValueForMissingField (value) {
+  return isReviewValueEmpty(value) ? '' : value
+}
+
+function mapReviewRowsForErrorCard (rows) {
+  return (rows || []).map((row) => {
+    const value = blankReviewValueForMissingField(row.value)
+    const isMissing = value === ''
+
+    return {
+      ...row,
+      value,
+      isMissing
+    }
+  })
+}
+
+function applyMissingFieldDisplayToErrorCard (card) {
+  if (!card || !card.hasError) {
+    return card
+  }
+
+  const nextCard = {
+    ...card,
+    rows: mapReviewRowsForErrorCard(card.rows)
+  }
+
+  if (Array.isArray(card.sections)) {
+    nextCard.sections = card.sections.map((section) => ({
+      ...section,
+      rows: mapReviewRowsForErrorCard(section.rows)
+    }))
+  }
+
+  if (card.permanentAddressSection) {
+    nextCard.permanentAddressSection = {
+      ...card.permanentAddressSection,
+      rows: mapReviewRowsForErrorCard(card.permanentAddressSection.rows)
+    }
+  }
+
+  if (Array.isArray(card.documents)) {
+    nextCard.documents = card.documents.map((document) => ({
+      ...document,
+      rows: mapReviewRowsForErrorCard(document.rows)
+    }))
+  }
+
+  if (Array.isArray(card.packagingRows)) {
+    nextCard.packagingRows = mapReviewRowsForErrorCard(card.packagingRows)
+  }
+
+  return nextCard
+}
+
+function applyMissingFieldDisplayToReviewViewModel (viewModel) {
+  return {
+    ...viewModel,
+    aboutConsignment: {
+      ...viewModel.aboutConsignment,
+      importDetailsCard: applyMissingFieldDisplayToErrorCard(viewModel.aboutConsignment.importDetailsCard),
+      animalDetailsCard: applyMissingFieldDisplayToErrorCard(viewModel.aboutConsignment.animalDetailsCard),
+      importReasonCard: applyMissingFieldDisplayToErrorCard(viewModel.aboutConsignment.importReasonCard)
+    },
+    descriptionOfGoods: {
+      ...viewModel.descriptionOfGoods,
+      commodityDetailsCard: applyMissingFieldDisplayToErrorCard(viewModel.descriptionOfGoods.commodityDetailsCard),
+      additionalAnimalDetailsCard: applyMissingFieldDisplayToErrorCard(
+        viewModel.descriptionOfGoods.additionalAnimalDetailsCard
+      ),
+      speciesSections: (viewModel.descriptionOfGoods.speciesSections || [])
+        .map((section) => applyMissingFieldDisplayToErrorCard(section))
+    },
+    movement: {
+      ...viewModel.movement,
+      arrivalDetailsCard: applyMissingFieldDisplayToErrorCard(viewModel.movement.arrivalDetailsCard),
+      transitCountriesCard: applyMissingFieldDisplayToErrorCard(viewModel.movement.transitCountriesCard),
+      transportDetailsCard: applyMissingFieldDisplayToErrorCard(viewModel.movement.transportDetailsCard)
+    },
+    addresses: {
+      ...viewModel.addresses,
+      rolesCard: applyMissingFieldDisplayToErrorCard(viewModel.addresses.rolesCard)
+    },
+    contactAddress: {
+      ...viewModel.contactAddress,
+      contactAddressCard: applyMissingFieldDisplayToErrorCard(viewModel.contactAddress.contactAddressCard)
+    },
+    documents: {
+      ...viewModel.documents,
+      uploadedDocumentsCard: applyMissingFieldDisplayToErrorCard(viewModel.documents.uploadedDocumentsCard)
+    }
+  }
 }
 
 function formatAddressForReviewValue (address) {
@@ -2952,8 +3519,26 @@ function getSpeciesReviewCardErrorMessage (sessionData, speciesId, speciesLabel)
   return `Complete identification details for ${speciesName}`
 }
 
+function getSpeciesMinimumIdentifierReviewErrorMessage (sessionData, speciesId, speciesLabel) {
+  if (hasAtLeastOneAnimalIdentifierForSpecies(sessionData, speciesId)) {
+    return null
+  }
+
+  const speciesName = speciesLabel.toLowerCase()
+
+  if (!isSpeciesConsignmentComplete(sessionData, speciesId)) {
+    return `Enter the number of animals for ${speciesName}`
+  }
+
+  return `Enter at least 1 animal identifier for ${speciesName}`
+}
+
 function reviewSpeciesCardErrorState (sessionData, speciesId, speciesLabel) {
-  const errorMessage = getSpeciesReviewCardErrorMessage(sessionData, speciesId, speciesLabel)
+  if (!requiresAnimalIdentifiersForSubmit(sessionData)) {
+    return { hasError: false, errorMessage: null }
+  }
+
+  const errorMessage = getSpeciesMinimumIdentifierReviewErrorMessage(sessionData, speciesId, speciesLabel)
 
   if (!errorMessage) {
     return { hasError: false, errorMessage: null }
@@ -3047,10 +3632,6 @@ function hasReviewNotificationComplete (sessionData) {
     return false
   }
 
-  if (requiresTransitCountries(sessionData) && !hasTransitCountriesComplete(sessionData)) {
-    return false
-  }
-
   if (!hasTransportDetailsComplete(sessionData)) {
     return false
   }
@@ -3059,11 +3640,9 @@ function hasReviewNotificationComplete (sessionData) {
     return false
   }
 
-  if (hasAnimalIdentifiersRequired(sessionData) && !hasAnimalIdentifiersComplete(sessionData)) {
-    return false
-  }
-
-  if (!hasUploadedDocuments(sessionData)) {
+  // Documents remain optional. Animal identifiers are optional unless multiple
+  // species are selected, in which case at least one identifier is required per species.
+  if (!hasMinimumAnimalIdentifiersForSubmit(sessionData)) {
     return false
   }
 
@@ -3224,7 +3803,7 @@ function getReviewNotificationViewModel (sessionData) {
       },
       {
         key: 'Document type',
-        value: formatReviewValueOrNa(document.documentTypeLabel || getDocumentTypeLabel(document.documentType))
+        value: formatReviewValueOrNa(document.documentTypeLabel || getDocumentTypeLabel(document.documentType, sessionData))
       },
       {
         key: 'Date of issue',
@@ -3295,7 +3874,8 @@ function getReviewNotificationViewModel (sessionData) {
           key: 'Countries that the consignment will travel through',
           value: formatReviewValueOrNa(normalizeTransitCountries(sessionData.transitCountries).join(', '))
         }],
-        ...reviewCardErrorState(hasTransitCountriesComplete(sessionData), 'Transit countries')
+        // Transit countries are optional for submission.
+        ...reviewCardErrorState(true, 'Transit countries')
       } : null,
       transportDetailsCard: {
         id: 'review-transport-details',
@@ -3354,14 +3934,17 @@ function getReviewNotificationViewModel (sessionData) {
         title: 'Uploaded documents',
         changeHref: '/upload-documents',
         documents: uploadedDocuments,
-        ...reviewCardErrorState(hasUploadedDocuments(sessionData), 'Uploaded documents')
+        // Documents are optional for submission.
+        ...reviewCardErrorState(true, 'Uploaded documents')
       }
     }
   }
 }
 
 function getReviewNotificationViewModelWithErrors (sessionData) {
-  const viewModel = getReviewNotificationViewModel(sessionData)
+  const viewModel = applyMissingFieldDisplayToReviewViewModel(
+    getReviewNotificationViewModel(sessionData)
+  )
   const errorList = buildReviewErrorList([
     viewModel.aboutConsignment.importDetailsCard,
     viewModel.aboutConsignment.animalDetailsCard,
@@ -3370,9 +3953,7 @@ function getReviewNotificationViewModelWithErrors (sessionData) {
     ...viewModel.descriptionOfGoods.speciesSections,
     viewModel.descriptionOfGoods.additionalAnimalDetailsCard,
     viewModel.movement.arrivalDetailsCard,
-    ...(viewModel.movement.transitCountriesCard ? [viewModel.movement.transitCountriesCard] : []),
     viewModel.movement.transportDetailsCard,
-    viewModel.documents.uploadedDocumentsCard,
     viewModel.addresses.rolesCard,
     viewModel.contactAddress.contactAddressCard
   ])
@@ -3489,52 +4070,18 @@ function hasDeclarationConfirmed (sessionData) {
 function getConditionalSubmissionItems (sessionData) {
   const items = []
 
-  if (!hasOriginDetails(sessionData)) {
-    items.push('complete where this consignment is coming from')
-  }
-
-  if (!hasCommoditySelection(sessionData)) {
-    items.push('complete what you are importing')
-  }
-
-  if (!hasImportReasonComplete(sessionData)) {
-    items.push('complete the main reason for import')
-  }
-
-  if (!hasConsignmentDetails(sessionData)) {
-    items.push('complete the commodity details')
-  }
-
-  if (hasAnimalIdentifiersRequired(sessionData) && !hasAnimalIdentifiersComplete(sessionData)) {
-    items.push('complete the animal identifier information in the notification')
-  }
-
-  if (!hasAdditionalAnimalDetailsComplete(sessionData)) {
-    items.push('complete the additional animal details')
-  }
-
-  if (!hasArrivalDetailsComplete(sessionData)) {
-    items.push('complete the arrival details')
-  }
-
-  if (requiresTransitCountries(sessionData) && !hasTransitCountriesComplete(sessionData)) {
-    items.push('complete the transit countries')
-  }
-
-  if (!hasTransportDetailsComplete(sessionData)) {
-    items.push('complete the transport details')
-  }
-
   if (!hasUploadedDocuments(sessionData)) {
     items.push('upload the health certificate and any other required documents')
   }
 
-  if (!hasConsignmentAddressesComplete(sessionData)) {
-    items.push('complete the roles and addresses')
-  }
-
-  if (!hasContactAddress(sessionData)) {
-    items.push('add a contact address for this consignment')
+  // Soft follow-up only when identifiers are optional for submit (single commodity),
+  // or when the multi-commodity minimum is met but not all identifiers are complete.
+  if (
+    hasAnimalIdentifiersRequired(sessionData) &&
+    !hasAnimalIdentifiersComplete(sessionData) &&
+    hasMinimumAnimalIdentifiersForSubmit(sessionData)
+  ) {
+    items.push('complete the animal identifier information in the notification')
   }
 
   return items
@@ -3578,55 +4125,7 @@ function getTotalPackageCount (sessionData) {
 }
 
 function hasAllNotificationHubSectionsComplete (sessionData) {
-  if (!hasOriginDetails(sessionData)) {
-    return false
-  }
-
-  if (!hasCommoditySelection(sessionData)) {
-    return false
-  }
-
-  if (!hasImportReasonComplete(sessionData)) {
-    return false
-  }
-
-  if (!hasConsignmentDetails(sessionData)) {
-    return false
-  }
-
-  if (hasAnimalIdentifiersRequired(sessionData) && !hasAnimalIdentifiersComplete(sessionData)) {
-    return false
-  }
-
-  if (!hasAdditionalAnimalDetailsComplete(sessionData)) {
-    return false
-  }
-
-  if (!hasArrivalDetailsComplete(sessionData)) {
-    return false
-  }
-
-  if (requiresTransitCountries(sessionData) && !hasTransitCountriesComplete(sessionData)) {
-    return false
-  }
-
-  if (!hasTransportDetailsComplete(sessionData)) {
-    return false
-  }
-
-  if (!hasUploadedDocuments(sessionData)) {
-    return false
-  }
-
-  if (!hasConsignmentAddressesComplete(sessionData)) {
-    return false
-  }
-
-  if (!hasContactAddress(sessionData)) {
-    return false
-  }
-
-  return true
+  return hasNotificationComplete(sessionData)
 }
 
 function getNotificationHubViewModel (sessionData) {
@@ -3691,7 +4190,7 @@ function getNotificationHubViewModel (sessionData) {
           ...(requiresTransitCountries(sessionData) ? [{
             text: 'Transit countries',
             href: '/transit-countries?from=hub',
-            status: hasTransitCountriesComplete(sessionData) ? statusComplete : statusTodo
+            status: hasTransitCountriesSelected(sessionData) ? statusComplete : statusTodo
           }] : []),
           {
             text: 'Transport details',
@@ -3859,9 +4358,18 @@ function getDashboardNotificationList (sessionData = {}) {
   }))
 
   const submittedReferences = new Set(submitted.map((notification) => notification.reference))
-  const staticNotifications = dashboardData.notifications.filter(
-    (notification) => !submittedReferences.has(notification.reference)
-  )
+  const staticNotifications = dashboardData.notifications
+    .map((notification, index) => {
+      if (isTestingSessionData(sessionData)) {
+        return notification
+      }
+
+      return {
+        ...notification,
+        reference: toDesignReleaseDashboardReference(notification.reference, index)
+      }
+    })
+    .filter((notification) => !submittedReferences.has(notification.reference))
 
   return [...submitted, ...staticNotifications]
 }
@@ -4171,15 +4679,19 @@ function buildAddressBookViewSummaryRows (details) {
     })
   }
 
+  rows.push({
+    key: { text: 'Town or city' },
+    value: { text: details.townOrCity || '' }
+  })
+
+  if (details.county) {
+    rows.push({
+      key: { text: 'County (optional)' },
+      value: { text: details.county }
+    })
+  }
+
   rows.push(
-    {
-      key: { text: 'Town or city' },
-      value: { text: details.townOrCity || '' }
-    },
-    {
-      key: { text: 'County' },
-      value: { text: details.county || '' }
-    },
     {
       key: { text: 'Postcode or Zip code' },
       value: { text: details.postcode || '' }
@@ -4813,6 +5325,46 @@ function parseAddressBookManualAddressBody (body) {
   }
 }
 
+function validateAddressBookManualAddress (manualAddress) {
+  const errors = {}
+  const errorList = []
+
+  const addError = (field, message, href) => {
+    errors[field] = { text: message }
+    errorList.push({ text: message, href })
+  }
+
+  if (!manualAddress.nameOrOrganisation) {
+    addError('addressBookManualName', 'Enter a name or organisation name', '#address-book-manual-name')
+  }
+
+  if (!manualAddress.addressLine1) {
+    addError('addressBookManualAddressLine1', 'Enter address line 1', '#address-book-manual-address-line-1')
+  }
+
+  if (!manualAddress.townOrCity) {
+    addError('addressBookManualTownOrCity', 'Enter a town or city', '#address-book-manual-town-or-city')
+  }
+
+  if (!manualAddress.postcode) {
+    addError('addressBookManualPostcode', 'Enter a postcode or Zip code', '#address-book-manual-postcode')
+  }
+
+  if (!manualAddress.country) {
+    addError('addressBookManualCountry', 'Select a country', '#address-book-manual-country')
+  }
+
+  if (!manualAddress.email) {
+    addError('addressBookManualEmail', 'Enter an email address', '#address-book-manual-email')
+  }
+
+  if (!manualAddress.phone) {
+    addError('addressBookManualPhone', 'Enter a phone number', '#address-book-manual-phone')
+  }
+
+  return { errors, errorList, value: manualAddress }
+}
+
 function buildExitBorderControlPostItems (selectedValue) {
   return [
     {
@@ -4887,6 +5439,7 @@ function renderOriginPage (req, res, locals = {}) {
     regionOfOriginCodePrefix: getCountryRegionPrefix(countryOfOrigin),
     regionOfOriginCodeSuffix: getRegionOfOriginCodeSuffix(sessionData),
     internalReference: displayReference,
+    data: sessionData,
     ...locals
   })
 }
@@ -5037,8 +5590,7 @@ function renderReasonForImportPage (req, res, locals = {}) {
   })
 }
 
-const documentTypeOptions = [
-  { value: 'health-certificate', text: 'Health certificate' },
+const sharedDocumentTypeOptions = [
   { value: 'veterinary-health-certificate', text: 'Veterinary health certificate' },
   { value: 'air-waybill', text: 'Air waybill' },
   { value: 'import-permit', text: 'Import permit' },
@@ -5053,28 +5605,54 @@ const documentTypeOptions = [
   { value: 'other', text: 'Other' }
 ]
 
-const documentTypeValues = documentTypeOptions.map((option) => option.value)
+const designReleaseDocumentTypeOptions = [
+  { value: 'itahc', text: 'Intra Trade Animal Health Certificate (ITAHC)' },
+  ...sharedDocumentTypeOptions
+]
+
+const testingDocumentTypeOptions = [
+  { value: 'health-certificate', text: 'Health certificate' },
+  ...sharedDocumentTypeOptions
+]
+
 const MAX_UPLOADED_DOCUMENTS = 15
 const VIRUS_CHECK_DELAY_MS = 2500
 
-function getDocumentTypeLabel (documentType) {
+function getDocumentTypeOptions (sessionData) {
+  return isTestingSessionData(sessionData)
+    ? testingDocumentTypeOptions
+    : designReleaseDocumentTypeOptions
+}
+
+function getDocumentTypeValues (sessionData) {
+  return getDocumentTypeOptions(sessionData).map((option) => option.value)
+}
+
+function getDocumentTypeLabel (documentType, sessionData) {
   if (documentType === 'itahc') {
+    return isTestingSessionData(sessionData)
+      ? 'Health certificate'
+      : 'Intra Trade Animal Health Certificate (ITAHC)'
+  }
+
+  if (documentType === 'health-certificate') {
     return 'Health certificate'
   }
 
-  const match = documentTypeOptions.find((option) => option.value === documentType)
+  const match = getDocumentTypeOptions(sessionData).find((option) => option.value === documentType) ||
+    sharedDocumentTypeOptions.find((option) => option.value === documentType)
 
   return match ? match.text : documentType
 }
 
-function buildDocumentTypeItems (selectedValue) {
+function buildDocumentTypeItems (selectedValue, sessionData) {
   return [
     {
       value: '',
       text: 'Select one',
       selected: !selectedValue
     },
-    ...documentTypeOptions.map((option) => ({
+    ...getDocumentTypeOptions(sessionData).map((option) => ({
       ...option,
       selected: selectedValue === option.value
     }))
@@ -5092,7 +5670,7 @@ function ensureUploadedDocuments (sessionData) {
 function getUploadedDocumentsForDisplay (sessionData) {
   return ensureUploadedDocuments(sessionData).map((document) => ({
     ...document,
-    documentTypeLabel: document.documentTypeLabel || getDocumentTypeLabel(document.documentType),
+    documentTypeLabel: document.documentTypeLabel || getDocumentTypeLabel(document.documentType, sessionData),
     status: {
       text: document.virusStatus === 'passed' ? 'Check completed' : 'Scanning for virus',
       class: document.virusStatus === 'passed' ? 'govuk-tag--green' : 'govuk-tag--blue'
@@ -5114,7 +5692,59 @@ function parseUploadDocumentBody (body) {
 }
 
 function validateUploadDocument (values, sessionData) {
-  return { errors: {}, errorList: [], values }
+  const errors = {}
+  const errorList = []
+  const uploadedCount = ensureUploadedDocuments(sessionData).length
+
+  if (uploadedCount >= MAX_UPLOADED_DOCUMENTS) {
+    errors.attachment = { text: `You can upload a maximum of ${MAX_UPLOADED_DOCUMENTS} files` }
+    errorList.push({
+      text: `You can upload a maximum of ${MAX_UPLOADED_DOCUMENTS} files`,
+      href: '#attachment'
+    })
+
+    return { errors, errorList, values }
+  }
+
+  if (!values.documentReference) {
+    errors.documentReference = { text: 'Enter a document reference' }
+    errorList.push({
+      text: 'Enter a document reference',
+      href: '#document-reference'
+    })
+  }
+
+  if (!values.documentType || !getDocumentTypeValues(sessionData).includes(values.documentType)) {
+    errors.documentType = { text: 'Select a document type' }
+    errorList.push({
+      text: 'Select a document type',
+      href: '#document-type'
+    })
+  }
+
+  if (!values.dateOfIssue) {
+    errors.dateOfIssue = { text: 'Enter a date of issue' }
+    errorList.push({
+      text: 'Enter a date of issue',
+      href: '#date-of-issue'
+    })
+  } else if (!parseArrivalDisplayDate(values.dateOfIssue)) {
+    errors.dateOfIssue = { text: 'Enter a real date' }
+    errorList.push({
+      text: 'Enter a real date',
+      href: '#date-of-issue'
+    })
+  }
+
+  if (!values.attachmentFileName) {
+    errors.attachment = { text: 'Upload a document' }
+    errorList.push({
+      text: 'Upload a document',
+      href: '#attachment'
+    })
+  }
+
+  return { errors, errorList, values }
 }
 
 function addUploadedDocument (sessionData, values) {
@@ -5124,7 +5754,7 @@ function addUploadedDocument (sessionData, values) {
     id: `doc-${Date.now()}-${documents.length + 1}`,
     documentReference: values.documentReference,
     documentType: values.documentType,
-    documentTypeLabel: getDocumentTypeLabel(values.documentType),
+    documentTypeLabel: getDocumentTypeLabel(values.documentType, sessionData),
     dateOfIssue: values.dateOfIssue,
     fileName: values.attachmentFileName,
     virusStatus: 'uploading',
@@ -5175,7 +5805,7 @@ function renderUploadDocumentsPage (req, res, locals = {}) {
   return res.render('upload-documents', {
     backLink: '/notification-hub',
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
-    documentTypeItems: buildDocumentTypeItems(formValues.documentType),
+    documentTypeItems: buildDocumentTypeItems(formValues.documentType, sessionData),
     uploadedDocuments: getUploadedDocumentsForDisplay(sessionData),
     formValues,
     data: sessionData,
@@ -5201,8 +5831,6 @@ router.post('/origin-of-the-import', (req, res) => {
   const regionOfOriginCodeSuffix = (req.body.regionOfOriginCodeSuffix || '').trim().toUpperCase()
   const internalReference = (req.body.internalReference || '').trim()
 
-  req.session.data.errorList = null
-  req.session.data.errors = null
   req.session.data.countryOfOrigin = countryOfOrigin || null
   req.session.data.regionOfOriginRequired = regionOfOriginRequired || null
   req.session.data.internalReference = internalReference || null
@@ -5220,6 +5848,22 @@ router.post('/origin-of-the-import', (req, res) => {
     req.session.data.regionOfOriginCode = null
   }
 
+  const validation = validateOriginOfImport({
+    countryOfOrigin,
+    regionOfOriginRequired,
+    regionOfOriginCodeSuffix
+  })
+
+  if (validation.errorList.length) {
+    req.session.data.errorList = validation.errorList
+    req.session.data.errors = validation.errors
+
+    return renderOriginPage(req, res)
+  }
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+
   return res.redirect('/what-are-you-importing')
 })
 
@@ -5230,10 +5874,7 @@ router.get('/what-are-you-importing', (req, res) => {
     return
   }
 
-  if (req.query.resetSearch === '1' || req.query.resetSearch === 'true') {
-    delete req.session.data.commoditySearch
-    return res.redirect('/what-are-you-importing')
-  }
+  delete req.session.data.commoditySearch
 
   return renderWhatAreYouImportingPage(req, res)
 })
@@ -5247,10 +5888,9 @@ router.post('/what-are-you-importing', (req, res) => {
 
   const commoditySelections = parseCommoditySelections(req.body.commoditySelections)
   const selectedSpecies = normalizeSelectedSpecies(req.body.selectedSpecies)
-  const commoditySearch = (req.body.commoditySearch || '').trim()
 
   if (req.body.action === 'hub') {
-    req.session.data.commoditySearch = commoditySearch
+    delete req.session.data.commoditySearch
 
     if (applySpeciesSelectionToSession(req.session.data, selectedSpecies)) {
       req.session.data.commoditySelections = commoditySelections.length
@@ -5258,7 +5898,19 @@ router.post('/what-are-you-importing', (req, res) => {
         : req.session.data.commoditySelections
     }
 
+    req.session.data.errorList = null
+    req.session.data.errors = null
+
     return res.redirect('/notification-hub')
+  }
+
+  const validation = validateCommoditySelection(selectedSpecies, commoditySelections)
+
+  if (validation.errorList.length) {
+    req.session.data.errorList = validation.errorList
+    req.session.data.errors = validation.errors
+
+    return renderWhatAreYouImportingPage(req, res)
   }
 
   applySpeciesSelectionToSession(req.session.data, selectedSpecies)
@@ -5268,7 +5920,7 @@ router.post('/what-are-you-importing', (req, res) => {
 
   req.session.data.errorList = null
   req.session.data.errors = null
-  req.session.data.commoditySearch = commoditySearch
+  delete req.session.data.commoditySearch
 
   return res.redirect('/reason-for-import')
 })
@@ -5566,10 +6218,28 @@ router.post('/address-book/add/lookup', (req, res) => {
     return
   }
 
+  const validation = validateAddressBookManualAddress(manualAddress)
+
+  if (validation.errorList.length) {
+    req.session.data.errorList = validation.errorList
+    req.session.data.errors = validation.errors
+    req.session.data.addressBookManualAddress = validation.value
+    req.session.data.addressBookShowManualAddress = true
+    req.session.data.addressBookLookup = (req.body.addressBookLookup || '').trim()
+    req.session.data.addressBookLookupAddressId = addressBookLookupAddressId || null
+
+    return renderAddressBookLookupPage(req, res, {
+      manualAddress: validation.value,
+      showManualAddress: true,
+      addressLookup: (req.body.addressBookLookup || '').trim(),
+      selectedLookupAddressId: addressBookLookupAddressId
+    })
+  }
+
   req.session.data.errorList = null
   req.session.data.errors = null
 
-  const { redirectTo } = saveAddressBookEntry(req.session.data, manualAddress)
+  const { redirectTo } = saveAddressBookEntry(req.session.data, validation.value)
 
   return res.redirect(redirectTo)
 })
@@ -5596,11 +6266,21 @@ router.post('/address-book/:addressId/edit', (req, res) => {
   }
 
   const manualAddress = parseAddressBookManualAddressBody(req.body)
+  const validation = validateAddressBookManualAddress(manualAddress)
 
-  updateAddressBookEntry(req.session.data, addressId, manualAddress, entry.type)
+  if (validation.errorList.length) {
+    req.session.data.errorList = validation.errorList
+    req.session.data.errors = validation.errors
+
+    return renderAddressBookEditPage(req, res, {
+      manualAddress: validation.value
+    })
+  }
+
+  updateAddressBookEntry(req.session.data, addressId, validation.value, entry.type)
   req.session.data.errorList = null
   req.session.data.errors = null
-  req.session.data.addressBookSuccessMessage = formatAddressBookUpdatedMessage(manualAddress.nameOrOrganisation)
+  req.session.data.addressBookSuccessMessage = formatAddressBookUpdatedMessage(validation.value.nameOrOrganisation)
 
   return res.redirect('/address-book')
 })
@@ -5645,6 +6325,10 @@ router.get('/review-notification', (req, res) => {
 
 router.post('/review-notification', (req, res) => {
   ensurePrototypeNotificationReference(req.session.data)
+
+  if (!hasNotificationComplete(req.session.data)) {
+    return renderReviewNotificationPage(req, res)
+  }
 
   return res.redirect('/declaration')
 })
@@ -5745,12 +6429,9 @@ router.post('/upload-documents', (req, res) => {
   }
 
   if (action === 'continue') {
-    const hasDocumentInput = values.documentReference ||
-      values.documentType ||
-      values.dateOfIssue ||
-      values.attachmentFileName
-
-    if (hasDocumentInput) {
+    // Soft validation: uploads are optional, but once a document type is chosen
+    // all document fields must be completed before continuing.
+    if (getDocumentTypeValues(req.session.data).includes(values.documentType)) {
       const validation = validateUploadDocument(values, req.session.data)
 
       if (validation.errorList.length) {
@@ -5822,8 +6503,6 @@ router.post('/reason-for-import', (req, res) => {
     return res.redirect('/notification-hub')
   }
 
-  req.session.data.errorList = null
-  req.session.data.errors = null
   req.session.data.importReason = importReason || null
   req.session.data.internalMarketPurpose = importReason === 'Internal market'
     ? (internalMarketPurpose || null)
@@ -5843,6 +6522,26 @@ router.post('/reason-for-import', (req, res) => {
   req.session.data.temporaryAdmissionPortOfExit = importReason === 'Temporary admission horses'
     ? (temporaryAdmissionPortOfExit || null)
     : null
+
+  const validation = validateImportReasonProceed({
+    importReason,
+    internalMarketPurpose,
+    transhipmentDestinationCountry,
+    transitExitBorderControlPost,
+    transitDestinationCountry,
+    temporaryAdmissionExitDate,
+    temporaryAdmissionPortOfExit
+  })
+
+  if (validation.errorList.length) {
+    req.session.data.errorList = validation.errorList
+    req.session.data.errors = validation.errors
+
+    return renderReasonForImportPage(req, res)
+  }
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
 
   return res.redirect('/consignment-details')
 })
@@ -5956,6 +6655,9 @@ router.post('/animal-identification-details', (req, res) => {
   }
 
   if (action === 'hub') {
+    saveActiveAnimalIdentifiersFromBody(req.session.data, req.body, {
+      onlySingleAnimalSpecies: true
+    })
     req.session.data.errorList = null
     req.session.data.errors = null
 
@@ -5963,6 +6665,9 @@ router.post('/animal-identification-details', (req, res) => {
   }
 
   if (action === 'continue') {
+    saveActiveAnimalIdentifiersFromBody(req.session.data, req.body, {
+      onlySingleAnimalSpecies: true
+    })
     req.session.data.errorList = null
     req.session.data.errors = null
 
@@ -6473,24 +7178,18 @@ router.post('/contact-address-for-consignment', (req, res) => {
   ensurePrototypeNotificationReference(req.session.data)
 
   const addressId = (req.body.contactAddressId || '').trim()
-  const address = getContactAddressById(addressId, req.session.data)
+  const validation = validateContactAddress(addressId, req.session.data)
 
-  if (!address) {
-    req.session.data.errorList = null
-    req.session.data.errors = null
+  if (validation.errorList.length) {
+    req.session.data.errorList = validation.errorList
+    req.session.data.errors = validation.errors
 
-    if (isFromHub(req)) {
-      return res.redirect('/notification-hub')
-    }
-
-    if (isFromReview(req)) {
-      return res.redirect('/review-notification')
-    }
-
-    return res.redirect(getNextJourneyPath('/contact-address-for-consignment', req.session.data))
+    return renderContactAddressPage(req, res, {
+      selectedAddressId: addressId
+    })
   }
 
-  syncContactAddressSession(req.session.data, address)
+  syncContactAddressSession(req.session.data, validation.address)
   req.session.data.errorList = null
   req.session.data.errors = null
 

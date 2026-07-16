@@ -12,10 +12,14 @@
 {% endmacro %}
 
 {% macro reviewRow(row) %}
-  <div class="app-review-card__row">
+  <div class="app-review-card__row{% if row.isMissing %} app-review-card__row--missing{% endif %}">
     <dt class="app-review-card__key">{{ row.key }}</dt>
-    <dd class="app-review-card__value">
-      {{ reviewValue(row.value) }}
+    <dd class="app-review-card__value{% if row.isMissing %} app-review-card__value--missing{% endif %}">
+      {% if row.isMissing %}
+        <span class="govuk-visually-hidden">Missing</span>
+      {% else %}
+        {{ reviewValue(row.value) }}
+      {% endif %}
     </dd>
   </div>
 {% endmacro %}

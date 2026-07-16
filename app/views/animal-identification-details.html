@@ -120,11 +120,13 @@
                           }) }}
                         {% endfor %}
 
-                        {{ govukButton({
-                          text: panel.saveButtonText,
-                          name: "action",
-                          value: "save:" + panel.speciesId
-                        }) }}
+                        {% if panel.showSaveButton %}
+                          {{ govukButton({
+                            text: panel.saveButtonText,
+                            name: "action",
+                            value: "save:" + panel.speciesId
+                          }) }}
+                        {% endif %}
 
                         {% if panel.savedAnimals and panel.savedAnimals.length %}
                           {% include "partials/animal-identification-saved-animals.html" %}

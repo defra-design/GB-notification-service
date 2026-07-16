@@ -282,6 +282,27 @@ function initCountrySearch (root) {
     renderResults(input.value)
     input.focus()
   })
+
+  const form = root.closest('form')
+
+  if (form) {
+    form.addEventListener('submit', () => {
+      if (selectedCountry) {
+        updateValue(selectedCountry)
+        return
+      }
+
+      const typed = (input.value || '').trim()
+      const exactMatch = countryOptions.find((option) =>
+        option.value.toLowerCase() === typed.toLowerCase() ||
+        option.label.toLowerCase() === typed.toLowerCase()
+      )
+
+      if (exactMatch) {
+        updateValue(exactMatch.value)
+      }
+    })
+  }
 }
 
 window.GOVUKPrototypeKit.documentReady(() => {

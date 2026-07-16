@@ -3866,6 +3866,13 @@ button.govuk-link.app-govuk-body-link--small {
     margin-bottom: 0;
   }
 
+  .govuk-error-summary {
+    width: 100%;
+    max-width: none;
+    margin-bottom: 0;
+    box-sizing: border-box;
+  }
+
   &__success-banner {
     width: 100%;
   }
@@ -4622,6 +4629,14 @@ button.govuk-link.app-govuk-body-link--small {
     font-size: 19px;
     font-weight: 300;
     line-height: 25px;
+    color: #0b0c0c;
+
+    &--missing {
+      min-height: 25px;
+    }
+  }
+
+  &__row--missing &__key {
     color: #0b0c0c;
   }
 

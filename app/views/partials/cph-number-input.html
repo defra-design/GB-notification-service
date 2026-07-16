@@ -1,6 +1,6 @@
 {% from "govuk/components/date-input/macro.njk" import govukDateInput %}
 
-<div class="app-cph-number-page__cph-input">
+<div class="app-cph-number-page__cph-input" data-module="app-cph-number-input">
   {{ govukDateInput({
     id: "cph-number",
     namePrefix: "cphNumber",
@@ -19,19 +19,37 @@
         name: "county",
         label: "County",
         classes: "govuk-input--width-2",
-        value: cphNumberParts.county
+        value: cphNumberParts.county,
+        attributes: {
+          maxlength: "2",
+          inputmode: "numeric",
+          pattern: "[0-9]*",
+          autocomplete: "off"
+        }
       },
       {
         name: "parish",
         label: "Parish",
         classes: "govuk-input--width-3",
-        value: cphNumberParts.parish
+        value: cphNumberParts.parish,
+        attributes: {
+          maxlength: "3",
+          inputmode: "numeric",
+          pattern: "[0-9]*",
+          autocomplete: "off"
+        }
       },
       {
         name: "holding",
         label: "Holding number",
         classes: "govuk-input--width-4",
-        value: cphNumberParts.holding
+        value: cphNumberParts.holding,
+        attributes: {
+          maxlength: "4",
+          inputmode: "numeric",
+          pattern: "[0-9]*",
+          autocomplete: "off"
+        }
       }
     ],
     errorMessage: data.errors.cphNumber if data.errors and data.errors.cphNumber,

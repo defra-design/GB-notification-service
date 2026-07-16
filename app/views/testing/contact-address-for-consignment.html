@@ -21,6 +21,13 @@
 
     {% include "partials/notification-status.html" %}
 
+    {% if data.errorList %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: data.errorList
+      }) }}
+    {% endif %}
+
     {% if successMessage %}
       {{ govukNotificationBanner({
         type: "success",
@@ -44,13 +51,6 @@
         <input type="hidden" name="from" value="hub">
       {% elif fromReview %}
         <input type="hidden" name="from" value="review">
-      {% endif %}
-
-      {% if data.errorList %}
-        {{ govukErrorSummary({
-          titleText: "There is a problem",
-          errorList: data.errorList
-        }) }}
       {% endif %}
 
       <h2 class="app-contact-address-page__section-heading">Select an address</h2>

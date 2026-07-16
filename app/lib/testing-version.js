@@ -204,7 +204,9 @@ function middleware (req, res, next) {
   req._testingSessionRestored = false
 
   attachSharedSessionAccessors(nest, root)
+  nest._isTestingVersion = true
   req.session.data = nest
+  res.locals.data = nest
 
   // Kit autoStoreData runs before this middleware and writes request input onto the root
   // object. Copy only those input keys into the testing nest for this request.
@@ -223,6 +225,17 @@ function middleware (req, res, next) {
       }
     })
   })
+
+  // Keep the testing journey on the CHEDA reference format, even when Design
+  // release 1 uses the older GBN-AG-… style.
+  const testingReference = 'GB.2026.7963913 - CHEDA'
+  const hasChedaReference = /^GB\.\d{4}\.\d{7}\s*-\s*[A-Z0-9]+$/i.test(
+    String(nest.notificationReference || '').trim()
+  )
+
+  if (!hasChedaReference) {
+    nest.notificationReference = testingReference
+  }
 
   res.locals.journeyBasePath = TESTING_BASE
   res.locals.isTestingVersion = true
