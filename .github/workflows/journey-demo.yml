@@ -1,20 +1,14 @@
 name: Journey demo
 
-# Records the notification-journey walk-throughs and publishes the HTML report
-# (with videos) to GitHub Pages. Each run REPLACES the previous report — the
-# gh-pages branch is force-orphaned to a single commit, so it never grows.
+# Records the notification-journey walk-throughs and uploads the HTML report
+# (with the videos and traces bundled in) as a downloadable artefact on the run.
+# Artefacts auto-expire, so nothing accumulates — no gh-pages branch, no admin
+# or Pages setup needed.
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
-
-permissions:
-  contents: write # peaceiris needs this to push the gh-pages branch
-
-concurrency:
-  group: journey-demo-pages
-  cancel-in-progress: false
 
 jobs:
   record:
@@ -37,11 +31,10 @@ jobs:
       - name: Record the walk-throughs
         run: npm run test:prototype
 
-      - name: Publish the latest report to GitHub Pages
+      - name: Upload the report (HTML + videos + traces)
         if: ${{ !cancelled() }}
-        uses: peaceiris/actions-gh-pages@v4
+        uses: actions/upload-artifact@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./journey-demo/playwright-report
-          # Replace everything each run so gh-pages stays a single, tiny commit.
-          force_orphan: true
+          name: journey-demo-report
+          path: journey-demo/playwright-report
+          retention-days: 14

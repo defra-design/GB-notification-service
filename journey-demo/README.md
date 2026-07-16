@@ -54,12 +54,11 @@ the point of the exercise. They live under `journey-demo/`:
 Both are regenerated on every run and are git-ignored.
 
 On every push to `main` (or a manual run from the Actions tab), a GitHub Actions
-workflow records the walks and publishes the report to **GitHub Pages** at a
-stable URL — `https://defra-design.github.io/GB-notification-service/`. Each run
-**replaces** the previous report (the `gh-pages` branch is force-orphaned to a
-single commit), so nothing accumulates. One-time setup: an org/repo admin needs
-to turn on Pages once — Settings → Pages → Build and deployment → Deploy from a
-branch → `gh-pages` / root.
+workflow records the walks and uploads the report as a **downloadable artefact**
+(`journey-demo-report`) on the run. To view it: open the workflow run in the
+**Actions** tab, download the artefact, unzip it, and open `index.html` — the
+videos play inline and the traces open from there. The artefact expires after 14
+days, so nothing piles up.
 
 ## Keeping the demo up to date when the prototype changes
 
