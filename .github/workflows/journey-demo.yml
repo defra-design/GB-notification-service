@@ -1,0 +1,59 @@
+name: Journey demo
+
+# Records the notification-journey walk-throughs and uploads the HTML report
+# (with the videos and traces bundled in) as a downloadable artefact on the run.
+# Only the latest report is kept — older ones are deleted after each run — so
+# there's no accumulation, no gh-pages branch, and no Pages/admin setup needed.
+
+on:
+  push:
+    # TEMPORARY: feat/playwright-demo-flow is here so the pipeline runs on the
+    # branch while we get it green. Revert to [main] before merging.
+    branches: [main, feat/playwright-demo-flow]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write # needed to delete older report artefacts
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install the browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Record the walk-throughs
+        run: npm run test:prototype
+
+      - name: Upload the report (HTML + videos + traces)
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: journey-demo-report
+          path: journey-demo/playwright-report
+          retention-days: 30
+
+      - name: Keep only the latest report
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Delete report artefacts from earlier runs, keeping this run's.
+          gh api "repos/${{ github.repository }}/actions/artifacts?per_page=100" \
+            --jq '.artifacts[] | select(.name == "journey-demo-report" and .workflow_run.id != ${{ github.run_id }}) | .id' \
+          | while read -r id; do
+              echo "Deleting old report artefact $id"
+              gh api -X DELETE "repos/${{ github.repository }}/actions/artifacts/$id"
+            done
