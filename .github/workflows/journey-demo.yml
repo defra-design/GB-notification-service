@@ -7,7 +7,9 @@ name: Journey demo
 
 on:
   push:
-    branches: [main]
+    # TEMPORARY: feat/playwright-demo-flow is here so the pipeline runs on the
+    # branch while we get it green. Revert to [main] before merging.
+    branches: [main, feat/playwright-demo-flow]
   workflow_dispatch:
 
 jobs:
