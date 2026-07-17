@@ -7,43 +7,88 @@ https://prototype-kit.service.gov.uk/docs/how-to-use-layouts
 
 {% from "govuk/components/header/macro.njk" import govukHeader %}
 {% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
+{% from "govuk/macros/logo.njk" import govukLogo %}
 
 {% block header %}
   {% set navDashboardHref = serviceNavDashboardHref if serviceNavDashboardHref else "/" %}
-  {% set navServiceHref = "/index" %}
-  {{ govukHeader({
-    homepageUrl: navServiceHref,
-    serviceName: serviceName if not useServiceNavigation,
-    serviceUrl: serviceUrl if not useServiceNavigation else navServiceHref,
-    containerClasses: "govuk-width-container"
-  }) }}
+  {% set navServiceHref = serviceNavServiceHref if serviceNavServiceHref else "/index" %}
 
-  {% if useServiceNavigation %}
-    {{
-      govukServiceNavigation({
-        serviceName: serviceName,
-        serviceUrl: navServiceHref,
-        navigation: [
-          {
-            href: navDashboardHref,
-            text: "Dashboard",
-            active: serviceNavActive == "dashboard"
-          },
-          {
-            href: "/address-book",
-            text: "Address book",
-            active: serviceNavActive == "address-book"
-          },
-          {
-            href: "#",
-            text: "Manage account"
-          },
-          {
-            href: "#",
-            text: "Log out"
-          }
-        ]
-      })
-    }}
+  {% if isTestingVersion %}
+    <header class="govuk-header" data-module="govuk-header">
+      <div class="govuk-header__container govuk-width-container">
+        <div class="govuk-header__logo">
+          <span class="govuk-header__homepage-link">
+            {{ govukLogo({
+              classes: "govuk-header__logotype",
+              ariaLabelText: "GOV.UK"
+            }) }}
+          </span>
+        </div>
+      </div>
+    </header>
+
+    {% if useServiceNavigation %}
+      {{
+        govukServiceNavigation({
+          serviceName: serviceName,
+          navigation: [
+            {
+              href: navDashboardHref,
+              text: "Dashboard",
+              active: serviceNavActive == "dashboard"
+            },
+            {
+              href: "/address-book",
+              text: "Address book",
+              active: serviceNavActive == "address-book"
+            },
+            {
+              href: "#",
+              text: "Manage account"
+            },
+            {
+              href: "#",
+              text: "Log out"
+            }
+          ]
+        })
+      }}
+    {% endif %}
+  {% else %}
+    {{ govukHeader({
+      homepageUrl: navServiceHref,
+      serviceName: serviceName if not useServiceNavigation,
+      serviceUrl: serviceUrl if not useServiceNavigation else navServiceHref,
+      containerClasses: "govuk-width-container"
+    }) }}
+
+    {% if useServiceNavigation %}
+      {{
+        govukServiceNavigation({
+          serviceName: serviceName,
+          serviceUrl: navServiceHref,
+          navigation: [
+            {
+              href: navDashboardHref,
+              text: "Dashboard",
+              active: serviceNavActive == "dashboard"
+            },
+            {
+              href: "/address-book",
+              text: "Address book",
+              active: serviceNavActive == "address-book"
+            },
+            {
+              href: "#",
+              text: "Manage account"
+            },
+            {
+              href: "#",
+              text: "Log out"
+            }
+          ]
+        })
+      }}
+    {% endif %}
   {% endif %}
 {% endblock %}

@@ -3,7 +3,6 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/pagination/macro.njk" import govukPagination %}
-{% from "govuk/components/radios/macro.njk" import govukRadios %}
 {% from "govuk/components/select/macro.njk" import govukSelect %}
 {% from "govuk/components/tag/macro.njk" import govukTag %}
 {% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
@@ -15,209 +14,152 @@
 
 {% block content %}
 <div class="govuk-grid-row">
-  <div class="govuk-grid-column-full app-dashboard-page">
+  <div class="govuk-grid-column-full app-dashboard-page app-dashboard-page--testing">
 
     <section class="app-dashboard-intro" aria-labelledby="dashboard-page-heading">
-      <div class="app-dashboard-intro__header">
-        <p class="app-dashboard-intro__caption">Dashboard</p>
-        <h1 class="app-dashboard-intro__heading" id="dashboard-page-heading">{{ serviceName }}</h1>
-      </div>
+      <h1 class="app-dashboard-intro__heading" id="dashboard-page-heading">{{ serviceName }}</h1>
 
       {{ govukButton({
-        text: "Create a new notification",
+        text: "Create an import notification",
         href: "/testing/create-notification",
         classes: "app-dashboard-intro__create-button"
       }) }}
     </section>
 
-    <section class="app-dashboard-alerts" aria-labelledby="dashboard-alerts-heading">
-      <h2 class="app-dashboard-alerts__heading" id="dashboard-alerts-heading">At a glance</h2>
-
-      <div class="app-dashboard-alerts__cards">
-        <article class="app-dashboard-alert-card app-dashboard-alert-card--alerts">
-          <h3 class="app-dashboard-alert-card__title">Alerts</h3>
-          <div class="app-dashboard-alert-card__panel">
-            <div class="app-dashboard-alert-card__icon" aria-hidden="true">
-              <img class="app-dashboard-alert-card__icon-image" src="/public/images/dashboard/icon-alert.svg" width="35" height="35" alt="">
-            </div>
-            <p class="app-dashboard-alert-card__count">{{ alertCounts.alerts }}</p>
-          </div>
-          <a class="govuk-link app-dashboard-alert-card__link" href="#">View alerts</a>
-        </article>
-
-        <article class="app-dashboard-alert-card app-dashboard-alert-card--errors">
-          <h3 class="app-dashboard-alert-card__title">Errors</h3>
-          <div class="app-dashboard-alert-card__panel">
-            <div class="app-dashboard-alert-card__icon" aria-hidden="true">
-              <img class="app-dashboard-alert-card__icon-image" src="/public/images/dashboard/icon-error.svg" width="35" height="35" alt="">
-            </div>
-            <p class="app-dashboard-alert-card__count">{{ alertCounts.errors }}</p>
-          </div>
-          <a class="govuk-link app-dashboard-alert-card__link" href="#">View errors</a>
-        </article>
-
-        <article class="app-dashboard-alert-card app-dashboard-alert-card--messages">
-          <h3 class="app-dashboard-alert-card__title">Messages</h3>
-          <div class="app-dashboard-alert-card__panel">
-            <div class="app-dashboard-alert-card__icon" aria-hidden="true">
-              <img class="app-dashboard-alert-card__icon-image" src="/public/images/dashboard/icon-message.svg" width="35" height="35" alt="">
-            </div>
-            <p class="app-dashboard-alert-card__count">{{ alertCounts.messages }}</p>
-          </div>
-          <a class="govuk-link app-dashboard-alert-card__link" href="#">View messages</a>
-        </article>
-      </div>
-    </section>
-
-    <section class="app-dashboard-notifications" aria-labelledby="dashboard-notifications-heading">
-      <h2 class="app-dashboard-notifications__heading" id="dashboard-notifications-heading">My notifications</h2>
-
+    <section class="app-dashboard-notifications" aria-label="Notifications">
       <div class="app-dashboard-notifications__layout">
         <aside class="app-dashboard-filters" aria-label="Filter notifications">
-          <div class="app-dashboard-filters__panel">
-            <p class="app-dashboard-filters__label">Filter notifications</p>
+          <form method="get" action="/testing" class="app-dashboard-filters__panel">
+            <h2 class="app-dashboard-filters__heading">Filter notifications</h2>
 
-            <details class="app-dashboard-filters__section">
-              <summary class="app-dashboard-filters__summary">
-                <span class="app-dashboard-filters__summary-text">Search by</span>
-                <img class="app-dashboard-filters__chevron" src="/public/images/dashboard/icon-chevron-down.svg" width="17" height="9" alt="">
-              </summary>
-              <div class="app-dashboard-filters__content">
-                {{ govukInput({
-                  id: "dashboard-search-keyword",
-                  name: "keyword",
+            <div class="app-dashboard-filters__fields">
+              {{ govukInput({
+                id: "dashboard-search-keyword",
+                name: "keyword",
+                label: {
+                  text: "Keyword or reference",
+                  classes: "govuk-label--s"
+                },
+                classes: "app-dashboard-filters__input",
+                formGroup: {
+                  classes: "app-dashboard-filters__field"
+                }
+              }) }}
+
+              {{ govukInput({
+                id: "dashboard-search-commodity",
+                name: "commodity",
+                label: {
+                  text: "Commodity code or name",
+                  classes: "govuk-label--s"
+                },
+                classes: "app-dashboard-filters__input",
+                formGroup: {
+                  classes: "app-dashboard-filters__field"
+                }
+              }) }}
+
+              {{ govukInput({
+                id: "dashboard-search-origin",
+                name: "origin",
+                label: {
+                  text: "Country of origin",
+                  classes: "govuk-label--s"
+                },
+                classes: "app-dashboard-filters__input",
+                formGroup: {
+                  classes: "app-dashboard-filters__field"
+                }
+              }) }}
+
+              {{ govukInput({
+                id: "dashboard-search-consignee-consignor",
+                name: "consigneeConsignor",
+                label: {
+                  text: "Consignee / Consignor",
+                  classes: "govuk-label--s"
+                },
+                classes: "app-dashboard-filters__input",
+                formGroup: {
+                  classes: "app-dashboard-filters__field"
+                }
+              }) }}
+
+              {{ govukInput({
+                id: "dashboard-search-destination",
+                name: "placeOfDestination",
+                label: {
+                  text: "Place of destination",
+                  classes: "govuk-label--s"
+                },
+                classes: "app-dashboard-filters__input",
+                formGroup: {
+                  classes: "app-dashboard-filters__field"
+                }
+              }) }}
+
+              {{ govukSelect({
+                id: "dashboard-filter-status",
+                name: "status",
+                label: {
+                  text: "Status",
+                  classes: "govuk-label--s"
+                },
+                classes: "app-dashboard-filters__status-select",
+                formGroup: {
+                  classes: "app-dashboard-filters__field"
+                },
+                items: [
+                  { value: "", text: "Show all" },
+                  { value: "draft", text: "Draft" },
+                  { value: "submitted", text: "Submitted" },
+                  { value: "in-progress", text: "In progress" },
+                  { value: "approved", text: "Approved" },
+                  { value: "action-required", text: "Action required" },
+                  { value: "rejected", text: "Rejected" },
+                  { value: "complete", text: "Complete" }
+                ]
+              }) }}
+
+              <div class="app-dashboard-filters__date-picker">
+                {{ mojDatePicker({
+                  id: "dashboard-start-date",
+                  name: "startDate",
+                  value: "",
                   label: {
-                    text: "Keyword or notification number",
-                    classes: "app-dashboard-filters__field-label"
+                    text: "Start date range",
+                    classes: "govuk-label--s"
                   },
-                  classes: "app-dashboard-filters__input",
                   formGroup: {
                     classes: "app-dashboard-filters__field"
                   }
                 }) }}
+              </div>
 
-                {{ govukInput({
-                  id: "dashboard-search-commodity",
-                  name: "commodity",
+              <div class="app-dashboard-filters__date-picker">
+                {{ mojDatePicker({
+                  id: "dashboard-end-date",
+                  name: "endDate",
+                  value: "",
                   label: {
-                    text: "Commodity code or name",
-                    classes: "app-dashboard-filters__field-label"
+                    text: "End date range",
+                    classes: "govuk-label--s"
                   },
-                  classes: "app-dashboard-filters__input",
                   formGroup: {
                     classes: "app-dashboard-filters__field"
                   }
                 }) }}
-
-                {{ govukInput({
-                  id: "dashboard-search-consignee",
-                  name: "consignee",
-                  label: {
-                    text: "Consignee/Importer",
-                    classes: "app-dashboard-filters__field-label"
-                  },
-                  classes: "app-dashboard-filters__input",
-                  formGroup: {
-                    classes: "app-dashboard-filters__field app-dashboard-filters__field--last"
-                  }
-                }) }}
               </div>
-            </details>
+            </div>
 
-            <details class="app-dashboard-filters__section">
-              <summary class="app-dashboard-filters__summary">
-                <span class="app-dashboard-filters__summary-text">Status</span>
-                <img class="app-dashboard-filters__chevron" src="/public/images/dashboard/icon-chevron-down.svg" width="17" height="9" alt="">
-              </summary>
-              <div class="app-dashboard-filters__content">
-                {{ govukSelect({
-                  id: "dashboard-filter-status",
-                  name: "status",
-                  label: {
-                    text: "Status",
-                    classes: "app-dashboard-filters__field-label"
-                  },
-                  classes: "app-dashboard-filters__status-select",
-                  formGroup: {
-                    classes: "app-dashboard-filters__field app-dashboard-filters__field--last"
-                  },
-                  items: [
-                    { value: "", text: "Select one" },
-                    { value: "draft", text: "Draft" },
-                    { value: "submitted", text: "Submitted" },
-                    { value: "in-progress", text: "In progress" },
-                    { value: "approved", text: "Approved" },
-                    { value: "action-required", text: "Action required" },
-                    { value: "rejected", text: "Rejected" },
-                    { value: "complete", text: "Complete" }
-                  ]
-                }) }}
-              </div>
-            </details>
-
-            <details class="app-dashboard-filters__section app-dashboard-filters__section--last">
-              <summary class="app-dashboard-filters__summary">
-                <span class="app-dashboard-filters__summary-text">By date</span>
-                <img class="app-dashboard-filters__chevron" src="/public/images/dashboard/icon-chevron-down.svg" width="17" height="9" alt="">
-              </summary>
-              <div class="app-dashboard-filters__content">
-                {{ govukRadios({
-                  idPrefix: "dashboard-date-range",
-                  name: "dateRange",
-                  classes: "app-dashboard-filters__radios",
-                  formGroup: {
-                    classes: "app-dashboard-filters__field"
-                  },
-                  fieldset: {
-                    legend: {
-                      text: "Choose a date range",
-                      classes: "govuk-visually-hidden"
-                    }
-                  },
-                  items: [
-                    { value: "today", text: "Today" },
-                    { value: "tomorrow", text: "Tomorrow" },
-                    { value: "next-seven-days", text: "Next seven days" }
-                  ]
-                }) }}
-
-                <div class="app-dashboard-filters__date-range">
-                  <p class="app-dashboard-filters__date-range-title">Select date range</p>
-                  <p class="app-dashboard-filters__date-range-hint">For example, 27/3/2026</p>
-                </div>
-
-                <div class="app-dashboard-filters__date-picker">
-                  {{ mojDatePicker({
-                    id: "dashboard-start-date",
-                    name: "startDate",
-                    value: "",
-                    label: {
-                      text: "Start date",
-                      classes: "app-dashboard-filters__field-label"
-                    },
-                    formGroup: {
-                      classes: "app-dashboard-filters__field"
-                    }
-                  }) }}
-                </div>
-
-                <div class="app-dashboard-filters__date-picker">
-                  {{ mojDatePicker({
-                    id: "dashboard-end-date",
-                    name: "endDate",
-                    value: "",
-                    label: {
-                      text: "End date",
-                      classes: "app-dashboard-filters__field-label"
-                    },
-                    formGroup: {
-                      classes: "app-dashboard-filters__field app-dashboard-filters__field--last"
-                    }
-                  }) }}
-                </div>
-              </div>
-            </details>
-          </div>
+            <div class="app-dashboard-filters__actions">
+              {{ govukButton({
+                text: "Filter",
+                classes: "app-dashboard-filters__filter-button"
+              }) }}
+              <a class="govuk-link app-dashboard-filters__clear" href="/testing">Clear</a>
+            </div>
+          </form>
         </aside>
 
         <div class="app-dashboard-results">
@@ -228,19 +170,26 @@
 
             <p class="app-dashboard-results__count">{{ resultsText }}</p>
 
-            {{ govukSelect({
-              id: "dashboard-sort",
-              name: "sort",
-              label: {
-                text: "Sort by:",
-                classes: "app-dashboard-results__sort-label"
-              },
-              classes: "app-dashboard-results__sort-select",
-              formGroup: {
-                classes: "app-dashboard-results__sort"
-              },
-              items: sortItems
-            }) }}
+            <div class="app-dashboard-results__sort-row">
+              {{ govukSelect({
+                id: "dashboard-sort",
+                name: "sort",
+                label: {
+                  text: "Sort by:",
+                  classes: "app-dashboard-results__sort-label"
+                },
+                classes: "app-dashboard-results__sort-select",
+                formGroup: {
+                  classes: "app-dashboard-results__sort"
+                },
+                items: sortItems
+              }) }}
+
+              {{ govukButton({
+                text: "Update sort",
+                classes: "govuk-button--secondary app-dashboard-results__update-sort"
+              }) }}
+            </div>
           </form>
 
           <div class="app-dashboard-notification-list">
@@ -255,31 +204,42 @@
                   </div>
                 </div>
 
-                <dl class="app-dashboard-notification-card__details">
-                  <div class="app-dashboard-notification-card__row">
+                <dl class="app-dashboard-notification-card__details app-dashboard-notification-card__details--testing">
+                  <div class="app-dashboard-notification-card__column">
                     <div class="app-dashboard-notification-card__pair">
                       <dt class="app-dashboard-notification-card__key">Commodity</dt>
                       <dd class="app-dashboard-notification-card__value">{{ notification.commodities }}</dd>
                     </div>
-                    <div class="app-dashboard-notification-card__pair app-dashboard-notification-card__pair--status">
-                      <dt class="app-dashboard-notification-card__key">Status</dt>
-                      <dd class="app-dashboard-notification-card__value app-dashboard-notification-card__value--status">
-                        {{ govukTag({
-                          text: notification.statusText,
-                          classes: notification.statusTagClass
-                        }) }}
-                      </dd>
+                    <div class="app-dashboard-notification-card__pair">
+                      <dt class="app-dashboard-notification-card__key">Consignee</dt>
+                      <dd class="app-dashboard-notification-card__value">{{ notification.consignee }}</dd>
                     </div>
                   </div>
 
-                  <div class="app-dashboard-notification-card__row app-dashboard-notification-card__row--last">
+                  <div class="app-dashboard-notification-card__column">
                     <div class="app-dashboard-notification-card__pair">
                       <dt class="app-dashboard-notification-card__key">Origin</dt>
                       <dd class="app-dashboard-notification-card__value">{{ notification.origin }}</dd>
                     </div>
                     <div class="app-dashboard-notification-card__pair">
-                      <dt class="app-dashboard-notification-card__key">Arrival date at destination</dt>
+                      <dt class="app-dashboard-notification-card__key">Consignor</dt>
+                      <dd class="app-dashboard-notification-card__value">{{ notification.consignor }}</dd>
+                    </div>
+                  </div>
+
+                  <div class="app-dashboard-notification-card__column">
+                    <div class="app-dashboard-notification-card__pair">
+                      <dt class="app-dashboard-notification-card__key">Arrival at destination</dt>
                       <dd class="app-dashboard-notification-card__value">{{ notification.arrivalDate }}</dd>
+                    </div>
+                    <div class="app-dashboard-notification-card__pair">
+                      <dt class="app-dashboard-notification-card__key">Status</dt>
+                      <dd class="app-dashboard-notification-card__value">
+                        {{ govukTag({
+                          text: notification.statusText,
+                          classes: notification.statusTagClass
+                        }) }}
+                      </dd>
                     </div>
                   </div>
                 </dl>

@@ -4347,21 +4347,56 @@ function getSubmittedNotificationById (sessionData, submittedId) {
 }
 
 function getDashboardNotificationList (sessionData = {}) {
-  const submitted = (sessionData.submittedNotifications || []).map((notification) => ({
-    reference: notification.reference,
-    commodities: notification.commodities,
-    statusText: notification.statusText,
-    statusTagClass: notification.statusTagClass,
-    origin: notification.origin,
-    arrivalDate: notification.arrivalDate,
-    viewHref: `/review-notification?submitted=${encodeURIComponent(notification.id)}`
-  }))
+  const testingConsignees = [
+    'Macdonald Osborne Inc',
+    'Northern Livestock Imports',
+    'West Coast Animal Imports',
+    'Britannia Trade Livestock',
+    'Prime Livestock UK'
+  ]
+  const testingConsignors = [
+    'Wagner and Matthews',
+    'Green Valley Farm',
+    'Oak Hill Farm',
+    'Riverside Farm',
+    'Valea Mare Farm'
+  ]
+
+  const enrichTestingNotification = (notification, index) => {
+    const statusText = notification.statusText || 'Draft'
+    const isSubmitted = statusText.toLowerCase() === 'submitted'
+
+    return {
+      ...notification,
+      consignee: notification.consignee || testingConsignees[index % testingConsignees.length],
+      consignor: notification.consignor || testingConsignors[index % testingConsignors.length],
+      statusTagClass: isSubmitted ? 'govuk-tag--blue' : 'govuk-tag--grey'
+    }
+  }
+
+  const submitted = (sessionData.submittedNotifications || []).map((notification, index) => {
+    const mapped = {
+      reference: notification.reference,
+      commodities: notification.commodities,
+      statusText: notification.statusText,
+      statusTagClass: notification.statusTagClass,
+      origin: notification.origin,
+      arrivalDate: notification.arrivalDate,
+      consignee: notification.consignee,
+      consignor: notification.consignor,
+      viewHref: `/review-notification?submitted=${encodeURIComponent(notification.id)}`
+    }
+
+    return isTestingSessionData(sessionData)
+      ? enrichTestingNotification(mapped, index)
+      : mapped
+  })
 
   const submittedReferences = new Set(submitted.map((notification) => notification.reference))
   const staticNotifications = dashboardData.notifications
     .map((notification, index) => {
       if (isTestingSessionData(sessionData)) {
-        return notification
+        return enrichTestingNotification(notification, index + submitted.length)
       }
 
       return {
@@ -4374,7 +4409,15 @@ function getDashboardNotificationList (sessionData = {}) {
   return [...submitted, ...staticNotifications]
 }
 
-function buildDashboardResultsText (start, end, total) {
+function buildDashboardResultsText (start, end, total, options = {}) {
+  if (options.testing) {
+    if (!total) {
+      return '0 results'
+    }
+
+    return `${total} results`
+  }
+
   if (!total) {
     return 'Show 0 of 0 results'
   }
@@ -4382,14 +4425,24 @@ function buildDashboardResultsText (start, end, total) {
   return `Show ${start}-${end} of ${total} results`
 }
 
-function buildDashboardSortItems (selectedValue) {
-  return dashboardData.sortItems.map((item) => ({
+function buildDashboardSortItems (selectedValue, options = {}) {
+  const sortItems = options.testing
+    ? [
+        { value: 'arrival-newest', text: 'Arrival (newest to oldest)' },
+        { value: 'arrival-oldest', text: 'Arrival (oldest to newest)' },
+        { value: 'newest', text: 'Newest first' },
+        { value: 'oldest', text: 'Oldest first' }
+      ]
+    : dashboardData.sortItems
+
+  return sortItems.map((item) => ({
     ...item,
-    selected: selectedValue === item.value
+    selected: selectedValue === item.value || (!selectedValue && options.testing && item.value === 'arrival-newest')
   }))
 }
 
 function getDashboardViewModel (sessionData = {}, query = {}) {
+  const isTesting = isTestingSessionData(sessionData)
   const sort = (query.sort || '').trim()
   const requestedPage = Math.max(1, Number(query.page) || 1)
   const pageSize = dashboardData.pageSize
@@ -4409,8 +4462,8 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
     },
     notifications,
     sort,
-    sortItems: buildDashboardSortItems(sort),
-    resultsText: buildDashboardResultsText(startIndex + 1, endIndex, totalCount),
+    sortItems: buildDashboardSortItems(sort, { testing: isTesting }),
+    resultsText: buildDashboardResultsText(startIndex + 1, endIndex, totalCount, { testing: isTesting }),
     pagination: buildDashboardPagination(currentPage, totalPages, sort),
     currentPage
   }
