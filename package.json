@@ -2,7 +2,9 @@
   "scripts": {
     "dev": "govuk-prototype-kit dev",
     "serve": "govuk-prototype-kit serve",
-    "start": "govuk-prototype-kit start"
+    "start": "govuk-prototype-kit start",
+    "test:prototype": "playwright test --config journey-demo/playwright.config.js",
+    "test:prototype:report": "playwright show-report journey-demo/playwright-report"
   },
   "dependencies": {
     "@govuk-prototype-kit/common-templates": "3.0.0",
@@ -10,5 +12,8 @@
     "govuk-frontend": "6.3.0",
     "govuk-prototype-kit": "13.20.2",
     "moment": "^2.30.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.0"
   }
 }

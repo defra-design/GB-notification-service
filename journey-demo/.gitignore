@@ -1,0 +1,8 @@
+# Node
+node_modules/
+
+# Playwright — recorded artefacts and reports (regenerated on every run)
+test-results/
+playwright-report/
+blob-report/
+.playwright/
