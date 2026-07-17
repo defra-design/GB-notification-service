@@ -6350,9 +6350,11 @@ button.govuk-link.app-govuk-body-link--small {
 }
 
 .app-dashboard-page--testing {
-  max-width: 1124px;
+  max-width: 960px;
 
   .app-dashboard-intro {
+    display: flex;
+    flex-direction: column;
     gap: 30px;
     margin-bottom: 30px;
   }
@@ -6361,22 +6363,27 @@ button.govuk-link.app-govuk-body-link--small {
     margin: 0;
   }
 
-  .app-dashboard-notifications__layout {
-    grid-template-columns: 344px minmax(0, 1fr);
-    gap: 30px;
-    justify-content: start;
+  .app-dashboard-intro__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
   }
 
-  .app-dashboard-filters__panel {
+  .app-dashboard-intro__create-button.govuk-button {
+    margin: 0;
+  }
+
+  .app-dashboard-search {
     display: flex;
     flex-direction: column;
     gap: 24px;
-    width: 344px;
+    box-sizing: border-box;
+    margin: 0 0 30px;
     padding: 16px;
     background: #f8f8f8;
   }
 
-  .app-dashboard-filters__heading {
+  .app-dashboard-search__heading {
     margin: 0;
     font-size: 24px;
     font-weight: 700;
@@ -6384,51 +6391,178 @@ button.govuk-link.app-govuk-body-link--small {
     color: #0b0c0c;
   }
 
-  .app-dashboard-filters__fields {
-    display: flex;
-    flex-direction: column;
-    gap: 26px;
+  .app-dashboard-search__row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 26px;
+    row-gap: 0;
+    align-items: end;
+
+    &--keywords {
+      .app-dashboard-search__field--keywords {
+        grid-column: 1 / span 2;
+      }
+
+      .app-dashboard-search__field--commodity {
+        grid-column: 3;
+      }
+    }
+
+    &--dates {
+      align-items: start;
+    }
   }
 
-  .app-dashboard-filters__field.govuk-form-group {
+  .app-dashboard-search__field.govuk-form-group {
+    width: 100%;
+    max-width: none;
     margin-bottom: 0;
   }
 
-  .app-dashboard-filters__input,
-  .app-dashboard-filters__status-select {
+  .app-dashboard-search__field .govuk-label,
+  .app-dashboard-search__field .govuk-fieldset__legend {
+    max-width: none;
+  }
+
+  .app-dashboard-search__field .govuk-hint {
+    max-width: none;
+  }
+
+  .app-dashboard-search__input,
+  .app-dashboard-search__select,
+  .app-dashboard-search__field .govuk-select,
+  .app-dashboard-search__field .govuk-input {
     width: 100%;
     max-width: none;
   }
 
-  .app-dashboard-filters__date-picker {
-    .moj-datepicker {
-      width: 100%;
+  .app-dashboard-search__field--date {
+    .govuk-fieldset__legend {
+      margin-bottom: 15px;
     }
   }
 
-  .app-dashboard-filters__actions {
+  .app-dashboard-date-input {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 20px;
+    align-items: flex-end;
+  }
+
+  .app-dashboard-date-input__item {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+  }
+
+  .app-dashboard-date-input__label {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 25px;
+    color: #0b0c0c;
+    white-space: nowrap;
+  }
+
+  .app-dashboard-date-input__input {
+    box-sizing: border-box;
+    height: 40px;
+    margin: 0;
+    border: 2px solid #0b0c0c;
+    border-radius: 0;
+
+    &--day,
+    &--month {
+      width: 51px;
+      max-width: 51px;
+    }
+
+    &--year {
+      width: 85px;
+      max-width: 85px;
+    }
+  }
+
+  .app-dashboard-date-input__calendar {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 39px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+
+    &:focus {
+      outline: 3px solid #ffdd00;
+      outline-offset: 0;
+      box-shadow: inset 0 0 0 2px #0b0c0c;
+    }
+  }
+
+  .app-dashboard-date-input__calendar-icon {
+    display: block;
+    width: 38px;
+    height: 39px;
+  }
+
+  .app-dashboard-search__date-presets-heading {
+    margin: 0 0 16px;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 25px;
+    color: #0b0c0c;
+  }
+
+  .app-dashboard-search__date-presets-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      margin: 0 0 0;
+    }
+
+    a {
+      font-size: 19px;
+      line-height: 25px;
+    }
+  }
+
+  .app-dashboard-search__actions {
     display: flex;
     gap: 24px;
     align-items: center;
   }
 
-  .app-dashboard-filters__filter-button.govuk-button {
+  .app-dashboard-search__search-button.govuk-button {
     margin: 0;
   }
 
-  .app-dashboard-filters__clear {
+  .app-dashboard-search__clear {
     font-size: 19px;
     font-weight: 300;
     line-height: 25px;
   }
 
+  .app-dashboard-archive {
+    margin: 0 0 30px;
+    font-size: 19px;
+    line-height: 25px;
+  }
+
   .app-dashboard-results {
-    width: auto;
-    max-width: 703px;
+    width: 100%;
+    max-width: none;
   }
 
   .app-dashboard-results__toolbar {
     gap: 8px;
+    margin-bottom: 0;
   }
 
   .app-dashboard-results__count {
@@ -6470,51 +6604,114 @@ button.govuk-link.app-govuk-body-link--small {
     margin: 0;
   }
 
-  .app-dashboard-notification-card__details--testing {
-    display: flex;
-    gap: 20px;
-    justify-content: space-between;
-    padding: 15px 20px 0;
+  .app-dashboard-notification-list {
+    gap: 0;
   }
 
-  .app-dashboard-notification-card__column {
-    display: flex;
-    flex: 1 1 0;
-    flex-direction: column;
-    gap: 20px;
-    min-width: 0;
-    max-width: 192px;
-    padding-bottom: 20px;
+  .app-dashboard-notification-row {
+    padding: 24px 0;
+    border-top: 1px solid #b1b4b6;
+    border-bottom: 1px solid #b1b4b6;
+
+    & + & {
+      border-top: 0;
+    }
   }
 
-  .app-dashboard-notification-card__details--testing .app-dashboard-notification-card__pair {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+  .app-dashboard-notification-row__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 242px) minmax(0, 192px) minmax(0, 192px) minmax(0, 155px);
+    column-gap: 60px;
+    row-gap: 16px;
+    margin: 0 0 16px;
   }
 
-  .app-dashboard-notification-card__details--testing .app-dashboard-notification-card__value {
-    justify-content: flex-start;
+  .app-dashboard-notification-row__pair {
+    margin: 0;
+  }
+
+  .app-dashboard-notification-row__key {
+    margin: 0 0 8px;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 25px;
+    color: #0b0c0c;
+  }
+
+  .app-dashboard-notification-row__value {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 25px;
+    color: #0b0c0c;
+  }
+
+  .app-dashboard-notification-row__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+
+    .govuk-link {
+      font-size: 19px;
+      font-weight: 300;
+      line-height: 25px;
+    }
+  }
+}
+
+.app-ipaffs-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  max-width: 100%;
+  padding: 5px 8px 4px;
+  font-family: "GDS Transport", arial, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 16px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #0b0c0c;
+
+  &--draft {
+    color: #383f43;
+    background: #eeefef;
+  }
+
+  &--submitted,
+  &--in-progress {
+    color: #0b0c0c;
+    background: #d9763f;
+  }
+
+  &--approved {
+    color: #ffffff;
+    background: #4a8044;
+  }
+
+  &--rejected {
+    color: #ffffff;
+    background: #d4351c;
   }
 }
 
 @media (max-width: 40.0625em) {
   .app-dashboard-page--testing {
-    .app-dashboard-notifications__layout {
+    .app-dashboard-search__row,
+    .app-dashboard-notification-row__grid {
       grid-template-columns: 1fr;
     }
 
-    .app-dashboard-filters__panel,
+    .app-dashboard-search__row--keywords {
+      .app-dashboard-search__field--keywords,
+      .app-dashboard-search__field--commodity {
+        grid-column: auto;
+      }
+    }
+
     .app-dashboard-results {
       width: 100%;
-      max-width: none;
-    }
-
-    .app-dashboard-notification-card__details--testing {
-      flex-direction: column;
-    }
-
-    .app-dashboard-notification-card__column {
       max-width: none;
     }
   }

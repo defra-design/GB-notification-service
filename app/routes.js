@@ -4364,13 +4364,24 @@ function getDashboardNotificationList (sessionData = {}) {
 
   const enrichTestingNotification = (notification, index) => {
     const statusText = notification.statusText || 'Draft'
-    const isSubmitted = statusText.toLowerCase() === 'submitted'
+    const normalisedStatus = statusText.toLowerCase()
+    let statusTagClass = 'app-ipaffs-tag--draft'
+
+    if (normalisedStatus === 'submitted') {
+      statusTagClass = 'app-ipaffs-tag--submitted'
+    } else if (normalisedStatus === 'in progress' || normalisedStatus === 'in-progress') {
+      statusTagClass = 'app-ipaffs-tag--in-progress'
+    } else if (normalisedStatus === 'approved' || normalisedStatus === 'complete') {
+      statusTagClass = 'app-ipaffs-tag--approved'
+    } else if (normalisedStatus === 'rejected') {
+      statusTagClass = 'app-ipaffs-tag--rejected'
+    }
 
     return {
       ...notification,
       consignee: notification.consignee || testingConsignees[index % testingConsignees.length],
       consignor: notification.consignor || testingConsignors[index % testingConsignors.length],
-      statusTagClass: isSubmitted ? 'govuk-tag--blue' : 'govuk-tag--grey'
+      statusTagClass
     }
   }
 

@@ -1,0 +1,70 @@
+{#
+  IPAFFS-style date range input: Day / Month / Year + calendar button
+  Expects: idPrefix, namePrefix, legend
+#}
+{% set dayId = idPrefix + "-day" %}
+{% set monthId = idPrefix + "-month" %}
+{% set yearId = idPrefix + "-year" %}
+
+<div class="govuk-form-group app-dashboard-search__field app-dashboard-search__field--date">
+  <fieldset class="govuk-fieldset" role="group">
+    <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">
+      {{ legend }}
+    </legend>
+
+    <div class="app-dashboard-date-input">
+      <div class="app-dashboard-date-input__item">
+        <label class="govuk-label app-dashboard-date-input__label" for="{{ dayId }}">Day</label>
+        <input
+          class="govuk-input app-dashboard-date-input__input app-dashboard-date-input__input--day"
+          id="{{ dayId }}"
+          name="{{ namePrefix }}-day"
+          type="text"
+          inputmode="numeric"
+          maxlength="2"
+          autocomplete="bday-day"
+        >
+      </div>
+
+      <div class="app-dashboard-date-input__item">
+        <label class="govuk-label app-dashboard-date-input__label" for="{{ monthId }}">Month</label>
+        <input
+          class="govuk-input app-dashboard-date-input__input app-dashboard-date-input__input--month"
+          id="{{ monthId }}"
+          name="{{ namePrefix }}-month"
+          type="text"
+          inputmode="numeric"
+          maxlength="2"
+          autocomplete="bday-month"
+        >
+      </div>
+
+      <div class="app-dashboard-date-input__item">
+        <label class="govuk-label app-dashboard-date-input__label" for="{{ yearId }}">Year</label>
+        <input
+          class="govuk-input app-dashboard-date-input__input app-dashboard-date-input__input--year"
+          id="{{ yearId }}"
+          name="{{ namePrefix }}-year"
+          type="text"
+          inputmode="numeric"
+          maxlength="4"
+          autocomplete="bday-year"
+        >
+      </div>
+
+      <button
+        class="app-dashboard-date-input__calendar"
+        type="button"
+        aria-label="Choose date for {{ legend | lower }}"
+      >
+        <img
+          class="app-dashboard-date-input__calendar-icon"
+          src="/public/images/dashboard/icon-calendar.svg"
+          width="38"
+          height="39"
+          alt=""
+        >
+      </button>
+    </div>
+  </fieldset>
+</div>

@@ -4,10 +4,8 @@
 {% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/pagination/macro.njk" import govukPagination %}
 {% from "govuk/components/select/macro.njk" import govukSelect %}
-{% from "govuk/components/tag/macro.njk" import govukTag %}
-{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
 
-{% set pageName = "Dashboard" %}
+{% set pageName = "Your import notifications" %}
 
 {% block beforeContent %}
 {% endblock %}
@@ -17,251 +15,298 @@
   <div class="govuk-grid-column-full app-dashboard-page app-dashboard-page--testing">
 
     <section class="app-dashboard-intro" aria-labelledby="dashboard-page-heading">
-      <h1 class="app-dashboard-intro__heading" id="dashboard-page-heading">{{ serviceName }}</h1>
+      <h1 class="app-dashboard-intro__heading" id="dashboard-page-heading">Your import notifications</h1>
 
-      {{ govukButton({
-        text: "Create an import notification",
-        href: "/testing/create-notification",
-        classes: "app-dashboard-intro__create-button"
-      }) }}
+      <div class="app-dashboard-intro__actions">
+        {{ govukButton({
+          text: "Create a new notification",
+          href: "/testing/create-notification",
+          classes: "app-dashboard-intro__create-button"
+        }) }}
+
+        {{ govukButton({
+          text: "Clone a certificate",
+          href: "#",
+          classes: "app-dashboard-intro__create-button"
+        }) }}
+      </div>
     </section>
 
-    <section class="app-dashboard-notifications" aria-label="Notifications">
-      <div class="app-dashboard-notifications__layout">
-        <aside class="app-dashboard-filters" aria-label="Filter notifications">
-          <form method="get" action="/testing" class="app-dashboard-filters__panel">
-            <h2 class="app-dashboard-filters__heading">Filter notifications</h2>
+    <form method="get" action="/testing" class="app-dashboard-search" aria-labelledby="dashboard-search-heading">
+      <h2 class="app-dashboard-search__heading" id="dashboard-search-heading">Search notifications by</h2>
 
-            <div class="app-dashboard-filters__fields">
-              {{ govukInput({
-                id: "dashboard-search-keyword",
-                name: "keyword",
-                label: {
-                  text: "Keyword or reference",
-                  classes: "govuk-label--s"
-                },
-                classes: "app-dashboard-filters__input",
-                formGroup: {
-                  classes: "app-dashboard-filters__field"
-                }
-              }) }}
+      <div class="app-dashboard-search__row app-dashboard-search__row--keywords">
+        {{ govukInput({
+          id: "dashboard-search-keyword",
+          name: "keyword",
+          label: {
+            text: "Keywords or notification number",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "For example: reference, destination, consignor, transporter, documents"
+          },
+          classes: "app-dashboard-search__input",
+          formGroup: {
+            classes: "app-dashboard-search__field app-dashboard-search__field--keywords"
+          }
+        }) }}
 
-              {{ govukInput({
-                id: "dashboard-search-commodity",
-                name: "commodity",
-                label: {
-                  text: "Commodity code or name",
-                  classes: "govuk-label--s"
-                },
-                classes: "app-dashboard-filters__input",
-                formGroup: {
-                  classes: "app-dashboard-filters__field"
-                }
-              }) }}
-
-              {{ govukInput({
-                id: "dashboard-search-origin",
-                name: "origin",
-                label: {
-                  text: "Country of origin",
-                  classes: "govuk-label--s"
-                },
-                classes: "app-dashboard-filters__input",
-                formGroup: {
-                  classes: "app-dashboard-filters__field"
-                }
-              }) }}
-
-              {{ govukInput({
-                id: "dashboard-search-consignee-consignor",
-                name: "consigneeConsignor",
-                label: {
-                  text: "Consignee / Consignor",
-                  classes: "govuk-label--s"
-                },
-                classes: "app-dashboard-filters__input",
-                formGroup: {
-                  classes: "app-dashboard-filters__field"
-                }
-              }) }}
-
-              {{ govukInput({
-                id: "dashboard-search-destination",
-                name: "placeOfDestination",
-                label: {
-                  text: "Place of destination",
-                  classes: "govuk-label--s"
-                },
-                classes: "app-dashboard-filters__input",
-                formGroup: {
-                  classes: "app-dashboard-filters__field"
-                }
-              }) }}
-
-              {{ govukSelect({
-                id: "dashboard-filter-status",
-                name: "status",
-                label: {
-                  text: "Status",
-                  classes: "govuk-label--s"
-                },
-                classes: "app-dashboard-filters__status-select",
-                formGroup: {
-                  classes: "app-dashboard-filters__field"
-                },
-                items: [
-                  { value: "", text: "Show all" },
-                  { value: "draft", text: "Draft" },
-                  { value: "submitted", text: "Submitted" },
-                  { value: "in-progress", text: "In progress" },
-                  { value: "approved", text: "Approved" },
-                  { value: "action-required", text: "Action required" },
-                  { value: "rejected", text: "Rejected" },
-                  { value: "complete", text: "Complete" }
-                ]
-              }) }}
-
-              <div class="app-dashboard-filters__date-picker">
-                {{ mojDatePicker({
-                  id: "dashboard-start-date",
-                  name: "startDate",
-                  value: "",
-                  label: {
-                    text: "Start date range",
-                    classes: "govuk-label--s"
-                  },
-                  formGroup: {
-                    classes: "app-dashboard-filters__field"
-                  }
-                }) }}
-              </div>
-
-              <div class="app-dashboard-filters__date-picker">
-                {{ mojDatePicker({
-                  id: "dashboard-end-date",
-                  name: "endDate",
-                  value: "",
-                  label: {
-                    text: "End date range",
-                    classes: "govuk-label--s"
-                  },
-                  formGroup: {
-                    classes: "app-dashboard-filters__field"
-                  }
-                }) }}
-              </div>
-            </div>
-
-            <div class="app-dashboard-filters__actions">
-              {{ govukButton({
-                text: "Filter",
-                classes: "app-dashboard-filters__filter-button"
-              }) }}
-              <a class="govuk-link app-dashboard-filters__clear" href="/testing">Clear</a>
-            </div>
-          </form>
-        </aside>
-
-        <div class="app-dashboard-results">
-          <form method="get" action="/testing" class="app-dashboard-results__toolbar">
-            {% if currentPage > 1 %}
-              <input type="hidden" name="page" value="{{ currentPage }}">
-            {% endif %}
-
-            <p class="app-dashboard-results__count">{{ resultsText }}</p>
-
-            <div class="app-dashboard-results__sort-row">
-              {{ govukSelect({
-                id: "dashboard-sort",
-                name: "sort",
-                label: {
-                  text: "Sort by:",
-                  classes: "app-dashboard-results__sort-label"
-                },
-                classes: "app-dashboard-results__sort-select",
-                formGroup: {
-                  classes: "app-dashboard-results__sort"
-                },
-                items: sortItems
-              }) }}
-
-              {{ govukButton({
-                text: "Update sort",
-                classes: "govuk-button--secondary app-dashboard-results__update-sort"
-              }) }}
-            </div>
-          </form>
-
-          <div class="app-dashboard-notification-list">
-            {% for notification in notifications %}
-              <article class="app-dashboard-notification-card" aria-label="Notification {{ notification.reference }}">
-                <div class="app-dashboard-notification-card__header">
-                  <h3 class="app-dashboard-notification-card__reference">{{ notification.reference }}</h3>
-                  <div class="app-dashboard-notification-card__actions">
-                    <a class="govuk-link app-dashboard-notification-card__action" href="#">Copy as new</a>
-                    <span class="app-dashboard-notification-card__action-divider" aria-hidden="true"></span>
-                    <a class="govuk-link app-dashboard-notification-card__action" href="{{ notification.viewHref }}">View</a>
-                  </div>
-                </div>
-
-                <dl class="app-dashboard-notification-card__details app-dashboard-notification-card__details--testing">
-                  <div class="app-dashboard-notification-card__column">
-                    <div class="app-dashboard-notification-card__pair">
-                      <dt class="app-dashboard-notification-card__key">Commodity</dt>
-                      <dd class="app-dashboard-notification-card__value">{{ notification.commodities }}</dd>
-                    </div>
-                    <div class="app-dashboard-notification-card__pair">
-                      <dt class="app-dashboard-notification-card__key">Consignee</dt>
-                      <dd class="app-dashboard-notification-card__value">{{ notification.consignee }}</dd>
-                    </div>
-                  </div>
-
-                  <div class="app-dashboard-notification-card__column">
-                    <div class="app-dashboard-notification-card__pair">
-                      <dt class="app-dashboard-notification-card__key">Origin</dt>
-                      <dd class="app-dashboard-notification-card__value">{{ notification.origin }}</dd>
-                    </div>
-                    <div class="app-dashboard-notification-card__pair">
-                      <dt class="app-dashboard-notification-card__key">Consignor</dt>
-                      <dd class="app-dashboard-notification-card__value">{{ notification.consignor }}</dd>
-                    </div>
-                  </div>
-
-                  <div class="app-dashboard-notification-card__column">
-                    <div class="app-dashboard-notification-card__pair">
-                      <dt class="app-dashboard-notification-card__key">Arrival at destination</dt>
-                      <dd class="app-dashboard-notification-card__value">{{ notification.arrivalDate }}</dd>
-                    </div>
-                    <div class="app-dashboard-notification-card__pair">
-                      <dt class="app-dashboard-notification-card__key">Status</dt>
-                      <dd class="app-dashboard-notification-card__value">
-                        {{ govukTag({
-                          text: notification.statusText,
-                          classes: notification.statusTagClass
-                        }) }}
-                      </dd>
-                    </div>
-                  </div>
-                </dl>
-              </article>
-            {% endfor %}
-          </div>
-
-          {% if pagination.items %}
-            {{ govukPagination({
-              previous: pagination.previous,
-              next: pagination.next,
-              items: pagination.items,
-              classes: "app-dashboard-results__pagination"
-            }) }}
-          {% elif pagination.next %}
-            {{ govukPagination({
-              next: pagination.next,
-              classes: "app-dashboard-results__pagination"
-            }) }}
-          {% endif %}
-        </div>
+        {{ govukInput({
+          id: "dashboard-search-commodity",
+          name: "commodity",
+          label: {
+            text: "Commodity",
+            classes: "govuk-label--s"
+          },
+          hint: {
+            text: "Code or description"
+          },
+          classes: "app-dashboard-search__input",
+          formGroup: {
+            classes: "app-dashboard-search__field app-dashboard-search__field--commodity"
+          }
+        }) }}
       </div>
+
+      <div class="app-dashboard-search__row">
+        {{ govukSelect({
+          id: "dashboard-filter-bcp",
+          name: "bcpOrPoe",
+          label: {
+            text: "BCP or POE",
+            classes: "govuk-label--s"
+          },
+          classes: "app-dashboard-search__select",
+          formGroup: {
+            classes: "app-dashboard-search__field"
+          },
+          items: [
+            { value: "", text: "All" },
+            { value: "heathrow", text: "Heathrow Airport - HARC (animals)" },
+            { value: "gatwick", text: "Gatwick Airport (animals)" },
+            { value: "holyhead", text: "Holyhead POE" }
+          ]
+        }) }}
+
+        {{ govukSelect({
+          id: "dashboard-filter-status",
+          name: "status",
+          label: {
+            text: "Status",
+            classes: "govuk-label--s"
+          },
+          classes: "app-dashboard-search__select",
+          formGroup: {
+            classes: "app-dashboard-search__field"
+          },
+          items: [
+            { value: "", text: "All" },
+            { value: "draft", text: "Draft" },
+            { value: "submitted", text: "Submitted" },
+            { value: "in-progress", text: "In progress" },
+            { value: "approved", text: "Approved" },
+            { value: "rejected", text: "Rejected" },
+            { value: "complete", text: "Complete" }
+          ]
+        }) }}
+
+        {{ govukSelect({
+          id: "dashboard-filter-origin",
+          name: "origin",
+          label: {
+            text: "Country of origin",
+            classes: "govuk-label--s"
+          },
+          classes: "app-dashboard-search__select",
+          formGroup: {
+            classes: "app-dashboard-search__field"
+          },
+          items: [
+            { value: "", text: "All" },
+            { value: "france", text: "France" },
+            { value: "germany", text: "Germany" },
+            { value: "ireland", text: "Republic of Ireland" },
+            { value: "netherlands", text: "Netherlands" },
+            { value: "spain", text: "Spain" }
+          ]
+        }) }}
+      </div>
+
+      <div class="app-dashboard-search__row">
+        {{ govukInput({
+          id: "dashboard-search-consignee",
+          name: "consignee",
+          label: {
+            text: "Consignee / Importer",
+            classes: "govuk-label--s"
+          },
+          classes: "app-dashboard-search__input",
+          formGroup: {
+            classes: "app-dashboard-search__field"
+          }
+        }) }}
+
+        {{ govukSelect({
+          id: "dashboard-filter-notification-type",
+          name: "notificationType",
+          label: {
+            text: "Notification type",
+            classes: "govuk-label--s"
+          },
+          classes: "app-dashboard-search__select",
+          formGroup: {
+            classes: "app-dashboard-search__field"
+          },
+          items: [
+            { value: "", text: "All" },
+            { value: "cheda", text: "CHEDA" },
+            { value: "chedp", text: "CHEDP" },
+            { value: "chedpp", text: "CHEDPP" }
+          ]
+        }) }}
+
+        {{ govukSelect({
+          id: "dashboard-filter-microchip",
+          name: "microchip",
+          label: {
+            text: "Microchip number (CHED-A only)",
+            classes: "govuk-label--s"
+          },
+          classes: "app-dashboard-search__select",
+          formGroup: {
+            classes: "app-dashboard-search__field"
+          },
+          items: [
+            { value: "", text: "All" }
+          ]
+        }) }}
+      </div>
+
+      <div class="app-dashboard-search__row app-dashboard-search__row--dates">
+        <div class="app-dashboard-search__date-presets">
+          <p class="app-dashboard-search__date-presets-heading">Arrival / Import date range</p>
+          <ul class="app-dashboard-search__date-presets-list">
+            <li><a class="govuk-link" href="#">Today</a></li>
+            <li><a class="govuk-link" href="#">Tomorrow</a></li>
+            <li><a class="govuk-link" href="#">Next seven days</a></li>
+            <li><a class="govuk-link" href="#">Clear date range</a></li>
+          </ul>
+        </div>
+
+        {% set idPrefix = "dashboard-start-date" %}
+        {% set namePrefix = "startDate" %}
+        {% set legend = "Start date range" %}
+        {% include "partials/dashboard-date-range-input.html" %}
+
+        {% set idPrefix = "dashboard-end-date" %}
+        {% set namePrefix = "endDate" %}
+        {% set legend = "End date range" %}
+        {% include "partials/dashboard-date-range-input.html" %}
+      </div>
+
+      <div class="app-dashboard-search__actions">
+        {{ govukButton({
+          text: "Search",
+          classes: "app-dashboard-search__search-button"
+        }) }}
+        <a class="govuk-link app-dashboard-search__clear" href="/testing">Clear</a>
+      </div>
+    </form>
+
+    <p class="app-dashboard-archive">
+      <a class="govuk-link" href="#">Recover notifications from archive</a>
+    </p>
+
+    <section class="app-dashboard-results" aria-label="Search results">
+      <form method="get" action="/testing" class="app-dashboard-results__toolbar">
+        {% if currentPage > 1 %}
+          <input type="hidden" name="page" value="{{ currentPage }}">
+        {% endif %}
+
+        <p class="app-dashboard-results__count">{{ resultsText }}</p>
+
+        <div class="app-dashboard-results__sort-row">
+          {{ govukSelect({
+            id: "dashboard-sort",
+            name: "sort",
+            label: {
+              text: "Sort by:",
+              classes: "app-dashboard-results__sort-label"
+            },
+            classes: "app-dashboard-results__sort-select",
+            formGroup: {
+              classes: "app-dashboard-results__sort"
+            },
+            items: sortItems
+          }) }}
+
+          {{ govukButton({
+            text: "Update sort",
+            classes: "govuk-button--secondary app-dashboard-results__update-sort"
+          }) }}
+        </div>
+      </form>
+
+      <div class="app-dashboard-notification-list">
+        {% for notification in notifications %}
+          <article class="app-dashboard-notification-row" aria-label="Notification {{ notification.reference }}">
+            <dl class="app-dashboard-notification-row__grid">
+              <div class="app-dashboard-notification-row__pair">
+                <dt class="app-dashboard-notification-row__key">Reference number</dt>
+                <dd class="app-dashboard-notification-row__value">{{ notification.reference }}</dd>
+              </div>
+              <div class="app-dashboard-notification-row__pair">
+                <dt class="app-dashboard-notification-row__key">Commodity</dt>
+                <dd class="app-dashboard-notification-row__value">{{ notification.commodities }}</dd>
+              </div>
+              <div class="app-dashboard-notification-row__pair">
+                <dt class="app-dashboard-notification-row__key">Arrival at BCP or POE</dt>
+                <dd class="app-dashboard-notification-row__value">{{ notification.arrivalDate }}</dd>
+              </div>
+              <div class="app-dashboard-notification-row__pair">
+                <dt class="app-dashboard-notification-row__key">CHED status</dt>
+                <dd class="app-dashboard-notification-row__value">
+                  <strong class="app-ipaffs-tag {{ notification.statusTagClass }}">{{ notification.statusText }}</strong>
+                </dd>
+              </div>
+              <div class="app-dashboard-notification-row__pair">
+                <dt class="app-dashboard-notification-row__key">Consignee</dt>
+                <dd class="app-dashboard-notification-row__value">{{ notification.consignee }}</dd>
+              </div>
+              <div class="app-dashboard-notification-row__pair">
+                <dt class="app-dashboard-notification-row__key">Consignor</dt>
+                <dd class="app-dashboard-notification-row__value">{{ notification.consignor }}</dd>
+              </div>
+              <div class="app-dashboard-notification-row__pair">
+                <dt class="app-dashboard-notification-row__key">Origin</dt>
+                <dd class="app-dashboard-notification-row__value">{{ notification.origin }}</dd>
+              </div>
+            </dl>
+
+            <div class="app-dashboard-notification-row__actions">
+              <a class="govuk-link" href="#">Copy as new</a>
+              <a class="govuk-link" href="{{ notification.viewHref }}">View details</a>
+              <a class="govuk-link" href="#">Amend</a>
+              <a class="govuk-link" href="#">Show notification</a>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+
+      {% if pagination.items %}
+        {{ govukPagination({
+          previous: pagination.previous,
+          next: pagination.next,
+          items: pagination.items,
+          classes: "app-dashboard-results__pagination"
+        }) }}
+      {% elif pagination.next %}
+        {{ govukPagination({
+          next: pagination.next,
+          classes: "app-dashboard-results__pagination"
+        }) }}
+      {% endif %}
     </section>
 
   </div>
