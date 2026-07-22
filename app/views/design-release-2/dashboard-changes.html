@@ -4,7 +4,7 @@
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
 {% from "partials/design-release-2/dashboard-notification-card.html" import dr2DashboardNotificationCard %}
 
-{% set pageName = "Notifications have been updated" %}
+{% set pageName = "Changes in past 24 hours" %}
 
 {% block beforeContent %}
   {{ govukPhaseBanner({
@@ -25,10 +25,14 @@
   <div class="govuk-grid-column-full app-dashboard-page app-dashboard-page--dr2">
 
     <section class="app-dr2-dashboard-intro app-dr2-dashboard-intro--changes" aria-labelledby="dashboard-changes-heading">
-      <div class="app-dr2-dashboard-intro__header">
-        <p class="app-dr2-dashboard-intro__caption">Status change</p>
-        <h1 class="app-dr2-dashboard-intro__heading" id="dashboard-changes-heading">Notifications have been updated</h1>
-        <p class="app-dr2-dashboard-intro__description">Description of what the user needs to do</p>
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+          <div class="app-dr2-dashboard-intro__header">
+            <p class="app-dr2-dashboard-intro__caption">Status updates</p>
+            <h1 class="app-dr2-dashboard-intro__heading" id="dashboard-changes-heading">Changes in past 24 hours</h1>
+            <p class="app-dr2-dashboard-intro__description">Notifications that have progressed, or been validated, rejected, cancelled, or replaced in the past 24 hours.</p>
+          </div>
+        </div>
       </div>
     </section>
 

@@ -1,13 +1,14 @@
 {% extends "layouts/main.html" %}
 
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/pagination/macro.njk" import govukPagination %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
 {% from "govuk/components/select/macro.njk" import govukSelect %}
 {% from "partials/design-release-2/dashboard-notification-card.html" import dr2DashboardNotificationCard %}
 
-{% set pageName = "Sent to BCP for inspection" %}
+{% set pageName = "Consignments due at the border control post (BCP)" %}
 
 {% block beforeContent %}
   {{ govukPhaseBanner({
@@ -28,10 +29,22 @@
   <div class="govuk-grid-column-full app-dashboard-page app-dashboard-page--dr2">
 
     <section class="app-dr2-dashboard-intro app-dr2-dashboard-intro--inspection" aria-labelledby="dashboard-inspection-heading">
-      <div class="app-dr2-dashboard-intro__header">
-        <p class="app-dr2-dashboard-intro__caption">Chosen for inspection</p>
-        <h1 class="app-dr2-dashboard-intro__heading" id="dashboard-inspection-heading">Sent to BCP for inspection</h1>
-        <p class="app-dr2-dashboard-intro__description">Description of what the user needs to do</p>
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+          <div class="app-dr2-dashboard-intro__header">
+            <p class="app-dr2-dashboard-intro__caption">Inspection required</p>
+            <h1 class="app-dr2-dashboard-intro__heading" id="dashboard-inspection-heading">Consignments due at the border control post (BCP)</h1>
+            <p class="app-dr2-dashboard-intro__description">Consignments that must go to your chosen BCP for inspection.</p>
+          </div>
+
+          {{ govukDetails({
+            summaryText: "What to do at a border inspection",
+            classes: "app-dr2-dashboard-intro__details",
+            html: '
+              <p class="govuk-body">If your consignments need to have sanitary or phytosanitary checks, you or the transporter must take it to your chosen border control post (BCP).</p>
+              <p class="govuk-body">Read the guidance on <a class="govuk-link" href="https://www.gov.uk/guidance/sanitary-and-phytosanitary-sps-checks-at-border-control-posts-bcps" rel="noreferrer noopener" target="_blank">what you need to do at a border inspection</a></p>'
+          }) }}
+        </div>
       </div>
     </section>
 

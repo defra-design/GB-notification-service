@@ -8,7 +8,7 @@
 {% from "govuk/components/select/macro.njk" import govukSelect %}
 {% from "partials/design-release-2/dashboard-notification-card.html" import dr2DashboardNotificationCard %}
 
-{% set pageName = "Urgent action required" %}
+{% set pageName = "Tasks requiring your attention" %}
 
 {% block beforeContent %}
   {{ govukPhaseBanner({
@@ -29,10 +29,14 @@
   <div class="govuk-grid-column-full app-dashboard-page app-dashboard-page--dr2">
 
     <section class="app-dr2-dashboard-intro app-dr2-dashboard-intro--actions" aria-labelledby="dashboard-actions-heading">
-      <div class="app-dr2-dashboard-intro__header">
-        <p class="app-dr2-dashboard-intro__caption">Avoid delays</p>
-        <h1 class="app-dr2-dashboard-intro__heading" id="dashboard-actions-heading">Urgent action required</h1>
-        <p class="app-dr2-dashboard-intro__description">Description of what the user needs to do</p>
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+          <div class="app-dr2-dashboard-intro__header">
+            <p class="app-dr2-dashboard-intro__caption">Action needed</p>
+            <h1 class="app-dr2-dashboard-intro__heading" id="dashboard-actions-heading">Tasks requiring your attention</h1>
+            <p class="app-dr2-dashboard-intro__description">Add missing information or upload documents to prevent your consignment from being delayed.</p>
+          </div>
+        </div>
       </div>
     </section>
 

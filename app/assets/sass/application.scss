@@ -7211,6 +7211,10 @@ button.govuk-link.app-govuk-body-link--small {
     color: #0b0c0c;
   }
 
+  &__details {
+    margin-top: 20px;
+  }
+
   &__actions {
     display: flex;
     flex-wrap: wrap;

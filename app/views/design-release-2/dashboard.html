@@ -27,7 +27,6 @@
       <div class="app-dr2-dashboard-intro__header">
         <p class="app-dr2-dashboard-intro__caption">Dashboard</p>
         <h1 class="app-dr2-dashboard-intro__heading" id="dashboard-page-heading">Import notification service</h1>
-        <p class="app-dr2-dashboard-intro__description">Brief service description</p>
       </div>
 
       <div class="app-dr2-dashboard-intro__actions">
@@ -49,21 +48,21 @@
       <div class="app-dr2-dashboard-glance__cards">
         <article class="app-dr2-dashboard-glance-card app-dr2-dashboard-glance-card--action">
           <h3 class="app-dr2-dashboard-glance-card__title">Action needed</h3>
-          <p class="app-dr2-dashboard-glance-card__description">Notifications need urgent action</p>
+          <p class="app-dr2-dashboard-glance-card__description">Tasks requiring your attention</p>
           <p class="app-dr2-dashboard-glance-card__count">{{ glanceCounts.actionNeeded }}</p>
           <a class="govuk-link app-dr2-dashboard-glance-card__link" href="/design-release-2/actions">View actions</a>
         </article>
 
         <article class="app-dr2-dashboard-glance-card">
-          <h3 class="app-dr2-dashboard-glance-card__title">Status change</h3>
-          <p class="app-dr2-dashboard-glance-card__description">Notifications have been updated</p>
+          <h3 class="app-dr2-dashboard-glance-card__title">Status updates</h3>
+          <p class="app-dr2-dashboard-glance-card__description">Changes in the past 24 hours</p>
           <p class="app-dr2-dashboard-glance-card__count app-dr2-dashboard-glance-card__count--blue">{{ glanceCounts.statusChange }}</p>
           <a class="govuk-link app-dr2-dashboard-glance-card__link" href="/design-release-2/changes">View changes</a>
         </article>
 
         <article class="app-dr2-dashboard-glance-card">
-          <h3 class="app-dr2-dashboard-glance-card__title">Chosen for inspection</h3>
-          <p class="app-dr2-dashboard-glance-card__description">Sent to BCP for inspection</p>
+          <h3 class="app-dr2-dashboard-glance-card__title">Inspection required</h3>
+          <p class="app-dr2-dashboard-glance-card__description">Consignments due at the BCP</p>
           <p class="app-dr2-dashboard-glance-card__count app-dr2-dashboard-glance-card__count--blue">{{ glanceCounts.chosenForInspection }}</p>
           <a class="govuk-link app-dr2-dashboard-glance-card__link" href="/design-release-2/inspection">View notifications</a>
         </article>
