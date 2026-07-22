@@ -1,0 +1,36 @@
+{% macro dr2DashboardTemplateCard(template) %}
+<article class="app-dr2-dashboard-template-card" aria-label="Template {{ template.title }}">
+  <div class="app-dr2-dashboard-template-card__header">
+    <div class="app-dr2-dashboard-template-card__heading">
+      <p class="app-dr2-dashboard-template-card__category">{{ template.categoryLabel }}</p>
+      <h3 class="app-dr2-dashboard-template-card__title">{{ template.title }}</h3>
+    </div>
+
+    <div class="app-dr2-dashboard-template-card__actions">
+      <a class="govuk-link app-dr2-dashboard-template-card__action-link" href="{{ template.viewHref }}">View template</a>
+      <a class="govuk-link app-dr2-dashboard-template-card__action-link" href="{{ template.createHref }}">Create from template</a>
+    </div>
+  </div>
+
+  <dl class="app-dr2-dashboard-template-card__details">
+    <div class="app-dr2-dashboard-template-card__row">
+      <div class="app-dr2-dashboard-template-card__field">
+        <dt class="app-dr2-dashboard-template-card__key">Commodity</dt>
+        <dd class="app-dr2-dashboard-template-card__value">{{ template.commodityLabel }}</dd>
+      </div>
+      <div class="app-dr2-dashboard-template-card__field">
+        <dt class="app-dr2-dashboard-template-card__key">Origin</dt>
+        <dd class="app-dr2-dashboard-template-card__value">{{ template.origin }}</dd>
+      </div>
+      <div class="app-dr2-dashboard-template-card__field">
+        <dt class="app-dr2-dashboard-template-card__key">Consignee</dt>
+        <dd class="app-dr2-dashboard-template-card__value">{{ template.consignee }}</dd>
+      </div>
+      <div class="app-dr2-dashboard-template-card__field">
+        <dt class="app-dr2-dashboard-template-card__key">Consignor</dt>
+        <dd class="app-dr2-dashboard-template-card__value">{{ template.consignor }}</dd>
+      </div>
+    </div>
+  </dl>
+</article>
+{% endmacro %}

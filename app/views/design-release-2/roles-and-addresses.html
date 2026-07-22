@@ -1,0 +1,124 @@
+{% extends "layouts/journey.html" %}
+
+{% set journeyPageClass = "app-roles-and-addresses-page" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+
+{% set pageName = "Consignment addresses" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block journeyContent %}
+
+    {% include "partials/notification-status.html" %}
+
+    <div class="app-roles-and-addresses-page__header">
+      <p class="app-roles-and-addresses-page__caption">Consignment parties</p>
+      <h1 class="app-roles-and-addresses-page__heading">Consignment addresses</h1>
+    </div>
+
+    {{ govukWarningText({
+      text: "Providing a false address is an act of fraud",
+      classes: "app-roles-and-addresses-page__warning"
+    }) }}
+
+    {% if data.errorList %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: data.errorList
+      }) }}
+    {% endif %}
+
+    <form method="post" action="/design-release-2/roles-and-addresses" novalidate class="app-roles-and-addresses-page__form">
+      {% for section in addressSections %}
+        <section class="app-roles-and-addresses-page__section" aria-labelledby="address-section-{{ loop.index }}">
+          <h2 class="app-roles-and-addresses-page__section-heading" id="address-section-{{ loop.index }}">{{ section.heading }}</h2>
+          <p class="app-roles-and-addresses-page__section-hint">{{ section.hint }}</p>
+          {% if section.hintList %}
+            <ul class="govuk-list govuk-list--bullet app-roles-and-addresses-page__section-hint-list">
+              {% for item in section.hintList %}
+                <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+
+          {% if section.selectedAddress %}
+            <div class="govuk-inset-text app-roles-and-addresses-page__selected-address">
+              <p class="app-roles-and-addresses-page__selected-address-name">{{ section.selectedAddress.name }}</p>
+              {% for line in section.selectedAddress.lines %}
+                <p class="app-roles-and-addresses-page__selected-address-line">{{ line }}</p>
+              {% endfor %}
+              <p class="app-roles-and-addresses-page__section-action app-roles-and-addresses-page__selected-address-action">
+                <a class="govuk-link" href="{{ section.changeHref }}">Change</a>
+              </p>
+            </div>
+          {% elif section.selectedAddressSummary %}
+            <div class="govuk-inset-text app-roles-and-addresses-page__selected-address">
+              <p class="app-roles-and-addresses-page__selected-address-line">{{ section.selectedAddressSummary }}</p>
+              <p class="app-roles-and-addresses-page__section-action app-roles-and-addresses-page__selected-address-action">
+                <a class="govuk-link" href="{{ section.changeHref }}">Change</a>
+              </p>
+            </div>
+          {% elif section.selectedCphNumber %}
+            <div class="govuk-inset-text app-roles-and-addresses-page__selected-address">
+              <p class="app-roles-and-addresses-page__selected-address-line">{{ section.selectedCphNumber }}</p>
+              <p class="app-roles-and-addresses-page__section-action app-roles-and-addresses-page__selected-address-action">
+                <a class="govuk-link" href="{{ section.changeHref }}">Change</a>
+              </p>
+            </div>
+          {% elif section.showSameAsConsignee %}
+            <p class="app-roles-and-addresses-page__section-actions">
+              <button
+                type="submit"
+                name="action"
+                value="{{ section.sameAsConsigneeAction }}"
+                class="govuk-link app-roles-and-addresses-page__section-link-button"
+              >Same as consignee</button>
+              <a class="govuk-link" href="{{ section.href }}">{{ section.linkText }}</a>
+            </p>
+          {% else %}
+            <p class="app-roles-and-addresses-page__section-action">
+              <a class="govuk-link" href="{{ section.href }}">{{ section.linkText }}</a>
+            </p>
+          {% endif %}
+        </section>
+      {% endfor %}
+
+      <div class="app-origin-form-actions">
+        <div class="app-origin-actions">
+          {{ govukButton({
+            text: "Save and continue",
+            name: "action",
+            value: "continue",
+            classes: "app-roles-and-addresses-page__continue-button"
+          }) }}
+
+          {{ govukButton({
+            text: "Save and return to overview",
+            name: "action",
+            value: "hub",
+            classes: "govuk-button--secondary"
+          }) }}
+        </div>
+
+        <p class="app-origin-form-actions__cancel">
+          <a class="govuk-link" href="/design-release-2/notification-hub">Cancel and return to overview</a>
+        </p>
+      </div>
+    </form>
+
+{% endblock %}

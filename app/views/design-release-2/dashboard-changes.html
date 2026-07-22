@@ -1,0 +1,49 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "partials/design-release-2/dashboard-notification-card.html" import dr2DashboardNotificationCard %}
+
+{% set pageName = "Notifications have been updated" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full app-dashboard-page app-dashboard-page--dr2">
+
+    <section class="app-dr2-dashboard-intro app-dr2-dashboard-intro--changes" aria-labelledby="dashboard-changes-heading">
+      <div class="app-dr2-dashboard-intro__header">
+        <p class="app-dr2-dashboard-intro__caption">Status change</p>
+        <h1 class="app-dr2-dashboard-intro__heading" id="dashboard-changes-heading">Notifications have been updated</h1>
+        <p class="app-dr2-dashboard-intro__description">Description of what the user needs to do</p>
+      </div>
+    </section>
+
+    {% for section in sections %}
+      <section class="app-dr2-dashboard-changes-section" aria-labelledby="dashboard-changes-{{ section.id }}-heading">
+        <h2 class="app-dr2-dashboard-changes-section__heading" id="dashboard-changes-{{ section.id }}-heading">{{ section.heading }}</h2>
+
+        <div class="app-dr2-dashboard-notification-list">
+          {% for notification in section.notifications %}
+            {{ dr2DashboardNotificationCard(notification) }}
+          {% endfor %}
+        </div>
+      </section>
+    {% endfor %}
+
+  </div>
+</div>
+{% endblock %}

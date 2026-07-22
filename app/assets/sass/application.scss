@@ -5705,10 +5705,15 @@ button.govuk-link.app-govuk-body-link--small {
 }
 
 .app-dashboard-page {
+  width: 100%;
   max-width: 960px;
   font-family: "GDS Transport", arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  &.app-dashboard-page--dr2 {
+    max-width: none;
+  }
 }
 
 .app-dashboard-intro {
@@ -6304,6 +6309,10 @@ button.govuk-link.app-govuk-body-link--small {
       display: flex;
       justify-content: flex-end;
       align-items: flex-start;
+
+      .app-dr2-review-status__tag {
+        margin-left: auto;
+      }
     }
   }
 }
@@ -6714,5 +6723,1211 @@ button.govuk-link.app-govuk-body-link--small {
       width: 100%;
       max-width: none;
     }
+  }
+}
+
+.app-review-notification-page--dr2 {
+  max-width: 960px;
+
+  .app-review-notification-page__title--dr2 {
+    margin: 0 0 30px;
+    font-size: 48px;
+    line-height: 50px;
+  }
+
+  .app-review-notification-page__section {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    margin-bottom: 30px;
+  }
+
+  .app-review-notification-page__section-heading,
+  .app-review-notification-page__subsection-heading {
+    margin: 0;
+  }
+}
+
+.app-dr2-notification-status {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+  margin-bottom: 30px;
+
+  &__reference {
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 24px;
+    color: #0b0c0c;
+  }
+}
+
+.app-dr2-review-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  align-items: flex-start;
+  margin-bottom: 30px;
+
+  &__reference {
+    margin: 0;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 50px;
+    color: #0b0c0c;
+  }
+
+  &__date {
+    margin: 0;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 25px;
+    color: #0b0c0c;
+  }
+
+  &__date-label {
+    font-weight: 700;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .govuk-warning-text {
+    margin-bottom: 0;
+  }
+}
+
+.app-dr2-review-status__tag {
+  &.govuk-tag {
+    display: inline-block;
+    width: fit-content;
+    max-width: none;
+    margin: 0;
+    padding: 3px 8px 2px;
+    border-radius: 0;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 25px;
+    letter-spacing: 0;
+    text-transform: none;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+    vertical-align: baseline;
+  }
+
+  &--draft {
+    color: #0c2d4a;
+    background: #bbd4ea;
+  }
+
+  &--submission-complete {
+    color: #005a30;
+    background: #cce2d8;
+  }
+
+  &--action-required {
+    color: #6e3619;
+    background: #fcd6c3;
+  }
+}
+
+.app-dr2-review-section-error {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  margin: 0 0 15px;
+  padding-left: 25px;
+  position: relative;
+
+  &--inline {
+    margin: 0;
+    padding-left: 25px;
+  }
+
+  &__marker {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    background: #f47738;
+  }
+
+  &__message {
+    margin: 0;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 25px;
+    color: #f47738;
+  }
+}
+
+.app-dr2-review-card-wrapper {
+  margin: 0;
+
+  &--error {
+    border-left: 5px solid #d4351c;
+    padding-left: 20px;
+  }
+}
+
+.app-dr2-review-card,
+.app-dr2-review-commodity-card {
+  border: 1px solid #b1b4b6;
+  background: #ffffff;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px;
+    background: #f3f2f1;
+    border-bottom: 1px solid #f3f2f1;
+  }
+
+  &__title {
+    margin: 0;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 25px;
+    color: #0b0c0c;
+  }
+
+  &__header-link {
+    flex-shrink: 0;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 19px;
+    color: #1d70b8;
+    text-decoration: none;
+    box-shadow: inset 0 -1px 0 #1d70b8;
+
+    &:hover {
+      color: #003078;
+      box-shadow: inset 0 -3px 0 #003078;
+    }
+
+    &:focus {
+      outline: 3px solid transparent;
+      color: #0b0c0c;
+      background-color: #fd0;
+      box-shadow: 0 -2px #fd0, 0 4px 0 #0b0c0c;
+    }
+  }
+
+  &__error-message {
+    margin: 15px 20px 0;
+  }
+
+  &__rows {
+    margin: 0;
+    padding: 15px 20px;
+  }
+
+  &__subsection {
+    padding: 0 20px 15px;
+  }
+
+  &__subsection-heading {
+    margin: 0 0 15px;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 25px;
+    color: #0b0c0c;
+  }
+
+  &__rows--subsection {
+    padding: 0;
+  }
+}
+
+.app-dr2-review-row {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+  margin: 0;
+  padding: 10px 0;
+  border-bottom: 1px solid #b1b4b6;
+
+  &--with-action {
+    grid-template-columns: 180px minmax(0, 1fr) 120px;
+  }
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  &__key {
+    margin: 0;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 25px;
+    color: #0b0c0c;
+  }
+
+  &__value {
+    margin: 0;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 25px;
+    color: #0b0c0c;
+  }
+
+  &__action {
+    margin: 0;
+    text-align: right;
+  }
+
+  &__change-link {
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 25px;
+    color: #1d70b8;
+    text-decoration: underline;
+    text-underline-offset: 0;
+
+    &:hover {
+      color: #003078;
+    }
+
+    &:focus {
+      outline: 3px solid transparent;
+      color: #0b0c0c;
+      background-color: #fd0;
+      box-shadow: 0 -2px #fd0, 0 4px 0 #0b0c0c;
+      text-decoration: none;
+    }
+  }
+
+  &__address-name {
+    margin: 0;
+    font-weight: 700;
+    line-height: 25px;
+  }
+
+  &__address-line {
+    margin: 0;
+    line-height: 25px;
+  }
+}
+
+.app-dr2-review-commodity-card {
+  &__species {
+    padding: 0 20px 15px;
+
+    &:not(:first-of-type) {
+      border-top: 1px solid #b1b4b6;
+      padding-top: 15px;
+    }
+  }
+
+  &__species-heading {
+    margin: 0 0 15px;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 30px;
+    color: #0b0c0c;
+  }
+
+  &__identification {
+    margin-top: 15px;
+  }
+
+  &__identification-heading {
+    margin: 0 0 15px;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 25px;
+    color: #0b0c0c;
+  }
+
+  .app-dr2-review-card__rows {
+    padding: 0;
+  }
+}
+
+.app-dr2-review-identification-table {
+  margin: 0;
+
+  &__header,
+  &__row {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 20px;
+    padding: 10px 0;
+    border-bottom: 1px solid #b1b4b6;
+  }
+
+  &__header {
+    font-weight: 700;
+
+    &--with-action {
+      grid-template-columns: 240px minmax(0, 1fr) 120px;
+    }
+  }
+
+  &__action {
+    margin: 0;
+    text-align: right;
+  }
+
+  &__row:last-child {
+    border-bottom: 0;
+  }
+
+  &__key,
+  &__animal,
+  &__value {
+    margin: 0;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 19px;
+    line-height: 25px;
+    color: #0b0c0c;
+  }
+
+  &__animal,
+  &__value {
+    font-weight: 300;
+  }
+}
+
+@media (max-width: 40.0625em) {
+  .app-review-notification-page--dr2 {
+    .app-review-notification-page__title--dr2 {
+      font-size: 36px;
+      line-height: 40px;
+    }
+  }
+
+  .app-dr2-review-page-header {
+    &__reference {
+      font-size: 36px;
+      line-height: 40px;
+    }
+
+    &__actions {
+      flex-direction: column;
+      align-items: stretch;
+
+      .govuk-button {
+        width: 100%;
+        margin-right: 0;
+      }
+    }
+  }
+
+  .app-dr2-review-row {
+    grid-template-columns: 1fr;
+    gap: 5px;
+
+    &__action {
+      text-align: left;
+    }
+  }
+
+  .app-dr2-review-identification-table {
+    &__header,
+    &__row {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+// Design release 2 dashboard
+.app-dashboard-page--dr2 {
+  width: 100%;
+  max-width: none;
+}
+
+.app-dr2-dashboard-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  margin-bottom: 60px;
+
+  > * {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  &--actions {
+    margin-bottom: 50px;
+  }
+
+  &--changes {
+    margin-bottom: 50px;
+  }
+
+  &--inspection {
+    margin-bottom: 50px;
+  }
+
+  &--templates {
+    margin-bottom: 60px;
+  }
+
+  &__caption {
+    margin: 0;
+    font-size: 27px;
+    font-weight: 300;
+    line-height: 34px;
+    color: #505a5f;
+  }
+
+  &__heading {
+    margin: 0;
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 50px;
+    color: #0b0c0c;
+  }
+
+  &__description {
+    margin: 40px 0 0;
+    font-size: 24px;
+    font-weight: 300;
+    line-height: 32px;
+    color: #0b0c0c;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: flex-start;
+
+    .govuk-button {
+      margin: 0;
+    }
+  }
+}
+
+.app-dr2-dashboard-glance {
+  position: relative;
+  margin-bottom: 60px;
+  padding-top: 35px;
+  border-top: 5px solid #1d70b8;
+  border-bottom: 1px solid #b1b4b6;
+  padding-bottom: 60px;
+
+  > * {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  &__heading {
+    margin: 0 0 40px;
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 40px;
+    color: #0b0c0c;
+  }
+
+  &__cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 30px;
+  }
+}
+
+.app-dr2-dashboard-glance-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  &__title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 30px;
+    color: #0b0c0c;
+  }
+
+  &--action &__title {
+    color: #d4351c;
+  }
+
+  &__description {
+    margin: 0 0 10px;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 25px;
+    color: #0b0c0c;
+  }
+
+  &__count {
+    margin: 0 0 20px;
+    font-size: 64px;
+    font-weight: 700;
+    line-height: 64px;
+    color: #d4351c;
+
+    &--blue {
+      color: #1d70b8;
+    }
+  }
+
+  &__link {
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 24px;
+  }
+}
+
+.app-dr2-dashboard-notifications {
+  width: 100%;
+
+  > * {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  &__heading {
+    margin: 0 0 40px;
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 40px;
+    color: #0b0c0c;
+  }
+}
+
+.app-dr2-dashboard-search {
+  margin-bottom: 50px;
+
+  &__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px 30px;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 30px;
+  }
+
+  &__field {
+    position: relative;
+    flex: 1 1 610px;
+    max-width: 610px;
+
+    .govuk-form-group {
+      margin-bottom: 0;
+    }
+  }
+
+  &__label {
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 24px;
+  }
+
+  &__input {
+    padding-right: 50px;
+  }
+
+  &__button {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: #1d70b8;
+    cursor: pointer;
+
+    &:hover {
+      background: #003078;
+    }
+
+    &:focus {
+      outline: 3px solid #ffdd00;
+      outline-offset: 0;
+    }
+  }
+
+  &__icon {
+    display: block;
+  }
+
+  &__sort {
+    flex: 0 0 auto;
+
+    .govuk-form-group {
+      margin-bottom: 0;
+    }
+  }
+
+  &__sort-label {
+    display: inline-block;
+    margin-right: 10px;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 25px;
+  }
+
+  &__sort-select {
+    min-width: 191px;
+  }
+}
+
+.app-dr2-dashboard-filters {
+  margin-bottom: 0;
+
+  &__summary {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    min-height: 54px;
+    padding: 15px 10px;
+    background: #f3f2f1;
+    cursor: pointer;
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+  }
+
+  &__summary-text {
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 25px;
+    color: #0b0c0c;
+  }
+
+  &__chevron {
+    display: block;
+    width: 17px;
+    height: 9px;
+  }
+
+  &[open] &__chevron {
+    transform: rotate(180deg);
+  }
+}
+
+.app-dr2-dashboard-filter-radios {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 50px;
+  align-items: flex-start;
+  margin: 40px 0 0;
+  padding-top: 0;
+
+  .app-dr2-dashboard-filters:not([open]) + & {
+    display: none;
+  }
+
+  &--standalone {
+    display: flex;
+  }
+
+  &__group {
+    flex: 0 0 auto;
+    min-width: 0;
+
+    &--delay {
+      width: 468px;
+    }
+
+    &--status {
+      width: 350px;
+    }
+
+    .govuk-form-group {
+      margin-bottom: 0;
+    }
+
+    .govuk-fieldset {
+      min-width: 0;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+  }
+
+  &__group-heading {
+    margin: 0 0 10px;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 20px;
+    color: #0b0c0c;
+  }
+
+  &__control.govuk-radios {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 20px;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+
+    > .govuk-radios__item {
+      position: relative;
+      flex: 0 0 auto;
+      width: auto;
+      max-width: none;
+      margin: 0;
+      height: 44px;
+      min-height: 44px;
+    }
+
+    > .govuk-radios__item > .govuk-radios__input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 44px;
+      height: 44px;
+      margin: 0;
+    }
+
+    &.govuk-radios--small > .govuk-radios__item > .govuk-radios__input {
+      margin-left: 0;
+    }
+
+    > .govuk-radios__item > .govuk-radios__label {
+      display: block;
+      max-width: none;
+      margin: 0;
+      padding: 0 0 0 34px;
+      min-height: 44px;
+      font-size: 16px;
+      font-weight: 300;
+      line-height: 44px;
+      white-space: nowrap;
+
+      &::before {
+        top: 10px;
+        left: 0;
+        width: 24px;
+        height: 24px;
+      }
+
+      &::after {
+        top: 17px;
+        left: 7px;
+      }
+    }
+  }
+
+  &__option {
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 20px;
+  }
+
+  &__count {
+    margin-left: 0.25em;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 25px;
+  }
+}
+
+.app-dr2-dashboard-results {
+  &__count {
+    margin: 0 0 50px;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 25px;
+    color: #0b0c0c;
+  }
+
+  &__pagination {
+    margin-top: 30px;
+  }
+}
+
+.app-dr2-dashboard-changes-section {
+  margin-bottom: 50px;
+
+  > * {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  &__heading {
+    margin: 0 0 40px;
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 40px;
+    color: #0b0c0c;
+  }
+
+  .app-dr2-dashboard-notification-list {
+    margin-bottom: 0;
+  }
+}
+
+.app-dr2-dashboard-notification-list {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.app-dr2-dashboard-templates {
+  > * {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  &__heading {
+    margin: 0 0 30px;
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 40px;
+    color: #0b0c0c;
+  }
+
+  &__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px 30px;
+    align-items: center;
+    margin-bottom: 30px;
+
+    .app-dr2-dashboard-results__count {
+      margin: 0;
+    }
+
+    .app-dr2-dashboard-search__sort {
+      display: flex;
+      align-items: center;
+    }
+  }
+}
+
+.app-dr2-dashboard-template-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.app-dr2-dashboard-template-card {
+  border: 1px solid #b1b4b6;
+  background: #ffffff;
+
+  &__header {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 90px;
+    padding: 0 23px;
+    background: #f3f2f1;
+    border-bottom: 1px solid #b1b4b6;
+  }
+
+  &__category {
+    margin: 0 0 5px;
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 20px;
+    color: #505a5f;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 30px;
+    color: #0b0c0c;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px 24px;
+    justify-content: flex-end;
+    text-align: right;
+  }
+
+  &__action-link {
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 25px;
+    white-space: nowrap;
+  }
+
+  &__details {
+    margin: 0;
+    padding: 18px 23px 20px;
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px 30px;
+  }
+
+  &__field {
+    margin: 0;
+  }
+
+  &__key {
+    margin: 0 0 5px;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 25px;
+    color: #0b0c0c;
+  }
+
+  &__value {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 25px;
+    color: #0b0c0c;
+  }
+}
+
+.app-dr2-dashboard-notification-card {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #b1b4b6;
+  background: #ffffff;
+
+  &--error {
+    .app-dr2-dashboard-notification-card__error-marker {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: -5px;
+      width: 5px;
+      height: 100%;
+      background: #d4351c;
+    }
+
+    .app-dr2-dashboard-notification-card__error-message {
+      padding-top: 30px;
+      font-weight: 700;
+    }
+
+    .app-dr2-dashboard-notification-card__details {
+      padding-top: 30px;
+    }
+  }
+
+  &__error-marker {
+    display: none;
+  }
+
+  &__header {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
+    width: 100%;
+    height: 90px;
+    padding: 0 23px;
+    background: #f3f2f1;
+    border-bottom: 1px solid #b1b4b6;
+  }
+
+  &__category {
+    margin: 0 0 5px;
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 20px;
+    color: #505a5f;
+  }
+
+  &__reference {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 30px;
+    color: #0b0c0c;
+  }
+
+  &__view-link {
+    flex-shrink: 0;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 25px;
+    text-align: right;
+  }
+
+  &__error-message {
+    margin: 0;
+    padding: 0 23px;
+    max-width: 610px;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 25px;
+    color: #d4351c;
+  }
+
+  &__details {
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 20px 23px 25px;
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px 30px;
+    width: 100%;
+
+    & + & {
+      margin-top: 20px;
+    }
+  }
+
+  &__field {
+    margin: 0;
+  }
+
+  &__key {
+    margin: 0 0 5px;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 25px;
+    color: #0b0c0c;
+  }
+
+  &__value {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 25px;
+    color: #0b0c0c;
+  }
+}
+
+.app-dr2-dashboard-status-tag {
+  &.govuk-tag {
+    display: inline-block;
+    width: fit-content;
+    max-width: none;
+    margin: 0;
+    padding: 3px 8px 2px;
+    border-radius: 0;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 25px;
+    letter-spacing: 0;
+    text-transform: none;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+    vertical-align: baseline;
+  }
+
+  &--action-required {
+    color: #651b1b;
+    background: #f4d7d7;
+  }
+
+  &--delayed {
+    color: #651b1b;
+    background: #f4d7d7;
+  }
+
+  &--draft {
+    color: #383f43;
+    background: #eeefef;
+  }
+
+  &--inspection {
+    color: #7a3c1c;
+    background: #ffee80;
+  }
+}
+
+.app-dr2-dashboard-status-text {
+  font-size: 19px;
+  font-weight: 300;
+  line-height: 25px;
+
+  &--completed {
+    color: #00703c;
+  }
+
+  &--submitted {
+    color: #1d70b8;
+  }
+}
+
+@media (max-width: 40.0625em) {
+  .app-dr2-dashboard-glance__cards {
+    grid-template-columns: 1fr;
+  }
+
+  .app-dr2-dashboard-filter-radios {
+    flex-direction: column;
+    gap: 30px;
+
+    &__group--delay,
+    &__group--status {
+      width: 100%;
+    }
+
+    &__control.govuk-radios {
+      flex-wrap: wrap;
+    }
+  }
+
+  .app-dr2-dashboard-notification-card__row {
+    grid-template-columns: 1fr;
+  }
+
+  .app-dr2-dashboard-template-card__header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+
+  .app-dr2-dashboard-template-card__row {
+    grid-template-columns: 1fr;
+  }
+
+  .app-dr2-dashboard-template-card__actions {
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .app-dr2-dashboard-search__row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .app-dr2-dashboard-search__field {
+    max-width: none;
   }
 }

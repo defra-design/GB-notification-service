@@ -1,0 +1,67 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "partials/design-release-2/dashboard-template-card.html" import dr2DashboardTemplateCard %}
+
+{% set pageName = "Manage templates" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full app-dashboard-page app-dashboard-page--dr2">
+
+    <section class="app-dr2-dashboard-intro app-dr2-dashboard-intro--templates" aria-labelledby="dashboard-templates-heading">
+      <div class="app-dr2-dashboard-intro__header">
+        <p class="app-dr2-dashboard-intro__caption">Templates</p>
+        <h1 class="app-dr2-dashboard-intro__heading" id="dashboard-templates-heading">Manage templates</h1>
+        <p class="app-dr2-dashboard-intro__description">brief service description</p>
+      </div>
+
+      <div class="app-dr2-dashboard-intro__actions">
+        {{ govukButton({
+          text: "Create a new template",
+          href: "#"
+        }) }}
+      </div>
+    </section>
+
+    <section class="app-dr2-dashboard-templates" aria-labelledby="dashboard-templates-list-heading">
+      <h2 class="app-dr2-dashboard-templates__heading" id="dashboard-templates-list-heading">My templates</h2>
+
+      <div class="app-dr2-dashboard-templates__controls">
+        <p class="app-dr2-dashboard-results__count">{{ resultsText }}</p>
+
+        <div class="app-dr2-dashboard-search__sort">
+          {{ govukSelect({
+            id: "dashboard-templates-sort",
+            name: "sort",
+            label: {
+              text: "Sort by:",
+              classes: "app-dr2-dashboard-search__sort-label"
+            },
+            classes: "app-dr2-dashboard-search__sort-select",
+            items: sortItems
+          }) }}
+        </div>
+      </div>
+
+      <div class="app-dr2-dashboard-template-list">
+        {% for template in templates %}
+          {{ dr2DashboardTemplateCard(template) }}
+        {% endfor %}
+      </div>
+    </section>
+
+  </div>
+</div>
+{% endblock %}

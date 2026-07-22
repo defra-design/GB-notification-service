@@ -12,6 +12,10 @@ https://prototype-kit.service.gov.uk/docs/how-to-use-layouts
 {% block header %}
   {% set navDashboardHref = serviceNavDashboardHref if serviceNavDashboardHref else "/" %}
   {% set navServiceHref = serviceNavServiceHref if serviceNavServiceHref else "/index" %}
+  {% set navTemplatesHref = serviceNavTemplatesHref if serviceNavTemplatesHref else "#" %}
+  {% set navAddressBookHref = serviceNavAddressBookHref if serviceNavAddressBookHref else "/address-book" %}
+  {% set navManageAccountHref = serviceNavManageAccountHref if serviceNavManageAccountHref else "#" %}
+  {% set navLogOutHref = serviceNavLogOutHref if serviceNavLogOutHref else "#" %}
 
   {% if isTestingVersion %}
     <header class="govuk-header" data-module="govuk-header">
@@ -38,16 +42,16 @@ https://prototype-kit.service.gov.uk/docs/how-to-use-layouts
               active: serviceNavActive == "dashboard"
             },
             {
-              href: "/address-book",
+              href: navAddressBookHref,
               text: "Address book",
               active: serviceNavActive == "address-book"
             },
             {
-              href: "#",
+              href: navManageAccountHref,
               text: "Manage account"
             },
             {
-              href: "#",
+              href: navLogOutHref,
               text: "Log out"
             }
           ]
@@ -63,32 +67,66 @@ https://prototype-kit.service.gov.uk/docs/how-to-use-layouts
     }) }}
 
     {% if useServiceNavigation %}
-      {{
-        govukServiceNavigation({
-          serviceName: serviceName,
-          serviceUrl: navServiceHref,
-          navigation: [
-            {
-              href: navDashboardHref,
-              text: "Dashboard",
-              active: serviceNavActive == "dashboard"
-            },
-            {
-              href: "/address-book",
-              text: "Address book",
-              active: serviceNavActive == "address-book"
-            },
-            {
-              href: "#",
-              text: "Manage account"
-            },
-            {
-              href: "#",
-              text: "Log out"
-            }
-          ]
-        })
-      }}
+      {% if isDesignRelease2Version %}
+        {{
+          govukServiceNavigation({
+            serviceName: serviceName,
+            serviceUrl: navServiceHref,
+            navigation: [
+              {
+                href: navDashboardHref,
+                text: "Dashboard",
+                active: serviceNavActive == "dashboard"
+              },
+              {
+                href: navTemplatesHref,
+                text: "Templates",
+                active: serviceNavActive == "templates"
+              },
+              {
+                href: navAddressBookHref,
+                text: "Address book",
+                active: serviceNavActive == "address-book"
+              },
+              {
+                href: navManageAccountHref,
+                text: "Manage account"
+              },
+              {
+                href: navLogOutHref,
+                text: "Log out"
+              }
+            ]
+          })
+        }}
+      {% else %}
+        {{
+          govukServiceNavigation({
+            serviceName: serviceName,
+            serviceUrl: navServiceHref,
+            navigation: [
+              {
+                href: navDashboardHref,
+                text: "Dashboard",
+                active: serviceNavActive == "dashboard"
+              },
+              {
+                href: navAddressBookHref,
+                text: "Address book",
+                active: serviceNavActive == "address-book"
+              },
+              {
+                href: navManageAccountHref,
+                text: "Manage account"
+              },
+              {
+                href: navLogOutHref,
+                text: "Log out"
+              }
+            ]
+          })
+        }}
+      {% endif %}
     {% endif %}
   {% endif %}
 {% endblock %}

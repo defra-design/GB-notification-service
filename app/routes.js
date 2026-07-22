@@ -27,6 +27,7 @@ const addressBookData = require('./data/address-book')
 const addressBookAddressTypes = require('./data/address-book-address-types')
 const addressBookLookupAddresses = require('./data/address-book-lookup-addresses')
 const dashboardData = require('./data/dashboard-notifications')
+const { buildDashboardNotificationSnapshot } = require('./data/dashboard-notification-snapshots')
 const { getCommoditySearchData } = require('./utils/commodity-search-data')
 
 const TRANSIT_MEANS_OF_TRANSPORT = ['Railway', 'Road Vehicle']
@@ -135,6 +136,7 @@ function resetNotificationJourneySession (sessionData) {
   const addressBookAddedAddresses = sessionData.addressBookAddedAddresses
   const submittedNotifications = sessionData.submittedNotifications
   const testingSession = sessionData._testing
+  const designRelease2Session = sessionData._designRelease2
 
   Object.keys(sessionData).forEach((key) => {
     delete sessionData[key]
@@ -150,6 +152,10 @@ function resetNotificationJourneySession (sessionData) {
 
   if (testingSession && typeof testingSession === 'object') {
     sessionData._testing = testingSession
+  }
+
+  if (designRelease2Session && typeof designRelease2Session === 'object') {
+    sessionData._designRelease2 = designRelease2Session
   }
 }
 
@@ -4008,22 +4014,465 @@ function applyReadOnlyReviewViewModel (viewModel) {
   }
 }
 
+function buildDesignRelease2CommodityCards (sessionData, speciesSections, readOnly, reviewVariant = 'journey') {
+  const grouped = new Map()
+
+  getConsignmentSpeciesEntries(sessionData).forEach((entry) => {
+    const commodity = getCommodityByCode(entry.commodityCode)
+    const cardKey = entry.commodityCode
+
+    if (!grouped.has(cardKey)) {
+      grouped.set(cardKey, {
+        id: `review-commodity-${cardKey}`,
+        title: `${commodity ? commodity.name : entry.commonName} (${entry.commodityCode})`,
+        changeHref: readOnly ? null : '/consignment-details',
+        hasError: false,
+        errorMessage: null,
+        speciesBlocks: []
+      })
+    }
+
+    const rows = [{
+      key: 'Number of animals',
+      value: formatReviewValueOrNa(entry.numberOfAnimals)
+    }]
+
+    if (entry.showPackaging) {
+      entry.packagingFields.forEach((field) => {
+        rows.push({
+          key: field.label,
+          value: formatReviewValueOrNa(field.value)
+        })
+      })
+    }
+
+    const match = getSpeciesMatch(entry.speciesId)
+    const speciesLabel = match
+      ? toTitleCaseLabel(match.species.label || match.species.commonName)
+      : entry.commonName
+    const speciesSection = speciesSections.find((section) => section.title === speciesLabel)
+    const requiresIdentifiers = getIdentifierFieldsForSpecies(entry.speciesId).length > 0
+    const hasIdentifiers = hasAtLeastOneAnimalIdentifierForSpecies(sessionData, entry.speciesId)
+    const identificationError = reviewVariant === 'action-required' && requiresIdentifiers && !hasIdentifiers
+      ? {
+        hasError: true,
+        errorMessage: 'Enter a minimum of 1 identifier'
+      }
+      : null
+
+    grouped.get(cardKey).speciesBlocks.push({
+      speciesLabel,
+      rows: rows.map((row, index) => ({
+        ...row,
+        showChange: !readOnly && index === 0
+      })),
+      identification: speciesSection && speciesSection.animalTable && !identificationError
+        ? {
+          headers: speciesSection.animalTable.headers,
+          rows: speciesSection.animalTable.rows,
+          changeHref: readOnly ? null : '/animal-identification-details'
+        }
+        : null,
+      identificationError
+    })
+  })
+
+  return Array.from(grouped.values())
+}
+
+function buildDesignRelease2DocumentCards (uploadedDocumentsCard, readOnly) {
+  const documents = uploadedDocumentsCard.documents || []
+
+  if (!documents.length) {
+    return [{
+      id: uploadedDocumentsCard.id,
+      title: 'Document 1',
+      rows: [{
+        key: 'Document reference',
+        value: 'Not applicable'
+      }],
+      hasError: uploadedDocumentsCard.hasError,
+      errorMessage: uploadedDocumentsCard.errorMessage
+    }]
+  }
+
+  return documents.map((document, index) => ({
+    id: `${uploadedDocumentsCard.id}-${index + 1}`,
+    title: document.title || `Document ${index + 1}`,
+    headerAction: readOnly
+      ? null
+      : {
+        type: 'change',
+        href: '/upload-documents'
+      },
+    rows: document.rows,
+    hasError: false,
+    errorMessage: null
+  }))
+}
+
+function withDr2HeaderChange (card, readOnly) {
+  if (!card) {
+    return card
+  }
+
+  return {
+    ...card,
+    headerAction: !readOnly && card.changeHref
+      ? {
+        type: 'change',
+        href: card.changeHref
+      }
+      : card.headerAction || null
+  }
+}
+
+function buildDesignRelease2ReviewPresentation (viewModel, sessionData, readOnly, reviewVariant = 'journey') {
+  const importReasonCard = withDr2HeaderChange({
+    ...viewModel.aboutConsignment.importReasonCard,
+    title: 'Main reason for import'
+  }, readOnly)
+  const additionalAnimalDetailsCard = withDr2HeaderChange({
+    ...viewModel.descriptionOfGoods.additionalAnimalDetailsCard,
+    title: 'Additional details'
+  }, readOnly)
+  const rolesCard = withDr2HeaderChange({
+    ...viewModel.addresses.rolesCard,
+    title: 'Addresses'
+  }, readOnly)
+  const contactAddressCard = withDr2HeaderChange({
+    ...viewModel.contactAddress.contactAddressCard,
+    title: 'Contact address'
+  }, readOnly)
+  const transportDetailsCard = withDr2HeaderChange({
+    ...viewModel.movement.transportDetailsCard
+  }, readOnly)
+
+  const arrivalDetailsCard = withDr2HeaderChange({
+    ...viewModel.movement.arrivalDetailsCard,
+    subsections: viewModel.movement.transitCountriesCard
+      ? [{
+        heading: 'Transit countries',
+        changeHref: viewModel.movement.transitCountriesCard.changeHref,
+        rows: viewModel.movement.transitCountriesCard.rows.map((row) => ({
+          ...row,
+          showChange: !readOnly
+        }))
+      }]
+      : null
+  }, readOnly)
+
+  return {
+    aboutConsignment: {
+      importDetailsCard: withDr2HeaderChange(viewModel.aboutConsignment.importDetailsCard, readOnly),
+      animalDetailsCard: withDr2HeaderChange(viewModel.aboutConsignment.animalDetailsCard, readOnly),
+      importReasonCard
+    },
+    descriptionOfGoods: {
+      commodityCards: buildDesignRelease2CommodityCards(
+        sessionData,
+        viewModel.descriptionOfGoods.speciesSections,
+        readOnly,
+        reviewVariant
+      ),
+      additionalAnimalDetailsCard
+    },
+    movement: {
+      arrivalDetailsCard,
+      transportDetailsCard
+    },
+    addresses: {
+      rolesCard
+    },
+    contactAddress: {
+      contactAddressCard
+    },
+    documents: {
+      documentCards: reviewVariant === 'action-required' && !hasUploadedDocuments(sessionData)
+        ? []
+        : buildDesignRelease2DocumentCards(viewModel.documents.uploadedDocumentsCard, readOnly),
+      sectionError: reviewVariant === 'action-required' && !hasUploadedDocuments(sessionData)
+        ? 'Upload a valid health certificate'
+        : null
+    }
+  }
+}
+
+function mapStatusTextToReviewVariant (statusText = '') {
+  const normalised = String(statusText).trim().toLowerCase()
+
+  if (normalised === 'submission complete' || normalised === 'complete') {
+    return 'submission-complete'
+  }
+
+  if (normalised === 'submitted action required' || normalised === 'action required') {
+    return 'action-required'
+  }
+
+  if (normalised === 'draft') {
+    return 'draft'
+  }
+
+  return 'draft'
+}
+
+function getDashboardNotificationMetadata (sessionData, reference) {
+  const normalisedReference = String(reference || '').trim()
+
+  if (!normalisedReference) {
+    return null
+  }
+
+  const submittedMatch = (sessionData.submittedNotifications || []).find((notification) =>
+    notification.reference === normalisedReference
+  )
+
+  if (submittedMatch) {
+    const conditionalItems = getConditionalSubmissionItems(submittedMatch.snapshot)
+
+    return {
+      reference: submittedMatch.reference,
+      statusText: conditionalItems.length ? 'Submitted action required' : 'Submission complete',
+      reviewVariant: conditionalItems.length ? 'action-required' : 'submission-complete',
+      dateSubmitted: formatDateForDashboard(submittedMatch.submittedAt),
+      conditionalItems
+    }
+  }
+
+  const staticNotification = dashboardData.notifications
+    .map((notification, index) => ({
+      ...notification,
+      reference: isTestingSessionData(sessionData)
+        ? notification.reference
+        : toDesignReleaseDashboardReference(notification.reference, index)
+    }))
+    .find((notification) => notification.reference === normalisedReference)
+
+  if (!staticNotification) {
+    return null
+  }
+
+  return {
+    ...staticNotification,
+    reviewVariant: staticNotification.reviewVariant || mapStatusTextToReviewVariant(staticNotification.statusText),
+    conditionalItems: staticNotification.reviewVariant === 'action-required'
+      ? getConditionalSubmissionItems(buildDashboardNotificationSnapshot(staticNotification))
+      : []
+  }
+}
+
+function buildDr2ActionRequiredWarningText (conditionalItems = []) {
+  if (!conditionalItems.length) {
+    return 'You need to complete missing information before import'
+  }
+
+  const needsIdentifiers = conditionalItems.some((item) => item.includes('identifier'))
+  const needsDocuments = conditionalItems.some((item) => item.includes('document') || item.includes('certificate'))
+
+  if (needsIdentifiers && needsDocuments) {
+    return 'You need to complete animal identifiers and upload a health certificate'
+  }
+
+  if (needsIdentifiers) {
+    return 'You need to complete animal identifiers'
+  }
+
+  if (needsDocuments) {
+    return 'You need to upload a health certificate'
+  }
+
+  return conditionalItems[0]
+}
+
+function buildDr2ReviewPageHeader (metadata = {}, reviewVariant = 'journey') {
+  const statusConfig = {
+    draft: {
+      text: 'Draft',
+      modifier: 'draft'
+    },
+    'submission-complete': {
+      text: 'Submission complete',
+      modifier: 'submission-complete'
+    },
+    'action-required': {
+      text: 'Submitted action required',
+      modifier: 'action-required'
+    }
+  }
+  const status = statusConfig[reviewVariant] || statusConfig.draft
+
+  return {
+    reference: metadata.reference,
+    statusText: metadata.statusText || status.text,
+    statusModifier: status.modifier,
+    dateLabel: reviewVariant === 'draft' ? 'Date created' : 'Date submitted',
+    dateValue: reviewVariant === 'draft'
+      ? (metadata.dateCreated || formatDeclarationDate())
+      : (metadata.dateSubmitted || formatDeclarationDate()),
+    warningText: reviewVariant === 'action-required'
+      ? buildDr2ActionRequiredWarningText(metadata.conditionalItems)
+      : null,
+    showAmendButton: reviewVariant === 'action-required',
+    showCopyButton: true,
+    showDeleteButton: true
+  }
+}
+
+function loadDraftSnapshotIntoSession (sessionData, snapshot) {
+  const preserveKeys = [
+    '_isDesignRelease2Version',
+    '_designRelease2',
+    'submittedNotifications',
+    'addressBookAddedAddresses'
+  ]
+  const preserved = {}
+
+  preserveKeys.forEach((key) => {
+    if (sessionData[key] !== undefined) {
+      preserved[key] = sessionData[key]
+    }
+  })
+
+  Object.keys(sessionData).forEach((key) => {
+    delete sessionData[key]
+  })
+
+  Object.assign(sessionData, snapshot, preserved)
+}
+
+function resolveDesignRelease2ReviewPageOptions (req, options = {}) {
+  const submittedId = (options.submittedId || '').trim()
+  const reference = (options.reference || '').trim()
+  const dashboardBackLink = getDashboardBackLink(req.session.data)
+
+  if (submittedId) {
+    const submittedNotification = getSubmittedNotificationById(req.session.data, submittedId)
+
+    if (!submittedNotification) {
+      return { redirectTo: dashboardBackLink }
+    }
+
+    const conditionalItems = getConditionalSubmissionItems(submittedNotification.snapshot)
+    const reviewVariant = conditionalItems.length ? 'action-required' : 'submission-complete'
+    const metadata = {
+      reference: submittedNotification.reference,
+      statusText: conditionalItems.length ? 'Submitted action required' : 'Submission complete',
+      dateSubmitted: formatDateForDashboard(submittedNotification.submittedAt),
+      conditionalItems
+    }
+
+    return {
+      sessionData: submittedNotification.snapshot,
+      readOnly: true,
+      showActions: false,
+      reviewVariant,
+      backLink: dashboardBackLink,
+      pageHeader: buildDr2ReviewPageHeader(metadata, reviewVariant)
+    }
+  }
+
+  if (reference) {
+    const metadata = getDashboardNotificationMetadata(req.session.data, reference)
+
+    if (!metadata) {
+      return { redirectTo: dashboardBackLink }
+    }
+
+    const snapshot = buildDashboardNotificationSnapshot(metadata)
+    const reviewVariant = metadata.reviewVariant || mapStatusTextToReviewVariant(metadata.statusText)
+    const isDraft = reviewVariant === 'draft'
+    const isActionRequired = reviewVariant === 'action-required'
+
+    if (isDraft || isActionRequired) {
+      loadDraftSnapshotIntoSession(req.session.data, snapshot)
+    }
+
+    return {
+      sessionData: (isDraft || isActionRequired) ? req.session.data : snapshot,
+      readOnly: !isDraft,
+      showActions: isDraft,
+      reviewVariant,
+      backLink: dashboardBackLink,
+      pageHeader: buildDr2ReviewPageHeader({
+        ...metadata,
+        reference
+      }, reviewVariant)
+    }
+  }
+
+  return {
+    sessionData: options.sessionData || req.session.data,
+    readOnly: false,
+    showActions: true,
+    reviewVariant: 'journey',
+    backLink: options.backLink || '/notification-hub',
+    pageHeader: null
+  }
+}
+
 function renderReviewNotificationPage (req, res, options = {}) {
-  const sessionData = options.sessionData || req.session.data
-  const readOnly = Boolean(options.readOnly)
+  const isDr2 = isDesignRelease2SessionData(req.session.data)
+  let sessionData = options.sessionData || req.session.data
+  let readOnly = Boolean(options.readOnly)
+  let showActions = options.showActions
+  let reviewVariant = options.reviewVariant || 'journey'
+  let backLink = options.backLink || '/notification-hub'
+  let pageHeader = options.pageHeader || null
+
+  if (isDr2 && !options.reviewVariant && (options.submittedId || options.reference)) {
+    const resolved = resolveDesignRelease2ReviewPageOptions(req, {
+      submittedId: options.submittedId,
+      reference: options.reference,
+      sessionData: options.sessionData,
+      backLink: options.backLink
+    })
+
+    if (resolved.redirectTo) {
+      return res.redirect(resolved.redirectTo)
+    }
+
+    sessionData = resolved.sessionData
+    readOnly = resolved.readOnly
+    showActions = resolved.showActions
+    reviewVariant = resolved.reviewVariant
+    backLink = resolved.backLink
+    pageHeader = resolved.pageHeader
+  }
+
+  if (showActions === undefined) {
+    showActions = !readOnly
+  }
+
   const viewModel = readOnly
     ? applyReadOnlyReviewViewModel(getReviewNotificationViewModel(sessionData))
     : getReviewNotificationViewModelWithErrors(sessionData)
 
-  return res.render('review-notification', {
-    backLink: options.backLink || '/notification-hub',
+  const renderOptions = {
+    backLink,
     readOnly,
+    reviewVariant,
+    pageHeader,
+    pageName: reviewVariant === 'journey' ? 'Review your notification' : null,
+    showActions,
     ...viewModel,
     data: {
       ...sessionData,
-      errorList: readOnly ? null : (viewModel.errorList.length ? viewModel.errorList : null)
+      errorList: readOnly || reviewVariant === 'action-required'
+        ? null
+        : (viewModel.errorList.length ? viewModel.errorList : null)
     }
-  })
+  }
+
+  if (isDr2) {
+    renderOptions.dr2Review = buildDesignRelease2ReviewPresentation(
+      viewModel,
+      sessionData,
+      readOnly,
+      reviewVariant
+    )
+  }
+
+  return res.render('review-notification', renderOptions)
 }
 
 function formatDeclarationDate (date = new Date()) {
@@ -4258,6 +4707,163 @@ function buildDashboardPageHref (page, sort) {
   return queryString ? `/?${queryString}` : '/'
 }
 
+function buildDashboardActionsPageHref (page, sort, delayFilter) {
+  const params = new URLSearchParams()
+
+  if (sort) {
+    params.set('sort', sort)
+  }
+
+  if (delayFilter) {
+    params.set('delayFilter', delayFilter)
+  }
+
+  if (page > 1) {
+    params.set('page', String(page))
+  }
+
+  const queryString = params.toString()
+
+  return queryString ? `/actions?${queryString}` : '/actions'
+}
+
+function buildDashboardActionsPagination (currentPage, totalPages, sort, delayFilter) {
+  if (totalPages <= 1) {
+    return {
+      items: null,
+      next: null,
+      previous: null
+    }
+  }
+
+  const items = []
+
+  for (let page = 1; page <= totalPages; page++) {
+    items.push({
+      number: String(page),
+      href: buildDashboardActionsPageHref(page, sort, delayFilter),
+      current: page === currentPage
+    })
+  }
+
+  return {
+    items,
+    next: currentPage < totalPages
+      ? {
+          href: buildDashboardActionsPageHref(currentPage + 1, sort, delayFilter),
+          text: 'Next'
+        }
+      : null,
+    previous: currentPage > 1
+      ? {
+          href: buildDashboardActionsPageHref(currentPage - 1, sort, delayFilter),
+          text: 'Previous'
+        }
+      : null
+  }
+}
+
+function getDashboardActionNotifications (sessionData = {}) {
+  return getDashboardNotificationList(sessionData).filter((notification) => notification.needsAction)
+}
+
+function getDashboardStatusChangeNotifications (sessionData = {}) {
+  return getDashboardNotificationList(sessionData).filter((notification) => notification.hasStatusChange)
+}
+
+function getDashboardInspectionNotifications (sessionData = {}) {
+  return getDashboardNotificationList(sessionData).filter((notification) => notification.chosenForInspection)
+}
+
+function buildDashboardInspectionPageHref (page, sort) {
+  const params = new URLSearchParams()
+
+  if (sort) {
+    params.set('sort', sort)
+  }
+
+  if (page > 1) {
+    params.set('page', String(page))
+  }
+
+  const queryString = params.toString()
+
+  return queryString ? `/inspection?${queryString}` : '/inspection'
+}
+
+function buildDashboardInspectionPagination (currentPage, totalPages, sort) {
+  if (totalPages <= 1) {
+    return {
+      items: null,
+      next: null,
+      previous: null
+    }
+  }
+
+  const items = []
+
+  for (let page = 1; page <= totalPages; page++) {
+    items.push({
+      number: String(page),
+      href: buildDashboardInspectionPageHref(page, sort),
+      current: page === currentPage
+    })
+  }
+
+  return {
+    items,
+    next: currentPage < totalPages
+      ? {
+          href: buildDashboardInspectionPageHref(currentPage + 1, sort),
+          text: 'Next'
+        }
+      : null,
+    previous: currentPage > 1
+      ? {
+          href: buildDashboardInspectionPageHref(currentPage - 1, sort),
+          text: 'Previous'
+        }
+      : null
+  }
+}
+
+const DASHBOARD_CHANGES_SECTIONS = [
+  { id: 'passed-inspection', heading: 'Passed inspection' },
+  { id: 'needs-inspection', heading: 'Needs inspection' },
+  { id: 'delayed', heading: 'Delayed' }
+]
+
+function getDashboardChangesSections (sessionData = {}) {
+  const statusChangeNotifications = getDashboardStatusChangeNotifications(sessionData)
+
+  return DASHBOARD_CHANGES_SECTIONS
+    .map((section) => ({
+      ...section,
+      notifications: statusChangeNotifications.filter((notification) => notification.statusChangeCategory === section.id)
+    }))
+    .filter((section) => section.notifications.length > 0)
+}
+
+function buildDashboardActionsDelayFilterItems (actionNotifications, selectedFilter) {
+  const counts = {
+    today: actionNotifications.filter((notification) => notification.delayCategory === 'today').length,
+    'next-three-days': actionNotifications.filter((notification) => notification.delayCategory === 'next-three-days').length,
+    'already-delayed': actionNotifications.filter((notification) => notification.delayCategory === 'already-delayed').length
+  }
+
+  const options = [
+    { value: 'today', label: 'Today' },
+    { value: 'next-three-days', label: 'Next 3 days' },
+    { value: 'already-delayed', label: 'Already delayed' }
+  ]
+
+  return options.map((option) => ({
+    value: option.value,
+    checked: selectedFilter === option.value,
+    html: `<span class="app-dr2-dashboard-filter-radios__option">${option.label}</span><span class="app-dr2-dashboard-filter-radios__count">(${counts[option.value]})</span>`
+  }))
+}
+
 function buildDashboardPagination (currentPage, totalPages, sort) {
   if (totalPages <= 1) {
     return {
@@ -4295,10 +4901,20 @@ function buildDashboardPagination (currentPage, totalPages, sort) {
 }
 
 function formatDateForDashboard (value) {
+  if (!value) {
+    return 'Not applicable'
+  }
+
+  const isoDate = new Date(value)
+
+  if (!Number.isNaN(isoDate.getTime()) && String(value).includes('T')) {
+    return formatDeclarationDate(isoDate)
+  }
+
   const date = parseArrivalDisplayDateToDate(value)
 
   if (!date) {
-    return value || 'Not applicable'
+    return value
   }
 
   return formatDeclarationDate(date)
@@ -4329,13 +4945,79 @@ function saveSubmittedNotification (sessionData) {
     commodities: getReviewAnimalDetailsCommodityCodes(snapshot),
     origin: snapshot.countryOfOrigin || 'Not applicable',
     arrivalDate: formatDateForDashboard(snapshot.arrivalDateAtPort),
-    statusText: 'Submitted',
-    statusTagClass: 'govuk-tag--green',
+    statusText: getConditionalSubmissionItems(snapshot).length
+      ? 'Submitted action required'
+      : 'Submission complete',
+    statusTagClass: getConditionalSubmissionItems(snapshot).length
+      ? 'govuk-tag--orange'
+      : 'govuk-tag--green',
     submittedAt: new Date().toISOString(),
     snapshot
   })
 
   return id
+}
+
+function isDesignRelease2SessionData (sessionData) {
+  return Boolean(sessionData && sessionData._isDesignRelease2Version)
+}
+
+function getDashboardBackLink (sessionData = {}) {
+  if (isTestingSessionData(sessionData)) {
+    return '/testing'
+  }
+
+  if (isDesignRelease2SessionData(sessionData)) {
+    return '/design-release-2'
+  }
+
+  return '/'
+}
+
+function buildDashboardNotificationViewHref (sessionData, options = {}) {
+  const basePath = getDashboardBackLink(sessionData)
+  const params = new URLSearchParams()
+
+  if (options.submittedId) {
+    params.set('submitted', options.submittedId)
+  } else if (options.reference) {
+    params.set('reference', options.reference)
+  }
+
+  const query = params.toString()
+
+  return query ? `${basePath}/review-notification?${query}` : `${basePath}/review-notification`
+}
+
+function getDashboardNotificationSnapshotByReference (sessionData, reference) {
+  const normalisedReference = String(reference || '').trim()
+
+  if (!normalisedReference) {
+    return null
+  }
+
+  const submittedMatch = (sessionData.submittedNotifications || []).find((notification) =>
+    notification.reference === normalisedReference
+  )
+
+  if (submittedMatch) {
+    return submittedMatch.snapshot
+  }
+
+  const staticNotification = dashboardData.notifications
+    .map((notification, index) => ({
+      ...notification,
+      reference: isTestingSessionData(sessionData)
+        ? notification.reference
+        : toDesignReleaseDashboardReference(notification.reference, index)
+    }))
+    .find((notification) => notification.reference === normalisedReference)
+
+  if (!staticNotification) {
+    return null
+  }
+
+  return buildDashboardNotificationSnapshot(staticNotification)
 }
 
 function getSubmittedNotificationById (sessionData, submittedId) {
@@ -4344,6 +5026,187 @@ function getSubmittedNotificationById (sessionData, submittedId) {
   }
 
   return (sessionData.submittedNotifications || []).find((notification) => notification.id === submittedId) || null
+}
+
+function formatDashboardArrivalDate (value) {
+  const date = parseArrivalDisplayDateToDate(value)
+
+  if (!date) {
+    return value || 'Not applicable'
+  }
+
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+
+  return `${day}/${month}/${date.getFullYear()}`
+}
+
+function enrichDesignRelease2Notification (notification, index) {
+  const consignees = [
+    'Glen Keen Farm',
+    'Northern Livestock Imports',
+    'West Coast Animal Imports',
+    'Britannia Trade Livestock',
+    'Prime Livestock UK'
+  ]
+  const consignors = [
+    'Monk Park Farm',
+    'Green Valley Farm',
+    'Oak Hill Farm',
+    'Riverside Farm',
+    'Valea Mare Farm'
+  ]
+  const commodityMap = {
+    '010410, 010420': 'Goats & Sheep',
+    '0102': 'Cattle',
+    '0101': 'Horses',
+    '0103': 'Pigs',
+    '01061900': 'Camelids',
+    '010511, 010512': 'Poultry',
+    '010614': 'Rabbits',
+    '010410': 'Sheep'
+  }
+
+  const reviewVariant = notification.reviewVariant || mapStatusTextToReviewVariant(notification.statusText)
+  let categoryLabel = 'Live animals'
+  let cardVariant = 'default'
+  let statusDisplay = {
+    type: 'text',
+    text: notification.statusText,
+    style: 'default'
+  }
+  let inspectionRequired = false
+  let errorMessage = null
+
+  if (reviewVariant === 'submission-complete') {
+    statusDisplay = {
+      type: 'text',
+      text: 'Completed',
+      style: 'completed'
+    }
+  } else if (reviewVariant === 'action-required') {
+    cardVariant = 'error'
+    statusDisplay = {
+      type: 'tag',
+      text: 'Action required',
+      style: 'action-required'
+    }
+    errorMessage = 'Error message'
+  } else if (reviewVariant === 'draft') {
+    statusDisplay = {
+      type: 'tag',
+      text: 'Draft',
+      style: 'draft'
+    }
+  }
+
+  if (index % 6 === 3) {
+    categoryLabel = 'Plants'
+    cardVariant = 'default'
+    statusDisplay = {
+      type: 'text',
+      text: 'Submitted',
+      style: 'submitted'
+    }
+    errorMessage = null
+  }
+
+  if (index % 6 === 4) {
+    inspectionRequired = true
+    statusDisplay = {
+      type: 'text',
+      text: 'Submitted',
+      style: 'submitted'
+    }
+  }
+
+  const actionDemoIndices = new Set([2, 8, 14, 20])
+  const statusChangeDemoMap = {
+    1: 'passed-inspection',
+    4: 'needs-inspection',
+    7: 'passed-inspection',
+    11: 'delayed'
+  }
+  const chosenForInspectionDemoIndices = new Set([5, 10, 16, 17, 22, 23])
+  let finalCardVariant = cardVariant
+  let finalStatusDisplay = statusDisplay
+  let finalErrorMessage = errorMessage
+  let finalInspectionRequired = inspectionRequired
+
+  if (actionDemoIndices.has(index)) {
+    finalCardVariant = 'error'
+    finalStatusDisplay = {
+      type: 'tag',
+      text: 'Action required',
+      style: 'action-required'
+    }
+    finalErrorMessage = finalErrorMessage || 'Error message'
+  } else {
+    const statusChangeCategory = statusChangeDemoMap[index]
+
+    if (statusChangeCategory === 'passed-inspection') {
+      finalCardVariant = 'default'
+      finalStatusDisplay = {
+        type: 'text',
+        text: 'Completed',
+        style: 'completed'
+      }
+      finalErrorMessage = null
+      finalInspectionRequired = false
+    } else if (statusChangeCategory === 'needs-inspection') {
+      finalCardVariant = 'default'
+      finalStatusDisplay = {
+        type: 'text',
+        text: 'Submitted',
+        style: 'submitted'
+      }
+      finalErrorMessage = null
+      finalInspectionRequired = true
+    } else if (statusChangeCategory === 'delayed') {
+      finalCardVariant = 'error'
+      finalStatusDisplay = {
+        type: 'tag',
+        text: 'Delayed',
+        style: 'delayed'
+      }
+      finalErrorMessage = finalErrorMessage || 'Error message'
+      finalInspectionRequired = false
+    } else if (chosenForInspectionDemoIndices.has(index)) {
+      finalCardVariant = 'default'
+      finalStatusDisplay = {
+        type: 'text',
+        text: 'Submitted',
+        style: 'submitted'
+      }
+      finalErrorMessage = null
+      finalInspectionRequired = true
+    }
+  }
+
+  const statusChangeCategory = statusChangeDemoMap[index] || null
+  const chosenForInspection = chosenForInspectionDemoIndices.has(index) && !actionDemoIndices.has(index)
+  const needsAction = finalCardVariant === 'error' && Boolean(finalErrorMessage) && finalStatusDisplay.style === 'action-required'
+  const hasStatusChange = Boolean(statusChangeCategory)
+  const delayCategory = needsAction && index === 2 ? 'today' : null
+
+  return {
+    ...notification,
+    consignee: notification.consignee || consignees[index % consignees.length],
+    consignor: notification.consignor || consignors[index % consignors.length],
+    categoryLabel,
+    commodityLabel: commodityMap[notification.commodities] || notification.commodities,
+    numberOfAnimals: notification.numberOfAnimals || String(8 + (index % 5)),
+    arrivalDateDisplay: formatDashboardArrivalDate(notification.arrivalDate),
+    cardVariant: finalCardVariant,
+    statusDisplay: finalStatusDisplay,
+    inspectionRequired: finalInspectionRequired,
+    errorMessage: finalErrorMessage,
+    needsAction,
+    hasStatusChange,
+    statusChangeCategory,
+    chosenForInspection,
+    delayCategory
+  }
 }
 
 function getDashboardNotificationList (sessionData = {}) {
@@ -4391,16 +5254,21 @@ function getDashboardNotificationList (sessionData = {}) {
       commodities: notification.commodities,
       statusText: notification.statusText,
       statusTagClass: notification.statusTagClass,
+      statusModifier: mapStatusTextToReviewVariant(notification.statusText),
       origin: notification.origin,
       arrivalDate: notification.arrivalDate,
       consignee: notification.consignee,
       consignor: notification.consignor,
-      viewHref: `/review-notification?submitted=${encodeURIComponent(notification.id)}`
+      viewHref: isDesignRelease2SessionData(sessionData)
+        ? buildDashboardNotificationViewHref(sessionData, { submittedId: notification.id })
+        : `/review-notification?submitted=${encodeURIComponent(notification.id)}`
     }
 
     return isTestingSessionData(sessionData)
       ? enrichTestingNotification(mapped, index)
-      : mapped
+      : isDesignRelease2SessionData(sessionData)
+        ? enrichDesignRelease2Notification(mapped, index)
+        : mapped
   })
 
   const submittedReferences = new Set(submitted.map((notification) => notification.reference))
@@ -4410,10 +5278,19 @@ function getDashboardNotificationList (sessionData = {}) {
         return enrichTestingNotification(notification, index + submitted.length)
       }
 
-      return {
+      const reference = toDesignReleaseDashboardReference(notification.reference, index)
+      const mapped = {
         ...notification,
-        reference: toDesignReleaseDashboardReference(notification.reference, index)
+        reference,
+        statusModifier: notification.reviewVariant || mapStatusTextToReviewVariant(notification.statusText),
+        viewHref: isDesignRelease2SessionData(sessionData)
+          ? buildDashboardNotificationViewHref(sessionData, { reference })
+          : notification.viewHref
       }
+
+      return isDesignRelease2SessionData(sessionData)
+        ? enrichDesignRelease2Notification(mapped, index + submitted.length)
+        : mapped
     })
     .filter((notification) => !submittedReferences.has(notification.reference))
 
@@ -4452,12 +5329,69 @@ function buildDashboardSortItems (selectedValue, options = {}) {
   }))
 }
 
+function getDashboardTemplatesViewModel (query = {}) {
+  const sort = (query.sort || '').trim()
+  const templates = [
+    {
+      categoryLabel: 'Live animals',
+      title: 'Rice Lane City Farm',
+      commodityLabel: 'Pigs',
+      origin: 'Republic of Ireland',
+      consignee: 'Glen Keen Farm',
+      consignor: 'Rice Lane City Farm',
+      viewHref: '#',
+      createHref: '#'
+    },
+    {
+      categoryLabel: 'Live animals',
+      title: 'Monk Park Farm',
+      commodityLabel: 'Goats & Sheep',
+      origin: 'Republic of Ireland',
+      consignee: 'Glen Keen Farm',
+      consignor: 'Monk Park Farm',
+      viewHref: '#',
+      createHref: '#'
+    },
+    {
+      categoryLabel: 'Live animals',
+      title: 'Acorn Farm',
+      commodityLabel: 'Cattle',
+      origin: 'Republic of Ireland',
+      consignee: 'Glen Keen Farm',
+      consignor: 'Acorn Farm',
+      viewHref: '#',
+      createHref: '#'
+    },
+    {
+      categoryLabel: 'Live animals',
+      title: 'Glen Keen Farm',
+      commodityLabel: 'Poultry',
+      origin: 'Republic of Ireland',
+      consignee: 'Glen Keen Farm',
+      consignor: 'Glen Keen Farm',
+      viewHref: '#',
+      createHref: '#'
+    }
+  ]
+
+  return {
+    templates,
+    sort,
+    sortItems: buildDashboardSortItems(sort),
+    resultsText: buildDashboardResultsText(1, templates.length, templates.length)
+  }
+}
+
 function getDashboardViewModel (sessionData = {}, query = {}) {
   const isTesting = isTestingSessionData(sessionData)
+  const isDr2 = isDesignRelease2SessionData(sessionData)
   const sort = (query.sort || '').trim()
   const requestedPage = Math.max(1, Number(query.page) || 1)
   const pageSize = dashboardData.pageSize
   const allNotifications = getDashboardNotificationList(sessionData)
+  const actionNotifications = isDr2 ? getDashboardActionNotifications(sessionData) : []
+  const statusChangeNotifications = isDr2 ? getDashboardStatusChangeNotifications(sessionData) : []
+  const inspectionNotifications = isDr2 ? getDashboardInspectionNotifications(sessionData) : []
   const totalCount = allNotifications.length
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
   const currentPage = Math.min(requestedPage, totalPages)
@@ -4466,11 +5400,44 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
   const notifications = allNotifications.slice(startIndex, endIndex)
 
   return {
+    glanceCounts: isDr2
+      ? {
+        actionNeeded: actionNotifications.length,
+        statusChange: statusChangeNotifications.length,
+        chosenForInspection: inspectionNotifications.length
+      }
+      : null,
     alertCounts: {
       alerts: 0,
       errors: 0,
       messages: 0
     },
+    delayFilters: isDr2
+      ? [
+        { value: 'today', label: 'Today', count: 1 },
+        { value: 'next-three-days', label: 'Next 3 days', count: 0 },
+        { value: 'already-delayed', label: 'Already delayed', count: 1 }
+      ]
+      : null,
+    delayFilterItems: isDr2
+      ? [
+        { value: 'today', html: '<span class="app-dr2-dashboard-filter-radios__option">Today</span><span class="app-dr2-dashboard-filter-radios__count">(1)</span>' },
+        { value: 'next-three-days', html: '<span class="app-dr2-dashboard-filter-radios__option">Next 3 days</span><span class="app-dr2-dashboard-filter-radios__count">(0)</span>' },
+        { value: 'already-delayed', html: '<span class="app-dr2-dashboard-filter-radios__option">Already delayed</span><span class="app-dr2-dashboard-filter-radios__count">(1)</span>' }
+      ]
+      : null,
+    statusChangeFilters: isDr2
+      ? [
+        { value: 'last-24-hours', label: 'Last 24 hours', count: 0 },
+        { value: 'last-3-days', label: 'Last 3 days', count: 2 }
+      ]
+      : null,
+    statusChangeFilterItems: isDr2
+      ? [
+        { value: 'last-24-hours', html: '<span class="app-dr2-dashboard-filter-radios__option">Last 24 hours</span><span class="app-dr2-dashboard-filter-radios__count">(0)</span>' },
+        { value: 'last-3-days', html: '<span class="app-dr2-dashboard-filter-radios__option">Last 3 days</span><span class="app-dr2-dashboard-filter-radios__count">(2)</span>' }
+      ]
+      : null,
     notifications,
     sort,
     sortItems: buildDashboardSortItems(sort, { testing: isTesting }),
@@ -4484,6 +5451,109 @@ function renderDashboardPage (req, res) {
   return res.render('dashboard', {
     serviceNavActive: 'dashboard',
     ...getDashboardViewModel(req.session.data, req.query)
+  })
+}
+
+function renderDashboardTemplatesPage (req, res) {
+  if (!isDesignRelease2SessionData(req.session.data)) {
+    return res.redirect('/')
+  }
+
+  return res.render('dashboard-templates', {
+    serviceNavActive: 'templates',
+    ...getDashboardTemplatesViewModel(req.query)
+  })
+}
+
+function getDashboardActionsViewModel (sessionData = {}, query = {}) {
+  const sort = (query.sort || '').trim()
+  const delayFilter = (query.delayFilter || '').trim()
+  const requestedPage = Math.max(1, Number(query.page) || 1)
+  const pageSize = dashboardData.pageSize
+  const actionNotifications = getDashboardActionNotifications(sessionData)
+  const filteredNotifications = delayFilter
+    ? actionNotifications.filter((notification) => notification.delayCategory === delayFilter)
+    : actionNotifications
+  const totalCount = filteredNotifications.length
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
+  const currentPage = Math.min(requestedPage, totalPages)
+  const startIndex = (currentPage - 1) * pageSize
+  const endIndex = Math.min(startIndex + pageSize, totalCount)
+  const notifications = filteredNotifications.slice(startIndex, endIndex)
+
+  return {
+    backLink: '/',
+    delayFilterItems: buildDashboardActionsDelayFilterItems(actionNotifications, delayFilter),
+    notifications,
+    sort,
+    sortItems: buildDashboardSortItems(sort),
+    resultsText: buildDashboardResultsText(startIndex + 1, endIndex, totalCount),
+    pagination: buildDashboardActionsPagination(currentPage, totalPages, sort, delayFilter),
+    currentPage,
+    delayFilter
+  }
+}
+
+function renderDashboardActionsPage (req, res) {
+  if (!isDesignRelease2SessionData(req.session.data)) {
+    return res.redirect('/')
+  }
+
+  return res.render('dashboard-actions', {
+    serviceNavActive: 'dashboard',
+    ...getDashboardActionsViewModel(req.session.data, req.query)
+  })
+}
+
+function getDashboardChangesViewModel (sessionData = {}) {
+  return {
+    backLink: '/',
+    sections: getDashboardChangesSections(sessionData)
+  }
+}
+
+function renderDashboardChangesPage (req, res) {
+  if (!isDesignRelease2SessionData(req.session.data)) {
+    return res.redirect('/')
+  }
+
+  return res.render('dashboard-changes', {
+    serviceNavActive: 'dashboard',
+    ...getDashboardChangesViewModel(req.session.data)
+  })
+}
+
+function getDashboardInspectionViewModel (sessionData = {}, query = {}) {
+  const sort = (query.sort || '').trim()
+  const requestedPage = Math.max(1, Number(query.page) || 1)
+  const pageSize = dashboardData.pageSize
+  const inspectionNotifications = getDashboardInspectionNotifications(sessionData)
+  const totalCount = inspectionNotifications.length
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
+  const currentPage = Math.min(requestedPage, totalPages)
+  const startIndex = (currentPage - 1) * pageSize
+  const endIndex = Math.min(startIndex + pageSize, totalCount)
+  const notifications = inspectionNotifications.slice(startIndex, endIndex)
+
+  return {
+    backLink: '/',
+    notifications,
+    sort,
+    sortItems: buildDashboardSortItems(sort),
+    resultsText: buildDashboardResultsText(startIndex + 1, endIndex, totalCount),
+    pagination: buildDashboardInspectionPagination(currentPage, totalPages, sort),
+    currentPage
+  }
+}
+
+function renderDashboardInspectionPage (req, res) {
+  if (!isDesignRelease2SessionData(req.session.data)) {
+    return res.redirect('/')
+  }
+
+  return res.render('dashboard-inspection', {
+    serviceNavActive: 'dashboard',
+    ...getDashboardInspectionViewModel(req.session.data, req.query)
   })
 }
 
@@ -6183,6 +7253,22 @@ router.get('/', (req, res) => {
   return renderDashboardPage(req, res)
 })
 
+router.get('/templates', (req, res) => {
+  return renderDashboardTemplatesPage(req, res)
+})
+
+router.get('/actions', (req, res) => {
+  return renderDashboardActionsPage(req, res)
+})
+
+router.get('/changes', (req, res) => {
+  return renderDashboardChangesPage(req, res)
+})
+
+router.get('/inspection', (req, res) => {
+  return renderDashboardInspectionPage(req, res)
+})
+
 router.get('/index', (req, res) => {
   return res.render('index')
 })
@@ -6368,17 +7454,35 @@ router.get('/address-book/:addressId', (req, res) => {
 
 router.get('/review-notification', (req, res) => {
   const submittedId = (req.query.submitted || '').trim()
+  const reference = (req.query.reference || '').trim()
   const submittedNotification = getSubmittedNotificationById(req.session.data, submittedId)
+  const isDr2 = isDesignRelease2SessionData(req.session.data)
+  const dashboardBackLink = getDashboardBackLink(req.session.data)
 
   if (submittedId && !submittedNotification) {
-    return res.redirect('/')
+    return res.redirect(isDr2 ? dashboardBackLink : '/')
+  }
+
+  if (isDr2 && (submittedId || reference)) {
+    return renderReviewNotificationPage(req, res, {
+      submittedId,
+      reference
+    })
   }
 
   if (submittedNotification) {
+    let backLink = '/'
+
+    if (isTestingSessionData(req.session.data)) {
+      backLink = '/testing'
+    } else if (isDr2) {
+      backLink = dashboardBackLink
+    }
+
     return renderReviewNotificationPage(req, res, {
       sessionData: submittedNotification.snapshot,
       readOnly: true,
-      backLink: '/'
+      backLink
     })
   }
 
@@ -7269,4 +8373,7 @@ router.post('/contact-address-for-consignment', (req, res) => {
 })
 
 const { mountTestingVersion } = require('./lib/testing-version')
+const { mountDesignRelease2Version } = require('./lib/design-release-2-version')
+
 mountTestingVersion(govukPrototypeKit, router)
+mountDesignRelease2Version(govukPrototypeKit, router)

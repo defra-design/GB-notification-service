@@ -1,0 +1,127 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+
+{% set pageName = "Permanent address" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds app-permanent-address-animals-page__intro">
+
+    {% include "partials/notification-status.html" %}
+
+    <div class="app-permanent-address-animals-page__header">
+      <p class="app-permanent-address-animals-page__caption">Consignment parties</p>
+      <h1 class="app-permanent-address-animals-page__heading">Permanent address</h1>
+    </div>
+
+    {{ govukWarningText({
+      text: "Providing a false address is an act of fraud",
+      classes: "app-permanent-address-animals-page__warning"
+    }) }}
+
+    <div class="app-permanent-address-animals-page__guidance">
+      <p class="app-permanent-address-animals-page__guidance-text">A permanent address is where an animal:</p>
+      <ul class="govuk-list govuk-list--bullet app-permanent-address-animals-page__guidance-list">
+        <li>will permanently reside</li>
+        <li>can be checked by the Animal and Plant Health Agency (APHA)</li>
+      </ul>
+    </div>
+
+    {% if data.errorList %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: data.errorList
+      }) }}
+    {% endif %}
+  </div>
+</div>
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full app-permanent-address-animals-page__form-column">
+    <form method="post" action="/design-release-2/permanent-address/select" novalidate class="app-permanent-address-animals-form">
+
+      <h2 class="app-permanent-address-animals-page__question">Where will their permanent address be?</h2>
+
+      {% if animals.length %}
+      <div class="app-permanent-address-animals-page__animals">
+        {% for animal in animals %}
+          <section class="app-permanent-address-animal-card" aria-labelledby="permanent-address-animal-{{ loop.index }}">
+            <h3 class="app-permanent-address-animal-card__heading" id="permanent-address-animal-{{ loop.index }}">{{ animal.heading }}</h3>
+
+            {% if animal.identifiers.length %}
+              <div class="govuk-inset-text app-permanent-address-animal-card__identifiers">
+                <p class="app-permanent-address-animal-card__identifiers-text">
+                  {% for identifier in animal.identifiers %}
+                    <strong>{{ identifier.label }}:</strong> {{ identifier.value }}{% if not loop.last %}  {% endif %}
+                  {% endfor %}
+                </p>
+              </div>
+            {% endif %}
+
+            {{ govukRadios({
+              idPrefix: "permanent-address-choice-" + animal.key,
+              name: "permanentAddressChoice[" + animal.key + "]",
+              fieldset: {
+                legend: {
+                  text: "Select an address",
+                  classes: "app-permanent-address-animal-card__legend"
+                }
+              },
+              errorMessage: data.errors["permanentAddressChoice-" + animal.key] if data.errors and data.errors["permanentAddressChoice-" + animal.key],
+              classes: "app-permanent-address-animal-card__radios",
+              items: animal.radioItems
+            }) }}
+          </section>
+        {% endfor %}
+      </div>
+      {% else %}
+        <p class="app-permanent-address-animals-page__empty-message">
+          Add the number of animals on <a class="govuk-link" href="/design-release-2/consignment-details">consignment details</a> before you can continue.
+        </p>
+      {% endif %}
+
+      <div class="app-permanent-address-animals-page__actions">
+        <div class="app-permanent-address-animals-page__action-buttons">
+          {{ govukButton({
+            text: "Save and continue",
+            classes: "app-permanent-address-animals-page__continue-button"
+          }) }}
+
+          {{ govukButton({
+            text: "Save and return to overview",
+            name: "action",
+            value: "hub",
+            classes: "govuk-button--secondary app-permanent-address-animals-page__hub-button"
+          }) }}
+        </div>
+
+        <p class="app-permanent-address-animals-page__cancel">
+          <a class="govuk-link" href="/design-release-2/notification-hub">Cancel and return to overview</a>
+        </p>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}

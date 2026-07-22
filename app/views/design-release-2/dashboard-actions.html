@@ -1,0 +1,127 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/pagination/macro.njk" import govukPagination %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "partials/design-release-2/dashboard-notification-card.html" import dr2DashboardNotificationCard %}
+
+{% set pageName = "Urgent action required" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full app-dashboard-page app-dashboard-page--dr2">
+
+    <section class="app-dr2-dashboard-intro app-dr2-dashboard-intro--actions" aria-labelledby="dashboard-actions-heading">
+      <div class="app-dr2-dashboard-intro__header">
+        <p class="app-dr2-dashboard-intro__caption">Avoid delays</p>
+        <h1 class="app-dr2-dashboard-intro__heading" id="dashboard-actions-heading">Urgent action required</h1>
+        <p class="app-dr2-dashboard-intro__description">Description of what the user needs to do</p>
+      </div>
+    </section>
+
+    <section class="app-dr2-dashboard-notifications" aria-labelledby="dashboard-actions-notifications-heading">
+      <h2 class="govuk-visually-hidden" id="dashboard-actions-notifications-heading">Notifications needing action</h2>
+
+      <form method="get" action="/design-release-2/actions" class="app-dr2-dashboard-search">
+        {% if currentPage > 1 %}
+          <input type="hidden" name="page" value="{{ currentPage }}">
+        {% endif %}
+
+        <div class="app-dr2-dashboard-search__row">
+          <div class="app-dr2-dashboard-search__field">
+            {{ govukInput({
+              id: "dashboard-actions-search",
+              name: "search",
+              label: {
+                text: "Search by",
+                classes: "app-dr2-dashboard-search__label"
+              },
+              hint: {
+                text: "Keyword, notification number, commodity or consignee/importer"
+              },
+              classes: "app-dr2-dashboard-search__input"
+            }) }}
+            <button class="app-dr2-dashboard-search__button" type="submit" aria-label="Search">
+              <svg class="app-dr2-dashboard-search__icon" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+                <path fill="#ffffff" d="M19.6 18.4 14.1 12.9C15.2 11.5 15.9 9.7 15.9 7.7 15.9 3.5 12.4 0 8.2 0S.5 3.5.5 7.7s3.5 7.7 7.7 7.7c2 0 3.8-.7 5.2-1.9l5.5 5.5 1.7-1.6ZM8.2 13.5c-3.2 0-5.8-2.6-5.8-5.8S5 1.9 8.2 1.9s5.8 2.6 5.8 5.8-2.6 5.8-5.8 5.8Z"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="app-dr2-dashboard-search__sort">
+            {{ govukSelect({
+              id: "dashboard-actions-sort",
+              name: "sort",
+              label: {
+                text: "Sort by:",
+                classes: "app-dr2-dashboard-search__sort-label"
+              },
+              classes: "app-dr2-dashboard-search__sort-select",
+              items: sortItems
+            }) }}
+          </div>
+        </div>
+
+        <div class="app-dr2-dashboard-filter-radios app-dr2-dashboard-filter-radios--standalone">
+          <div class="app-dr2-dashboard-filter-radios__group app-dr2-dashboard-filter-radios__group--delay">
+            <p class="app-dr2-dashboard-filter-radios__group-heading" id="dashboard-actions-delay-heading">Needs action to avoid delays</p>
+            {{ govukRadios({
+              idPrefix: "dashboard-actions-delay",
+              name: "delayFilter",
+              classes: "govuk-radios--small govuk-radios--inline app-dr2-dashboard-filter-radios__control",
+              fieldset: {
+                describedBy: "dashboard-actions-delay-heading",
+                legend: {
+                  text: "Needs action to avoid delays",
+                  classes: "govuk-visually-hidden"
+                }
+              },
+              items: delayFilterItems
+            }) }}
+          </div>
+        </div>
+      </form>
+
+      <p class="app-dr2-dashboard-results__count">{{ resultsText }}</p>
+
+      <div class="app-dr2-dashboard-notification-list">
+        {% for notification in notifications %}
+          {{ dr2DashboardNotificationCard(notification) }}
+        {% endfor %}
+      </div>
+
+      {% if pagination.items %}
+        {{ govukPagination({
+          previous: pagination.previous,
+          next: pagination.next,
+          items: pagination.items,
+          classes: "app-dr2-dashboard-results__pagination"
+        }) }}
+      {% elif pagination.next %}
+        {{ govukPagination({
+          next: pagination.next,
+          classes: "app-dr2-dashboard-results__pagination"
+        }) }}
+      {% endif %}
+    </section>
+
+  </div>
+</div>
+{% endblock %}

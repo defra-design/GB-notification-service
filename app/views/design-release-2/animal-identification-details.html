@@ -1,0 +1,169 @@
+{% extends "layouts/main.html" %}
+
+{% set pageName = "Identification details" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+    <div class="app-animal-identification-shell">
+      <div class="app-animal-identification-page">
+
+        {% include "partials/notification-status.html" %}
+
+        <form method="post" action="/design-release-2/animal-identification-details" novalidate class="app-animal-identification-form">
+
+          {% if data.errorList %}
+            {{ govukErrorSummary({
+              titleText: "There is a problem",
+              errorList: data.errorList
+            }) }}
+          {% endif %}
+
+          <div class="app-animal-identification-page__intro">
+            <div class="app-animal-identification-page__header">
+              <p class="app-animal-identification-page__caption">About the consignment</p>
+              <h1 class="app-animal-identification-page__heading">Identification details</h1>
+            </div>
+
+            {{ govukInsetText({
+              text: "You must add all animal identification details before the consignment arrives at the port of entry.",
+              classes: "app-animal-identification-page__inset"
+            }) }}
+
+            {% if selectedCommodityRows and selectedCommodityRows.length %}
+              <h2 class="app-animal-identification-page__selected-commodities-heading" id="selected-commodities-heading">
+                Selected commodities
+              </h2>
+
+              <div class="app-animal-identification-page__summary" aria-labelledby="selected-commodities-heading">
+                <div class="app-animal-identification-page__summary-row app-animal-identification-page__summary-row--header">
+                  <div class="app-animal-identification-page__summary-key">Commodity code</div>
+                  <div class="app-animal-identification-page__summary-value">Common name</div>
+                  <div class="app-animal-identification-page__summary-animals">Number of animals</div>
+                  <div class="app-animal-identification-page__summary-action"></div>
+                </div>
+
+                {% for row in selectedCommodityRows %}
+                  <div class="app-animal-identification-page__summary-row">
+                    <div class="app-animal-identification-page__summary-key">{{ row.code }}</div>
+                    <div class="app-animal-identification-page__summary-value">{{ row.name }}</div>
+                    <div class="app-animal-identification-page__summary-animals">{{ row.numberOfAnimals }}</div>
+                    <div class="app-animal-identification-page__summary-action">
+                      <a class="govuk-link" href="/design-release-2/what-are-you-importing?resetSearch=1">Change</a>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+
+              <p class="app-animal-identification-page__add-commodity">
+                <a class="govuk-link" href="/design-release-2/what-are-you-importing">Add another commodity</a>
+              </p>
+            {% endif %}
+          </div>
+
+          <div class="app-animal-identification-page__groups" id="animal-identification-panels">
+            {% for group in commodityGroups %}
+              <section class="app-animal-identification-commodity" aria-labelledby="commodity-group-{{ group.commodityId }}">
+                <h2 class="app-animal-identification-commodity__heading" id="commodity-group-{{ group.commodityId }}">
+                  {{ group.heading }}
+                </h2>
+
+                {% for panel in group.speciesPanels %}
+                  <div class="app-animal-identification-panel{% if not loop.last %} app-animal-identification-panel--spaced{% endif %}">
+                    <div class="app-animal-identification-panel__header">
+                      <p class="app-animal-identification-panel__species-name">{{ panel.panelHeaderText }}</p>
+                      <a class="govuk-link app-animal-identification-panel__change-count" href="/design-release-2/consignment-details">Change number of animals</a>
+                    </div>
+
+                    <div class="app-animal-identification-panel__body">
+                      {% if panel.isComplete %}
+                        {% if panel.savedAnimals and panel.savedAnimals.length %}
+                          {% include "partials/animal-identification-saved-animals.html" %}
+                        {% endif %}
+                      {% else %}
+                        <h3 class="app-animal-identification-panel__entry-heading">{{ panel.activeAnimal.headingText }}</h3>
+
+                        {% for field in panel.identifierFields %}
+                          {% set fieldError = data.errors["identifier-" + panel.speciesId + "-" + field.id] if data.errors and data.errors["identifier-" + panel.speciesId + "-" + field.id] %}
+
+                          {{ govukInput({
+                            label: {
+                              text: field.label
+                            },
+                            id: "identifier-" + panel.speciesId + "-" + field.id,
+                            name: "identifiers[" + panel.speciesId + "][" + field.id + "]",
+                            value: panel.activeAnimal.identifierValues[field.id] or "",
+                            classes: "govuk-input--width-20 app-animal-identification-page__input",
+                            errorMessage: fieldError
+                          }) }}
+                        {% endfor %}
+
+                        {% if panel.showSaveButton %}
+                          {{ govukButton({
+                            text: panel.saveButtonText,
+                            name: "action",
+                            value: "save:" + panel.speciesId
+                          }) }}
+                        {% endif %}
+
+                        {% if panel.savedAnimals and panel.savedAnimals.length %}
+                          {% include "partials/animal-identification-saved-animals.html" %}
+                        {% endif %}
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endfor %}
+              </section>
+            {% endfor %}
+          </div>
+
+          <div class="app-origin-form-actions app-animal-identification-page__form-actions">
+            <div class="app-origin-actions">
+              {{ govukButton({
+                text: "Save and continue",
+                name: "action",
+                value: "continue"
+              }) }}
+
+              {{ govukButton({
+                text: "Save and return to overview",
+                name: "action",
+                value: "hub",
+                classes: "govuk-button--secondary"
+              }) }}
+            </div>
+
+            <p class="app-origin-form-actions__cancel">
+              <a class="govuk-link" href="/design-release-2/notification-hub">Cancel and return to overview</a>
+            </p>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

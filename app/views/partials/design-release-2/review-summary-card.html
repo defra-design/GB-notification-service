@@ -1,0 +1,122 @@
+{% from "partials/design-release-2/review-summary-row.html" import dr2ReviewRow %}
+
+{% macro dr2ReviewCardErrorMessage(card) %}
+  {% if card.errorMessage %}
+    <p class="govuk-error-message app-dr2-review-card__error-message">
+      <span class="govuk-visually-hidden">Error:</span>
+      {{ card.errorMessage }}
+    </p>
+  {% endif %}
+{% endmacro %}
+
+{% macro dr2ReviewCard(card, showActions, showRowActions) %}
+  {% set rowActions = showRowActions if showRowActions != undefined else false %}
+  <div class="app-dr2-review-card-wrapper{% if card.hasError %} app-dr2-review-card-wrapper--error{% endif %}">
+    <section class="app-dr2-review-card" aria-labelledby="{{ card.id }}">
+      <div class="app-dr2-review-card__header{% if card.headerAction %} app-dr2-review-card__header--with-action{% endif %}">
+        <h3 class="app-dr2-review-card__title" id="{{ card.id }}">{{ card.title }}</h3>
+        {% if showActions and card.headerAction %}
+          {% if card.headerAction.type == 'remove' %}
+            <a class="app-dr2-review-card__header-link app-dr2-review-card__header-link--remove" href="{{ card.headerAction.href }}">Remove</a>
+          {% else %}
+            <a class="app-dr2-review-card__header-link" href="{{ card.headerAction.href }}">Change</a>
+          {% endif %}
+        {% endif %}
+      </div>
+
+      {{ dr2ReviewCardErrorMessage(card) }}
+
+      {% if card.rows and card.rows.length %}
+        <dl class="app-dr2-review-card__rows">
+          {% for row in card.rows %}
+            {{ dr2ReviewRow(row, card.changeHref, rowActions) }}
+          {% endfor %}
+        </dl>
+      {% endif %}
+
+      {% if card.subsections %}
+        {% for subsection in card.subsections %}
+          <div class="app-dr2-review-card__subsection">
+            <h4 class="app-dr2-review-card__subsection-heading">{{ subsection.heading }}</h4>
+            {% if subsection.rows and subsection.rows.length %}
+              <dl class="app-dr2-review-card__rows app-dr2-review-card__rows--subsection">
+                {% for row in subsection.rows %}
+                  {{ dr2ReviewRow(row, subsection.changeHref or card.changeHref, rowActions) }}
+                {% endfor %}
+              </dl>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      {% if card.permanentAddressSection %}
+        <div class="app-dr2-review-card__subsection">
+          <h4 class="app-dr2-review-card__subsection-heading">{{ card.permanentAddressSection.title }}</h4>
+          <dl class="app-dr2-review-card__rows app-dr2-review-card__rows--subsection">
+            {% for row in card.permanentAddressSection.rows %}
+              {{ dr2ReviewRow(row, card.changeHref, rowActions) }}
+            {% endfor %}
+          </dl>
+        </div>
+      {% endif %}
+    </section>
+  </div>
+{% endmacro %}
+
+{% macro dr2ReviewCommodityCard(card, showActions) %}
+  <div class="app-dr2-review-card-wrapper{% if card.hasError %} app-dr2-review-card-wrapper--error{% endif %}">
+    <section class="app-dr2-review-commodity-card" aria-labelledby="{{ card.id }}">
+      <div class="app-dr2-review-card__header">
+        <h3 class="app-dr2-review-card__title" id="{{ card.id }}">{{ card.title }}</h3>
+      </div>
+
+      {% for speciesBlock in card.speciesBlocks %}
+        <div class="app-dr2-review-commodity-card__species">
+          <h4 class="app-dr2-review-commodity-card__species-heading">{{ speciesBlock.speciesLabel }}</h4>
+
+          {% if speciesBlock.rows and speciesBlock.rows.length %}
+            <dl class="app-dr2-review-card__rows">
+              {% for row in speciesBlock.rows %}
+                {{ dr2ReviewRow(row, card.changeHref, showActions) }}
+              {% endfor %}
+            </dl>
+          {% endif %}
+
+          {% if speciesBlock.identification %}
+            <div class="app-dr2-review-commodity-card__identification">
+              <h5 class="app-dr2-review-commodity-card__identification-heading">Identification details</h5>
+              <dl class="app-dr2-review-identification-table">
+                <div class="app-dr2-review-identification-table__header{% if showActions and speciesBlock.identification.changeHref %} app-dr2-review-identification-table__header--with-action{% endif %}">
+                  {% for header in speciesBlock.identification.headers %}
+                    <dt class="app-dr2-review-identification-table__key">{{ header }}</dt>
+                  {% endfor %}
+                  {% if showActions and speciesBlock.identification.changeHref %}
+                    <dd class="app-dr2-review-identification-table__action">
+                      <a class="app-dr2-review-row__change-link" href="{{ speciesBlock.identification.changeHref }}">Change</a>
+                    </dd>
+                  {% endif %}
+                </div>
+                {% for animal in speciesBlock.identification.rows %}
+                  <div class="app-dr2-review-identification-table__row">
+                    <dd class="app-dr2-review-identification-table__animal">{{ animal.label }}</dd>
+                    {% for value in animal.values %}
+                      <dd class="app-dr2-review-identification-table__value">{{ value }}</dd>
+                    {% endfor %}
+                  </div>
+                {% endfor %}
+              </dl>
+            </div>
+          {% elif speciesBlock.identificationError and speciesBlock.identificationError.hasError %}
+            <div class="app-dr2-review-commodity-card__identification app-dr2-review-commodity-card__identification--error">
+              <h5 class="app-dr2-review-commodity-card__identification-heading">Identification details</h5>
+              <div class="app-dr2-review-section-error app-dr2-review-section-error--inline">
+                <span class="app-dr2-review-section-error__marker" aria-hidden="true"></span>
+                <p class="app-dr2-review-section-error__message">{{ speciesBlock.identificationError.errorMessage }}</p>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </section>
+  </div>
+{% endmacro %}

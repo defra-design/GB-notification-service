@@ -19,7 +19,7 @@ Import notification service
       Import notification service
     </h1>
     <p class="govuk-body-l">
-      Description goes here......
+      Choose a prototype version to work on. Each version has its own journey and dashboard, with a shared address book.
     </p>
   </div>
 </div>
@@ -41,23 +41,59 @@ Import notification service
       </h3>
 
       <p class="govuk-body">
-        Description goes here......
+        The current design release journey at the root URLs. Use this for stable reference work.
       </p>
 
       {{ govukDetails({
         summaryText: "What the journey contains",
         html: '
           <ul class="govuk-list govuk-list--bullet">
-            <li>Journey step goes here</li>
-            <li>Journey step goes here</li>
-            <li>Journey step goes here</li>
+            <li>Origin, commodity and reason for import</li>
+            <li>Consignment, animal and arrival details</li>
+            <li>Documents, roles and addresses</li>
+            <li>Review, declaration and submission</li>
           </ul>
         '
       }) }}
 
       {{ govukButton({
-        text: "Start prototype",
+        text: "Start design release 1",
         href: "/create-notification"
+      }) }}
+    </div>
+
+    <div class="prototype-release-card govuk-!-margin-top-6">
+      {{ govukTag({
+        text: "In design",
+        classes: "govuk-tag--purple"
+      }) }}
+
+      <h2 class="govuk-heading-l">
+        Design release 2
+      </h2>
+
+      <h3 class="govuk-heading-m">
+        Create a notification
+      </h3>
+
+      <p class="govuk-body">
+        A duplicate of Design release 1 for making changes without affecting the original version.
+      </p>
+
+      {{ govukDetails({
+        summaryText: "What the journey contains",
+        html: '
+          <ul class="govuk-list govuk-list--bullet">
+            <li>Same journey as Design release 1</li>
+            <li>Separate dashboard and session data</li>
+            <li>Shared address book</li>
+          </ul>
+        '
+      }) }}
+
+      {{ govukButton({
+        text: "Start design release 2",
+        href: "/design-release-2"
       }) }}
     </div>
 
@@ -76,12 +112,12 @@ Import notification service
       </h3>
 
       <p class="govuk-body">
-        Duplicate of the current notification journey for testing changes without affecting Design release 1.
+        A separate testing journey with CHEDA references and IPAFFS-style dashboard patterns.
       </p>
 
       {{ govukButton({
         text: "Start testing version",
-        href: "/testing"
+        href: "/testing/create-notification"
       }) }}
     </div>
   </div>

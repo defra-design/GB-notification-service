@@ -1,0 +1,126 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+{% from "partials/design-release-2/review-summary-card.html" import dr2ReviewCard, dr2ReviewCommodityCard %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full app-review-notification-page app-review-notification-page--dr2{% if reviewVariant %} app-review-notification-page--dr2-{{ reviewVariant }}{% endif %}">
+
+    {% if reviewVariant == 'journey' %}
+      {% include "partials/design-release-2/notification-status.html" %}
+    {% elif pageHeader %}
+      {% include "partials/design-release-2/review-page-header.html" %}
+    {% endif %}
+
+    {% if data.errorList %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: data.errorList
+      }) }}
+    {% endif %}
+
+    {% if pageName %}
+      <h1 class="app-review-notification-page__title app-review-notification-page__title--dr2">{{ pageName }}</h1>
+    {% endif %}
+
+    <section class="app-review-notification-page__section" aria-labelledby="review-section-about">
+      <h2 class="app-review-notification-page__section-heading" id="review-section-about">1. About the consignment</h2>
+
+      <h3 class="app-review-notification-page__subsection-heading">Where is this consignment coming from?</h3>
+      {{ dr2ReviewCard(dr2Review.aboutConsignment.importDetailsCard, showActions) }}
+
+      <h3 class="app-review-notification-page__subsection-heading">What are you importing?</h3>
+      {{ dr2ReviewCard(dr2Review.aboutConsignment.animalDetailsCard, showActions) }}
+
+      <h3 class="app-review-notification-page__subsection-heading">Main reason for import</h3>
+      {{ dr2ReviewCard(dr2Review.aboutConsignment.importReasonCard, showActions) }}
+    </section>
+
+    <section class="app-review-notification-page__section" aria-labelledby="review-section-goods">
+      <h2 class="app-review-notification-page__section-heading" id="review-section-goods">2. Description of the goods</h2>
+
+      <h3 class="app-review-notification-page__subsection-heading">Commodity details</h3>
+
+      {% for commodityCard in dr2Review.descriptionOfGoods.commodityCards %}
+        {{ dr2ReviewCommodityCard(commodityCard, showActions) }}
+      {% endfor %}
+
+      <h3 class="app-review-notification-page__subsection-heading">Additional details</h3>
+      {{ dr2ReviewCard(dr2Review.descriptionOfGoods.additionalAnimalDetailsCard, showActions) }}
+    </section>
+
+    <section class="app-review-notification-page__section" aria-labelledby="review-section-movement">
+      <h2 class="app-review-notification-page__section-heading" id="review-section-movement">3. Transport and arrival</h2>
+
+      <h3 class="app-review-notification-page__subsection-heading">Arrival details</h3>
+      {{ dr2ReviewCard(dr2Review.movement.arrivalDetailsCard, showActions, true) }}
+
+      <h3 class="app-review-notification-page__subsection-heading">Transport details</h3>
+      {{ dr2ReviewCard(dr2Review.movement.transportDetailsCard, showActions, false) }}
+    </section>
+
+    <section class="app-review-notification-page__section" aria-labelledby="review-section-documents">
+      <h2 class="app-review-notification-page__section-heading" id="review-section-documents">4. Documents</h2>
+
+      <h3 class="app-review-notification-page__subsection-heading">Uploaded documents</h3>
+
+      {% if dr2Review.documents.sectionError %}
+        <div class="app-dr2-review-section-error">
+          <span class="app-dr2-review-section-error__marker" aria-hidden="true"></span>
+          <p class="app-dr2-review-section-error__message">{{ dr2Review.documents.sectionError }}</p>
+        </div>
+      {% else %}
+        {% for documentCard in dr2Review.documents.documentCards %}
+          {{ dr2ReviewCard(documentCard, showActions, false) }}
+        {% endfor %}
+      {% endif %}
+    </section>
+
+    <section class="app-review-notification-page__section" aria-labelledby="review-section-addresses">
+      <h2 class="app-review-notification-page__section-heading" id="review-section-addresses">5. Consignment parties</h2>
+
+      <h3 class="app-review-notification-page__subsection-heading">Roles and addresses</h3>
+      {{ dr2ReviewCard(dr2Review.addresses.rolesCard, showActions) }}
+    </section>
+
+    <section class="app-review-notification-page__section" aria-labelledby="review-section-contact-address">
+      <h2 class="app-review-notification-page__section-heading" id="review-section-contact-address">6. Contact address</h2>
+
+      <h3 class="app-review-notification-page__subsection-heading">Contact address for this consignment</h3>
+      {{ dr2ReviewCard(dr2Review.contactAddress.contactAddressCard, showActions) }}
+    </section>
+
+    {% if reviewVariant == 'journey' or reviewVariant == 'draft' %}
+    <form method="post" action="/design-release-2/review-notification" novalidate class="app-review-notification-page__form">
+      {{ govukButton({
+        text: "Continue"
+      }) }}
+    </form>
+    {% elif reviewVariant == 'action-required' %}
+    <p class="app-review-notification-page__form">
+      <a class="govuk-button" href="/design-release-2/notification-hub">Continue</a>
+    </p>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

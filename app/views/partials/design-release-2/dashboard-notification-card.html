@@ -1,0 +1,69 @@
+{% macro dr2DashboardNotificationCard(notification) %}
+<article class="app-dr2-dashboard-notification-card{% if notification.cardVariant == 'error' %} app-dr2-dashboard-notification-card--error{% endif %}" aria-label="Notification {{ notification.reference }}">
+  {% if notification.cardVariant == 'error' %}
+    <span class="app-dr2-dashboard-notification-card__error-marker" aria-hidden="true"></span>
+  {% endif %}
+
+  <div class="app-dr2-dashboard-notification-card__header">
+    <div class="app-dr2-dashboard-notification-card__heading">
+      <p class="app-dr2-dashboard-notification-card__category">{{ notification.categoryLabel }}</p>
+      <h3 class="app-dr2-dashboard-notification-card__reference">{{ notification.reference }}</h3>
+    </div>
+    <a class="govuk-link app-dr2-dashboard-notification-card__view-link" href="{{ notification.viewHref }}">View notification</a>
+  </div>
+
+  {% if notification.errorMessage %}
+    <p class="app-dr2-dashboard-notification-card__error-message">{{ notification.errorMessage }}</p>
+  {% endif %}
+
+  <dl class="app-dr2-dashboard-notification-card__details">
+    <div class="app-dr2-dashboard-notification-card__row">
+      <div class="app-dr2-dashboard-notification-card__field">
+        <dt class="app-dr2-dashboard-notification-card__key">Commodity</dt>
+        <dd class="app-dr2-dashboard-notification-card__value">{{ notification.commodityLabel }}</dd>
+      </div>
+      <div class="app-dr2-dashboard-notification-card__field">
+        <dt class="app-dr2-dashboard-notification-card__key">Arrival date</dt>
+        <dd class="app-dr2-dashboard-notification-card__value">{{ notification.arrivalDateDisplay }}</dd>
+      </div>
+      <div class="app-dr2-dashboard-notification-card__field">
+        <dt class="app-dr2-dashboard-notification-card__key">Consignee</dt>
+        <dd class="app-dr2-dashboard-notification-card__value">{{ notification.consignee }}</dd>
+      </div>
+      <div class="app-dr2-dashboard-notification-card__field">
+        <dt class="app-dr2-dashboard-notification-card__key">Notification status</dt>
+        <dd class="app-dr2-dashboard-notification-card__value">
+          {% if notification.statusDisplay.type == 'tag' %}
+            <strong class="govuk-tag app-dr2-dashboard-status-tag app-dr2-dashboard-status-tag--{{ notification.statusDisplay.style }}">{{ notification.statusDisplay.text }}</strong>
+          {% else %}
+            <span class="app-dr2-dashboard-status-text app-dr2-dashboard-status-text--{{ notification.statusDisplay.style }}">{{ notification.statusDisplay.text }}</span>
+          {% endif %}
+        </dd>
+      </div>
+    </div>
+
+    <div class="app-dr2-dashboard-notification-card__row">
+      <div class="app-dr2-dashboard-notification-card__field">
+        <dt class="app-dr2-dashboard-notification-card__key">Number of animals</dt>
+        <dd class="app-dr2-dashboard-notification-card__value">{{ notification.numberOfAnimals }}</dd>
+      </div>
+      <div class="app-dr2-dashboard-notification-card__field">
+        <dt class="app-dr2-dashboard-notification-card__key">Origin</dt>
+        <dd class="app-dr2-dashboard-notification-card__value">{{ notification.origin }}</dd>
+      </div>
+      <div class="app-dr2-dashboard-notification-card__field">
+        <dt class="app-dr2-dashboard-notification-card__key">Consignor</dt>
+        <dd class="app-dr2-dashboard-notification-card__value">{{ notification.consignor }}</dd>
+      </div>
+      {% if notification.inspectionRequired %}
+        <div class="app-dr2-dashboard-notification-card__field">
+          <dt class="app-dr2-dashboard-notification-card__key">Inspection</dt>
+          <dd class="app-dr2-dashboard-notification-card__value">
+            <strong class="govuk-tag app-dr2-dashboard-status-tag app-dr2-dashboard-status-tag--inspection">Required</strong>
+          </dd>
+        </div>
+      {% endif %}
+    </div>
+  </dl>
+</article>
+{% endmacro %}

@@ -1,0 +1,37 @@
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+
+<div class="app-dr2-review-page-header">
+  <h1 class="app-dr2-review-page-header__reference">{{ pageHeader.reference or notificationReference }}</h1>
+
+  <strong class="govuk-tag app-dr2-review-status__tag app-dr2-review-status__tag--{{ pageHeader.statusModifier }}">
+    {{ pageHeader.statusText }}
+  </strong>
+
+  {% if pageHeader.warningText %}
+    {{ govukWarningText({
+      text: pageHeader.warningText,
+      iconFallbackText: "Warning"
+    }) }}
+  {% endif %}
+
+  <p class="app-dr2-review-page-header__date">
+    <span class="app-dr2-review-page-header__date-label">{{ pageHeader.dateLabel }}:</span>
+    {{ pageHeader.dateValue }}
+  </p>
+
+  <div class="app-dr2-review-page-header__actions">
+    {% if pageHeader.showAmendButton %}
+      <a class="govuk-button" href="/design-release-2/notification-hub">Amend this notification</a>
+    {% endif %}
+    {% if pageHeader.showCopyButton %}
+      {% if pageHeader.showAmendButton %}
+        <a class="govuk-button govuk-button--secondary" href="#">Copy as new</a>
+      {% else %}
+        <a class="govuk-button" href="#">Copy as new</a>
+      {% endif %}
+    {% endif %}
+    {% if pageHeader.showDeleteButton %}
+      <button class="govuk-button govuk-button--warning" type="button">Delete</button>
+    {% endif %}
+  </div>
+</div>
