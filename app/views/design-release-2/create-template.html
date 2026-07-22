@@ -1,0 +1,61 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+
+{% set pageName = "Enter template name" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds app-dr2-create-template-page">
+
+    <form method="post" action="/design-release-2/templates/create" novalidate>
+      <div class="app-dr2-create-template-page__header">
+        <span class="govuk-caption-l">Create a new template</span>
+        <h1 class="govuk-heading-l" id="template-name-heading">Enter template name</h1>
+      </div>
+
+      {{ govukInput({
+        id: "template-name",
+        name: "templateName",
+        label: {
+          text: "Enter template name",
+          classes: "govuk-visually-hidden"
+        },
+        value: templateName,
+        attributes: {
+          "aria-labelledby": "template-name-heading"
+        }
+      }) }}
+
+      <div class="app-dr2-create-template-page__actions">
+        {{ govukButton({
+          text: "Save and continue",
+          classes: "app-dr2-create-template-page__continue"
+        }) }}
+
+        <p class="app-dr2-create-template-page__cancel">
+          <a class="govuk-link" href="/design-release-2/templates">Cancel and return to manage templates</a>
+        </p>
+      </div>
+    </form>
+
+  </div>
+</div>
+{% endblock %}

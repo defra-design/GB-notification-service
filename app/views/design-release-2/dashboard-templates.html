@@ -21,16 +21,20 @@
   <div class="govuk-grid-column-full app-dashboard-page app-dashboard-page--dr2">
 
     <section class="app-dr2-dashboard-intro app-dr2-dashboard-intro--templates" aria-labelledby="dashboard-templates-heading">
-      <div class="app-dr2-dashboard-intro__header">
-        <p class="app-dr2-dashboard-intro__caption">Templates</p>
-        <h1 class="app-dr2-dashboard-intro__heading" id="dashboard-templates-heading">Manage templates</h1>
-        <p class="app-dr2-dashboard-intro__description">brief service description</p>
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+          <div class="app-dr2-dashboard-intro__header">
+            <p class="app-dr2-dashboard-intro__caption">Notification templates</p>
+            <h1 class="app-dr2-dashboard-intro__heading" id="dashboard-templates-heading">Manage templates</h1>
+            <p class="app-dr2-dashboard-intro__description">Select, manage or create new notification templates</p>
+          </div>
+        </div>
       </div>
 
       <div class="app-dr2-dashboard-intro__actions">
         {{ govukButton({
-          text: "Create a new template",
-          href: "#"
+          text: "Create a new",
+          href: "/design-release-2/templates/create"
         }) }}
       </div>
     </section>

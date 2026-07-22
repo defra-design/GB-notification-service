@@ -7596,6 +7596,53 @@ button.govuk-link.app-govuk-body-link--small {
   box-sizing: border-box;
 }
 
+.app-dr2-create-template-page {
+  > * {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  &__header {
+    margin: 0;
+
+    .govuk-caption-l {
+      margin-bottom: 0;
+    }
+
+    .govuk-heading-l {
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+  }
+
+  .govuk-form-group {
+    margin-bottom: 0;
+  }
+
+  &__continue {
+    margin-bottom: 0;
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    align-items: flex-start;
+  }
+
+  &__cancel {
+    margin: 0;
+    font-size: 19px;
+    line-height: 25px;
+  }
+}
+
 .app-dr2-dashboard-templates {
   > * {
     margin-top: 0;

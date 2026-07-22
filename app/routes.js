@@ -5465,6 +5465,29 @@ function renderDashboardTemplatesPage (req, res) {
   })
 }
 
+function renderCreateTemplatePage (req, res) {
+  if (!isDesignRelease2SessionData(req.session.data)) {
+    return res.redirect('/')
+  }
+
+  return res.render('create-template', {
+    serviceNavActive: 'templates',
+    templateName: req.session.data.templateName || '',
+    backLink: '/templates'
+  })
+}
+
+function handleCreateTemplatePage (req, res) {
+  if (!isDesignRelease2SessionData(req.session.data)) {
+    return res.redirect('/')
+  }
+
+  const templateName = String(req.body.templateName || '').trim()
+  req.session.data.templateName = templateName
+
+  return res.redirect('/templates')
+}
+
 function getDashboardActionsViewModel (sessionData = {}, query = {}) {
   const sort = (query.sort || '').trim()
   const delayFilter = (query.delayFilter || '').trim()
@@ -7255,6 +7278,14 @@ router.get('/', (req, res) => {
 
 router.get('/templates', (req, res) => {
   return renderDashboardTemplatesPage(req, res)
+})
+
+router.get('/templates/create', (req, res) => {
+  return renderCreateTemplatePage(req, res)
+})
+
+router.post('/templates/create', (req, res) => {
+  return handleCreateTemplatePage(req, res)
 })
 
 router.get('/actions', (req, res) => {

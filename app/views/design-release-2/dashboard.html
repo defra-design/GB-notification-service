@@ -31,11 +31,11 @@
 
       <div class="app-dr2-dashboard-intro__actions">
         {{ govukButton({
-          text: "Create a new notification",
+          text: "Create a new",
           href: "/design-release-2/create-notification"
         }) }}
         {{ govukButton({
-          text: "Create from template",
+          text: "Use template",
           href: "/design-release-2/templates",
           classes: "govuk-button--secondary"
         }) }}
@@ -50,21 +50,21 @@
           <h3 class="app-dr2-dashboard-glance-card__title">Action needed</h3>
           <p class="app-dr2-dashboard-glance-card__description">Tasks requiring your attention</p>
           <p class="app-dr2-dashboard-glance-card__count">{{ glanceCounts.actionNeeded }}</p>
-          <a class="govuk-link app-dr2-dashboard-glance-card__link" href="/design-release-2/actions">View actions</a>
+          <a class="govuk-link app-dr2-dashboard-glance-card__link" href="/design-release-2/actions">View tasks</a>
         </article>
 
         <article class="app-dr2-dashboard-glance-card">
           <h3 class="app-dr2-dashboard-glance-card__title">Status updates</h3>
           <p class="app-dr2-dashboard-glance-card__description">Changes in the past 24 hours</p>
           <p class="app-dr2-dashboard-glance-card__count app-dr2-dashboard-glance-card__count--blue">{{ glanceCounts.statusChange }}</p>
-          <a class="govuk-link app-dr2-dashboard-glance-card__link" href="/design-release-2/changes">View changes</a>
+          <a class="govuk-link app-dr2-dashboard-glance-card__link" href="/design-release-2/changes">View updates</a>
         </article>
 
         <article class="app-dr2-dashboard-glance-card">
           <h3 class="app-dr2-dashboard-glance-card__title">Inspection required</h3>
           <p class="app-dr2-dashboard-glance-card__description">Consignments due at the BCP</p>
           <p class="app-dr2-dashboard-glance-card__count app-dr2-dashboard-glance-card__count--blue">{{ glanceCounts.chosenForInspection }}</p>
-          <a class="govuk-link app-dr2-dashboard-glance-card__link" href="/design-release-2/inspection">View notifications</a>
+          <a class="govuk-link app-dr2-dashboard-glance-card__link" href="/design-release-2/inspection">View requirements</a>
         </article>
       </div>
     </section>
