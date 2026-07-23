@@ -21,13 +21,15 @@
 
   <div class="app-dr2-review-page-header__actions">
     {% if pageHeader.showAmendButton %}
-      <a class="govuk-button" href="/design-release-2/notification-hub">Amend this notification</a>
+      <button class="govuk-button" type="button" data-amend-modal-open>
+        Amend this notification
+      </button>
     {% endif %}
     {% if pageHeader.showCopyButton %}
       {% if pageHeader.showAmendButton %}
-        <a class="govuk-button govuk-button--secondary" href="#">Copy as new</a>
+        <a class="govuk-button govuk-button--secondary" href="{{ pageHeader.copyHref or '/notifications/copy-as-new' }}">Copy as new</a>
       {% else %}
-        <a class="govuk-button" href="#">Copy as new</a>
+        <a class="govuk-button" href="{{ pageHeader.copyHref or '/notifications/copy-as-new' }}">Copy as new</a>
       {% endif %}
     {% endif %}
     {% if pageHeader.showDeleteButton %}
@@ -35,3 +37,7 @@
     {% endif %}
   </div>
 </div>
+
+{% if pageHeader.showAmendButton %}
+  {% include "partials/design-release-2/amend-notification-modal.html" %}
+{% endif %}

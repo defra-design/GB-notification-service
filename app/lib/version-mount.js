@@ -33,6 +33,7 @@ const JOURNEY_PATH_PREFIXES = [
   '/declaration',
   '/notification-submitted',
   '/notification-hub',
+  '/notifications',
   '/dashboard',
   '/templates',
   '/actions',

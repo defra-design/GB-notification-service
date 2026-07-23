@@ -13,9 +13,9 @@ const notifications = [
   {
     reference: 'GB.2026.7963914 - CHEDA',
     commodities: '010410, 010420',
-    statusText: 'Submission complete',
+    statusText: 'Submitted',
     statusTagClass: 'govuk-tag--green',
-    reviewVariant: 'submission-complete',
+    reviewVariant: 'submitted',
     dateSubmitted: '12 January 2026',
     origin: 'France',
     arrivalDate: '26 October 2026',

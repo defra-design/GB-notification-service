@@ -52,13 +52,24 @@
 
       {% include "partials/cph-number-input.html" %}
 
-      {{ govukButton({
-        text: "Save and continue",
-        classes: "app-cph-number-page__continue-button"
-      }) }}
+      {% if data.notificationStatus == 'Amend' %}
+        {% set journeyFormActionOptions = {
+          continueClasses: "app-cph-number-page__continue-button"
+        } %}
+        {% include "partials/design-release-2/journey-form-actions.html" %}
+      {% else %}
+        {{ govukButton({
+          text: "Save and continue",
+          classes: "app-cph-number-page__continue-button"
+        }) }}
+      {% endif %}
 
     </form>
 
   </div>
 </div>
+
+{% if data.notificationStatus == 'Amend' %}
+  {% include "partials/design-release-2/cancel-amend-modal.html" %}
+{% endif %}
 {% endblock %}

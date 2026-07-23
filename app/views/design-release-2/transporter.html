@@ -164,25 +164,14 @@
         classes: "govuk-button--secondary app-transporter-page__add-button"
       }) }}
 
-      <div class="app-transporter-page__actions">
-        <div class="app-transporter-page__action-buttons">
-          {{ govukButton({
-            text: "Save and continue",
-            classes: "app-transporter-page__continue-button"
-          }) }}
-
-          {{ govukButton({
-            text: "Save and return to overview",
-            name: "action",
-            value: "hub",
-            classes: "govuk-button--secondary app-transporter-page__hub-button"
-          }) }}
-        </div>
-
-        <p class="app-transporter-page__cancel">
-          <a class="govuk-link" href="/design-release-2/notification-hub">Cancel and return to overview</a>
-        </p>
-      </div>
+      {% set journeyFormActionOptions = {
+        wrapperClass: "app-transporter-page__actions",
+        buttonsClass: "app-transporter-page__action-buttons",
+        cancelClass: "app-transporter-page__cancel",
+        continueClasses: "app-transporter-page__continue-button",
+        hubClasses: "govuk-button--secondary app-transporter-page__hub-button"
+      } %}
+      {% include "partials/design-release-2/journey-form-actions.html" %}
 
     </form>
 

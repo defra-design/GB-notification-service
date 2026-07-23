@@ -38,17 +38,82 @@ function getAddressBookAddresses (root) {
   }
 }
 
-function createAddressBookRow (address) {
+function formatMultilineCell (lines, joinWithComma) {
+  const safeLines = Array.isArray(lines) ? lines.filter(Boolean) : []
+
+  if (!safeLines.length) {
+    return ''
+  }
+
+  const separator = joinWithComma ? ',<br>' : '<br>'
+
+  return `<p class="app-address-book-table__address-lines">${safeLines.map(escapeHtml).join(separator)}</p>`
+}
+
+function formatAddressBookCell (address) {
+  const lines = Array.isArray(address.addressLines) ? address.addressLines.filter(Boolean) : []
+
+  if (!lines.length) {
+    return escapeHtml(address.address)
+  }
+
+  return formatMultilineCell(lines, true)
+}
+
+function formatNameCell (address) {
+  const lines = Array.isArray(address.nameLines) ? address.nameLines.filter(Boolean) : []
+
+  if (lines.length > 1) {
+    return formatMultilineCell(lines, false)
+  }
+
+  return escapeHtml(address.name)
+}
+
+function formatTypeCell (address) {
+  const labels = Array.isArray(address.typeLabels)
+    ? address.typeLabels.filter(Boolean)
+    : []
+
+  if (labels.length) {
+    return escapeHtml(labels.join(', '))
+  }
+
+  return escapeHtml(address.typeLabel)
+}
+
+function createAddressBookRow (address, options = {}) {
+  if (options.layout === 'transporter') {
+    return `
+      <tr
+        class="govuk-table__row app-address-book-table__row"
+        data-address-row
+        data-search-text="${escapeHtml(address.searchText)}"
+        data-address-type="${escapeHtml(address.type)}"
+        data-address-category="${escapeHtml(address.category || '')}"
+      >
+        <td class="govuk-table__cell app-address-book-table__cell">${formatNameCell(address)}</td>
+        <td class="govuk-table__cell app-address-book-table__cell">${formatAddressBookCell(address)}</td>
+        <td class="govuk-table__cell app-address-book-table__cell">${escapeHtml(address.approvalNumber)}</td>
+        <td class="govuk-table__cell app-address-book-table__cell">${escapeHtml(address.typeLabel)}</td>
+        <td class="govuk-table__cell app-address-book-table__cell app-address-book-table__cell--action">
+          <a class="govuk-link" href="${escapeHtml(address.viewHref || '#')}">View</a>
+        </td>
+      </tr>
+    `
+  }
+
   return `
     <tr
       class="govuk-table__row app-address-book-table__row"
       data-address-row
       data-search-text="${escapeHtml(address.searchText)}"
-      data-address-type="${escapeHtml(address.type)}"
+      data-address-type="${escapeHtml((address.types || [address.type]).filter(Boolean).join(','))}"
+      data-address-category="${escapeHtml(address.category || '')}"
     >
-      <td class="govuk-table__cell app-address-book-table__cell">${escapeHtml(address.name)}</td>
-      <td class="govuk-table__cell app-address-book-table__cell">${escapeHtml(address.typeLabel)}</td>
-      <td class="govuk-table__cell app-address-book-table__cell">${escapeHtml(address.address)}</td>
+      <td class="govuk-table__cell app-address-book-table__cell">${formatNameCell(address)}</td>
+      <td class="govuk-table__cell app-address-book-table__cell">${formatTypeCell(address)}</td>
+      <td class="govuk-table__cell app-address-book-table__cell">${formatAddressBookCell(address)}</td>
       <td class="govuk-table__cell app-address-book-table__cell">${escapeHtml(address.country)}</td>
       <td class="govuk-table__cell app-address-book-table__cell app-address-book-table__cell--action">
         <a class="govuk-link" href="${escapeHtml(address.viewHref || '#')}">View</a>
@@ -65,6 +130,7 @@ function initAddressBookSearch (root) {
   const tableBody = root.querySelector('[data-address-book-results]')
   const resultsCount = root.querySelector('[data-address-book-results-count]')
   const pagination = root.querySelector('.app-address-book-page__pagination')
+  const category = root.getAttribute('data-address-category') || ''
 
   if (!input || !tableBody || !resultsCount || !allAddresses.length) {
     return
@@ -78,12 +144,32 @@ function initAddressBookSearch (root) {
     return Boolean(normaliseSearchText(input.value) || (typeSelect && typeSelect.value))
   }
 
+  function addressMatchesTypeFilter (address, type) {
+    if (!type) {
+      return true
+    }
+
+    if (category === 'transporter' || address.category === 'transporter' || address.type === 'transporter') {
+      return address.typeLabel === type
+    }
+
+    const addressTypes = Array.isArray(address.types) && address.types.length
+      ? address.types
+      : [address.type].filter(Boolean)
+
+    return addressTypes.includes(type)
+  }
+
   function getFilteredAddresses () {
     const query = normaliseSearchText(input.value)
     const type = typeSelect ? typeSelect.value : ''
 
     return allAddresses.filter((address) => {
-      if (type && address.type !== type) {
+      if (category && address.category && address.category !== category) {
+        return false
+      }
+
+      if (!addressMatchesTypeFilter(address, type)) {
         return false
       }
 
@@ -96,7 +182,9 @@ function initAddressBookSearch (root) {
   }
 
   function renderFilteredAddresses (addresses) {
-    tableBody.innerHTML = addresses.map((address) => createAddressBookRow(address)).join('')
+    tableBody.innerHTML = addresses.map((address) => createAddressBookRow(address, {
+      layout: category === 'transporter' ? 'transporter' : 'default'
+    })).join('')
     resultsCount.textContent = buildAddressBookResultsText(addresses.length)
 
     if (pagination) {
@@ -150,39 +238,6 @@ function initAddressBookSearch (root) {
   }
 }
 
-function initAddressBookLookupManualToggle () {
-  const manualToggle = document.querySelector('.app-address-book-lookup-page__manual-toggle')
-  const manualSection = document.querySelector('#address-book-manual-address')
-  const manualLink = document.querySelector('.app-address-book-lookup-page__manual-link')
-  const manualEntryField = document.querySelector('#manual-address-entry')
-
-  if (!manualToggle || !manualSection || !manualLink || !manualEntryField) {
-    return
-  }
-
-  const showManualAddress = () => {
-    manualSection.classList.remove('app-address-book-lookup-page__manual--hidden')
-    manualLink.classList.add('app-address-book-lookup-page__manual-link--hidden')
-    manualToggle.setAttribute('aria-expanded', 'true')
-    manualEntryField.removeAttribute('disabled')
-
-    const firstField = manualSection.querySelector('input, select, textarea')
-
-    if (firstField) {
-      firstField.focus()
-    }
-  }
-
-  manualToggle.addEventListener('click', showManualAddress)
-
-  if (!manualSection.classList.contains('app-address-book-lookup-page__manual--hidden')) {
-    manualLink.classList.add('app-address-book-lookup-page__manual-link--hidden')
-    manualToggle.setAttribute('aria-expanded', 'true')
-    manualEntryField.removeAttribute('disabled')
-  }
-}
-
 window.GOVUKPrototypeKit.documentReady(() => {
   document.querySelectorAll('[data-module="app-address-book-search"]').forEach(initAddressBookSearch)
-  initAddressBookLookupManualToggle()
 })

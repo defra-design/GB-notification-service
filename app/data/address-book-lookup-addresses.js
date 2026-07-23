@@ -413,12 +413,62 @@ function buildAddresses () {
 
 const addresses = buildAddresses()
 
+const NI_CITIES = [
+  { city: 'Belfast', postcodePrefix: 'BT1' },
+  { city: 'Lisburn', postcodePrefix: 'BT28' },
+  { city: 'Newry', postcodePrefix: 'BT34' },
+  { city: 'Armagh', postcodePrefix: 'BT61' },
+  { city: 'Derry', postcodePrefix: 'BT48' },
+  { city: 'Omagh', postcodePrefix: 'BT78' },
+  { city: 'Enniskillen', postcodePrefix: 'BT74' },
+  { city: 'Ballymena', postcodePrefix: 'BT43' },
+  { city: 'Coleraine', postcodePrefix: 'BT52' },
+  { city: 'Bangor', postcodePrefix: 'BT20' },
+  { city: 'Larne', postcodePrefix: 'BT40' },
+  { city: 'Craigavon', postcodePrefix: 'BT63' }
+]
+
+const NI_LOOKUP_ADDRESS_COUNT = 80
+
+function buildNorthernIrelandAddress (index) {
+  const name = buildOrganisationName('United Kingdom', index + 500)
+  const streetLine = buildStreetLine('United Kingdom', index + 500)
+  const unitLine = index % 4 === 0 ? `Unit ${1 + (index % 12)}` : null
+  const location = pick(NI_CITIES, index)
+  const postcode = buildUkPostcode(location.postcodePrefix, index)
+  const cityLine = `${location.city}, ${postcode}`
+  const addressLines = [streetLine, unitLine, cityLine].filter(Boolean)
+
+  return {
+    id: `lookup-address-northern-ireland-${index}`,
+    name,
+    addressLines,
+    country: 'Northern Ireland',
+    county: 'Northern Ireland'
+  }
+}
+
+function buildNorthernIrelandAddresses () {
+  const results = []
+
+  for (let index = 0; index < NI_LOOKUP_ADDRESS_COUNT; index += 1) {
+    results.push(buildLookupAddress(buildNorthernIrelandAddress(index), index))
+  }
+
+  return results.sort((left, right) => left.label.localeCompare(right.label))
+}
+
+const northernIrelandAddresses = buildNorthernIrelandAddresses()
+
 function getAddressById (addressId) {
-  return addresses.find((address) => address.id === addressId) || null
+  return addresses.find((address) => address.id === addressId) ||
+    northernIrelandAddresses.find((address) => address.id === addressId) ||
+    null
 }
 
 module.exports = {
   addresses,
+  northernIrelandAddresses,
   getAddressById,
   TARGET_ADDRESS_COUNT,
   parseAddressLinesForManualForm,

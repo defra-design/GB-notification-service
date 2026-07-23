@@ -1,0 +1,85 @@
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{#
+  Amend state (notificationStatus == 'Amend'):
+    Save and return (primary) → review
+    Save and continue (secondary) → continue
+    Save and return to overview (link button) → hub
+
+  Default:
+    Save and continue → continue
+    Save and return to overview (secondary, optional) → hub
+    Cancel and return to overview (link, optional)
+
+  Optional: set journeyFormActionOptions before include.
+#}
+{% set options = journeyFormActionOptions if journeyFormActionOptions else {} %}
+{% set isAmend = data.notificationStatus == 'Amend' %}
+{% set wrapperClass = options.wrapperClass if options.wrapperClass else 'app-origin-form-actions' %}
+{% set buttonsClass = options.buttonsClass if options.buttonsClass else 'app-origin-actions' %}
+{% set cancelClass = options.cancelClass if options.cancelClass else 'app-origin-form-actions__cancel' %}
+{% set continueClasses = options.continueClasses if options.continueClasses else '' %}
+{% set hubClasses = options.hubClasses if options.hubClasses else 'govuk-button--secondary' %}
+{% set cancelHref = options.cancelHref if options.cancelHref else '/design-release-2/notification-hub' %}
+{% set showHub = true if options.showHub is not defined else options.showHub %}
+{% set showCancel = true if options.showCancel is not defined else options.showCancel %}
+{% set continueText = options.continueText if options.continueText else 'Save and continue' %}
+{% set amendContinueClasses = ('govuk-button--secondary ' + continueClasses) | trim %}
+
+<div class="{{ wrapperClass }}">
+  <div class="{{ buttonsClass }}">
+    {% if isAmend %}
+      {{ govukButton({
+        text: "Save and return",
+        name: "action",
+        value: "review"
+      }) }}
+
+      {{ govukButton({
+        text: continueText,
+        name: "action",
+        value: "continue",
+        classes: amendContinueClasses
+      }) }}
+    {% else %}
+      {% if continueClasses %}
+        {{ govukButton({
+          text: continueText,
+          name: "action",
+          value: "continue",
+          classes: continueClasses
+        }) }}
+      {% else %}
+        {{ govukButton({
+          text: continueText,
+          name: "action",
+          value: "continue"
+        }) }}
+      {% endif %}
+
+      {% if showHub %}
+        {{ govukButton({
+          text: "Save and return to overview",
+          name: "action",
+          value: "hub",
+          classes: hubClasses
+        }) }}
+      {% endif %}
+    {% endif %}
+  </div>
+
+  {% if isAmend %}
+    <p class="{{ cancelClass }}">
+      <button
+        type="submit"
+        name="action"
+        value="hub"
+        class="govuk-link app-govuk-body-link"
+      >Save and return to overview</button>
+    </p>
+  {% elif showCancel %}
+    <p class="{{ cancelClass }}">
+      <a class="govuk-link" href="{{ cancelHref }}">Cancel and return to overview</a>
+    </p>
+  {% endif %}
+</div>

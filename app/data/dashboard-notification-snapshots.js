@@ -65,7 +65,7 @@ function buildBaseSnapshot (notification) {
     },
     importReason: 'Internal market',
     internalMarketPurpose: 'Transfer of ownership - Sale/gift',
-    certificationPurpose: 'Breeding',
+    certificationPurpose: 'Further keeping',
     unweanedAnimals: 'No',
     portOfEntry: 'Liverpool - SOLV',
     arrivalDateAtPort: notification.arrivalDate || '26 October 2026',

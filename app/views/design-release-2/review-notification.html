@@ -110,10 +110,15 @@
     </section>
 
     {% if reviewVariant == 'journey' or reviewVariant == 'draft' %}
-    <form method="post" action="/design-release-2/review-notification" novalidate class="app-review-notification-page__form">
+    <form method="post" action="/design-release-2/review-notification" novalidate class="app-review-notification-page__form{% if data.notificationStatus == 'Amend' %} app-review-notification-page__form--amend{% endif %}">
       {{ govukButton({
         text: "Continue"
       }) }}
+      {% if data.notificationStatus == 'Amend' %}
+        <button class="govuk-button govuk-button--secondary" type="button" data-modal-open="cancel-amend-modal">
+          Cancel amend
+        </button>
+      {% endif %}
     </form>
     {% elif reviewVariant == 'action-required' %}
     <p class="app-review-notification-page__form">
@@ -123,4 +128,8 @@
 
   </div>
 </div>
+
+{% if data.notificationStatus == 'Amend' %}
+  {% include "partials/design-release-2/cancel-amend-modal.html" %}
+{% endif %}
 {% endblock %}

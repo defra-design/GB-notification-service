@@ -164,10 +164,19 @@
         classes: "govuk-button--secondary app-consignment-address-select-page__add-button"
       }) }}
 
-      {{ govukButton({
-        text: "Save and continue",
-        classes: "app-consignment-address-select-page__continue-button"
-      }) }}
+      {% if data.notificationStatus == 'Amend' %}
+        {% set journeyFormActionOptions = {
+          showHub: false,
+          showCancel: false,
+          continueClasses: "app-consignment-address-select-page__continue-button"
+        } %}
+        {% include "partials/design-release-2/journey-form-actions.html" %}
+      {% else %}
+        {{ govukButton({
+          text: "Save and continue",
+          classes: "app-consignment-address-select-page__continue-button"
+        }) }}
+      {% endif %}
 
     </form>
 

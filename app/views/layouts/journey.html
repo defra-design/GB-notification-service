@@ -10,4 +10,8 @@
     {% block journeyContent %}{% endblock %}
   </div>
 </div>
+
+{% if isDesignRelease2Version and data.notificationStatus == 'Amend' %}
+  {% include "partials/design-release-2/cancel-amend-modal.html" %}
+{% endif %}
 {% endblock %}

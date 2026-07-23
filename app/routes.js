@@ -25,8 +25,12 @@ const transporters = require('./data/transporters')
 const transporterTypes = require('./data/transporter-types')
 const addressBookData = require('./data/address-book')
 const addressBookAddressTypes = require('./data/address-book-address-types')
+const addressBookAddCategories = require('./data/address-book-add-categories')
+const addressBookOriginUses = require('./data/address-book-origin-uses')
+const addressBookDestinationUses = require('./data/address-book-destination-uses')
 const addressBookLookupAddresses = require('./data/address-book-lookup-addresses')
 const dashboardData = require('./data/dashboard-notifications')
+const dashboardTemplates = require('./data/dashboard-templates')
 const { buildDashboardNotificationSnapshot } = require('./data/dashboard-notification-snapshots')
 const { getCommoditySearchData } = require('./utils/commodity-search-data')
 
@@ -771,11 +775,37 @@ function buildRadioItems (options, selectedValue) {
 
 const CONTACT_ADDRESS_RETURN_ID = 'contact-address'
 
+function mapAddressBookEntryToContactAddress (entry) {
+  const mapped = mapAddressBookEntryToConsignmentAddress(entry)
+
+  return {
+    id: mapped.id,
+    name: mapped.name,
+    addressLines: mapped.addressLines,
+    country: mapped.country,
+    email: mapped.email,
+    telephone: mapped.telephone
+  }
+}
+
 function getContactAddresses (sessionData = {}) {
-  return [
+  const addedAddressBookIds = new Set(
+    (sessionData.addressBookAddedAddresses || []).map((address) => address.id)
+  )
+  const addressBookAddresses = getAddressBookAddresses(sessionData)
+    .filter((address) =>
+      addedAddressBookIds.has(address.id) &&
+      getAddressTypeValues(address).some((type) =>
+        type === 'branch-address' || type === 'contact'
+      )
+    )
+    .map(mapAddressBookEntryToContactAddress)
+
+  return dedupeAddressesById([
     ...(sessionData.contactAddedAddresses || []),
+    ...addressBookAddresses,
     ...contactAddresses
-  ]
+  ])
 }
 
 function getContactAddressById (addressId, sessionData = {}) {
@@ -1035,6 +1065,30 @@ function getNextJourneyPath (currentPath, sessionData, options = {}) {
   }
 
   return steps[currentIndex + 1]
+}
+
+function isAmendingNotification (sessionData) {
+  return String(sessionData && sessionData.notificationStatus || '').trim() === 'Amend'
+}
+
+function getJourneyFormAction (req) {
+  return String((req.body && req.body.action) || '').trim()
+}
+
+function isJourneySoftSaveAction (action) {
+  return action === 'hub' || action === 'review'
+}
+
+function getJourneySaveRedirect (action, continuePath) {
+  if (action === 'review') {
+    return '/review-notification'
+  }
+
+  if (action === 'hub') {
+    return '/notification-hub'
+  }
+
+  return continuePath
 }
 
 function getPostConsignmentDetailsPath (sessionData) {
@@ -2614,9 +2668,15 @@ function buildCommercialTransporterCountryItems () {
 
 function renderTransporterAddPage (req, res, locals = {}) {
   const sessionData = req.session.data
+  const isDr2 = Boolean(res.locals.isDesignRelease2Version)
+  const fromAddressBook = Boolean(sessionData.addressBookAddingTransporter)
+  const addressBookBasePath = getAddressBookBasePath(res)
 
   return res.render('transporter-add', {
-    backLink: '/transporter',
+    backLink: fromAddressBook
+      ? `${addressBookBasePath}/add`
+      : (isDr2 ? '/design-release-2/transporter' : '/transporter'),
+    formAction: isDr2 ? '/design-release-2/transporter/add' : '/transporter/add',
     transporterTypeOptions: transporterTypes,
     selectedTransporterType: locals.selectedTransporterType != null
       ? locals.selectedTransporterType
@@ -2627,10 +2687,28 @@ function renderTransporterAddPage (req, res, locals = {}) {
 }
 
 function validateTransporterType (transporterType) {
+  const value = (transporterType || '').trim()
+  const validValues = transporterTypes.map((item) => item.value)
+
+  if (!validValues.includes(value)) {
+    return {
+      errors: {
+        transporterType: {
+          text: 'Select a transporter type'
+        }
+      },
+      errorList: [{
+        text: 'Select a transporter type',
+        href: '#transporter-type-private'
+      }],
+      value
+    }
+  }
+
   return {
     errors: {},
     errorList: [],
-    value: (transporterType || '').trim()
+    value
   }
 }
 
@@ -2767,17 +2845,38 @@ function getTransporterCommercialForm (sessionData) {
 }
 
 function parseTransporterCommercialFormBody (body) {
+  const lookupAddressId = (body.addressBookLookupAddressId || '').trim()
+  const lookupManualAddress = lookupAddressId
+    ? getAddressDetailsFromLookup(lookupAddressId)
+    : null
+  const manualAddressEntry = body.manualAddressEntry === 'true' || body.manualAddressEntry === true
+
   return {
     authorisationNumber: (body.transporterCommercialAuthorisationNumber || '').trim(),
-    name: (body.transporterCommercialName || '').trim(),
-    addressLine1: (body.transporterCommercialAddressLine1 || '').trim(),
-    addressLine2: (body.transporterCommercialAddressLine2 || '').trim(),
-    townOrCity: (body.transporterCommercialTownOrCity || '').trim(),
-    county: (body.transporterCommercialCounty || '').trim(),
-    postcode: (body.transporterCommercialPostcode || '').trim(),
+    name: (body.transporterCommercialName || '').trim() ||
+      (lookupManualAddress && lookupManualAddress.nameOrOrganisation) ||
+      '',
+    addressLine1: (body.transporterCommercialAddressLine1 || '').trim() ||
+      (lookupManualAddress && lookupManualAddress.addressLine1) ||
+      '',
+    addressLine2: (body.transporterCommercialAddressLine2 || '').trim() ||
+      (lookupManualAddress && lookupManualAddress.addressLine2) ||
+      '',
+    townOrCity: (body.transporterCommercialTownOrCity || '').trim() ||
+      (lookupManualAddress && lookupManualAddress.townOrCity) ||
+      '',
+    county: (body.transporterCommercialCounty || '').trim() ||
+      (lookupManualAddress && lookupManualAddress.county) ||
+      '',
+    postcode: (body.transporterCommercialPostcode || '').trim() ||
+      (lookupManualAddress && lookupManualAddress.postcode) ||
+      '',
     country: COMMERCIAL_TRANSPORTER_COUNTRY,
     email: (body.transporterCommercialEmail || '').trim(),
-    phone: (body.transporterCommercialPhone || '').trim()
+    phone: (body.transporterCommercialPhone || '').trim(),
+    lookupAddressId,
+    addressLookup: (body.addressLookup || '').trim(),
+    manualAddressEntry
   }
 }
 
@@ -2864,24 +2963,118 @@ function formatTransporterSuccessMessage (name) {
   return `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1).toLowerCase()} transporter added`
 }
 
-function saveAddedTransporter (sessionData, transporter) {
+function mapAddedTransporterToAddressBookEntry (transporter, addressBookPath = '/address-book') {
+  const details = transporter.details || {}
+  const addressLines = transporter.address
+    ? String(transporter.address).split(',').map((part) => part.trim()).filter(Boolean)
+    : [
+      details.addressLine1,
+      details.addressLine2,
+      [details.townOrCity, details.county, details.postcode].filter(Boolean).join(', ')
+    ].filter(Boolean)
+  const typeLabel = transporter.type || 'Commercial'
+
+  return {
+    id: transporter.id,
+    name: transporter.name,
+    type: 'transporter',
+    types: ['transporter'],
+    typeLabel,
+    typeLabels: [typeLabel],
+    category: 'transporter',
+    address: transporter.address || addressLines.join(', '),
+    addressLines,
+    approvalNumber: transporter.approvalNumber || '',
+    country: details.country || '',
+    details: {
+      nameOrOrganisation: details.nameOrOrganisation || transporter.name,
+      addressLine1: details.addressLine1 || '',
+      addressLine2: details.addressLine2 || '',
+      townOrCity: details.townOrCity || '',
+      county: details.county || '',
+      postcode: details.postcode || '',
+      country: details.country || '',
+      email: details.email || '',
+      phone: details.phone || transporter.telephone || ''
+    },
+    searchText: [
+      transporter.name,
+      typeLabel,
+      transporter.address,
+      transporter.approvalNumber,
+      details.country
+    ].filter(Boolean).join(' ').toLowerCase(),
+    viewHref: `${addressBookPath}/${transporter.id}`
+  }
+}
+
+function saveAddedTransporter (sessionData, transporter, options = {}) {
   if (!sessionData.addedTransporters) {
     sessionData.addedTransporters = []
   }
 
   sessionData.addedTransporters.unshift(transporter)
   syncTransporterSession(sessionData, transporter)
+
+  const fromAddressBook = Boolean(
+    options.fromAddressBook != null
+      ? options.fromAddressBook
+      : sessionData.addressBookAddingTransporter
+  )
+
+  if (fromAddressBook) {
+    const addressBookPath = options.addressBookPath || '/address-book'
+
+    if (!sessionData.addressBookAddedAddresses) {
+      sessionData.addressBookAddedAddresses = []
+    }
+
+    sessionData.addressBookAddedAddresses.unshift(
+      mapAddedTransporterToAddressBookEntry(transporter, addressBookPath)
+    )
+    sessionData.addressBookSuccessMessage = formatAddressBookSuccessMessage(transporter.name)
+    sessionData.addressBookAddingTransporter = null
+    sessionData.transporterAddType = null
+    sessionData.transporterSuccessMessage = null
+
+    return {
+      redirectTo: `${addressBookPath}?category=transporter`
+    }
+  }
+
   sessionData.transporterSuccessMessage = formatTransporterSuccessMessage(transporter.name)
+
+  return {
+    redirectTo: '/transporter'
+  }
+}
+
+function getTransporterAddCancelRedirect (req, res) {
+  const fromAddressBook = Boolean(req.session.data.addressBookAddingTransporter)
+  const addressBookBasePath = getAddressBookBasePath(res)
+
+  req.session.data.addressBookAddingTransporter = null
+  req.session.data.transporterAddType = null
+
+  if (fromAddressBook) {
+    return `${addressBookBasePath}?category=transporter`
+  }
+
+  return '/'
 }
 
 function renderTransporterAddPrivatePage (req, res, locals = {}) {
   const sessionData = req.session.data
   const formValues = locals.formValues || getTransporterPrivateForm(sessionData)
+  const fromAddressBook = Boolean(sessionData.addressBookAddingTransporter)
 
   return res.render('transporter-add-private', {
     backLink: '/transporter/add',
     formValues,
     countryItems: buildAddressBookCountryItems(formValues.country),
+    cancelButtonText: fromAddressBook
+      ? 'Cancel and return to address book'
+      : 'Cancel and return to dashboard',
     data: sessionData,
     ...locals
   })
@@ -2889,7 +3082,27 @@ function renderTransporterAddPrivatePage (req, res, locals = {}) {
 
 function renderTransporterAddCommercialPage (req, res, locals = {}) {
   const sessionData = req.session.data
+  const isDr2 = Boolean(res.locals.isDesignRelease2Version)
   const formValues = locals.formValues || getTransporterCommercialForm(sessionData)
+  const showAddressLookup = isDr2
+  const addressErrors = [
+    'transporterCommercialAddressLine1',
+    'transporterCommercialTownOrCity',
+    'transporterCommercialPostcode',
+    'transporterCommercialCountry'
+  ]
+  const hasAddressErrors = Boolean(
+    sessionData.errors &&
+    addressErrors.some((field) => sessionData.errors[field])
+  )
+  const showManualAddress = locals.showManualAddress != null
+    ? locals.showManualAddress
+    : (
+      !showAddressLookup ||
+      hasAddressErrors ||
+      Boolean(locals.selectedLookupAddressId) ||
+      Boolean(formValues.addressLine1)
+    )
 
   return res.render('transporter-add-commercial', {
     backLink: '/transporter/add',
@@ -2897,6 +3110,22 @@ function renderTransporterAddCommercialPage (req, res, locals = {}) {
     formValues,
     countryItems: buildCommercialTransporterCountryItems(),
     commercialTransporterCountry: COMMERCIAL_TRANSPORTER_COUNTRY,
+    showAddressLookup,
+    showManualAddress,
+    cancelButtonText: Boolean(sessionData.addressBookAddingTransporter)
+      ? 'Cancel and return to address book'
+      : 'Cancel and return to dashboard',
+    lookupAddressesJson: JSON.stringify(
+      showAddressLookup
+        ? addressBookLookupAddresses.northernIrelandAddresses
+        : addressBookLookupAddresses.addresses
+    ),
+    addressLookup: locals.addressLookup != null
+      ? locals.addressLookup
+      : '',
+    selectedLookupAddressId: locals.selectedLookupAddressId != null
+      ? locals.selectedLookupAddressId
+      : '',
     data: sessionData,
     ...locals
   })
@@ -2910,15 +3139,109 @@ function formatConsignmentAddressForSearch (address) {
   ].join(' ').toLowerCase()
 }
 
+const CONSIGNMENT_SECTION_TYPE_ALIASES = {
+  'place-of-origin': ['place-of-origin'],
+  'consignor-or-exporter': ['consignor-or-exporter', 'consignor', 'exporter'],
+  consignee: ['consignee'],
+  importer: ['importer'],
+  'place-of-destination': ['place-of-destination']
+}
+
+function getAddressTypeValues (address) {
+  if (Array.isArray(address.types) && address.types.length) {
+    return address.types
+  }
+
+  return [address.type].filter(Boolean)
+}
+
+function addressMatchesConsignmentSection (address, sectionId) {
+  if (!sectionId) {
+    return true
+  }
+
+  const aliases = CONSIGNMENT_SECTION_TYPE_ALIASES[sectionId] || [sectionId]
+  const addressTypes = getAddressTypeValues(address)
+
+  return addressTypes.some((type) => aliases.includes(type))
+}
+
+function mapAddressBookEntryToConsignmentAddress (entry) {
+  const details = entry.details || {}
+  let addressLines = Array.isArray(entry.addressLines) && entry.addressLines.length
+    ? entry.addressLines
+    : null
+
+  if (!addressLines && details.addressLine1) {
+    const townPostcode = [
+      details.townOrCity,
+      details.county,
+      details.postcode
+    ].filter(Boolean).join(', ')
+
+    addressLines = [
+      details.addressLine1,
+      details.addressLine2,
+      townPostcode
+    ].filter(Boolean)
+  }
+
+  if (!addressLines && entry.address) {
+    addressLines = String(entry.address)
+      .split(',')
+      .map((part) => part.trim())
+      .filter(Boolean)
+  }
+
+  return {
+    id: entry.id,
+    type: entry.type,
+    types: getAddressTypeValues(entry),
+    name: entry.name || details.nameOrOrganisation || '',
+    addressLines: addressLines || [],
+    country: entry.country || details.country || '',
+    email: details.email || entry.email || '',
+    telephone: details.phone || entry.telephone || ''
+  }
+}
+
+function dedupeAddressesById (addresses) {
+  const seenIds = new Set()
+
+  return addresses.filter((address) => {
+    if (!address || !address.id || seenIds.has(address.id)) {
+      return false
+    }
+
+    seenIds.add(address.id)
+    return true
+  })
+}
+
 function getConsignmentAddressesForSection (sectionId, sessionData = {}) {
   const staticAddresses = sectionId
-    ? consignmentAddresses.filter((address) => address.type === sectionId)
+    ? consignmentAddresses.filter((address) => addressMatchesConsignmentSection(address, sectionId))
     : consignmentAddresses
 
   const addedAddresses = (sessionData.consignmentAddedAddresses || [])
-    .filter((address) => !sectionId || address.type === sectionId)
+    .filter((address) => addressMatchesConsignmentSection(address, sectionId))
 
-  return [...addedAddresses, ...staticAddresses]
+  const addedAddressBookIds = new Set(
+    (sessionData.addressBookAddedAddresses || []).map((address) => address.id)
+  )
+
+  const addressBookAddresses = getAddressBookAddresses(sessionData)
+    .filter((address) =>
+      addedAddressBookIds.has(address.id) &&
+      addressMatchesConsignmentSection(address, sectionId)
+    )
+    .map(mapAddressBookEntryToConsignmentAddress)
+
+  return dedupeAddressesById([
+    ...addedAddresses,
+    ...addressBookAddresses,
+    ...staticAddresses
+  ])
 }
 
 function getConsignmentAddressById (addressId, sectionId, sessionData = {}) {
@@ -3023,6 +3346,10 @@ function handleConsignmentAddressSelectPost (req, res) {
     name: address.name,
     addressLines: address.addressLines,
     country: address.country
+  }
+
+  if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/roles-and-addresses'))
   }
 
   return res.redirect('/roles-and-addresses')
@@ -4014,6 +4341,49 @@ function applyReadOnlyReviewViewModel (viewModel) {
   }
 }
 
+function clearReviewViewModelErrors (viewModel) {
+  const clearCard = (card) => {
+    if (!card) {
+      return card
+    }
+
+    return {
+      ...card,
+      hasError: false,
+      errorMessage: null
+    }
+  }
+
+  return {
+    ...viewModel,
+    errorList: [],
+    aboutConsignment: {
+      importDetailsCard: clearCard(viewModel.aboutConsignment.importDetailsCard),
+      animalDetailsCard: clearCard(viewModel.aboutConsignment.animalDetailsCard),
+      importReasonCard: clearCard(viewModel.aboutConsignment.importReasonCard)
+    },
+    descriptionOfGoods: {
+      commodityDetailsCard: clearCard(viewModel.descriptionOfGoods.commodityDetailsCard),
+      additionalAnimalDetailsCard: clearCard(viewModel.descriptionOfGoods.additionalAnimalDetailsCard),
+      speciesSections: (viewModel.descriptionOfGoods.speciesSections || []).map(clearCard)
+    },
+    movement: {
+      arrivalDetailsCard: clearCard(viewModel.movement.arrivalDetailsCard),
+      transitCountriesCard: clearCard(viewModel.movement.transitCountriesCard),
+      transportDetailsCard: clearCard(viewModel.movement.transportDetailsCard)
+    },
+    addresses: {
+      rolesCard: clearCard(viewModel.addresses.rolesCard)
+    },
+    contactAddress: {
+      contactAddressCard: clearCard(viewModel.contactAddress.contactAddressCard)
+    },
+    documents: {
+      uploadedDocumentsCard: clearCard(viewModel.documents.uploadedDocumentsCard)
+    }
+  }
+}
+
 function buildDesignRelease2CommodityCards (sessionData, speciesSections, readOnly, reviewVariant = 'journey') {
   const grouped = new Map()
 
@@ -4201,7 +4571,11 @@ function buildDesignRelease2ReviewPresentation (viewModel, sessionData, readOnly
 function mapStatusTextToReviewVariant (statusText = '') {
   const normalised = String(statusText).trim().toLowerCase()
 
-  if (normalised === 'submission complete' || normalised === 'complete') {
+  if (normalised === 'submitted') {
+    return 'submitted'
+  }
+
+  if (normalised === 'submission complete' || normalised === 'complete' || normalised === 'completed') {
     return 'submission-complete'
   }
 
@@ -4232,8 +4606,8 @@ function getDashboardNotificationMetadata (sessionData, reference) {
 
     return {
       reference: submittedMatch.reference,
-      statusText: conditionalItems.length ? 'Submitted action required' : 'Submission complete',
-      reviewVariant: conditionalItems.length ? 'action-required' : 'submission-complete',
+      statusText: conditionalItems.length ? 'Submitted action required' : 'Submitted',
+      reviewVariant: conditionalItems.length ? 'action-required' : 'submitted',
       dateSubmitted: formatDateForDashboard(submittedMatch.submittedAt),
       conditionalItems
     }
@@ -4290,6 +4664,10 @@ function buildDr2ReviewPageHeader (metadata = {}, reviewVariant = 'journey') {
       text: 'Draft',
       modifier: 'draft'
     },
+    submitted: {
+      text: 'Submitted',
+      modifier: 'submitted'
+    },
     'submission-complete': {
       text: 'Submission complete',
       modifier: 'submission-complete'
@@ -4312,10 +4690,127 @@ function buildDr2ReviewPageHeader (metadata = {}, reviewVariant = 'journey') {
     warningText: reviewVariant === 'action-required'
       ? buildDr2ActionRequiredWarningText(metadata.conditionalItems)
       : null,
-    showAmendButton: reviewVariant === 'action-required',
+    showAmendButton: reviewVariant === 'action-required' || reviewVariant === 'submitted',
     showCopyButton: true,
+    copyHref: metadata.copyHref || '/notifications/copy-as-new',
+    amendHref: metadata.amendHref || '/notifications/amend',
     showDeleteButton: true
   }
+}
+
+function getCopyAsNewSourceSnapshot (sessionData, options = {}) {
+  const submittedId = String(options.submittedId || '').trim()
+  const reference = String(options.reference || '').trim()
+
+  if (submittedId) {
+    const submittedNotification = getSubmittedNotificationById(sessionData, submittedId)
+
+    if (!submittedNotification) {
+      return null
+    }
+
+    return submittedNotification.snapshot
+  }
+
+  if (reference) {
+    const submittedMatch = (sessionData.submittedNotifications || []).find((notification) =>
+      notification.reference === reference
+    )
+
+    if (submittedMatch) {
+      return submittedMatch.snapshot
+    }
+
+    const metadata = getDashboardNotificationMetadata(sessionData, reference)
+
+    if (!metadata) {
+      return null
+    }
+
+    return buildDashboardNotificationSnapshot(metadata)
+  }
+
+  return sessionData
+}
+
+function cloneCarriedOverValue (value) {
+  if (value == null || typeof value !== 'object') {
+    return value
+  }
+
+  return JSON.parse(JSON.stringify(value))
+}
+
+function applyCarriedOverNotificationFields (sessionData, source = {}) {
+  const carriedOverKeys = [
+    // 1. About the consignment — import details
+    'countryOfOrigin',
+    'regionOfOriginRequired',
+    'regionOfOriginCode',
+    'regionOfOriginCodeSuffix',
+    'internalReference',
+    // What are you importing
+    'selectedSpecies',
+    'commoditySelections',
+    'commodityId',
+    'commodityCode',
+    'commodityName',
+    // Main reason for import
+    'importReason',
+    'internalMarketPurpose',
+    'transhipmentDestinationCountry',
+    'transitExitBorderControlPost',
+    'transitDestinationCountry',
+    'temporaryAdmissionExitDate',
+    'temporaryAdmissionPortOfExit',
+    // 2. Additional animal details
+    'certificationPurpose',
+    'unweanedAnimals',
+    // 3. Roles and addresses
+    'placeOfOriginAddress',
+    'placeOfOriginAddressId',
+    'consignorAddress',
+    'consignorAddressId',
+    'consigneeAddress',
+    'consigneeAddressId',
+    'importerAddress',
+    'importerAddressId',
+    'placeOfDestinationAddress',
+    'placeOfDestinationAddressId',
+    'cphNumber',
+    'permanentAddress',
+    'permanentAddressId',
+    'permanentAddressSameAsDestination',
+    'permanentAddressSummary',
+    'permanentAddressAnimals'
+  ]
+
+  carriedOverKeys.forEach((key) => {
+    if (source[key] !== undefined) {
+      sessionData[key] = cloneCarriedOverValue(source[key])
+    }
+  })
+
+  if (sessionData.certificationPurpose) {
+    sessionData.certificationPurpose = mapTemplateCertificationPurpose(sessionData.certificationPurpose)
+  }
+}
+
+function copyNotificationAsNewIntoSession (sessionData, sourceSnapshot) {
+  if (!sourceSnapshot || typeof sourceSnapshot !== 'object') {
+    return false
+  }
+
+  const source = cloneSubmittedNotificationSnapshot(sourceSnapshot)
+
+  resetNotificationJourneySession(sessionData)
+  applyCarriedOverNotificationFields(sessionData, source)
+  sessionData.notificationReference = generateDesignReleaseNotificationReference(sessionData)
+  sessionData.notificationStatus = 'New'
+  sessionData.errorList = null
+  sessionData.errors = null
+
+  return true
 }
 
 function loadDraftSnapshotIntoSession (sessionData, snapshot) {
@@ -4353,12 +4848,14 @@ function resolveDesignRelease2ReviewPageOptions (req, options = {}) {
     }
 
     const conditionalItems = getConditionalSubmissionItems(submittedNotification.snapshot)
-    const reviewVariant = conditionalItems.length ? 'action-required' : 'submission-complete'
+    const reviewVariant = conditionalItems.length ? 'action-required' : 'submitted'
     const metadata = {
       reference: submittedNotification.reference,
-      statusText: conditionalItems.length ? 'Submitted action required' : 'Submission complete',
+      statusText: conditionalItems.length ? 'Submitted action required' : 'Submitted',
       dateSubmitted: formatDateForDashboard(submittedNotification.submittedAt),
-      conditionalItems
+      conditionalItems,
+      copyHref: `/notifications/copy-as-new?submitted=${encodeURIComponent(submittedId)}`,
+      amendHref: `/notifications/amend?submitted=${encodeURIComponent(submittedId)}`
     }
 
     return {
@@ -4395,7 +4892,9 @@ function resolveDesignRelease2ReviewPageOptions (req, options = {}) {
       backLink: dashboardBackLink,
       pageHeader: buildDr2ReviewPageHeader({
         ...metadata,
-        reference
+        reference,
+        copyHref: `/notifications/copy-as-new?reference=${encodeURIComponent(reference)}`,
+        amendHref: `/notifications/amend?reference=${encodeURIComponent(reference)}`
       }, reviewVariant)
     }
   }
@@ -4443,9 +4942,12 @@ function renderReviewNotificationPage (req, res, options = {}) {
     showActions = !readOnly
   }
 
+  const isAmending = String(sessionData.notificationStatus || '').trim() === 'Amend'
   const viewModel = readOnly
     ? applyReadOnlyReviewViewModel(getReviewNotificationViewModel(sessionData))
-    : getReviewNotificationViewModelWithErrors(sessionData)
+    : isAmending
+      ? clearReviewViewModelErrors(getReviewNotificationViewModel(sessionData))
+      : getReviewNotificationViewModelWithErrors(sessionData)
 
   const renderOptions = {
     backLink,
@@ -4454,10 +4956,13 @@ function renderReviewNotificationPage (req, res, options = {}) {
     pageHeader,
     pageName: reviewVariant === 'journey' ? 'Review your notification' : null,
     showActions,
+    cancelAmendHref: isAmending
+      ? '/notifications/cancel-amend'
+      : null,
     ...viewModel,
     data: {
       ...sessionData,
-      errorList: readOnly || reviewVariant === 'action-required'
+      errorList: readOnly || reviewVariant === 'action-required' || isAmending
         ? null
         : (viewModel.errorList.length ? viewModel.errorList : null)
     }
@@ -4947,7 +5452,7 @@ function saveSubmittedNotification (sessionData) {
     arrivalDate: formatDateForDashboard(snapshot.arrivalDateAtPort),
     statusText: getConditionalSubmissionItems(snapshot).length
       ? 'Submitted action required'
-      : 'Submission complete',
+      : 'Submitted',
     statusTagClass: getConditionalSubmissionItems(snapshot).length
       ? 'govuk-tag--orange'
       : 'govuk-tag--green',
@@ -4987,6 +5492,20 @@ function buildDashboardNotificationViewHref (sessionData, options = {}) {
   const query = params.toString()
 
   return query ? `${basePath}/review-notification?${query}` : `${basePath}/review-notification`
+}
+
+function buildDashboardNotificationCopyHref (options = {}) {
+  const params = new URLSearchParams()
+
+  if (options.submittedId) {
+    params.set('submitted', options.submittedId)
+  } else if (options.reference) {
+    params.set('reference', options.reference)
+  }
+
+  const query = params.toString()
+
+  return query ? `/notifications/copy-as-new?${query}` : '/notifications/copy-as-new'
 }
 
 function getDashboardNotificationSnapshotByReference (sessionData, reference) {
@@ -5078,7 +5597,13 @@ function enrichDesignRelease2Notification (notification, index) {
   let inspectionRequired = false
   let errorMessage = null
 
-  if (reviewVariant === 'submission-complete') {
+  if (reviewVariant === 'submitted') {
+    statusDisplay = {
+      type: 'text',
+      text: 'Submitted',
+      style: 'submitted'
+    }
+  } else if (reviewVariant === 'submission-complete') {
     statusDisplay = {
       type: 'text',
       text: 'Completed',
@@ -5122,7 +5647,6 @@ function enrichDesignRelease2Notification (notification, index) {
 
   const actionDemoIndices = new Set([2, 8, 14, 20])
   const statusChangeDemoMap = {
-    1: 'passed-inspection',
     4: 'needs-inspection',
     7: 'passed-inspection',
     11: 'delayed'
@@ -5189,6 +5713,18 @@ function enrichDesignRelease2Notification (notification, index) {
   const hasStatusChange = Boolean(statusChangeCategory)
   const delayCategory = needsAction && index === 2 ? 'today' : null
 
+  let resolvedReviewVariant = reviewVariant
+
+  if (finalStatusDisplay.style === 'submitted') {
+    resolvedReviewVariant = 'submitted'
+  } else if (finalStatusDisplay.style === 'completed') {
+    resolvedReviewVariant = 'submission-complete'
+  } else if (finalStatusDisplay.style === 'action-required') {
+    resolvedReviewVariant = 'action-required'
+  } else if (finalStatusDisplay.style === 'draft') {
+    resolvedReviewVariant = 'draft'
+  }
+
   return {
     ...notification,
     consignee: notification.consignee || consignees[index % consignees.length],
@@ -5199,6 +5735,7 @@ function enrichDesignRelease2Notification (notification, index) {
     arrivalDateDisplay: formatDashboardArrivalDate(notification.arrivalDate),
     cardVariant: finalCardVariant,
     statusDisplay: finalStatusDisplay,
+    reviewVariant: resolvedReviewVariant,
     inspectionRequired: finalInspectionRequired,
     errorMessage: finalErrorMessage,
     needsAction,
@@ -5261,7 +5798,10 @@ function getDashboardNotificationList (sessionData = {}) {
       consignor: notification.consignor,
       viewHref: isDesignRelease2SessionData(sessionData)
         ? buildDashboardNotificationViewHref(sessionData, { submittedId: notification.id })
-        : `/review-notification?submitted=${encodeURIComponent(notification.id)}`
+        : `/review-notification?submitted=${encodeURIComponent(notification.id)}`,
+      copyHref: isDesignRelease2SessionData(sessionData)
+        ? buildDashboardNotificationCopyHref({ submittedId: notification.id })
+        : null
     }
 
     return isTestingSessionData(sessionData)
@@ -5285,7 +5825,10 @@ function getDashboardNotificationList (sessionData = {}) {
         statusModifier: notification.reviewVariant || mapStatusTextToReviewVariant(notification.statusText),
         viewHref: isDesignRelease2SessionData(sessionData)
           ? buildDashboardNotificationViewHref(sessionData, { reference })
-          : notification.viewHref
+          : notification.viewHref,
+        copyHref: isDesignRelease2SessionData(sessionData)
+          ? buildDashboardNotificationCopyHref({ reference })
+          : null
       }
 
       return isDesignRelease2SessionData(sessionData)
@@ -5329,50 +5872,336 @@ function buildDashboardSortItems (selectedValue, options = {}) {
   }))
 }
 
+function getDashboardTemplateById (templateId) {
+  return dashboardTemplates.find((template) => template.id === templateId) || null
+}
+
+function generateDesignReleaseNotificationReference (sessionData = {}) {
+  const existing = new Set([
+    DESIGN_RELEASE_NOTIFICATION_REFERENCE,
+    ...((sessionData.submittedNotifications || []).map((notification) =>
+      String(notification.reference || '').trim()
+    ).filter(Boolean))
+  ])
+
+  for (let attempt = 0; attempt < 25; attempt += 1) {
+    const code = Math.random()
+      .toString(36)
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '')
+      .padEnd(6, '0')
+      .slice(0, 6)
+    const reference = `GBN-AG-26-${code}`
+
+    if (!existing.has(reference)) {
+      return reference
+    }
+  }
+
+  return `GBN-AG-26-${Date.now().toString(36).toUpperCase().slice(-6)}`
+}
+
+function normaliseTemplateSpeciesLabel (value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+}
+
+function templateSpeciesLabelMatches (templateLabel, species) {
+  const normalisedTemplate = normaliseTemplateSpeciesLabel(templateLabel)
+  const normalisedLabel = normaliseTemplateSpeciesLabel(species.label)
+  const normalisedCommonName = normaliseTemplateSpeciesLabel(species.commonName)
+
+  if (!normalisedTemplate) {
+    return false
+  }
+
+  if (
+    normalisedTemplate === normalisedLabel ||
+    (normalisedCommonName && normalisedTemplate === normalisedCommonName)
+  ) {
+    return true
+  }
+
+  if (
+    normalisedLabel.includes(normalisedTemplate) ||
+    normalisedTemplate.includes(normalisedLabel) ||
+    (normalisedCommonName && (
+      normalisedCommonName.includes(normalisedTemplate) ||
+      normalisedTemplate.includes(normalisedCommonName)
+    ))
+  ) {
+    return true
+  }
+
+  const templateTokens = normalisedTemplate.split(' ').filter(Boolean)
+  const labelTokens = normalisedLabel.split(' ').filter(Boolean)
+
+  return Boolean(
+    templateTokens[0] &&
+    labelTokens[0] &&
+    templateTokens[0] === labelTokens[0] &&
+    templateTokens[0].length > 3
+  )
+}
+
+function getCommoditiesMatchingTemplateCode (commodityCode) {
+  const code = String(commodityCode || '').trim()
+
+  if (!code) {
+    return []
+  }
+
+  return commodities.filter((commodity) =>
+    commodity.code === code ||
+    commodity.code.startsWith(code) ||
+    code.startsWith(commodity.code)
+  )
+}
+
+function resolveSpeciesIdsFromTemplateReview (review) {
+  const matchingCommodities = getCommoditiesMatchingTemplateCode(review.commodityCode)
+  const candidateCommodities = matchingCommodities.length ? matchingCommodities : commodities
+  const speciesLabels = String(review.species || '')
+    .split(',')
+    .map((label) => label.trim())
+    .filter(Boolean)
+  const matchedIds = []
+
+  function addSpeciesId (speciesId) {
+    if (speciesId && !matchedIds.includes(speciesId)) {
+      matchedIds.push(speciesId)
+    }
+  }
+
+  speciesLabels.forEach((label) => {
+    const exactMatches = []
+    const fuzzyMatches = []
+
+    candidateCommodities.forEach((commodity) => {
+      commodity.species.forEach((species) => {
+        const normalisedTemplate = normaliseTemplateSpeciesLabel(label)
+        const normalisedLabel = normaliseTemplateSpeciesLabel(species.label)
+        const normalisedCommonName = normaliseTemplateSpeciesLabel(species.commonName)
+        const isExact = normalisedTemplate === normalisedLabel ||
+          (normalisedCommonName && normalisedTemplate === normalisedCommonName)
+
+        if (isExact) {
+          exactMatches.push(species.id)
+          return
+        }
+
+        if (templateSpeciesLabelMatches(label, species)) {
+          fuzzyMatches.push(species.id)
+        }
+      })
+    })
+
+    if (exactMatches.length) {
+      exactMatches.forEach(addSpeciesId)
+      return
+    }
+
+    fuzzyMatches.forEach(addSpeciesId)
+  })
+
+  if (matchedIds.length) {
+    return matchedIds
+  }
+
+  matchingCommodities.forEach((commodity) => {
+    addSpeciesId(commodity.species[0] && commodity.species[0].id)
+  })
+
+  return matchedIds
+}
+
+function buildSessionAddressFromTemplatePlace (place) {
+  if (!place || !place.name) {
+    return null
+  }
+
+  const lines = [...(place.lines || [])]
+  let country = ''
+
+  if (lines.length && countryLabels.includes(lines[lines.length - 1])) {
+    country = lines.pop()
+  }
+
+  return {
+    name: place.name,
+    addressLines: lines,
+    country
+  }
+}
+
+function mapTemplateCertificationPurpose (certifiedFor) {
+  const value = String(certifiedFor || '').trim()
+
+  if (certificationPurposeOptions.includes(value)) {
+    return value
+  }
+
+  const aliases = {
+    Breeding: 'Further keeping',
+    'Breeding and/or production': 'Further keeping',
+    Slaughter: 'Slaughter'
+  }
+
+  return aliases[value] || 'Further keeping'
+}
+
+function seedNotificationSessionFromTemplate (sessionData, template) {
+  const review = template.review || {}
+  const speciesIds = resolveSpeciesIdsFromTemplateReview(review)
+  const regionOfOriginCode = String(review.regionOfOriginCode || '').trim()
+  const regionParts = regionOfOriginCode.split('-')
+  const regionSuffix = regionParts.length > 1 ? regionParts.slice(1).join('-') : regionOfOriginCode
+  const address = buildSessionAddressFromTemplatePlace(review.placeOfOrigin)
+  const internalReference = String(review.internalReferenceNumber || '').trim()
+
+  sessionData.notificationReference = generateDesignReleaseNotificationReference(sessionData)
+  sessionData.notificationStatus = 'New'
+  sessionData.templateId = template.id
+  sessionData.templateName = template.title
+  sessionData.countryOfOrigin = review.countryOfOrigin || null
+  sessionData.regionOfOriginRequired = regionOfOriginCode ? 'Yes' : 'No'
+  sessionData.regionOfOriginCode = regionOfOriginCode || null
+  sessionData.regionOfOriginCodeSuffix = regionOfOriginCode ? regionSuffix : null
+  sessionData.internalReference = !internalReference || internalReference.toUpperCase() === 'N/A'
+    ? null
+    : internalReference
+
+  applySpeciesSelectionToSession(sessionData, speciesIds)
+
+  sessionData.importReason = review.reasonForImport || null
+  sessionData.internalMarketPurpose = review.reasonForImport === 'Internal market'
+    ? (review.purposeInTheMarket || null)
+    : null
+  sessionData.certificationPurpose = mapTemplateCertificationPurpose(review.certifiedFor)
+
+  if (getUnweanedOptions(sessionData).length) {
+    const unweanedAnimals = String(review.unweanedAnimals || '').trim()
+    sessionData.unweanedAnimals = getUnweanedOptions(sessionData).includes(unweanedAnimals)
+      ? unweanedAnimals
+      : 'No'
+  } else {
+    sessionData.unweanedAnimals = null
+  }
+
+  if (address) {
+    const addressSections = [
+      'placeOfOrigin',
+      'consignor',
+      'consignee',
+      'importer',
+      'placeOfDestination'
+    ]
+
+    addressSections.forEach((sectionKey) => {
+      sessionData[`${sectionKey}Address`] = {
+        name: address.name,
+        addressLines: [...address.addressLines],
+        country: address.country
+      }
+      sessionData[`${sectionKey}AddressId`] = `template-${template.id}-${sectionKey}`
+    })
+  }
+
+  sessionData.cphNumber = review.cphNumber || null
+  sessionData.errorList = null
+  sessionData.errors = null
+}
+
+function buildTemplateAddressValue (address) {
+  return {
+    isAddress: true,
+    name: address.name,
+    lines: address.lines || []
+  }
+}
+
+function buildTemplateReviewViewModel (template) {
+  const review = template.review
+  const changeBase = `/design-release-2/templates/${template.id}`
+  const addressValue = buildTemplateAddressValue(review.placeOfOrigin)
+
+  return {
+    importDetailsCard: {
+      id: 'template-import-details',
+      title: 'Import details',
+      headerAction: {
+        href: `${changeBase}#import-details`
+      },
+      rows: [
+        { key: 'Country of origin', value: review.countryOfOrigin },
+        { key: 'Region of origin code', value: review.regionOfOriginCode },
+        { key: 'Internal reference number', value: review.internalReferenceNumber }
+      ]
+    },
+    animalDetailsCard: {
+      id: 'template-animal-details',
+      title: 'Animal details',
+      headerAction: {
+        href: `${changeBase}#animal-details`
+      },
+      rows: [
+        { key: 'Commodity code', value: review.commodityCode },
+        { key: 'Common name', value: review.commonName },
+        { key: 'Species', value: review.species }
+      ]
+    },
+    importReasonCard: {
+      id: 'template-import-reason',
+      title: 'Main reason for import',
+      headerAction: {
+        href: `${changeBase}#import-reason`
+      },
+      rows: [
+        { key: 'Reason for import', value: review.reasonForImport },
+        { key: 'Purpose in the market', value: review.purposeInTheMarket }
+      ]
+    },
+    additionalAnimalDetailsCard: {
+      id: 'template-additional-animal-details',
+      title: 'Additional animal details',
+      headerAction: {
+        href: `${changeBase}#additional-animal-details`
+      },
+      rows: [
+        { key: 'Certified for', value: review.certifiedFor }
+      ]
+    },
+    addressesCard: {
+      id: 'template-addresses',
+      title: 'Addresses',
+      headerAction: {
+        href: `${changeBase}#addresses`
+      },
+      rows: [
+        { key: 'Place of origin', value: addressValue },
+        { key: 'Consignor', value: addressValue },
+        { key: 'Consignee', value: addressValue },
+        { key: 'Importer', value: addressValue },
+        { key: 'County parish holding number (CPH)', value: review.cphNumber }
+      ]
+    }
+  }
+}
+
 function getDashboardTemplatesViewModel (query = {}) {
   const sort = (query.sort || '').trim()
-  const templates = [
-    {
-      categoryLabel: 'Live animals',
-      title: 'Rice Lane City Farm',
-      commodityLabel: 'Pigs',
-      origin: 'Republic of Ireland',
-      consignee: 'Glen Keen Farm',
-      consignor: 'Rice Lane City Farm',
-      viewHref: '#',
-      createHref: '#'
-    },
-    {
-      categoryLabel: 'Live animals',
-      title: 'Monk Park Farm',
-      commodityLabel: 'Goats & Sheep',
-      origin: 'Republic of Ireland',
-      consignee: 'Glen Keen Farm',
-      consignor: 'Monk Park Farm',
-      viewHref: '#',
-      createHref: '#'
-    },
-    {
-      categoryLabel: 'Live animals',
-      title: 'Acorn Farm',
-      commodityLabel: 'Cattle',
-      origin: 'Republic of Ireland',
-      consignee: 'Glen Keen Farm',
-      consignor: 'Acorn Farm',
-      viewHref: '#',
-      createHref: '#'
-    },
-    {
-      categoryLabel: 'Live animals',
-      title: 'Glen Keen Farm',
-      commodityLabel: 'Poultry',
-      origin: 'Republic of Ireland',
-      consignee: 'Glen Keen Farm',
-      consignor: 'Glen Keen Farm',
-      viewHref: '#',
-      createHref: '#'
-    }
-  ]
+  const templates = dashboardTemplates.map((template) => ({
+    categoryLabel: template.categoryLabel,
+    title: template.title,
+    commodityLabel: template.commodityLabel,
+    origin: template.origin,
+    consignee: template.consignee,
+    consignor: template.consignor,
+    viewHref: `/design-release-2/templates/${template.id}`,
+    createHref: `/design-release-2/templates/${template.id}/use`
+  }))
 
   return {
     templates,
@@ -5382,10 +6211,79 @@ function getDashboardTemplatesViewModel (query = {}) {
   }
 }
 
+function renderViewTemplatePage (req, res) {
+  if (!isDesignRelease2SessionData(req.session.data)) {
+    return res.redirect('/')
+  }
+
+  const template = getDashboardTemplateById(req.params.templateId)
+
+  if (!template) {
+    return res.redirect('/templates')
+  }
+
+  return res.render('view-template', {
+    serviceNavActive: 'templates',
+    template,
+    templateReview: buildTemplateReviewViewModel(template),
+    formAction: `/design-release-2/templates/${template.id}`,
+    cancelHref: '/design-release-2',
+    backLink: '/templates'
+  })
+}
+
+function handleViewTemplatePage (req, res) {
+  if (!isDesignRelease2SessionData(req.session.data)) {
+    return res.redirect('/')
+  }
+
+  const template = getDashboardTemplateById(req.params.templateId)
+
+  if (!template) {
+    return res.redirect('/templates')
+  }
+
+  req.session.data.templateName = template.title
+
+  return res.redirect('/templates')
+}
+
+function buildDashboardDateRangeItems (selectedValue = '') {
+  return [
+    { value: 'today', text: 'Today', checked: selectedValue === 'today' },
+    { value: 'tomorrow', text: 'Tomorrow', checked: selectedValue === 'tomorrow' },
+    { value: 'next-seven-days', text: 'Next seven days', checked: selectedValue === 'next-seven-days' }
+  ]
+}
+
+function buildDashboardTypeFilterItems (selectedValue = '') {
+  return [
+    { value: '', text: 'Select one', selected: !selectedValue },
+    { value: 'live-animals', text: 'Live animals', selected: selectedValue === 'live-animals' },
+    { value: 'plants', text: 'Plants', selected: selectedValue === 'plants' },
+    { value: 'products-of-animal-origin', text: 'Products of animal origin', selected: selectedValue === 'products-of-animal-origin' }
+  ]
+}
+
+function buildDashboardStatusFilterItems (selectedValue = '') {
+  return [
+    { value: '', text: 'Select one', selected: !selectedValue },
+    { value: 'draft', text: 'Draft', selected: selectedValue === 'draft' },
+    { value: 'action-required', text: 'Action required', selected: selectedValue === 'action-required' },
+    { value: 'submitted', text: 'Submitted', selected: selectedValue === 'submitted' },
+    { value: 'completed', text: 'Completed', selected: selectedValue === 'completed' }
+  ]
+}
+
 function getDashboardViewModel (sessionData = {}, query = {}) {
   const isTesting = isTestingSessionData(sessionData)
   const isDr2 = isDesignRelease2SessionData(sessionData)
   const sort = (query.sort || '').trim()
+  const dateRange = (query.dateRange || '').trim()
+  const startDate = (query.startDate || '').trim()
+  const endDate = (query.endDate || '').trim()
+  const typeFilter = (query.type || '').trim()
+  const statusFilter = (query.status || '').trim()
   const requestedPage = Math.max(1, Number(query.page) || 1)
   const pageSize = dashboardData.pageSize
   const allNotifications = getDashboardNotificationList(sessionData)
@@ -5438,6 +6336,15 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
         { value: 'last-3-days', html: '<span class="app-dr2-dashboard-filter-radios__option">Last 3 days</span><span class="app-dr2-dashboard-filter-radios__count">(2)</span>' }
       ]
       : null,
+    dateRange,
+    dateRangeItems: isDr2 ? buildDashboardDateRangeItems(dateRange) : null,
+    startDate,
+    endDate,
+    typeFilter,
+    typeFilterItems: isDr2 ? buildDashboardTypeFilterItems(typeFilter) : null,
+    statusFilter,
+    statusFilterItems: isDr2 ? buildDashboardStatusFilterItems(statusFilter) : null,
+    additionalFiltersOpen: isDr2 && Boolean(dateRange || startDate || endDate || typeFilter || statusFilter),
     notifications,
     sort,
     sortItems: buildDashboardSortItems(sort, { testing: isTesting }),
@@ -5580,8 +6487,12 @@ function renderDashboardInspectionPage (req, res) {
   })
 }
 
-function buildAddressBookPageHref (page, searchQuery, typeFilter) {
+function buildAddressBookPageHref (page, searchQuery, typeFilter, options = {}) {
   const params = new URLSearchParams()
+
+  if (options.category) {
+    params.set('category', options.category)
+  }
 
   if (searchQuery) {
     params.set('search', searchQuery)
@@ -5596,11 +6507,12 @@ function buildAddressBookPageHref (page, searchQuery, typeFilter) {
   }
 
   const queryString = params.toString()
+  const basePath = options.basePath || '/address-book'
 
-  return queryString ? `/address-book?${queryString}` : '/address-book'
+  return queryString ? `${basePath}?${queryString}` : basePath
 }
 
-function buildAddressBookPagination (currentPage, totalPages, searchQuery, typeFilter) {
+function buildAddressBookPagination (currentPage, totalPages, searchQuery, typeFilter, options = {}) {
   if (totalPages <= 1) {
     return {
       items: null,
@@ -5614,7 +6526,7 @@ function buildAddressBookPagination (currentPage, totalPages, searchQuery, typeF
   for (let page = 1; page <= totalPages; page++) {
     items.push({
       number: String(page),
-      href: buildAddressBookPageHref(page, searchQuery, typeFilter),
+      href: buildAddressBookPageHref(page, searchQuery, typeFilter, options),
       current: page === currentPage
     })
   }
@@ -5623,13 +6535,13 @@ function buildAddressBookPagination (currentPage, totalPages, searchQuery, typeF
     items,
     next: currentPage < totalPages
       ? {
-          href: buildAddressBookPageHref(currentPage + 1, searchQuery, typeFilter),
+          href: buildAddressBookPageHref(currentPage + 1, searchQuery, typeFilter, options),
           text: 'Next'
         }
       : null,
     previous: currentPage > 1
       ? {
-          href: buildAddressBookPageHref(currentPage - 1, searchQuery, typeFilter),
+          href: buildAddressBookPageHref(currentPage - 1, searchQuery, typeFilter, options),
           text: 'Previous'
         }
       : null
@@ -5644,12 +6556,54 @@ function buildAddressBookResultsText (start, end, total) {
   return `Showing ${start}-${end} of ${total}`
 }
 
-function buildAddressBookTypeItems (selectedValue) {
-  return addressBookData.types.map((option) => ({
-    value: option.value,
-    text: option.text,
-    selected: selectedValue === option.value
-  }))
+function buildAddressBookTypeItems (selectedValue, categoryId = null) {
+  if (categoryId === 'transporter') {
+    return [
+      {
+        value: '',
+        text: 'Select one',
+        selected: !selectedValue
+      },
+      {
+        value: 'Commercial',
+        text: 'Commercial',
+        selected: selectedValue === 'Commercial'
+      },
+      {
+        value: 'Private',
+        text: 'Private',
+        selected: selectedValue === 'Private'
+      }
+    ]
+  }
+
+  const allowedTypes = categoryId && addressBookData.categories[categoryId]
+    ? new Set(addressBookData.categories[categoryId].types)
+    : null
+
+  return addressBookData.types
+    .filter((option) => !option.value || !allowedTypes || allowedTypes.has(option.value))
+    .map((option) => ({
+      value: option.value,
+      text: option.text,
+      selected: selectedValue === option.value
+    }))
+}
+
+function addressMatchesAddressBookTypeFilter (address, typeFilter) {
+  if (!typeFilter) {
+    return true
+  }
+
+  if (address.category === 'transporter' || address.type === 'transporter') {
+    return address.typeLabel === typeFilter
+  }
+
+  const addressTypes = Array.isArray(address.types) && address.types.length
+    ? address.types
+    : [address.type].filter(Boolean)
+
+  return addressTypes.includes(typeFilter)
 }
 
 function buildAddressBookAddressTypeSelectItems (selectedValue) {
@@ -5678,18 +6632,31 @@ function getAddressBookAddresses (sessionData = {}) {
     ...addressBookData.addresses.filter((address) => !deletedIds.has(address.id))
   ].map((address) => {
     const updated = updatedEntries[address.id]
-
-    if (updated) {
-      return {
+    const merged = updated
+      ? {
         ...address,
         ...updated,
         viewHref: `/address-book/${address.id}`
       }
-    }
+      : {
+        ...address,
+        viewHref: address.viewHref || `/address-book/${address.id}`
+      }
+    const types = Array.isArray(merged.types) && merged.types.length
+      ? merged.types
+      : [merged.type].filter(Boolean)
+    const typeLabels = Array.isArray(merged.typeLabels) && merged.typeLabels.length
+      ? merged.typeLabels
+      : types.map((type) => addressBookData.typeLabels[type] || merged.typeLabel || type)
+    const primaryType = types[0] || merged.type
 
     return {
-      ...address,
-      viewHref: address.viewHref || `/address-book/${address.id}`
+      ...merged,
+      type: primaryType,
+      types,
+      typeLabels,
+      typeLabel: merged.typeLabel || typeLabels.join(', '),
+      category: merged.category || addressBookData.getAddressCategoryId(primaryType)
     }
   })
 }
@@ -6029,8 +6996,16 @@ function formatAddressBookDeletedMessage (name) {
   return `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1).toLowerCase()} address deleted`
 }
 
-function buildAddressBookEntryFromManual (manualAddress, addressType, existingId = null) {
-  const typeLabel = getAddressBookAddressTypeLabel(addressType)
+function buildAddressBookEntryFromManual (manualAddress, addressTypeOrTypes, existingId = null) {
+  const addressTypes = (Array.isArray(addressTypeOrTypes)
+    ? addressTypeOrTypes
+    : [addressTypeOrTypes]
+  )
+    .map((value) => String(value || '').trim())
+    .filter(Boolean)
+  const primaryType = addressTypes[0] || ''
+  const typeLabels = addressTypes.map((type) => getAddressBookAddressTypeLabel(type))
+  const typeLabel = typeLabels.join(', ')
   const addressParts = [
     manualAddress.addressLine1,
     manualAddress.addressLine2,
@@ -6043,8 +7018,11 @@ function buildAddressBookEntryFromManual (manualAddress, addressType, existingId
   return {
     id: existingId || `address-book-added-${Date.now()}`,
     name: manualAddress.nameOrOrganisation,
-    type: addressType,
+    type: primaryType,
+    types: addressTypes,
     typeLabel,
+    typeLabels,
+    category: addressBookData.getAddressCategoryId(primaryType),
     address: formattedAddress,
     country: manualAddress.country,
     details: {
@@ -6110,7 +7088,7 @@ function clearAddressBookConsignmentReturn (sessionData) {
   delete sessionData.addressBookConsignmentReturn
 }
 
-function getAddressBookBackLink (sessionData, defaultLink = '/address-book') {
+function getAddressBookBackLink (sessionData, defaultLink = '/address-book', versionBasePath = '/address-book') {
   const contactReturn = getAddressBookContactReturn(sessionData)
   const consignmentReturn = getAddressBookConsignmentReturn(sessionData)
 
@@ -6122,14 +7100,14 @@ function getAddressBookBackLink (sessionData, defaultLink = '/address-book') {
     return consignmentReturn.path
   }
 
-  if (hasAddressBookAddressType(sessionData)) {
-    return '/address-book/add'
+  if (hasAddressBookAddressType(sessionData) || sessionData.addressBookAddressCategory) {
+    return `${versionBasePath}/add`
   }
 
   return defaultLink
 }
 
-function getAddressBookCancelHref (sessionData) {
+function getAddressBookCancelHref (sessionData, addressBookBasePath = '/address-book') {
   const contactReturn = getAddressBookContactReturn(sessionData)
   const consignmentReturn = getAddressBookConsignmentReturn(sessionData)
 
@@ -6137,7 +7115,15 @@ function getAddressBookCancelHref (sessionData) {
     return contactReturn.path
   }
 
-  return consignmentReturn ? consignmentReturn.path : '/'
+  if (consignmentReturn) {
+    return consignmentReturn.path
+  }
+
+  if (sessionData.addressBookAddressCategory || sessionData.addressBookAddressType) {
+    return addressBookBasePath
+  }
+
+  return '/'
 }
 
 function buildConsignmentAddressFromManual (manualAddress, sectionId) {
@@ -6164,10 +7150,19 @@ function buildConsignmentAddressFromManual (manualAddress, sectionId) {
 }
 
 function saveAddressBookEntry (sessionData, manualAddress, options = {}) {
-  const addressType = sessionData.addressBookAddressType
+  const addressTypes = (options.addressTypes && options.addressTypes.length)
+    ? options.addressTypes
+    : [options.addressType || sessionData.addressBookAddressType].filter(Boolean)
   const consignmentReturn = options.consignmentReturn || getAddressBookConsignmentReturn(sessionData)
   const contactReturn = options.contactReturn || getAddressBookContactReturn(sessionData)
-  const entry = buildAddressBookEntryFromManual(manualAddress, addressType)
+  const addressBookPath = isDesignRelease2SessionData(sessionData)
+    ? '/design-release-2/address-book'
+    : '/address-book'
+  const entry = buildAddressBookEntryFromManual(
+    manualAddress,
+    addressTypes,
+    `address-book-added-${Date.now()}`
+  )
 
   if (!sessionData.addressBookAddedAddresses) {
     sessionData.addressBookAddedAddresses = []
@@ -6175,7 +7170,7 @@ function saveAddressBookEntry (sessionData, manualAddress, options = {}) {
 
   sessionData.addressBookAddedAddresses.unshift({
     ...entry,
-    viewHref: `/address-book/${entry.id}`
+    viewHref: `${addressBookPath}/${entry.id}`
   })
 
   if (consignmentReturn) {
@@ -6210,15 +7205,24 @@ function saveAddressBookEntry (sessionData, manualAddress, options = {}) {
     syncContactAddressSession(sessionData, contactAddress)
     clearAddressBookContactReturn(sessionData)
     sessionData.contactAddressSuccessMessage = formatAddressBookSuccessMessage(entry.name)
-  } else {
+  } else if (entry) {
     sessionData.addressBookSuccessMessage = formatAddressBookSuccessMessage(entry.name)
   }
 
   sessionData.addressBookShowManualAddress = false
   sessionData.addressBookManualAddress = null
+  sessionData.addressBookPendingManualAddress = null
   sessionData.addressBookLookup = null
   sessionData.addressBookLookupAddressId = null
   sessionData.addressBookAddressType = null
+  sessionData.addressBookAddressCategory = null
+  sessionData.addressBookHideSearch = false
+  sessionData.addressBookAddressUses = null
+  sessionData.addressBookOriginUses = null
+
+  const addressBookRedirect = entry && entry.category
+    ? `${addressBookPath}?category=${encodeURIComponent(entry.category)}`
+    : addressBookPath
 
   return {
     entry,
@@ -6226,21 +7230,37 @@ function saveAddressBookEntry (sessionData, manualAddress, options = {}) {
       ? consignmentReturn.path
       : contactReturn
         ? contactReturn.path
-        : '/address-book'
+        : addressBookRedirect
   }
 }
 
 function getAddressBookViewModel (query = {}, sessionData = {}) {
   const searchQuery = (query.search || '').trim()
   const typeFilter = (query.type || '').trim()
+  const isDr2 = isDesignRelease2SessionData(sessionData)
+  const requestedCategory = (query.category || '').trim()
+  const categoryId = isDr2 && addressBookData.categories[requestedCategory]
+    ? requestedCategory
+    : 'origin-and-sender'
+  const category = addressBookData.categories[categoryId]
   const requestedPage = Math.max(1, Number(query.page) || 1)
   const pageSize = addressBookData.pageSize
   const normalisedSearch = searchQuery.toLowerCase()
+  const addressBookBasePath = isDr2
+    ? '/design-release-2/address-book'
+    : '/address-book'
 
   let addresses = getAddressBookAddresses(sessionData)
 
+  if (isDr2) {
+    addresses = addresses.filter((address) => {
+      const addressCategory = address.category || addressBookData.getAddressCategoryId(address.type)
+      return addressCategory === categoryId
+    })
+  }
+
   if (typeFilter) {
-    addresses = addresses.filter((address) => address.type === typeFilter)
+    addresses = addresses.filter((address) => addressMatchesAddressBookTypeFilter(address, typeFilter))
   }
 
   if (normalisedSearch) {
@@ -6254,16 +7274,36 @@ function getAddressBookViewModel (query = {}, sessionData = {}) {
   const paginatedAddresses = addresses.slice(startIndex, startIndex + pageSize)
   const rangeStart = totalCount ? startIndex + 1 : 0
   const rangeEnd = totalCount ? startIndex + paginatedAddresses.length : 0
+  const paginationOptions = {
+    basePath: addressBookBasePath,
+    category: isDr2 ? categoryId : null
+  }
+
+  const categoryTabs = isDr2
+    ? Object.values(addressBookData.categories).map((item) => ({
+      id: item.id,
+      label: item.label,
+      heading: item.heading,
+      href: buildAddressBookPageHref(1, searchQuery, '', {
+        basePath: addressBookBasePath,
+        category: item.id
+      }),
+      selected: item.id === categoryId
+    }))
+    : null
 
   return {
     serviceNavActive: 'address-book',
     searchQuery,
     typeFilter,
-    typeItems: buildAddressBookTypeItems(typeFilter),
+    typeItems: buildAddressBookTypeItems(typeFilter, isDr2 ? categoryId : null),
+    categoryId: isDr2 ? categoryId : null,
+    categoryHeading: isDr2 ? category.heading : null,
+    categoryTabs,
     addresses: paginatedAddresses,
     allAddressesJson: JSON.stringify(getAddressBookAddresses(sessionData)),
     resultsText: buildAddressBookResultsText(rangeStart, rangeEnd, totalCount),
-    pagination: buildAddressBookPagination(currentPage, totalPages, searchQuery, typeFilter)
+    pagination: buildAddressBookPagination(currentPage, totalPages, searchQuery, typeFilter, paginationOptions)
   }
 }
 
@@ -6285,16 +7325,79 @@ const addressBookAddressTypeValues = addressBookAddressTypes
   .filter((item) => !item.divider)
   .map((item) => item.value)
 
+const addressBookAddCategoryValues = addressBookAddCategories.map((item) => item.value)
+
+const addressBookUsageOptionsByCategory = {
+  'origin-and-sender': addressBookOriginUses,
+  'destination-and-receiver': addressBookDestinationUses
+}
+
+function getAddressBookBasePath (res) {
+  return res.locals.isDesignRelease2Version
+    ? '/design-release-2/address-book'
+    : '/address-book'
+}
+
+function getAddressBookAddCategory (value) {
+  return addressBookAddCategories.find((item) => item.value === value) || null
+}
+
+function getAddressBookUsageOptions (category) {
+  return addressBookUsageOptionsByCategory[category] || []
+}
+
+function isAddressBookUsageCategory (category) {
+  return Boolean(addressBookUsageOptionsByCategory[category])
+}
+
+function parseAddressBookUses (rawValue, category) {
+  const allowedValues = new Set(
+    getAddressBookUsageOptions(category).map((item) => item.value)
+  )
+  const values = Array.isArray(rawValue)
+    ? rawValue
+    : (rawValue ? [rawValue] : [])
+
+  return values
+    .map((value) => String(value || '').trim())
+    .filter((value) => allowedValues.has(value))
+}
+
+function renderAddressBookAddUsagePage (req, res, locals = {}) {
+  const sessionData = req.session.data
+  const addressBookBasePath = getAddressBookBasePath(res)
+  const category = sessionData.addressBookAddressCategory
+  const addressUseOptions = getAddressBookUsageOptions(category)
+
+  return res.render('address-book-add-usage', {
+    serviceNavActive: 'address-book',
+    backLink: `${addressBookBasePath}/add/lookup`,
+    formAction: `${addressBookBasePath}/add/usage`,
+    addressUseOptions,
+    selectedAddressUses: locals.selectedAddressUses != null
+      ? locals.selectedAddressUses
+      : (sessionData.addressBookAddressUses || sessionData.addressBookOriginUses || []),
+    data: sessionData,
+    ...locals
+  })
+}
+
 function renderAddressBookAddPage (req, res, locals = {}) {
   const sessionData = req.session.data
+  const isDr2 = Boolean(res.locals.isDesignRelease2Version)
+  const addressBookBasePath = getAddressBookBasePath(res)
 
   return res.render('address-book-add', {
     serviceNavActive: 'address-book',
-    backLink: '/address-book',
-    addressTypeOptions: addressBookAddressTypes,
+    backLink: addressBookBasePath,
+    formAction: `${addressBookBasePath}/add`,
+    pageHeading: isDr2 ? 'Choose an address type' : 'What is the new address for?',
+    addressTypeOptions: isDr2 ? addressBookAddCategories : addressBookAddressTypes,
     selectedAddressType: locals.selectedAddressType != null
       ? locals.selectedAddressType
-      : sessionData.addressBookAddressType || '',
+      : (isDr2
+        ? sessionData.addressBookAddressCategory || ''
+        : sessionData.addressBookAddressType || ''),
     data: sessionData,
     ...locals
   })
@@ -6309,6 +7412,17 @@ function validateAddressBookAddressType (addressType) {
 }
 
 function getAddressBookAddressTypeLabel (addressType) {
+  const usageLabel = [...addressBookOriginUses, ...addressBookDestinationUses]
+    .find((item) => item.value === addressType)
+
+  if (usageLabel) {
+    return usageLabel.text
+  }
+
+  if (addressBookData.typeLabels[addressType]) {
+    return addressBookData.typeLabels[addressType]
+  }
+
   const match = addressBookAddressTypes.find((item) => item.value === addressType)
 
   return match ? match.text : addressType
@@ -6327,28 +7441,40 @@ function redirectIfNoAddressBookAddressType (req, res) {
     return false
   }
 
-  res.redirect('/address-book/add')
+  res.redirect(`${getAddressBookBasePath(res)}/add`)
   return true
 }
 
 function renderAddressBookLookupPage (req, res, locals = {}) {
   const sessionData = req.session.data
+  const addressBookBasePath = getAddressBookBasePath(res)
   const consignmentReturn = getAddressBookConsignmentReturn(sessionData)
   const selectedAddressType = locals.selectedAddressType != null
     ? locals.selectedAddressType
     : sessionData.addressBookAddressType || consignmentReturn?.suggestedAddressType || ''
   const manualAddress = locals.manualAddress || getAddressBookManualAddress(sessionData)
+  const hideSearch = locals.hideSearch != null
+    ? locals.hideSearch
+    : Boolean(sessionData.addressBookHideSearch)
   const showManualAddress = locals.showManualAddress != null
     ? locals.showManualAddress
-    : Boolean(sessionData.addressBookShowManualAddress || sessionData.addressBookLookupAddressId)
+    : Boolean(
+      hideSearch ||
+      sessionData.addressBookShowManualAddress ||
+      sessionData.addressBookLookupAddressId
+    )
+  const cancelHref = getAddressBookCancelHref(sessionData, addressBookBasePath)
 
   return res.render('address-book-lookup', {
     serviceNavActive: 'address-book',
-    backLink: getAddressBookBackLink(sessionData),
-    cancelHref: getAddressBookCancelHref(sessionData),
+    backLink: getAddressBookBackLink(sessionData, addressBookBasePath, addressBookBasePath),
+    cancelHref,
+    cancelButtonText: cancelHref === addressBookBasePath
+      ? 'Cancel and return to address book'
+      : 'Cancel and return to dashboard',
     isEditMode: false,
     pageHeading: 'Add address details',
-    formAction: '/address-book/add/lookup',
+    formAction: `${addressBookBasePath}/add/lookup`,
     consignmentReturn,
     selectedAddressType,
     addressTypeItems: buildAddressBookAddressTypeSelectItems(selectedAddressType),
@@ -6362,6 +7488,7 @@ function renderAddressBookLookupPage (req, res, locals = {}) {
     lookupAddressesJson: JSON.stringify(addressBookLookupAddresses.addresses),
     manualAddress,
     showManualAddress,
+    hideSearch,
     countryItems: buildAddressBookCountryItems(manualAddress.country),
     data: sessionData,
     ...locals
@@ -6972,6 +8099,7 @@ function renderUploadDocumentsPage (req, res, locals = {}) {
 
 router.get('/create-notification', (req, res) => {
   resetNotificationJourneySession(req.session.data)
+  req.session.data.notificationStatus = 'Draft'
   return res.redirect('/origin-of-the-import')
 })
 
@@ -7011,6 +8139,12 @@ router.post('/origin-of-the-import', (req, res) => {
     regionOfOriginCodeSuffix
   })
 
+  if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
+    req.session.data.errorList = null
+    req.session.data.errors = null
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
+  }
+
   if (validation.errorList.length) {
     req.session.data.errorList = validation.errorList
     req.session.data.errors = validation.errors
@@ -7046,7 +8180,7 @@ router.post('/what-are-you-importing', (req, res) => {
   const commoditySelections = parseCommoditySelections(req.body.commoditySelections)
   const selectedSpecies = normalizeSelectedSpecies(req.body.selectedSpecies)
 
-  if (req.body.action === 'hub') {
+  if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
     delete req.session.data.commoditySearch
 
     if (applySpeciesSelectionToSession(req.session.data, selectedSpecies)) {
@@ -7058,7 +8192,7 @@ router.post('/what-are-you-importing', (req, res) => {
     req.session.data.errorList = null
     req.session.data.errors = null
 
-    return res.redirect('/notification-hub')
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
   }
 
   const validation = validateCommoditySelection(selectedSpecies, commoditySelections)
@@ -7172,8 +8306,8 @@ router.post('/consignment-details', (req, res) => {
   req.session.data.numberOfAnimals = numberOfAnimals
   req.session.data.numberOfPackages = numberOfPackages
 
-  if (action === 'hub') {
-    return res.redirect('/notification-hub')
+  if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
   }
 
   return res.redirect(getPostConsignmentDetailsPath(req.session.data))
@@ -7232,7 +8366,7 @@ router.post('/additional-animal-details', (req, res) => {
   const certificationPurpose = (req.body.certificationPurpose || '').trim()
   const unweanedAnimals = (req.body.unweanedAnimals || '').trim()
 
-  if (req.body.action === 'hub') {
+  if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
     if (config.showCertificationPurposeQuestion && certificationPurposeOptions.includes(certificationPurpose)) {
       req.session.data.certificationPurpose = certificationPurpose
     }
@@ -7241,7 +8375,7 @@ router.post('/additional-animal-details', (req, res) => {
       req.session.data.unweanedAnimals = unweanedAnimals
     }
 
-    return res.redirect('/notification-hub')
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
   }
 
   req.session.data.errorList = null
@@ -7286,6 +8420,116 @@ router.get('/templates/create', (req, res) => {
 
 router.post('/templates/create', (req, res) => {
   return handleCreateTemplatePage(req, res)
+})
+
+router.get('/templates/:templateId', (req, res) => {
+  return renderViewTemplatePage(req, res)
+})
+
+router.post('/templates/:templateId', (req, res) => {
+  return handleViewTemplatePage(req, res)
+})
+
+router.get('/templates/:templateId/use', (req, res) => {
+  if (!isDesignRelease2SessionData(req.session.data)) {
+    return res.redirect('/')
+  }
+
+  const template = getDashboardTemplateById(req.params.templateId)
+
+  if (!template) {
+    return res.redirect('/templates')
+  }
+
+  resetNotificationJourneySession(req.session.data)
+  seedNotificationSessionFromTemplate(req.session.data, template)
+
+  return res.redirect('/notification-hub')
+})
+
+router.get('/notifications/copy-as-new', (req, res) => {
+  if (!isDesignRelease2SessionData(req.session.data)) {
+    return res.redirect('/')
+  }
+
+  const submittedId = (req.query.submitted || '').trim()
+  const reference = (req.query.reference || '').trim()
+  const sourceSnapshot = getCopyAsNewSourceSnapshot(req.session.data, {
+    submittedId,
+    reference
+  })
+
+  if (!sourceSnapshot) {
+    return res.redirect(getDashboardBackLink(req.session.data))
+  }
+
+  const copied = copyNotificationAsNewIntoSession(req.session.data, sourceSnapshot)
+
+  if (!copied) {
+    return res.redirect(getDashboardBackLink(req.session.data))
+  }
+
+  return res.redirect('/notification-hub')
+})
+
+router.get('/notifications/amend', (req, res) => {
+  if (!isDesignRelease2SessionData(req.session.data)) {
+    return res.redirect('/')
+  }
+
+  const submittedId = (req.query.submitted || '').trim()
+  const reference = (req.query.reference || '').trim()
+  const sourceSnapshot = getCopyAsNewSourceSnapshot(req.session.data, {
+    submittedId,
+    reference
+  })
+
+  if (!sourceSnapshot) {
+    return res.redirect(getDashboardBackLink(req.session.data))
+  }
+
+  const snapshot = cloneSubmittedNotificationSnapshot(sourceSnapshot)
+  const notificationReference = snapshot.notificationReference || reference ||
+    generateDesignReleaseNotificationReference(req.session.data)
+
+  loadDraftSnapshotIntoSession(req.session.data, snapshot)
+  req.session.data.notificationReference = notificationReference
+  req.session.data.notificationStatus = 'Amend'
+  req.session.data.amendingFrom = {
+    submittedId: submittedId || null,
+    reference: reference || notificationReference || null
+  }
+  req.session.data.errorList = null
+  req.session.data.errors = null
+
+  return res.redirect('/review-notification')
+})
+
+router.get('/notifications/cancel-amend', (req, res) => {
+  if (!isDesignRelease2SessionData(req.session.data)) {
+    return res.redirect('/')
+  }
+
+  const amendingFrom = req.session.data.amendingFrom || {}
+  const submittedId = String(amendingFrom.submittedId || '').trim()
+  const reference = String(
+    amendingFrom.reference || req.session.data.notificationReference || ''
+  ).trim()
+
+  delete req.session.data.amendingFrom
+  delete req.session.data.notificationStatus
+  req.session.data.errorList = null
+  req.session.data.errors = null
+
+  if (submittedId) {
+    return res.redirect(`/review-notification?submitted=${encodeURIComponent(submittedId)}`)
+  }
+
+  if (reference) {
+    return res.redirect(`/review-notification?reference=${encodeURIComponent(reference)}`)
+  }
+
+  return res.redirect(getDashboardBackLink(req.session.data))
 })
 
 router.get('/actions', (req, res) => {
@@ -7336,8 +8580,14 @@ router.get('/address-book/add', (req, res) => {
 
   clearAddressBookConsignmentReturn(req.session.data)
   req.session.data.addressBookAddressType = null
+  req.session.data.addressBookAddressCategory = null
+  req.session.data.addressBookAddingTransporter = null
+  req.session.data.addressBookHideSearch = false
   req.session.data.addressBookShowManualAddress = false
   req.session.data.addressBookManualAddress = null
+  req.session.data.addressBookPendingManualAddress = null
+  req.session.data.addressBookAddressUses = null
+  req.session.data.addressBookOriginUses = null
   req.session.data.addressBookLookup = null
   req.session.data.addressBookLookupAddressId = null
 
@@ -7345,17 +8595,61 @@ router.get('/address-book/add', (req, res) => {
 })
 
 router.post('/address-book/add', (req, res) => {
+  const isDr2 = Boolean(res.locals.isDesignRelease2Version)
+  const addressBookBasePath = getAddressBookBasePath(res)
   const validation = validateAddressBookAddressType(req.body.addressType)
 
   req.session.data.errorList = null
   req.session.data.errors = null
+
+  if (isDr2) {
+    const category = getAddressBookAddCategory(validation.value)
+
+    if (!category) {
+      req.session.data.errors = {
+        addressType: {
+          text: 'Select an address type'
+        }
+      }
+      req.session.data.errorList = [{
+        text: 'Select an address type',
+        href: '#address-type-origin-and-sender'
+      }]
+
+      return renderAddressBookAddPage(req, res, {
+        selectedAddressType: validation.value
+      })
+    }
+
+    req.session.data.addressBookAddressCategory = category.value
+    req.session.data.addressBookAddressType = category.defaultAddressType
+    req.session.data.addressBookAddingTransporter = null
+    req.session.data.addressBookHideSearch = false
+    req.session.data.addressBookShowManualAddress = false
+
+    if (category.value === 'transporter') {
+      req.session.data.addressBookAddingTransporter = true
+      req.session.data.transporterAddType = null
+      return res.redirect('/design-release-2/transporter/add')
+    }
+
+    if (category.value === 'origin-and-sender') {
+      req.session.data.addressBookHideSearch = true
+      req.session.data.addressBookShowManualAddress = true
+      return res.redirect(`${addressBookBasePath}/add/lookup`)
+    }
+
+    // Destination and receiver — current address finder
+    return res.redirect(`${addressBookBasePath}/add/lookup`)
+  }
+
   req.session.data.addressBookAddressType = validation.value || null
 
   if (!addressBookAddressTypeValues.includes(validation.value)) {
-    return res.redirect('/address-book')
+    return res.redirect(addressBookBasePath)
   }
 
-  return res.redirect('/address-book/add/lookup')
+  return res.redirect(`${addressBookBasePath}/add/lookup`)
 })
 
 router.get('/address-book/add/lookup', (req, res) => {
@@ -7384,15 +8678,20 @@ router.post('/address-book/add/lookup', (req, res) => {
   }
 
   if (action === 'cancel') {
+    const addressBookBasePath = getAddressBookBasePath(res)
+
     req.session.data.errorList = null
     req.session.data.errors = null
     req.session.data.addressBookShowManualAddress = false
     req.session.data.addressBookManualAddress = null
+    req.session.data.addressBookPendingManualAddress = null
     req.session.data.addressBookLookup = null
     req.session.data.addressBookLookupAddressId = null
     req.session.data.addressBookAddressType = null
+    req.session.data.addressBookAddressUses = null
+    req.session.data.addressBookOriginUses = null
 
-    return res.redirect(getAddressBookCancelHref(req.session.data))
+    return res.redirect(getAddressBookCancelHref(req.session.data, addressBookBasePath))
   }
 
   if (redirectIfNoAddressBookAddressType(req, res)) {
@@ -7420,7 +8719,85 @@ router.post('/address-book/add/lookup', (req, res) => {
   req.session.data.errorList = null
   req.session.data.errors = null
 
+  const isDr2 = Boolean(res.locals.isDesignRelease2Version)
+  const addressBookBasePath = getAddressBookBasePath(res)
+
+  if (isDr2 && isAddressBookUsageCategory(req.session.data.addressBookAddressCategory)) {
+    req.session.data.addressBookPendingManualAddress = validation.value
+    req.session.data.addressBookManualAddress = validation.value
+    req.session.data.addressBookShowManualAddress = true
+
+    return res.redirect(`${addressBookBasePath}/add/usage`)
+  }
+
   const { redirectTo } = saveAddressBookEntry(req.session.data, validation.value)
+
+  return res.redirect(redirectTo)
+})
+
+router.get('/address-book/add/usage', (req, res) => {
+  const addressBookBasePath = getAddressBookBasePath(res)
+  const category = req.session.data.addressBookAddressCategory
+
+  if (!res.locals.isDesignRelease2Version) {
+    return res.redirect('/address-book/add')
+  }
+
+  if (!isAddressBookUsageCategory(category)) {
+    return res.redirect(`${addressBookBasePath}/add`)
+  }
+
+  if (!req.session.data.addressBookPendingManualAddress) {
+    return res.redirect(`${addressBookBasePath}/add/lookup`)
+  }
+
+  return renderAddressBookAddUsagePage(req, res)
+})
+
+router.post('/address-book/add/usage', (req, res) => {
+  const addressBookBasePath = getAddressBookBasePath(res)
+  const category = req.session.data.addressBookAddressCategory
+  const selectedAddressUses = parseAddressBookUses(req.body.addressUses, category)
+  const firstUseOption = getAddressBookUsageOptions(category)[0]
+
+  if (!res.locals.isDesignRelease2Version) {
+    return res.redirect('/address-book/add')
+  }
+
+  if (!isAddressBookUsageCategory(category)) {
+    return res.redirect(`${addressBookBasePath}/add`)
+  }
+
+  const pendingAddress = req.session.data.addressBookPendingManualAddress
+
+  if (!pendingAddress) {
+    return res.redirect(`${addressBookBasePath}/add/lookup`)
+  }
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+  req.session.data.addressBookAddressUses = selectedAddressUses
+  req.session.data.addressBookOriginUses = null
+
+  if (!selectedAddressUses.length) {
+    req.session.data.errors = {
+      addressUses: {
+        text: 'Select what this address can be used for'
+      }
+    }
+    req.session.data.errorList = [{
+      text: 'Select what this address can be used for',
+      href: firstUseOption ? `#address-use-${firstUseOption.value}` : '#address-uses-error'
+    }]
+
+    return renderAddressBookAddUsagePage(req, res, {
+      selectedAddressUses
+    })
+  }
+
+  const { redirectTo } = saveAddressBookEntry(req.session.data, pendingAddress, {
+    addressTypes: selectedAddressUses
+  })
 
   return res.redirect(redirectTo)
 })
@@ -7621,10 +8998,10 @@ router.post('/upload-documents', (req, res) => {
     return res.redirect('/upload-documents')
   }
 
-  if (action === 'hub') {
+  if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
     resetUploadDocumentFormState(req.session.data)
 
-    return res.redirect('/notification-hub')
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
   }
 
   if (action === 'continue') {
@@ -7670,7 +9047,7 @@ router.post('/reason-for-import', (req, res) => {
   const temporaryAdmissionExitDate = (req.body.temporaryAdmissionExitDate || '').trim()
   const temporaryAdmissionPortOfExit = (req.body.temporaryAdmissionPortOfExit || '').trim()
 
-  if (req.body.action === 'hub') {
+  if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
     if (importReasonValues.includes(importReason)) {
       req.session.data.importReason = importReason
       req.session.data.internalMarketPurpose = importReason === 'Internal market' &&
@@ -7699,7 +9076,7 @@ router.post('/reason-for-import', (req, res) => {
         : null
     }
 
-    return res.redirect('/notification-hub')
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
   }
 
   req.session.data.importReason = importReason || null
@@ -7721,6 +9098,12 @@ router.post('/reason-for-import', (req, res) => {
   req.session.data.temporaryAdmissionPortOfExit = importReason === 'Temporary admission horses'
     ? (temporaryAdmissionPortOfExit || null)
     : null
+
+  if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
+    req.session.data.errorList = null
+    req.session.data.errors = null
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
+  }
 
   const validation = validateImportReasonProceed({
     importReason,
@@ -7853,14 +9236,14 @@ router.post('/animal-identification-details', (req, res) => {
     return res.redirect('/animal-identification-details')
   }
 
-  if (action === 'hub') {
+  if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
     saveActiveAnimalIdentifiersFromBody(req.session.data, req.body, {
       onlySingleAnimalSpecies: true
     })
     req.session.data.errorList = null
     req.session.data.errors = null
 
-    return res.redirect('/notification-hub')
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
   }
 
   if (action === 'continue') {
@@ -7904,12 +9287,12 @@ router.post('/arrival-details', (req, res) => {
   const values = parseArrivalDetailsBody(req.body)
   const action = (req.body.action || '').trim()
 
-  if (action === 'hub') {
+  if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
     saveArrivalDetailsToSession(req.session.data, values)
     req.session.data.errorList = null
     req.session.data.errors = null
 
-    return res.redirect('/notification-hub')
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
   }
 
   const validation = validateArrivalDetails(values)
@@ -7973,12 +9356,12 @@ router.post('/transit-countries', (req, res) => {
   const countries = parseTransitCountriesBody(req.body)
   const action = (req.body.action || '').trim()
 
-  if (action === 'hub') {
+  if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
     saveTransitCountriesToSession(req.session.data, countries)
     req.session.data.errorList = null
     req.session.data.errors = null
 
-    return res.redirect('/notification-hub')
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
   }
 
   req.session.data.errorList = null
@@ -8078,10 +9461,9 @@ router.post('/transporter/add/private', (req, res) => {
   if (action === 'cancel') {
     req.session.data.errorList = null
     req.session.data.errors = null
-    req.session.data.transporterAddType = null
     req.session.data.transporterPrivateForm = null
 
-    return res.redirect('/')
+    return res.redirect(getTransporterAddCancelRedirect(req, res))
   }
 
   const validation = validateTransporterPrivateForm(formValues)
@@ -8099,11 +9481,14 @@ router.post('/transporter/add/private', (req, res) => {
   req.session.data.errorList = null
   req.session.data.errors = null
   req.session.data.transporterPrivateForm = null
-  req.session.data.transporterAddType = null
 
-  saveAddedTransporter(req.session.data, buildPrivateTransporterFromForm(validation.value))
+  const { redirectTo } = saveAddedTransporter(
+    req.session.data,
+    buildPrivateTransporterFromForm(validation.value),
+    { addressBookPath: getAddressBookBasePath(res) }
+  )
 
-  return res.redirect('/transporter')
+  return res.redirect(redirectTo)
 })
 
 router.get('/transporter/add/commercial', (req, res) => {
@@ -8129,10 +9514,9 @@ router.post('/transporter/add/commercial', (req, res) => {
   if (action === 'cancel') {
     req.session.data.errorList = null
     req.session.data.errors = null
-    req.session.data.transporterAddType = null
     req.session.data.transporterCommercialForm = null
 
-    return res.redirect('/')
+    return res.redirect(getTransporterAddCancelRedirect(req, res))
   }
 
   const validation = validateTransporterCommercialForm(formValues)
@@ -8143,18 +9527,24 @@ router.post('/transporter/add/commercial', (req, res) => {
     req.session.data.transporterCommercialForm = validation.value
 
     return renderTransporterAddCommercialPage(req, res, {
-      formValues: validation.value
+      formValues: validation.value,
+      showManualAddress: true,
+      addressLookup: formValues.addressLookup || '',
+      selectedLookupAddressId: formValues.lookupAddressId || ''
     })
   }
 
   req.session.data.errorList = null
   req.session.data.errors = null
   req.session.data.transporterCommercialForm = null
-  req.session.data.transporterAddType = null
 
-  saveAddedTransporter(req.session.data, buildCommercialTransporterFromForm(validation.value))
+  const { redirectTo } = saveAddedTransporter(
+    req.session.data,
+    buildCommercialTransporterFromForm(validation.value),
+    { addressBookPath: getAddressBookBasePath(res) }
+  )
 
-  return res.redirect('/transporter')
+  return res.redirect(redirectTo)
 })
 
 router.post('/transporter', (req, res) => {
@@ -8165,7 +9555,7 @@ router.post('/transporter', (req, res) => {
   const action = (req.body.action || '').trim()
   const transporter = getTransporterById(transporterId, req.session.data)
 
-  if (action === 'hub') {
+  if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
     if (transporter) {
       syncTransporterSession(req.session.data, transporter)
     }
@@ -8173,7 +9563,7 @@ router.post('/transporter', (req, res) => {
     req.session.data.errorList = null
     req.session.data.errors = null
 
-    return res.redirect('/notification-hub')
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
   }
 
   if (!transporter) {
@@ -8222,6 +9612,10 @@ router.post('/cph-number', (req, res) => {
   req.session.data.errorList = null
   req.session.data.errors = null
   req.session.data.cphNumber = validation.value
+
+  if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/roles-and-addresses'))
+  }
 
   return res.redirect('/roles-and-addresses')
 })
@@ -8329,8 +9723,8 @@ router.post('/permanent-address/select', (req, res) => {
 
   syncPermanentAddressSummary(req.session.data)
 
-  if (action === 'hub') {
-    return res.redirect('/notification-hub')
+  if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
   }
 
   return res.redirect('/roles-and-addresses')
@@ -8366,8 +9760,8 @@ router.post('/roles-and-addresses', (req, res) => {
   req.session.data.errorList = null
   req.session.data.errors = null
 
-  if (action === 'hub') {
-    return res.redirect('/notification-hub')
+  if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
   }
 
   return res.redirect(getNextJourneyPath('/roles-and-addresses', req.session.data))
@@ -8391,6 +9785,16 @@ router.post('/contact-address-for-consignment', (req, res) => {
   syncContactAddressSession(req.session.data, validation.address)
   req.session.data.errorList = null
   req.session.data.errors = null
+
+  const action = getJourneyFormAction(req)
+
+  if (isJourneySoftSaveAction(action)) {
+    return res.redirect(getJourneySaveRedirect(action, '/notification-hub'))
+  }
+
+  if (action === 'continue') {
+    return res.redirect(getNextJourneyPath('/contact-address-for-consignment', req.session.data))
+  }
 
   if (isFromHub(req)) {
     return res.redirect('/notification-hub')

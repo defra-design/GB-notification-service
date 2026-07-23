@@ -6,6 +6,7 @@
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
 {% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
 {% from "partials/design-release-2/dashboard-notification-card.html" import dr2DashboardNotificationCard %}
 
 {% set pageName = "Dashboard" %}
@@ -31,11 +32,11 @@
 
       <div class="app-dr2-dashboard-intro__actions">
         {{ govukButton({
-          text: "Create new",
+          text: "Create new notification",
           href: "/design-release-2/create-notification"
         }) }}
         {{ govukButton({
-          text: "Use template",
+          text: "Use notification template",
           href: "/design-release-2/templates",
           classes: "govuk-button--secondary"
         }) }}
@@ -112,11 +113,85 @@
           </div>
         </div>
 
-        <details class="app-dr2-dashboard-filters" open>
+        <details class="app-dr2-dashboard-filters"{% if additionalFiltersOpen %} open{% endif %}>
           <summary class="app-dr2-dashboard-filters__summary">
             <span class="app-dr2-dashboard-filters__summary-text">Additional filters</span>
             <img class="app-dr2-dashboard-filters__chevron" src="/public/images/dashboard/icon-chevron-down.svg" width="17" height="9" alt="">
           </summary>
+
+          <div class="app-dr2-dashboard-filters__panel">
+            <div class="app-dr2-dashboard-filters__column app-dr2-dashboard-filters__column--date">
+              <p class="app-dr2-dashboard-filters__column-heading" id="dashboard-by-date-heading">By date</p>
+              {{ govukRadios({
+                idPrefix: "dashboard-date-range",
+                name: "dateRange",
+                classes: "govuk-radios--small app-dr2-dashboard-filters__date-radios",
+                fieldset: {
+                  describedBy: "dashboard-by-date-heading",
+                  legend: {
+                    text: "By date",
+                    classes: "govuk-visually-hidden"
+                  }
+                },
+                items: dateRangeItems
+              }) }}
+            </div>
+
+            <div class="app-dr2-dashboard-filters__column app-dr2-dashboard-filters__column--range">
+              <div class="app-dr2-dashboard-filters__date-range-intro">
+                <p class="app-dr2-dashboard-filters__column-heading">Select date range</p>
+                <p class="app-dr2-dashboard-filters__hint">For example, 27/3/2026</p>
+              </div>
+
+              <div class="app-dr2-dashboard-filters__date-picker">
+                {{ mojDatePicker({
+                  id: "dashboard-start-date",
+                  name: "startDate",
+                  value: startDate,
+                  label: {
+                    text: "Start date",
+                    classes: "app-dr2-dashboard-filters__date-label"
+                  }
+                }) }}
+              </div>
+
+              <div class="app-dr2-dashboard-filters__date-picker">
+                {{ mojDatePicker({
+                  id: "dashboard-end-date",
+                  name: "endDate",
+                  value: endDate,
+                  label: {
+                    text: "End date",
+                    classes: "app-dr2-dashboard-filters__date-label"
+                  }
+                }) }}
+              </div>
+            </div>
+
+            <div class="app-dr2-dashboard-filters__column app-dr2-dashboard-filters__column--selects">
+              {{ govukSelect({
+                id: "dashboard-filter-type",
+                name: "type",
+                label: {
+                  text: "By type",
+                  classes: "app-dr2-dashboard-filters__select-label"
+                },
+                classes: "app-dr2-dashboard-filters__select",
+                items: typeFilterItems
+              }) }}
+
+              {{ govukSelect({
+                id: "dashboard-filter-status",
+                name: "status",
+                label: {
+                  text: "Status",
+                  classes: "app-dr2-dashboard-filters__select-label"
+                },
+                classes: "app-dr2-dashboard-filters__select",
+                items: statusFilterItems
+              }) }}
+            </div>
+          </div>
         </details>
 
         <div class="app-dr2-dashboard-filter-radios">

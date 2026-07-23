@@ -1,0 +1,94 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+
+{% set pageName = "What can this address be used for?" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+    <div class="app-address-book-add-shell">
+      {% if data.errorList %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: data.errorList
+        }) }}
+      {% endif %}
+
+      <div class="app-address-book-add-page">
+        <div class="app-address-book-add-page__header">
+          <p class="app-address-book-add-page__caption">Add a new address</p>
+          <h1 class="app-address-book-add-page__heading">What can this address be used for?</h1>
+        </div>
+
+        <form method="post" action="{{ formAction }}" novalidate class="app-address-book-add-form">
+          <div class="govuk-form-group app-address-book-add-page__question{% if data.errors and data.errors.addressUses %} govuk-form-group--error{% endif %}">
+            <fieldset class="govuk-fieldset">
+              <legend class="govuk-fieldset__legend govuk-visually-hidden">What can this address be used for?</legend>
+
+              {% if data.errors and data.errors.addressUses %}
+                <p id="address-uses-error" class="govuk-error-message">
+                  <span class="govuk-visually-hidden">Error:</span>
+                  {{ data.errors.addressUses.text }}
+                </p>
+              {% endif %}
+
+              <div class="govuk-checkboxes app-address-book-add-checkboxes" data-module="govuk-checkboxes">
+                {% for item in addressUseOptions %}
+                  <div class="govuk-checkboxes__item">
+                    <input
+                      class="govuk-checkboxes__input"
+                      id="address-use-{{ item.value }}"
+                      name="addressUses"
+                      type="checkbox"
+                      value="{{ item.value }}"
+                      {% if selectedAddressUses and (item.value in selectedAddressUses) %}checked{% endif %}
+                      {% if item.hint and data.errors and data.errors.addressUses %}
+                        aria-describedby="address-use-{{ item.value }}-hint address-uses-error"
+                      {% elif item.hint %}
+                        aria-describedby="address-use-{{ item.value }}-hint"
+                      {% elif data.errors and data.errors.addressUses %}
+                        aria-describedby="address-uses-error"
+                      {% endif %}
+                    >
+                    <label class="govuk-label govuk-checkboxes__label" for="address-use-{{ item.value }}">
+                      {{ item.text }}
+                    </label>
+                    {% if item.hint %}
+                      <div class="govuk-hint govuk-checkboxes__hint" id="address-use-{{ item.value }}-hint">
+                        {{ item.hint }}
+                      </div>
+                    {% endif %}
+                  </div>
+                {% endfor %}
+              </div>
+            </fieldset>
+          </div>
+
+          {{ govukButton({
+            text: "Save address",
+            classes: "app-address-book-add-page__continue-button"
+          }) }}
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

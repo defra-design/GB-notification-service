@@ -1,6 +1,5 @@
 {% extends "layouts/main.html" %}
 
-{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
@@ -20,7 +19,7 @@
 
 {% block content %}
 <div class="govuk-grid-row">
-  <div class="govuk-grid-column-full app-address-book-page">
+  <div class="govuk-grid-column-full app-address-book-page{% if isDesignRelease2Version %} app-address-book-page--dr2{% endif %}">
 
     {% if successMessage %}
       {{ govukNotificationBanner({
@@ -33,110 +32,279 @@
 
     <div class="app-address-book-page__header">
       <h1 class="app-address-book-page__heading">Address book</h1>
-      <p class="app-address-book-page__intro">
-        Manage your addresses for use across import notifications.
+      <p class="app-address-book-page__intro{% if isDesignRelease2Version %} govuk-body-l{% endif %}">
+        {% if isDesignRelease2Version %}
+          Manage your addresses for use across all your import notifications
+        {% else %}
+          Manage your addresses for use across import notifications.
+        {% endif %}
       </p>
     </div>
 
     {{ govukButton({
       text: "Add a new address",
-      href: "/address-book/add",
+      href: (serviceNavAddressBookHref if serviceNavAddressBookHref else "/address-book") + "/add",
       classes: "app-address-book-page__add-button"
     }) }}
 
-    <form method="get" action="/address-book" class="app-address-book-page__filter">
-      <h2 class="app-address-book-page__filter-heading">Filter addresses</h2>
+    <form method="get" action="{{ serviceNavAddressBookHref if serviceNavAddressBookHref else '/address-book' }}" class="app-address-book-page__filter">
+      {% if isDesignRelease2Version and categoryId %}
+        <input type="hidden" name="category" value="{{ categoryId }}">
+      {% endif %}
+      {% if isDesignRelease2Version %}
+        <details class="app-address-book-page__filter-details">
+          <summary class="app-address-book-page__filter-summary">
+            <span class="app-address-book-page__filter-summary-text">Filter addresses</span>
+            <img class="app-address-book-page__filter-chevron" src="/public/images/dashboard/icon-chevron-down.svg" width="17" height="9" alt="">
+          </summary>
 
-      <div class="app-address-book-page__filter-fields">
-        <div class="app-address-book-page__search">
-          <label class="govuk-label app-address-book-page__search-label" for="address-book-search">
-            Search
-          </label>
-          <div class="app-address-book-page__search-field">
-            <input
-              class="govuk-input app-address-book-page__search-input"
-              id="address-book-search"
-              name="search"
-              type="search"
-              autocomplete="off"
-              placeholder="Search by name, address or country"
-              value="{{ searchQuery or '' }}"
-            >
-            <button class="app-address-book-page__search-button" type="button" aria-label="Search">
-              <span class="app-address-book-page__search-button-icon" aria-hidden="true"></span>
-            </button>
+          <div class="app-address-book-page__filter-panel">
+            <div class="app-address-book-page__filter-fields">
+              <div class="app-address-book-page__search">
+                <label class="govuk-label app-address-book-page__search-label" for="address-book-search">
+                  Search
+                </label>
+                <div class="app-address-book-page__search-field">
+                  <input
+                    class="govuk-input app-address-book-page__search-input"
+                    id="address-book-search"
+                    name="search"
+                    type="search"
+                    autocomplete="off"
+                    placeholder="Search by name, address or country"
+                    value="{{ searchQuery or '' }}"
+                  >
+                  <button class="app-address-book-page__search-button" type="button" aria-label="Search">
+                    <span class="app-address-book-page__search-button-icon" aria-hidden="true"></span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="app-address-book-page__type">
+                {{ govukSelect({
+                  id: "address-book-type",
+                  name: "type",
+                  label: {
+                    text: "Type",
+                    classes: "app-address-book-page__type-label"
+                  },
+                  classes: "app-address-book-page__type-select",
+                  formGroup: {
+                    classes: "app-address-book-page__type-form-group"
+                  },
+                  items: typeItems
+                }) }}
+              </div>
+            </div>
+          </div>
+        </details>
+      {% else %}
+        <h2 class="app-address-book-page__filter-heading">Filter addresses</h2>
+
+        <div class="app-address-book-page__filter-fields">
+          <div class="app-address-book-page__search">
+            <label class="govuk-label app-address-book-page__search-label" for="address-book-search">
+              Search
+            </label>
+            <div class="app-address-book-page__search-field">
+              <input
+                class="govuk-input app-address-book-page__search-input"
+                id="address-book-search"
+                name="search"
+                type="search"
+                autocomplete="off"
+                placeholder="Search by name, address or country"
+                value="{{ searchQuery or '' }}"
+              >
+              <button class="app-address-book-page__search-button" type="button" aria-label="Search">
+                <span class="app-address-book-page__search-button-icon" aria-hidden="true"></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="app-address-book-page__type">
+            {{ govukSelect({
+              id: "address-book-type",
+              name: "type",
+              label: {
+                text: "Type",
+                classes: "app-address-book-page__type-label"
+              },
+              classes: "app-address-book-page__type-select",
+              formGroup: {
+                classes: "app-address-book-page__type-form-group"
+              },
+              items: typeItems
+            }) }}
           </div>
         </div>
-
-        <div class="app-address-book-page__type">
-          {{ govukSelect({
-            id: "address-book-type",
-            name: "type",
-            label: {
-              text: "Type",
-              classes: "app-address-book-page__type-label"
-            },
-            classes: "app-address-book-page__type-select",
-            formGroup: {
-              classes: "app-address-book-page__type-form-group"
-            },
-            items: typeItems
-          }) }}
-        </div>
-      </div>
+      {% endif %}
     </form>
 
-    <div class="app-address-book-page__results" data-module="app-address-book-search">
+    <div class="app-address-book-page__results" data-module="app-address-book-search"{% if categoryId %} data-address-category="{{ categoryId }}"{% endif %}>
       <script type="application/json" class="app-address-book-page__addresses-data">{{ allAddressesJson | safe }}</script>
 
-      <p class="app-address-book-page__results-count" data-address-book-results-count>{{ resultsText }}</p>
-
-      <div class="app-address-book-page__table-panel">
-        <table class="govuk-table app-address-book-table">
-          <thead class="govuk-table__head">
-            <tr class="govuk-table__row">
-              <th scope="col" class="govuk-table__header app-address-book-table__header">Name</th>
-              <th scope="col" class="govuk-table__header app-address-book-table__header">Type</th>
-              <th scope="col" class="govuk-table__header app-address-book-table__header">Address</th>
-              <th scope="col" class="govuk-table__header app-address-book-table__header">Country</th>
-              <th scope="col" class="govuk-table__header app-address-book-table__header app-address-book-table__header--action">
-                <span class="govuk-visually-hidden">Action</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody class="govuk-table__body" data-address-book-results>
-            {% for address in addresses %}
-              <tr
-                class="govuk-table__row app-address-book-table__row"
-                data-address-row
-                data-search-text="{{ address.searchText }}"
-                data-address-type="{{ address.type }}"
-              >
-                <td class="govuk-table__cell app-address-book-table__cell">{{ address.name }}</td>
-                <td class="govuk-table__cell app-address-book-table__cell">{{ address.typeLabel }}</td>
-                <td class="govuk-table__cell app-address-book-table__cell">{{ address.address }}</td>
-                <td class="govuk-table__cell app-address-book-table__cell">{{ address.country }}</td>
-                <td class="govuk-table__cell app-address-book-table__cell app-address-book-table__cell--action">
-                  <a class="govuk-link" href="{{ address.viewHref }}">View</a>
-                </td>
-              </tr>
+      {% if isDesignRelease2Version and categoryTabs %}
+        <div class="govuk-tabs app-address-book-page__tabs">
+          <ul class="govuk-tabs__list" role="tablist">
+            {% for tab in categoryTabs %}
+              <li class="govuk-tabs__list-item{% if tab.selected %} govuk-tabs__list-item--selected{% endif %}" role="presentation">
+                <a
+                  class="govuk-tabs__tab"
+                  href="{{ tab.href }}"
+                  role="tab"
+                  {% if tab.selected %}aria-selected="true"{% else %}aria-selected="false"{% endif %}
+                >{{ tab.label }}</a>
+              </li>
             {% endfor %}
-          </tbody>
-        </table>
-      </div>
+          </ul>
 
-      {% if pagination.items %}
-        {{ govukPagination({
-          previous: pagination.previous,
-          next: pagination.next,
-          items: pagination.items,
-          classes: "app-address-book-page__pagination"
-        }) }}
-      {% elif pagination.next %}
-        {{ govukPagination({
-          next: pagination.next,
-          classes: "app-address-book-page__pagination"
-        }) }}
+          <div class="govuk-tabs__panel app-address-book-page__tabs-panel">
+            <h2 class="app-address-book-page__category-heading">{{ categoryHeading }}</h2>
+            <p class="app-address-book-page__results-count" data-address-book-results-count>{{ resultsText }}</p>
+
+            <div class="app-address-book-page__table-panel">
+              <table class="govuk-table app-address-book-table{% if categoryId == 'transporter' %} app-address-book-table--transporter{% endif %}">
+                <thead class="govuk-table__head">
+                  <tr class="govuk-table__row">
+                    <th scope="col" class="govuk-table__header app-address-book-table__header">Name</th>
+                    {% if categoryId == 'transporter' %}
+                      <th scope="col" class="govuk-table__header app-address-book-table__header">Address</th>
+                      <th scope="col" class="govuk-table__header app-address-book-table__header">Approval number</th>
+                      <th scope="col" class="govuk-table__header app-address-book-table__header">Type</th>
+                    {% else %}
+                      <th scope="col" class="govuk-table__header app-address-book-table__header">Type</th>
+                      <th scope="col" class="govuk-table__header app-address-book-table__header">Address</th>
+                      <th scope="col" class="govuk-table__header app-address-book-table__header">Country</th>
+                    {% endif %}
+                    <th scope="col" class="govuk-table__header app-address-book-table__header app-address-book-table__header--action">
+                      <span class="govuk-visually-hidden">Action</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="govuk-table__body" data-address-book-results>
+                  {% for address in addresses %}
+                    <tr
+                      class="govuk-table__row app-address-book-table__row"
+                      data-address-row
+                      data-search-text="{{ address.searchText }}"
+                      data-address-type="{{ address.types.join(',') if address.types else address.type }}"
+                      data-address-category="{{ address.category }}"
+                    >
+                      <td class="govuk-table__cell app-address-book-table__cell">
+                        {% if address.nameLines and address.nameLines.length > 1 %}
+                          <p class="app-address-book-table__address-lines">
+                            {% for line in address.nameLines %}
+                              {{ line }}{% if not loop.last %}<br>{% endif %}
+                            {% endfor %}
+                          </p>
+                        {% else %}
+                          {{ address.name }}
+                        {% endif %}
+                      </td>
+                      {% if categoryId == 'transporter' %}
+                        <td class="govuk-table__cell app-address-book-table__cell">
+                          {% if address.addressLines and address.addressLines.length %}
+                            <p class="app-address-book-table__address-lines">
+                              {% for line in address.addressLines %}
+                                {{ line }}{% if not loop.last %},<br>{% endif %}
+                              {% endfor %}
+                            </p>
+                          {% else %}
+                            {{ address.address }}
+                          {% endif %}
+                        </td>
+                        <td class="govuk-table__cell app-address-book-table__cell">{{ address.approvalNumber }}</td>
+                        <td class="govuk-table__cell app-address-book-table__cell">{{ address.typeLabel }}</td>
+                      {% else %}
+                        <td class="govuk-table__cell app-address-book-table__cell">{{ address.typeLabel }}</td>
+                        <td class="govuk-table__cell app-address-book-table__cell">
+                          {% if address.addressLines and address.addressLines.length %}
+                            <p class="app-address-book-table__address-lines">
+                              {% for line in address.addressLines %}
+                                {{ line }}{% if not loop.last %},<br>{% endif %}
+                              {% endfor %}
+                            </p>
+                          {% else %}
+                            {{ address.address }}
+                          {% endif %}
+                        </td>
+                        <td class="govuk-table__cell app-address-book-table__cell">{{ address.country }}</td>
+                      {% endif %}
+                      <td class="govuk-table__cell app-address-book-table__cell app-address-book-table__cell--action">
+                        <a class="govuk-link" href="{{ address.viewHref }}">View</a>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            {% if pagination.items %}
+              {{ govukPagination({
+                previous: pagination.previous,
+                next: pagination.next,
+                items: pagination.items,
+                classes: "app-address-book-page__pagination"
+              }) }}
+            {% elif pagination.next %}
+              {{ govukPagination({
+                next: pagination.next,
+                classes: "app-address-book-page__pagination"
+              }) }}
+            {% endif %}
+          </div>
+        </div>
+      {% else %}
+        <p class="app-address-book-page__results-count" data-address-book-results-count>{{ resultsText }}</p>
+
+        <div class="app-address-book-page__table-panel">
+          <table class="govuk-table app-address-book-table">
+            <thead class="govuk-table__head">
+              <tr class="govuk-table__row">
+                <th scope="col" class="govuk-table__header app-address-book-table__header">Name</th>
+                <th scope="col" class="govuk-table__header app-address-book-table__header">Type</th>
+                <th scope="col" class="govuk-table__header app-address-book-table__header">Address</th>
+                <th scope="col" class="govuk-table__header app-address-book-table__header">Country</th>
+                <th scope="col" class="govuk-table__header app-address-book-table__header app-address-book-table__header--action">
+                  <span class="govuk-visually-hidden">Action</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody class="govuk-table__body" data-address-book-results>
+              {% for address in addresses %}
+                <tr
+                  class="govuk-table__row app-address-book-table__row"
+                  data-address-row
+                  data-search-text="{{ address.searchText }}"
+                  data-address-type="{{ address.type }}"
+                >
+                  <td class="govuk-table__cell app-address-book-table__cell">{{ address.name }}</td>
+                  <td class="govuk-table__cell app-address-book-table__cell">{{ address.typeLabel }}</td>
+                  <td class="govuk-table__cell app-address-book-table__cell">{{ address.address }}</td>
+                  <td class="govuk-table__cell app-address-book-table__cell">{{ address.country }}</td>
+                  <td class="govuk-table__cell app-address-book-table__cell app-address-book-table__cell--action">
+                    <a class="govuk-link" href="{{ address.viewHref }}">View</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        {% if pagination.items %}
+          {{ govukPagination({
+            previous: pagination.previous,
+            next: pagination.next,
+            items: pagination.items,
+            classes: "app-address-book-page__pagination"
+          }) }}
+        {% elif pagination.next %}
+          {{ govukPagination({
+            next: pagination.next,
+            classes: "app-address-book-page__pagination"
+          }) }}
+        {% endif %}
       {% endif %}
     </div>
 

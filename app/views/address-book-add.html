@@ -5,7 +5,7 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
 
-{% set pageName = "What is the new address for?" %}
+{% set pageName = pageHeading if pageHeading else "What is the new address for?" %}
 
 {% block beforeContent %}
   {{ govukPhaseBanner({
@@ -35,13 +35,13 @@
       <div class="app-address-book-add-page">
         <div class="app-address-book-add-page__header">
           <p class="app-address-book-add-page__caption">Add a new address</p>
-          <h1 class="app-address-book-add-page__heading">What is the new address for?</h1>
+          <h1 class="app-address-book-add-page__heading">{{ pageHeading if pageHeading else "What is the new address for?" }}</h1>
         </div>
 
-        <form method="post" action="/address-book/add" novalidate class="app-address-book-add-form">
+        <form method="post" action="{{ formAction if formAction else '/address-book/add' }}" novalidate class="app-address-book-add-form">
           <div class="govuk-form-group app-address-book-add-page__question{% if data.errors and data.errors.addressType %} govuk-form-group--error{% endif %}">
             <fieldset class="govuk-fieldset">
-              <legend class="govuk-fieldset__legend govuk-visually-hidden">What is the new address for?</legend>
+              <legend class="govuk-fieldset__legend govuk-visually-hidden">{{ pageHeading if pageHeading else "What is the new address for?" }}</legend>
 
               {% if data.errors and data.errors.addressType %}
                 <p id="address-type-error" class="govuk-error-message">

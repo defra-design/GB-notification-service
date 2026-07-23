@@ -73,10 +73,17 @@
         items: radioItems
       }) }}
 
-      {{ govukButton({
-        text: "Continue",
-        classes: "app-permanent-address-page__continue-button"
-      }) }}
+      {% if data.notificationStatus == 'Amend' %}
+        {% set journeyFormActionOptions = {
+          continueClasses: "app-permanent-address-page__continue-button"
+        } %}
+        {% include "partials/design-release-2/journey-form-actions.html" %}
+      {% else %}
+        {{ govukButton({
+          text: "Continue",
+          classes: "app-permanent-address-page__continue-button"
+        }) }}
+      {% endif %}
 
     </form>
 

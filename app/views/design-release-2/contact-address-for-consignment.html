@@ -82,10 +82,18 @@
         items: contactAddressItems
       }) }}
 
-      {{ govukButton({
-        text: "Continue",
-        classes: "app-contact-address-page__button"
-      }) }}
+      {% if data.notificationStatus == 'Amend' %}
+        {% set journeyFormActionOptions = {
+          showHub: false,
+          showCancel: false
+        } %}
+        {% include "partials/design-release-2/journey-form-actions.html" %}
+      {% else %}
+        {{ govukButton({
+          text: "Continue",
+          classes: "app-contact-address-page__button"
+        }) }}
+      {% endif %}
 
     </form>
 

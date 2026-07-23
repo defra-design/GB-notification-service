@@ -9,7 +9,12 @@
       <p class="app-dr2-dashboard-notification-card__category">{{ notification.categoryLabel }}</p>
       <h3 class="app-dr2-dashboard-notification-card__reference">{{ notification.reference }}</h3>
     </div>
-    <a class="govuk-link app-dr2-dashboard-notification-card__view-link" href="{{ notification.viewHref }}">View notification</a>
+    <div class="app-dr2-dashboard-notification-card__actions">
+      {% if notification.copyHref %}
+        <a class="govuk-link app-dr2-dashboard-notification-card__action-link" href="{{ notification.copyHref }}">Copy as new</a>
+      {% endif %}
+      <a class="govuk-link app-dr2-dashboard-notification-card__action-link" href="{{ notification.viewHref }}">View notification</a>
+    </div>
   </div>
 
   {% if notification.errorMessage %}

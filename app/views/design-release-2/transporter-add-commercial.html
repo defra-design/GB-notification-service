@@ -52,7 +52,7 @@
             }) }}
 
             {{ govukButton({
-              text: "Cancel and return to dashboard",
+              text: cancelButtonText if cancelButtonText else "Cancel and return to dashboard",
               name: "action",
               value: "cancel",
               classes: "govuk-button--secondary app-transporter-add-commercial-form__cancel-button"

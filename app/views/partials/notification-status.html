@@ -1,9 +1,25 @@
 {% from "govuk/components/tag/macro.njk" import govukTag %}
 
-<div class="app-notification-status">
-  {{ govukTag({
-    text: "Draft",
-    classes: "govuk-tag--blue"
-  }) }}
-  <span class="app-notification-status__reference">{{ notificationReference }}</span>
-</div>
+{% set statusText = data.notificationStatus if data.notificationStatus else "Draft" %}
+{% set isAmendStatus = statusText == "Amend" %}
+
+{% if isDesignRelease2Version %}
+  {% set statusModifier = statusText | lower | replace(" ", "-") %}
+  <div class="app-dr2-notification-status{% if isAmendStatus %} app-dr2-notification-status--amend{% endif %}">
+    <strong class="govuk-tag app-dr2-review-status__tag app-dr2-review-status__tag--{{ statusModifier }}">{{ statusText }}</strong>
+    <span class="app-dr2-notification-status__reference">{{ notificationReference }}</span>
+    {% if isAmendStatus %}
+      <button class="govuk-link app-dr2-notification-status__cancel-link" type="button" data-modal-open="cancel-amend-modal">
+        Cancel amend
+      </button>
+    {% endif %}
+  </div>
+{% else %}
+  <div class="app-notification-status">
+    {{ govukTag({
+      text: statusText,
+      classes: "govuk-tag--blue" if statusText == "Draft" else "govuk-tag--purple"
+    }) }}
+    <span class="app-notification-status__reference">{{ notificationReference }}</span>
+  </div>
+{% endif %}

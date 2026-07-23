@@ -44,7 +44,7 @@
           }) }}
         {% endif %}
 
-        <form method="post" action="/design-release-2/transporter/add" novalidate class="app-transporter-add-form">
+        <form method="post" action="{{ formAction if formAction else '/transporter/add' }}" novalidate class="app-transporter-add-form">
           <div class="govuk-form-group app-transporter-add-page__question{% if data.errors and data.errors.transporterType %} govuk-form-group--error{% endif %}">
             <fieldset class="govuk-fieldset">
               <legend class="govuk-fieldset__legend govuk-visually-hidden">Choose a transporter type</legend>

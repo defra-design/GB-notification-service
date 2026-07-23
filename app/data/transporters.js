@@ -23,7 +23,7 @@ module.exports = [
     name: 'Aberdeen Livestock Ltd',
     address: '15 Union Street, Aberdeen, AB11 5BN',
     approvalNumber: 'UK/ABERDEEN/T1/00092001',
-    type: 'Commercial',
+    type: 'Private',
     status: 'Approved',
     statusTagClass: 'govuk-tag--green'
   },

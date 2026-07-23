@@ -109,7 +109,7 @@
           </div>
           {% endif %}
 
-          {% if not isEditMode %}
+          {% if not isEditMode and not hideSearch %}
           <p class="app-address-book-lookup-page__manual-link{% if showManualAddress %} app-address-book-lookup-page__manual-link--hidden{% endif %}">
             <button
               type="button"
@@ -146,7 +146,7 @@
             }) }}
 
             {{ govukButton({
-              text: "Cancel" if isEditMode else "Cancel and return to dashboard",
+              text: "Cancel" if isEditMode else (cancelButtonText if cancelButtonText else "Cancel and return to dashboard"),
               name: "action",
               value: "cancel",
               classes: "govuk-button--secondary app-address-book-lookup-page__cancel-button"

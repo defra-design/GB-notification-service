@@ -1,0 +1,70 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "partials/design-release-2/review-summary-card.html" import dr2ReviewCard %}
+
+{% set pageName = "Review your template" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full app-review-notification-page app-review-notification-page--dr2 app-view-template-page">
+
+    <h1 class="app-view-template-page__title">Review your template</h1>
+
+    <section class="app-review-notification-page__section" aria-labelledby="template-section-about">
+      <h2 class="app-review-notification-page__section-heading" id="template-section-about">1. About the consignment</h2>
+
+      <h3 class="app-review-notification-page__subsection-heading">Where is this consignment coming from?</h3>
+      {{ dr2ReviewCard(templateReview.importDetailsCard, true) }}
+
+      <h3 class="app-review-notification-page__subsection-heading">What are you importing?</h3>
+      {{ dr2ReviewCard(templateReview.animalDetailsCard, true) }}
+
+      <h3 class="app-review-notification-page__subsection-heading">Main reason for import</h3>
+      {{ dr2ReviewCard(templateReview.importReasonCard, true) }}
+    </section>
+
+    <section class="app-review-notification-page__section" aria-labelledby="template-section-goods">
+      <h2 class="app-review-notification-page__section-heading" id="template-section-goods">2. Description of the goods</h2>
+
+      <h3 class="app-review-notification-page__subsection-heading">Additional details</h3>
+      {{ dr2ReviewCard(templateReview.additionalAnimalDetailsCard, true) }}
+    </section>
+
+    <section class="app-review-notification-page__section" aria-labelledby="template-section-parties">
+      <h2 class="app-review-notification-page__section-heading" id="template-section-parties">3. Consignment parties</h2>
+
+      <h3 class="app-review-notification-page__subsection-heading">Roles and addresses</h3>
+      {{ dr2ReviewCard(templateReview.addressesCard, true) }}
+    </section>
+
+    <form method="post" action="{{ formAction }}" novalidate class="app-view-template-page__form">
+      {{ govukButton({
+        text: "Save and continue",
+        classes: "app-view-template-page__continue"
+      }) }}
+
+      <p class="app-view-template-page__cancel">
+        <a class="govuk-link" href="{{ cancelHref }}">Cancel and return to dashboard</a>
+      </p>
+    </form>
+
+  </div>
+</div>
+{% endblock %}

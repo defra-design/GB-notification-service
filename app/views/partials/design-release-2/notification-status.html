@@ -1,4 +1,13 @@
-<div class="app-dr2-notification-status">
-  <strong class="govuk-tag app-dr2-review-status__tag app-dr2-review-status__tag--draft">Draft</strong>
+{% set statusText = data.notificationStatus if data.notificationStatus else "Draft" %}
+{% set statusModifier = statusText | lower | replace(" ", "-") %}
+{% set isAmendStatus = statusText == "Amend" %}
+
+<div class="app-dr2-notification-status{% if isAmendStatus %} app-dr2-notification-status--amend{% endif %}">
+  <strong class="govuk-tag app-dr2-review-status__tag app-dr2-review-status__tag--{{ statusModifier }}">{{ statusText }}</strong>
   <span class="app-dr2-notification-status__reference">{{ notificationReference }}</span>
+  {% if isAmendStatus %}
+    <button class="govuk-link app-dr2-notification-status__cancel-link" type="button" data-modal-open="cancel-amend-modal">
+      Cancel amend
+    </button>
+  {% endif %}
 </div>

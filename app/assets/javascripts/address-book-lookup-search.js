@@ -5,6 +5,18 @@
 const MIN_SEARCH_LENGTH = 2
 const MAX_RESULTS = 8
 
+const DEFAULT_MANUAL_FIELD_MAP = {
+  nameOrOrganisation: 'addressBookManualName',
+  addressLine1: 'addressBookManualAddressLine1',
+  addressLine2: 'addressBookManualAddressLine2',
+  townOrCity: 'addressBookManualTownOrCity',
+  county: 'addressBookManualCounty',
+  postcode: 'addressBookManualPostcode',
+  country: 'addressBookManualCountry',
+  email: 'addressBookManualEmail',
+  phone: 'addressBookManualPhone'
+}
+
 function escapeHtml (value) {
   return value
     .replace(/&/g, '&amp;')
@@ -49,11 +61,45 @@ function getAddresses (root) {
   }
 }
 
-function showManualAddressSection () {
-  const manualSection = document.getElementById('address-book-manual-address')
-  const manualLink = document.querySelector('.app-address-book-lookup-page__manual-link')
-  const manualToggle = document.querySelector('.app-address-book-lookup-page__manual-toggle')
-  const manualEntryField = document.getElementById('manual-address-entry')
+function getManualFieldMap (root) {
+  const mapAttr = root.getAttribute('data-manual-field-map')
+
+  if (!mapAttr) {
+    return DEFAULT_MANUAL_FIELD_MAP
+  }
+
+  try {
+    return {
+      ...DEFAULT_MANUAL_FIELD_MAP,
+      ...JSON.parse(mapAttr)
+    }
+  } catch (error) {
+    return DEFAULT_MANUAL_FIELD_MAP
+  }
+}
+
+function getManualElements (root) {
+  const sectionSelector = root.getAttribute('data-manual-section') || '#address-book-manual-address'
+  const linkSelector = root.getAttribute('data-manual-link') || '.app-address-book-lookup-page__manual-link'
+  const toggleSelector = root.getAttribute('data-manual-toggle') || '.app-address-book-lookup-page__manual-toggle'
+  const entrySelector = root.getAttribute('data-manual-entry') || '#manual-address-entry'
+  const scope = root.closest('form') || document
+
+  return {
+    manualSection: scope.querySelector(sectionSelector),
+    manualLink: scope.querySelector(linkSelector),
+    manualToggle: scope.querySelector(toggleSelector),
+    manualEntryField: scope.querySelector(entrySelector)
+  }
+}
+
+function showManualAddressSection (root) {
+  const {
+    manualSection,
+    manualLink,
+    manualToggle,
+    manualEntryField
+  } = getManualElements(root || document)
 
   if (!manualSection || !manualEntryField) {
     return
@@ -63,32 +109,96 @@ function showManualAddressSection () {
   manualLink?.classList.add('app-address-book-lookup-page__manual-link--hidden')
   manualToggle?.setAttribute('aria-expanded', 'true')
   manualEntryField.removeAttribute('disabled')
+
+  const revealSelector = root && root.getAttribute('data-reveal-with-address')
+
+  if (revealSelector) {
+    const scope = root.closest('form') || document
+
+    scope.querySelectorAll(revealSelector).forEach((element) => {
+      element.classList.remove('app-address-book-lookup-page__manual--hidden')
+    })
+  }
 }
 
-function populateManualAddressFields (manualFields) {
-  const form = document.querySelector('.app-address-book-lookup-form')
+function populateManualAddressFields (manualFields, root) {
+  const form = (root && root.closest('form')) ||
+    document.querySelector('.app-address-book-lookup-form') ||
+    document.querySelector('.app-transporter-add-commercial-form')
 
   if (!form || !manualFields) {
     return
   }
 
-  const setFieldValue = (name, value) => {
-    const field = form.querySelector(`[name="${name}"]`)
+  const fieldMap = getManualFieldMap(root || document.body)
+  const mappedValues = {
+    nameOrOrganisation: manualFields.nameOrOrganisation,
+    addressLine1: manualFields.addressLine1,
+    addressLine2: manualFields.addressLine2,
+    townOrCity: manualFields.townOrCity,
+    county: manualFields.county,
+    postcode: manualFields.postcode,
+    country: manualFields.country,
+    email: '',
+    phone: ''
+  }
+
+  Object.keys(mappedValues).forEach((key) => {
+    const fieldName = fieldMap[key]
+
+    if (!fieldName || !Object.prototype.hasOwnProperty.call(mappedValues, key)) {
+      return
+    }
+
+    // Only set mapped keys that exist in the custom map or default map for this root
+    const customMapAttr = root && root.getAttribute('data-manual-field-map')
+    if (customMapAttr) {
+      try {
+        const customMap = JSON.parse(customMapAttr)
+        if (!Object.prototype.hasOwnProperty.call(customMap, key)) {
+          return
+        }
+      } catch (error) {
+        // fall through and set using merged map
+      }
+    }
+
+    const field = form.querySelector(`[name="${fieldName}"]`)
 
     if (field) {
-      field.value = value || ''
+      field.value = mappedValues[key] || ''
+    }
+  })
+}
+
+function initAddressLookupManualToggle (root) {
+  const {
+    manualSection,
+    manualLink,
+    manualToggle,
+    manualEntryField
+  } = getManualElements(root)
+
+  if (!manualToggle || !manualSection || !manualLink || !manualEntryField) {
+    return
+  }
+
+  const showManualAddress = () => {
+    showManualAddressSection(root)
+    const firstField = manualSection.querySelector('input, select, textarea')
+
+    if (firstField) {
+      firstField.focus()
     }
   }
 
-  setFieldValue('addressBookManualName', manualFields.nameOrOrganisation)
-  setFieldValue('addressBookManualAddressLine1', manualFields.addressLine1)
-  setFieldValue('addressBookManualAddressLine2', manualFields.addressLine2)
-  setFieldValue('addressBookManualTownOrCity', manualFields.townOrCity)
-  setFieldValue('addressBookManualCounty', manualFields.county)
-  setFieldValue('addressBookManualPostcode', manualFields.postcode)
-  setFieldValue('addressBookManualCountry', manualFields.country)
-  setFieldValue('addressBookManualEmail', '')
-  setFieldValue('addressBookManualPhone', '')
+  manualToggle.addEventListener('click', showManualAddress)
+
+  if (!manualSection.classList.contains('app-address-book-lookup-page__manual--hidden')) {
+    manualLink.classList.add('app-address-book-lookup-page__manual-link--hidden')
+    manualToggle.setAttribute('aria-expanded', 'true')
+    manualEntryField.removeAttribute('disabled')
+  }
 }
 
 function initAddressBookLookupSearch (root) {
@@ -105,6 +215,8 @@ function initAddressBookLookupSearch (root) {
     return
   }
 
+  initAddressLookupManualToggle(root)
+
   let selectedAddress = null
 
   if (idInput && idInput.value) {
@@ -115,8 +227,8 @@ function initAddressBookLookupSearch (root) {
     }
 
     if (selectedAddress?.manual) {
-      populateManualAddressFields(selectedAddress.manual)
-      showManualAddressSection()
+      populateManualAddressFields(selectedAddress.manual, root)
+      showManualAddressSection(root)
     }
   } else if (valueInput && valueInput.value) {
     selectedAddress = addresses.find((address) => address.label === valueInput.value) || null
@@ -179,8 +291,8 @@ function initAddressBookLookupSearch (root) {
     closeResults()
 
     if (address.manual) {
-      populateManualAddressFields(address.manual)
-      showManualAddressSection()
+      populateManualAddressFields(address.manual, root)
+      showManualAddressSection(root)
     }
 
     announce(`Selected ${address.name}`)
