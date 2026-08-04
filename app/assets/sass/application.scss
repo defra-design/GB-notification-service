@@ -7899,7 +7899,7 @@ body.app-dr2-amend-modal-open {
   display: flex;
   flex-direction: column;
   gap: 30px;
-  margin-bottom: 60px;
+  margin-bottom: 50px;
 
   > * {
     margin-top: 0;
@@ -7964,7 +7964,7 @@ body.app-dr2-amend-modal-open {
 
 .app-dr2-dashboard-glance {
   position: relative;
-  margin-bottom: 60px;
+  margin-bottom: 50px;
   padding-top: 35px;
   border-top: 5px solid #1d70b8;
   border-bottom: 1px solid #b1b4b6;
@@ -7985,7 +7985,7 @@ body.app-dr2-amend-modal-open {
 
   &__cards {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 300px));
     gap: 30px;
   }
 }
@@ -8043,16 +8043,24 @@ body.app-dr2-amend-modal-open {
   }
 
   &__heading {
-    margin: 0 0 40px;
+    margin: 0 0 30px;
     font-size: 36px;
     font-weight: 700;
     line-height: 40px;
     color: #0b0c0c;
   }
+
+  &__subheading {
+    margin: 40px 0 30px;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 30px;
+    color: #0b0c0c;
+  }
 }
 
 .app-dr2-dashboard-search {
-  margin-bottom: 50px;
+  margin-bottom: 40px;
 
   &__row {
     display: flex;
@@ -8133,6 +8141,82 @@ body.app-dr2-amend-modal-open {
   }
 }
 
+.app-dr2-dashboard-tabs {
+  margin-top: 40px;
+  margin-bottom: 0;
+
+  .govuk-tabs__list {
+    margin-bottom: 0;
+    border-bottom: 1px solid #b1b4b6;
+
+    &::after {
+      content: "";
+      display: block;
+      clear: both;
+    }
+  }
+
+  .govuk-tabs__list-item {
+    position: relative;
+    margin: 0 5px 0 0;
+    padding: 10px 20px;
+    float: left;
+    background-color: #f3f2f1;
+    text-align: center;
+
+    &::before {
+      content: none;
+    }
+  }
+
+  .govuk-tabs__list-item--selected {
+    margin-top: -5px;
+    margin-bottom: -1px;
+    padding: 14px 19px 16px;
+    border: 1px solid #b1b4b6;
+    border-bottom: 0;
+    background-color: #ffffff;
+
+    .govuk-tabs__tab {
+      text-decoration: none;
+    }
+  }
+
+  .govuk-tabs__tab {
+    display: inline-block;
+    margin-bottom: 0;
+    color: #0b0c0c;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 19px;
+    text-decoration: underline;
+    text-decoration-thickness: max(1px, 0.0625rem);
+    text-underline-offset: 0.1578em;
+
+    &:hover {
+      color: #0b0c0c;
+      text-decoration-thickness: max(3px, 0.1875rem, 0.12em);
+    }
+
+    &:focus {
+      outline: 3px solid transparent;
+      color: #0b0c0c;
+      background-color: #ffdd00;
+      box-shadow: 0 -2px #ffdd00, 0 4px #0b0c0c;
+      text-decoration: none;
+    }
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+    }
+  }
+}
+
 .app-dr2-dashboard-filters {
   margin-bottom: 0;
   background: #f3f2f1;
@@ -8141,8 +8225,9 @@ body.app-dr2-amend-modal-open {
     display: flex;
     gap: 10px;
     align-items: center;
-    min-height: 54px;
-    padding: 15px 30px;
+    height: 54px;
+    box-sizing: border-box;
+    padding: 0 30px;
     background: #f3f2f1;
     cursor: pointer;
     list-style: none;

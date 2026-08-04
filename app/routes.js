@@ -5586,8 +5586,12 @@ function renderNotificationHubPage (req, res) {
   })
 }
 
-function buildDashboardPageHref (page, sort) {
+function buildDashboardPageHref (page, sort, tab) {
   const params = new URLSearchParams()
+
+  if (tab && tab !== 'in-progress') {
+    params.set('tab', tab)
+  }
 
   if (sort) {
     params.set('sort', sort)
@@ -5759,7 +5763,7 @@ function buildDashboardActionsDelayFilterItems (actionNotifications, selectedFil
   }))
 }
 
-function buildDashboardPagination (currentPage, totalPages, sort) {
+function buildDashboardPagination (currentPage, totalPages, sort, tab) {
   if (totalPages <= 1) {
     return {
       items: null,
@@ -5773,7 +5777,7 @@ function buildDashboardPagination (currentPage, totalPages, sort) {
   for (let page = 1; page <= totalPages; page++) {
     items.push({
       number: String(page),
-      href: buildDashboardPageHref(page, sort),
+      href: buildDashboardPageHref(page, sort, tab),
       current: page === currentPage
     })
   }
@@ -5782,13 +5786,13 @@ function buildDashboardPagination (currentPage, totalPages, sort) {
     items,
     next: currentPage < totalPages
       ? {
-          href: buildDashboardPageHref(currentPage + 1, sort),
+          href: buildDashboardPageHref(currentPage + 1, sort, tab),
           text: 'Next'
         }
       : null,
     previous: currentPage > 1
       ? {
-          href: buildDashboardPageHref(currentPage - 1, sort),
+          href: buildDashboardPageHref(currentPage - 1, sort, tab),
           text: 'Previous'
         }
       : null
@@ -6076,7 +6080,7 @@ function formatDashboardArrivalDate (value) {
   return `${day}/${month}/${date.getFullYear()}`
 }
 
-function enrichDesignRelease2Notification (notification, index) {
+function enrichDesignRelease2Notification (notification, index, sessionData = {}) {
   const consignees = [
     'Glen Keen Farm',
     'Northern Livestock Imports',
@@ -6103,7 +6107,13 @@ function enrichDesignRelease2Notification (notification, index) {
   }
 
   const reviewVariant = notification.reviewVariant || mapStatusTextToReviewVariant(notification.statusText)
-  let categoryLabel = 'Live animals'
+  const notificationHasCategoryLabel = Boolean(notification.categoryLabel)
+  const notificationHasCommodityLabel = Boolean(notification.commodityLabel)
+  let categoryLabel = notification.categoryLabel || (
+    isDesignRelease21SessionData(sessionData) && hasGerminalProductsOnly(sessionData)
+      ? 'Germinal products'
+      : 'Live animals'
+  )
   let cardVariant = 'default'
   let statusDisplay = {
     type: 'text',
@@ -6141,7 +6151,7 @@ function enrichDesignRelease2Notification (notification, index) {
     }
   }
 
-  if (index % 6 === 3) {
+  if (!notificationHasCategoryLabel && index % 6 === 3) {
     categoryLabel = 'Plants'
     cardVariant = 'default'
     statusDisplay = {
@@ -6152,7 +6162,7 @@ function enrichDesignRelease2Notification (notification, index) {
     errorMessage = null
   }
 
-  if (index % 6 === 4) {
+  if (!notificationHasCategoryLabel && index % 6 === 4) {
     inspectionRequired = true
     statusDisplay = {
       type: 'text',
@@ -6246,8 +6256,10 @@ function enrichDesignRelease2Notification (notification, index) {
     consignee: notification.consignee || consignees[index % consignees.length],
     consignor: notification.consignor || consignors[index % consignors.length],
     categoryLabel,
-    commodityLabel: commodityMap[notification.commodities] || notification.commodities,
+    commodityLabel: notification.commodityLabel || commodityMap[notification.commodities] || notification.commodities,
     numberOfAnimals: notification.numberOfAnimals || String(8 + (index % 5)),
+    quantityLabel: notification.quantityLabel || 'Number of animals',
+    quantityValue: notification.quantityValue || notification.numberOfAnimals || String(8 + (index % 5)),
     arrivalDateDisplay: formatDashboardArrivalDate(notification.arrivalDate),
     cardVariant: finalCardVariant,
     statusDisplay: finalStatusDisplay,
@@ -6328,7 +6340,7 @@ function getDashboardNotificationList (sessionData = {}) {
     }
 
     return isDesignRelease2SessionData(sessionData)
-      ? enrichDesignRelease2Notification(mapped, index)
+      ? enrichDesignRelease2Notification(mapped, index, sessionData)
       : mapped
   })
 
@@ -6357,7 +6369,7 @@ function getDashboardNotificationList (sessionData = {}) {
     return isTestingSessionData(sessionData)
       ? enrichTestingNotification(mapped, index)
       : isDesignRelease2SessionData(sessionData)
-        ? enrichDesignRelease2Notification(mapped, index)
+        ? enrichDesignRelease2Notification(mapped, index, sessionData)
         : mapped
   })
 
@@ -6387,7 +6399,7 @@ function getDashboardNotificationList (sessionData = {}) {
       }
 
       return isDesignRelease2SessionData(sessionData)
-        ? enrichDesignRelease2Notification(mapped, index + submitted.length)
+        ? enrichDesignRelease2Notification(mapped, index + submitted.length, sessionData)
         : mapped
     })
     .filter((notification) =>
@@ -6840,6 +6852,7 @@ function buildDashboardStatusFilterItems (selectedValue = '') {
 function getDashboardViewModel (sessionData = {}, query = {}) {
   const isTesting = isTestingSessionData(sessionData)
   const isDr2 = isDesignRelease2SessionData(sessionData)
+  const tab = (query.tab || 'in-progress').trim()
   const sort = (query.sort || '').trim()
   const dateRange = (query.dateRange || '').trim()
   const startDate = (query.startDate || '').trim()
@@ -6852,14 +6865,52 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
   const actionNotifications = isDr2 ? getDashboardActionNotifications(sessionData) : []
   const statusChangeNotifications = isDr2 ? getDashboardStatusChangeNotifications(sessionData) : []
   const inspectionNotifications = isDr2 ? getDashboardInspectionNotifications(sessionData) : []
-  const totalCount = allNotifications.length
+  const validTabs = new Set(['in-progress', 'drafts', 'completed'])
+  const activeTab = validTabs.has(tab) ? tab : 'in-progress'
+  const inProgressNotifications = allNotifications.filter((notification) =>
+    notification.reviewVariant !== 'draft' && notification.reviewVariant !== 'submission-complete'
+  )
+  const draftNotifications = allNotifications.filter((notification) => notification.reviewVariant === 'draft')
+  const completedNotifications = allNotifications.filter((notification) => notification.reviewVariant === 'submission-complete')
+  const visibleNotifications = activeTab === 'drafts'
+    ? draftNotifications
+    : activeTab === 'completed'
+      ? completedNotifications
+      : inProgressNotifications
+  const totalCount = visibleNotifications.length
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
   const currentPage = Math.min(requestedPage, totalPages)
   const startIndex = (currentPage - 1) * pageSize
   const endIndex = Math.min(startIndex + pageSize, totalCount)
-  const notifications = allNotifications.slice(startIndex, endIndex)
+  const notifications = visibleNotifications.slice(startIndex, endIndex)
 
   return {
+    activeTab,
+    tabItems: [
+      {
+        id: 'in-progress',
+        text: 'In progress',
+        count: inProgressNotifications.length,
+        href: '/design-release-2.1?tab=in-progress'
+      },
+      {
+        id: 'drafts',
+        text: 'Drafts',
+        count: draftNotifications.length,
+        href: '/design-release-2.1?tab=drafts'
+      },
+      {
+        id: 'completed',
+        text: 'Completed',
+        count: completedNotifications.length,
+        href: '/design-release-2.1?tab=completed'
+      }
+    ],
+    notificationSectionHeading: activeTab === 'drafts'
+      ? 'Draft notifications'
+      : activeTab === 'completed'
+        ? 'Completed notifications'
+        : 'Notifications in progress',
     glanceCounts: isDr2
       ? {
         actionNeeded: actionNotifications.length,
@@ -6910,8 +6961,9 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
     notifications,
     sort,
     sortItems: buildDashboardSortItems(sort, { testing: isTesting }),
+    search: (query.search || '').trim(),
     resultsText: buildDashboardResultsText(startIndex + 1, endIndex, totalCount, { testing: isTesting }),
-    pagination: buildDashboardPagination(currentPage, totalPages, sort),
+    pagination: buildDashboardPagination(currentPage, totalPages, sort, activeTab),
     currentPage
   }
 }

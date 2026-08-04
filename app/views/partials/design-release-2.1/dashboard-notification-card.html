@@ -49,8 +49,8 @@
 
     <div class="app-dr2-dashboard-notification-card__row">
       <div class="app-dr2-dashboard-notification-card__field">
-        <dt class="app-dr2-dashboard-notification-card__key">Number of animals</dt>
-        <dd class="app-dr2-dashboard-notification-card__value">{{ notification.numberOfAnimals }}</dd>
+        <dt class="app-dr2-dashboard-notification-card__key">{{ notification.quantityLabel or "Number of animals" }}</dt>
+        <dd class="app-dr2-dashboard-notification-card__value">{{ notification.quantityValue or notification.numberOfAnimals }}</dd>
       </div>
       <div class="app-dr2-dashboard-notification-card__field">
         <dt class="app-dr2-dashboard-notification-card__key">Origin</dt>
