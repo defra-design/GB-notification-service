@@ -127,6 +127,20 @@ const consignmentAddressSectionIdsByCommodityCode = {
     'importer',
     'place-of-destination',
     'permanent-address'
+  ],
+  '05111000': [
+    'place-of-origin',
+    'consignor-or-exporter',
+    'consignee',
+    'importer',
+    'place-of-destination'
+  ],
+  '05119985': [
+    'place-of-origin',
+    'consignor-or-exporter',
+    'consignee',
+    'importer',
+    'place-of-destination'
   ]
 }
 

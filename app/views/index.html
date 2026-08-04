@@ -99,6 +99,41 @@ Import notification service
 
     <div class="prototype-release-card govuk-!-margin-top-6">
       {{ govukTag({
+        text: "In design",
+        classes: "govuk-tag--purple"
+      }) }}
+
+      <h2 class="govuk-heading-l">
+        Design release 2.1
+      </h2>
+
+      <h3 class="govuk-heading-m">
+        Create a notification
+      </h3>
+
+      <p class="govuk-body">
+        A duplicate of Design release 2 for making changes without affecting the original version.
+      </p>
+
+      {{ govukDetails({
+        summaryText: "What the journey contains",
+        html: '
+          <ul class="govuk-list govuk-list--bullet">
+            <li>Same journey as Design release 2</li>
+            <li>Separate dashboard and session data</li>
+            <li>Shared address book</li>
+          </ul>
+        '
+      }) }}
+
+      {{ govukButton({
+        text: "Start design release 2.1",
+        href: "/design-release-2.1"
+      }) }}
+    </div>
+
+    <div class="prototype-release-card govuk-!-margin-top-6">
+      {{ govukTag({
         text: "Testing",
         classes: "govuk-tag--yellow"
       }) }}

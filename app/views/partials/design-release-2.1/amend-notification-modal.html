@@ -1,0 +1,32 @@
+<div class="app-dr2-amend-modal" id="amend-notification-modal" hidden data-module="amend-notification-modal">
+  <div class="app-dr2-amend-modal__overlay" data-amend-modal-dismiss></div>
+  <div
+    class="app-dr2-amend-modal__dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="amend-notification-modal-title"
+    tabindex="-1"
+  >
+    <div class="app-dr2-amend-modal__header">
+      <button
+        class="app-dr2-amend-modal__close"
+        type="button"
+        data-amend-modal-dismiss
+        aria-label="Close"
+      >
+        <span class="app-dr2-amend-modal__close-icon" aria-hidden="true"></span>
+      </button>
+    </div>
+    <div class="app-dr2-amend-modal__body">
+      <h2 class="app-dr2-amend-modal__title" id="amend-notification-modal-title">
+        Are you sure you want to amend this consignment?
+      </h2>
+      <div class="app-dr2-amend-modal__actions">
+        <a class="govuk-button" href="{{ pageHeader.amendHref or '/notifications/amend' }}">Yes, amend consignment</a>
+        <button class="govuk-link app-dr2-amend-modal__back-link" type="button" data-amend-modal-dismiss>
+          Go back
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

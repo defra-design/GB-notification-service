@@ -14,7 +14,7 @@ const {
   sessionKey: '_testing',
   versionFlag: '_isTestingVersion',
   viewFolder: 'testing',
-  otherVersionBases: ['/design-release-2'],
+  otherVersionBases: ['/design-release-2', '/design-release-2.1'],
   setupSession (nest) {
     const testingReference = 'GB.2026.7963913 - CHEDA'
     const hasChedaReference = /^GB\.\d{4}\.\d{7}\s*-\s*[A-Z0-9]+$/i.test(

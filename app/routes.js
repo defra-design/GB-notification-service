@@ -9,6 +9,8 @@ const countryOptions = require('./data/countries')
 const countryLabels = countryOptions.labels
 const countryRegionPrefixes = require('./data/country-region-prefixes')
 const commodities = require('./data/commodities')
+const germinalProductCommodities = require('./data/commodities-germinal-products')
+const packageTypes = require('./data/package-types')
 const { getIdentifiersForCommodityCode } = require('./data/commodity-identifiers')
 const certificationPurposeOptions = require('./data/certification-purposes')
 const importReasons = require('./data/import-reasons')
@@ -38,17 +40,34 @@ const TRANSIT_MEANS_OF_TRANSPORT = ['Railway', 'Road Vehicle']
 
 const importReasonValues = importReasons.map((reason) => reason.value)
 const internalMarketPurposeValues = internalMarketPurposes.map((purpose) => purpose.value)
+const germinalTemperatureOptions = ['Ambient', 'Chilled', 'Frozen']
 
 const DESIGN_RELEASE_NOTIFICATION_REFERENCE = 'GBN-AG-26-7K8M2P'
 const TESTING_NOTIFICATION_REFERENCE = 'GB.2026.7963913 - CHEDA'
 const PROTOTYPE_NOTIFICATION_REFERENCE = DESIGN_RELEASE_NOTIFICATION_REFERENCE
 
+const allCommodities = commodities.concat(germinalProductCommodities)
+
+function isDesignRelease21SessionData (sessionData) {
+  return Boolean(sessionData && sessionData._isDesignRelease21Version)
+}
+
+function getSearchCommodities (sessionData) {
+  if (!isDesignRelease21SessionData(sessionData)) {
+    return commodities
+  }
+
+  return allCommodities
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }))
+}
+
 function getCommodityById (commodityId) {
-  return commodities.find((commodity) => commodity.id === commodityId)
+  return allCommodities.find((commodity) => commodity.id === commodityId)
 }
 
 function getCommodityByCode (commodityCode) {
-  return commodities.find((commodity) => commodity.code === commodityCode)
+  return allCommodities.find((commodity) => commodity.code === commodityCode)
 }
 
 function getCountryRegionPrefix (countryName) {
@@ -138,9 +157,12 @@ function toDesignReleaseDashboardReference (reference, index = 0) {
 
 function resetNotificationJourneySession (sessionData) {
   const addressBookAddedAddresses = sessionData.addressBookAddedAddresses
+  const draftNotifications = sessionData.draftNotifications
+  const deletedNotificationReferences = sessionData.deletedNotificationReferences
   const submittedNotifications = sessionData.submittedNotifications
   const testingSession = sessionData._testing
   const designRelease2Session = sessionData._designRelease2
+  const designRelease21Session = sessionData._designRelease21
 
   Object.keys(sessionData).forEach((key) => {
     delete sessionData[key]
@@ -148,6 +170,14 @@ function resetNotificationJourneySession (sessionData) {
 
   if (addressBookAddedAddresses && addressBookAddedAddresses.length) {
     sessionData.addressBookAddedAddresses = addressBookAddedAddresses
+  }
+
+  if (draftNotifications && draftNotifications.length) {
+    sessionData.draftNotifications = draftNotifications
+  }
+
+  if (deletedNotificationReferences && deletedNotificationReferences.length) {
+    sessionData.deletedNotificationReferences = deletedNotificationReferences
   }
 
   if (submittedNotifications && submittedNotifications.length) {
@@ -160,6 +190,10 @@ function resetNotificationJourneySession (sessionData) {
 
   if (designRelease2Session && typeof designRelease2Session === 'object') {
     sessionData._designRelease2 = designRelease2Session
+  }
+
+  if (designRelease21Session && typeof designRelease21Session === 'object') {
+    sessionData._designRelease21 = designRelease21Session
   }
 }
 
@@ -324,7 +358,7 @@ function syncCommoditySession (sessionData, commodity) {
 }
 
 function getSpeciesMatch (speciesId) {
-  for (const commodity of commodities) {
+  for (const commodity of allCommodities) {
     const species = commodity.species.find((item) => item.id === speciesId)
 
     if (species) {
@@ -466,6 +500,14 @@ function removeSpeciesFromSession (sessionData, speciesId) {
     delete sessionData.numberOfPackages[speciesId]
   }
 
+  if (sessionData.netWeight && sessionData.netWeight[speciesId] != null) {
+    delete sessionData.netWeight[speciesId]
+  }
+
+  if (sessionData.packageType && sessionData.packageType[speciesId] != null) {
+    delete sessionData.packageType[speciesId]
+  }
+
   if (speciesIds.length === 0) {
     sessionData.commodityId = null
     sessionData.commodityCode = null
@@ -494,6 +536,14 @@ function removeCommodityFromSession (sessionData, commodityId) {
       if (sessionData.numberOfPackages && sessionData.numberOfPackages[speciesId] != null) {
         delete sessionData.numberOfPackages[speciesId]
       }
+
+      if (sessionData.netWeight && sessionData.netWeight[speciesId] != null) {
+        delete sessionData.netWeight[speciesId]
+      }
+
+      if (sessionData.packageType && sessionData.packageType[speciesId] != null) {
+        delete sessionData.packageType[speciesId]
+      }
     })
 
   sessionData.selectedSpecies = remainingSpeciesIds
@@ -517,6 +567,25 @@ function getPackagingFields (commodity) {
   return commodity.packagingFields
 }
 
+function isGerminalProductCommodity (commodity) {
+  return Boolean(commodity && commodity.isGerminalProduct)
+}
+
+function buildPackageTypeItems (selectedValue) {
+  return [
+    {
+      value: '',
+      text: 'Select one',
+      selected: !selectedValue
+    },
+    ...packageTypes.map((option) => ({
+      value: option,
+      text: option,
+      selected: selectedValue === option
+    }))
+  ]
+}
+
 function commodityRequiresPackaging (commodity) {
   return getPackagingFields(commodity).length > 0
 }
@@ -527,6 +596,7 @@ function formatCommodityGroupHeading (commodity) {
 
 function getSelectedCommodityRows (sessionData) {
   const numberOfAnimals = sessionData.numberOfAnimals || {}
+  const numberOfPackages = sessionData.numberOfPackages || {}
   const rows = []
 
   getSelectedCommodityIdsFromSpecies(sessionData).forEach((commodityId) => {
@@ -557,8 +627,29 @@ function getSelectedCommodityRows (sessionData) {
           code: commodity.code,
           name: getSpeciesCommonName(match),
           numberOfAnimals: numberOfAnimals[speciesId] != null ? String(numberOfAnimals[speciesId]) : '',
+          quantityLabel: 'Number of animals',
+          isGerminalProduct: false,
           removeBy: 'species'
         })
+      })
+
+      return
+    }
+
+    if (isGerminalProductCommodity(commodity)) {
+      const totalPackages = speciesIds.reduce((sum, speciesId) => {
+        return sum + (Number(numberOfPackages[speciesId]) || 0)
+      }, 0)
+
+      rows.push({
+        commodityId: commodity.id,
+        speciesId: null,
+        code: commodity.code,
+        name: commodity.name,
+        numberOfAnimals: totalPackages > 0 ? String(totalPackages) : '',
+        quantityLabel: 'Number of packages',
+        isGerminalProduct: true,
+        removeBy: 'commodity'
       })
 
       return
@@ -574,6 +665,8 @@ function getSelectedCommodityRows (sessionData) {
       code: commodity.code,
       name: commodity.name,
       numberOfAnimals: totalAnimals > 0 ? String(totalAnimals) : '',
+      quantityLabel: 'Number of animals',
+      isGerminalProduct: false,
       removeBy: 'commodity'
     })
   })
@@ -581,10 +674,45 @@ function getSelectedCommodityRows (sessionData) {
   return rows
 }
 
-function getConsignmentCommodityGroups (sessionData) {
+function buildSpeciesConsignmentEntry (sessionData, speciesId, match) {
+  const { species, commodity } = match
   const numberOfAnimals = sessionData.numberOfAnimals || {}
   const numberOfPackages = sessionData.numberOfPackages || {}
+  const netWeight = sessionData.netWeight || {}
+  const packageType = sessionData.packageType || {}
+  const packagingFields = getPackagingFields(commodity)
+  const isGerminalProduct = isGerminalProductCommodity(commodity)
+  const selectedPackageType = packageType[speciesId] != null ? String(packageType[speciesId]) : ''
 
+  return {
+    speciesId,
+    commodityId: commodity.id,
+    commodityCode: commodity.code,
+    commodityName: commodity.name,
+    commonName: getSpeciesCommonName({ commodity, species }),
+    heading: formatSpeciesDisplayTitle({ commodity, species }),
+    speciesName: species.label,
+    isGerminalProduct,
+    numberOfAnimals: numberOfAnimals[speciesId] != null ? String(numberOfAnimals[speciesId]) : '',
+    netWeight: netWeight[speciesId] != null ? String(netWeight[speciesId]) : '',
+    packageType: selectedPackageType,
+    packageTypeItems: buildPackageTypeItems(selectedPackageType),
+    numberOfPackages: numberOfPackages[speciesId] != null ? String(numberOfPackages[speciesId]) : '',
+    showPackaging: !isGerminalProduct && packagingFields.length > 0,
+    packagingFields: packagingFields.map((field) => ({
+      id: `${field.id}-${speciesId}`,
+      name: `numberOfPackages[${speciesId}]`,
+      label: field.label,
+      hint: field.hint,
+      value: numberOfPackages[speciesId] != null ? String(numberOfPackages[speciesId]) : '',
+      errorMessage: sessionData.errors && sessionData.errors[`numberOfPackages-${speciesId}`]
+        ? sessionData.errors[`numberOfPackages-${speciesId}`]
+        : null
+    }))
+  }
+}
+
+function getConsignmentCommodityGroups (sessionData) {
   return getSelectedCommodityIdsFromSpecies(sessionData)
     .map((commodityId) => {
       const commodity = getCommodityById(commodityId)
@@ -601,25 +729,7 @@ function getConsignmentCommodityGroups (sessionData) {
             return null
           }
 
-          const { species } = match
-          const packagingFields = getPackagingFields(commodity)
-
-          return {
-            speciesId,
-            speciesName: species.label,
-            numberOfAnimals: numberOfAnimals[speciesId] != null ? String(numberOfAnimals[speciesId]) : '',
-            showPackaging: packagingFields.length > 0,
-            packagingFields: packagingFields.map((field) => ({
-              id: `${field.id}-${speciesId}`,
-              name: `numberOfPackages[${speciesId}]`,
-              label: field.label,
-              hint: field.hint,
-              value: numberOfPackages[speciesId] != null ? String(numberOfPackages[speciesId]) : '',
-              errorMessage: sessionData.errors && sessionData.errors[`numberOfPackages-${speciesId}`]
-                ? sessionData.errors[`numberOfPackages-${speciesId}`]
-                : null
-            }))
-          }
+          return buildSpeciesConsignmentEntry(sessionData, speciesId, match)
         })
         .filter(Boolean)
 
@@ -630,6 +740,7 @@ function getConsignmentCommodityGroups (sessionData) {
       return {
         commodityId,
         heading: formatCommodityGroupHeading(commodity),
+        isGerminalProduct: isGerminalProductCommodity(commodity),
         speciesEntries
       }
     })
@@ -637,9 +748,6 @@ function getConsignmentCommodityGroups (sessionData) {
 }
 
 function getConsignmentSpeciesEntries (sessionData) {
-  const numberOfAnimals = sessionData.numberOfAnimals || {}
-  const numberOfPackages = sessionData.numberOfPackages || {}
-
   return normalizeSelectedSpecies(sessionData.selectedSpecies)
     .map((speciesId) => {
       const match = getSpeciesMatch(speciesId)
@@ -648,27 +756,7 @@ function getConsignmentSpeciesEntries (sessionData) {
         return null
       }
 
-      const { species, commodity } = match
-      const packagingFields = getPackagingFields(commodity)
-
-      return {
-        speciesId,
-        commodityCode: commodity.code,
-        commonName: getSpeciesCommonName({ commodity, species }),
-        heading: formatSpeciesDisplayTitle({ commodity, species }),
-        numberOfAnimals: numberOfAnimals[speciesId] != null ? String(numberOfAnimals[speciesId]) : '',
-        showPackaging: packagingFields.length > 0,
-        packagingFields: packagingFields.map((field) => ({
-          id: `${field.id}-${speciesId}`,
-          name: `numberOfPackages[${speciesId}]`,
-          label: field.label,
-          hint: field.hint,
-          value: numberOfPackages[speciesId] != null ? String(numberOfPackages[speciesId]) : '',
-          errorMessage: sessionData.errors && sessionData.errors[`numberOfPackages-${speciesId}`]
-            ? sessionData.errors[`numberOfPackages-${speciesId}`]
-            : null
-        }))
-      }
+      return buildSpeciesConsignmentEntry(sessionData, speciesId, match)
     })
     .filter(Boolean)
 }
@@ -721,6 +809,12 @@ function validateNumberOfAnimals (values, speciesIds) {
   const errorList = []
 
   speciesIds.forEach((speciesId) => {
+    const match = getSpeciesMatch(speciesId)
+
+    if (match && isGerminalProductCommodity(match.commodity)) {
+      return
+    }
+
     const value = values[speciesId]
     const errorId = `number-of-animals-${speciesId}`
 
@@ -761,8 +855,132 @@ function parseNumberOfPackages (body, speciesIds) {
   return values
 }
 
+function parseNetWeight (body, speciesIds) {
+  const rawValues = body.netWeight && typeof body.netWeight === 'object'
+    ? body.netWeight
+    : {}
+  const values = {}
+
+  speciesIds.forEach((speciesId) => {
+    const fieldName = `netWeight[${speciesId}]`
+    const value = rawValues[speciesId] != null ? rawValues[speciesId] : body[fieldName]
+
+    values[speciesId] = value != null ? String(value).trim() : ''
+  })
+
+  return values
+}
+
+function parsePackageType (body, speciesIds) {
+  const rawValues = body.packageType && typeof body.packageType === 'object'
+    ? body.packageType
+    : {}
+  const values = {}
+
+  speciesIds.forEach((speciesId) => {
+    const fieldName = `packageType[${speciesId}]`
+    const value = rawValues[speciesId] != null ? rawValues[speciesId] : body[fieldName]
+
+    values[speciesId] = value != null ? String(value).trim() : ''
+  })
+
+  return values
+}
+
 function validateNumberOfPackages (values, speciesIds) {
-  return { errors: {}, errorList: [] }
+  const errors = {}
+  const errorList = []
+
+  speciesIds.forEach((speciesId) => {
+    const match = getSpeciesMatch(speciesId)
+
+    if (!match || !isGerminalProductCommodity(match.commodity)) {
+      return
+    }
+
+    const value = values[speciesId]
+    const errorId = `number-of-packages-${speciesId}`
+
+    if (!value) {
+      errors[`numberOfPackages-${speciesId}`] = { text: 'Enter the number of packages' }
+      errorList.push({
+        text: 'Enter the number of packages',
+        href: `#${errorId}`
+      })
+      return
+    }
+
+    if (!/^\d+$/.test(value) || Number(value) < 1) {
+      errors[`numberOfPackages-${speciesId}`] = { text: 'Enter a whole number greater than 0' }
+      errorList.push({
+        text: 'Enter a whole number greater than 0',
+        href: `#${errorId}`
+      })
+    }
+  })
+
+  return { errors, errorList }
+}
+
+function validateNetWeight (values, speciesIds) {
+  const errors = {}
+  const errorList = []
+
+  speciesIds.forEach((speciesId) => {
+    const match = getSpeciesMatch(speciesId)
+
+    if (!match || !isGerminalProductCommodity(match.commodity)) {
+      return
+    }
+
+    const value = values[speciesId]
+    const errorId = `net-weight-${speciesId}`
+
+    if (!value) {
+      errors[`netWeight-${speciesId}`] = { text: 'Enter the net weight' }
+      errorList.push({
+        text: 'Enter the net weight',
+        href: `#${errorId}`
+      })
+      return
+    }
+
+    if (!/^\d+(\.\d+)?$/.test(value) || Number(value) <= 0) {
+      errors[`netWeight-${speciesId}`] = { text: 'Enter a number greater than 0' }
+      errorList.push({
+        text: 'Enter a number greater than 0',
+        href: `#${errorId}`
+      })
+    }
+  })
+
+  return { errors, errorList }
+}
+
+function validatePackageType (values, speciesIds) {
+  const errors = {}
+  const errorList = []
+
+  speciesIds.forEach((speciesId) => {
+    const match = getSpeciesMatch(speciesId)
+
+    if (!match || !isGerminalProductCommodity(match.commodity)) {
+      return
+    }
+
+    const value = values[speciesId]
+    const errorId = `package-type-${speciesId}`
+
+    if (!value || !packageTypes.includes(value)) {
+      errors[`packageType-${speciesId}`] = { text: 'Select a type of package' }
+      errorList.push({
+        text: 'Select a type of package',
+        href: `#${errorId}`
+      })
+    }
+  })
+
+  return { errors, errorList }
 }
 
 function buildRadioItems (options, selectedValue) {
@@ -958,11 +1176,14 @@ function getUnweanedOptions (sessionData) {
 
 function getAdditionalAnimalDetailsConfig (sessionData) {
   const unweanedOptions = getUnweanedOptions(sessionData)
+  const showTemperatureQuestion = hasGerminalProductsOnly(sessionData)
 
   return {
-    showCertificationPurposeQuestion: true,
+    showCertificationPurposeQuestion: !showTemperatureQuestion,
+    showTemperatureQuestion,
     showUnweanedQuestion: unweanedOptions.length > 0,
     certificationPurposeOptions,
+    temperatureOptions: germinalTemperatureOptions,
     unweanedOptions
   }
 }
@@ -989,12 +1210,18 @@ function redirectIfNoConsignmentDetails (req, res) {
 function hasAdditionalAnimalDetailsComplete (sessionData) {
   const config = getAdditionalAnimalDetailsConfig(sessionData)
 
-  if (!config.showCertificationPurposeQuestion && !config.showUnweanedQuestion) {
+  if (!config.showCertificationPurposeQuestion && !config.showTemperatureQuestion && !config.showUnweanedQuestion) {
     return true
   }
 
   if (config.showCertificationPurposeQuestion) {
     if (!certificationPurposeOptions.includes(sessionData.certificationPurpose)) {
+      return false
+    }
+  }
+
+  if (config.showTemperatureQuestion) {
+    if (!config.temperatureOptions.includes(sessionData.storageTemperature)) {
       return false
     }
   }
@@ -1234,6 +1461,21 @@ function getIdentifierFieldsForSpecies (speciesId) {
   return Array.isArray(match.commodity.identifiers) ? match.commodity.identifiers : []
 }
 
+function getIdentificationEntryCount (sessionData, speciesId) {
+  const match = getSpeciesMatch(speciesId)
+
+  if (!match) {
+    return 0
+  }
+
+  // Germinal products only need one set of identification details per species.
+  if (isGerminalProductCommodity(match.commodity)) {
+    return 1
+  }
+
+  return Number((sessionData.numberOfAnimals || {})[speciesId]) || 0
+}
+
 function hasAnimalIdentifiersRequired (sessionData) {
   return normalizeSelectedSpecies(sessionData.selectedSpecies).some((speciesId) => {
     return getIdentifierFieldsForSpecies(speciesId).length > 0
@@ -1281,12 +1523,11 @@ function isAnimalIdentifierEntryComplete (animal, fields) {
 
 function hasAnimalIdentifiersComplete (sessionData) {
   const speciesIds = normalizeSelectedSpecies(sessionData.selectedSpecies)
-  const numberOfAnimals = sessionData.numberOfAnimals || {}
   const saved = getAnimalIdentifiers(sessionData)
 
   return speciesIds.every((speciesId) => {
     const fields = getIdentifierFieldsForSpecies(speciesId)
-    const total = Number(numberOfAnimals[speciesId]) || 0
+    const total = getIdentificationEntryCount(sessionData, speciesId)
 
     if (fields.length === 0) {
       return true
@@ -1325,14 +1566,14 @@ function getSpeciesIdentificationState (sessionData, speciesId) {
     return null
   }
 
-  const numberOfAnimals = sessionData.numberOfAnimals || {}
-  const total = Number(numberOfAnimals[speciesId]) || 0
+  const total = getIdentificationEntryCount(sessionData, speciesId)
 
   if (!total) {
     return null
   }
 
   const speciesLabel = match.species.label
+  const isGerminalProduct = isGerminalProductCommodity(match.commodity)
   const saved = getAnimalIdentifiers(sessionData)
   const speciesSaved = saved[speciesId] || []
   let activeAnimal = null
@@ -1344,9 +1585,20 @@ function getSpeciesIdentificationState (sessionData, speciesId) {
       activeAnimal = {
         animalNumber: index + 1,
         identifierValues: animal,
-        headingText: `Enter details for ${speciesLabel} ${index + 1} of ${total}`
+        headingText: isGerminalProduct
+          ? `Enter details for ${speciesLabel}`
+          : `Enter details for ${speciesLabel} ${index + 1} of ${total}`
       }
       break
+    }
+  }
+
+  // Germinal products use a single editable form, not the multi-animal save flow.
+  if (isGerminalProduct && !activeAnimal) {
+    activeAnimal = {
+      animalNumber: 1,
+      identifierValues: speciesSaved[0] || {},
+      headingText: `Enter details for ${speciesLabel}`
     }
   }
 
@@ -1355,7 +1607,9 @@ function getSpeciesIdentificationState (sessionData, speciesId) {
     speciesLabel,
     identifierFields: fields
   }
-  const savedAnimals = getSavedAnimalsForSpecies(sessionData, panelContext)
+  const savedAnimals = isGerminalProduct
+    ? []
+    : getSavedAnimalsForSpecies(sessionData, panelContext)
   const completeSavedAnimals = savedAnimals.filter((animal) => {
     return isAnimalIdentifierEntryComplete(speciesSaved[animal.index] || {}, fields)
   })
@@ -1365,11 +1619,13 @@ function getSpeciesIdentificationState (sessionData, speciesId) {
     speciesLabel,
     identifierFields: fields,
     totalAnimals: total,
+    isGerminalProduct,
     panelHeaderText: speciesLabel,
-    isComplete: !activeAnimal,
+    changeCountLabel: 'Change number of animals',
+    isComplete: isGerminalProduct ? false : !activeAnimal,
     activeAnimal,
     savedAnimals: completeSavedAnimals,
-    savedAnimalsTable: buildSavedAnimalsTable(panelContext, completeSavedAnimals)
+    savedAnimalsTable: isGerminalProduct ? null : buildSavedAnimalsTable(panelContext, completeSavedAnimals)
   }
 }
 
@@ -1411,7 +1667,7 @@ function getRemainingAnimalIdentifierCountForSpecies (sessionData, speciesId) {
     return 0
   }
 
-  const total = Number((sessionData.numberOfAnimals || {})[speciesId]) || 0
+  const total = getIdentificationEntryCount(sessionData, speciesId)
   const speciesSaved = getAnimalIdentifiers(sessionData)[speciesId] || []
   let remaining = 0
 
@@ -2668,15 +2924,15 @@ function buildCommercialTransporterCountryItems () {
 
 function renderTransporterAddPage (req, res, locals = {}) {
   const sessionData = req.session.data
-  const isDr2 = Boolean(res.locals.isDesignRelease2Version)
   const fromAddressBook = Boolean(sessionData.addressBookAddingTransporter)
   const addressBookBasePath = getAddressBookBasePath(res)
+  const journeyBasePath = res.locals.journeyBasePath || ''
 
   return res.render('transporter-add', {
     backLink: fromAddressBook
       ? `${addressBookBasePath}/add`
-      : (isDr2 ? '/design-release-2/transporter' : '/transporter'),
-    formAction: isDr2 ? '/design-release-2/transporter/add' : '/transporter/add',
+      : `${journeyBasePath}/transporter`,
+    formAction: `${journeyBasePath}/transporter/add`,
     transporterTypeOptions: transporterTypes,
     selectedTransporterType: locals.selectedTransporterType != null
       ? locals.selectedTransporterType
@@ -3501,6 +3757,47 @@ function getTotalAnimalCount (sessionData) {
   }, 0)
 }
 
+function getTotalNetWeight (sessionData) {
+  const netWeight = sessionData.netWeight || {}
+  const speciesIds = normalizeSelectedSpecies(sessionData.selectedSpecies)
+
+  return speciesIds.reduce((total, speciesId) => {
+    const value = Number(netWeight[speciesId])
+
+    if (!Number.isFinite(value) || value <= 0) {
+      return total
+    }
+
+    return total + value
+  }, 0)
+}
+
+function hasGerminalProductsOnly (sessionData) {
+  const speciesIds = normalizeSelectedSpecies(sessionData.selectedSpecies)
+
+  if (!speciesIds.length) {
+    return false
+  }
+
+  return speciesIds.every((speciesId) => {
+    const match = getSpeciesMatch(speciesId)
+
+    return match && isGerminalProductCommodity(match.commodity)
+  })
+}
+
+function formatNetWeightDisplay (totalWeight) {
+  if (!Number.isFinite(totalWeight) || totalWeight <= 0) {
+    return '0'
+  }
+
+  if (Number.isInteger(totalWeight)) {
+    return String(totalWeight)
+  }
+
+  return String(Math.round(totalWeight * 1000) / 1000)
+}
+
 function formatReviewValueOrNa (value) {
   if (value == null || (typeof value === 'string' && !value.trim())) {
     return 'Not applicable'
@@ -3815,20 +4112,38 @@ function buildReviewCommoditySections (sessionData) {
         {
           key: 'Common name',
           value: formatReviewValueOrNa(entry.commonName)
-        },
-        {
-          key: 'Number of animals',
-          value: formatReviewValueOrNa(entry.numberOfAnimals)
         }
       ]
 
-      if (entry.showPackaging) {
-        entry.packagingFields.forEach((field) => {
-          rows.push({
-            key: field.label,
-            value: formatReviewValueOrNa(field.value)
-          })
+      if (entry.isGerminalProduct) {
+        rows.push(
+          {
+            key: 'Net weight',
+            value: entry.netWeight ? `${entry.netWeight} kg` : formatReviewValueOrNa(entry.netWeight)
+          },
+          {
+            key: 'Type of package',
+            value: formatReviewValueOrNa(entry.packageType)
+          },
+          {
+            key: 'Number of packages',
+            value: formatReviewValueOrNa(entry.numberOfPackages)
+          }
+        )
+      } else {
+        rows.push({
+          key: 'Number of animals',
+          value: formatReviewValueOrNa(entry.numberOfAnimals)
         })
+
+        if (entry.showPackaging) {
+          entry.packagingFields.forEach((field) => {
+            rows.push({
+              key: field.label,
+              value: formatReviewValueOrNa(field.value)
+            })
+          })
+        }
       }
 
       return {
@@ -3844,9 +4159,13 @@ function getSpeciesReviewCardErrorMessage (sessionData, speciesId, speciesLabel)
   }
 
   const speciesName = speciesLabel.toLowerCase()
+  const match = getSpeciesMatch(speciesId)
+  const isGerminalProduct = match && isGerminalProductCommodity(match.commodity)
 
   if (!isSpeciesConsignmentComplete(sessionData, speciesId)) {
-    return `Enter the number of animals for ${speciesName}`
+    return isGerminalProduct
+      ? `Enter the number of packages for ${speciesName}`
+      : `Enter the number of animals for ${speciesName}`
   }
 
   return `Complete identification details for ${speciesName}`
@@ -3858,9 +4177,13 @@ function getSpeciesMinimumIdentifierReviewErrorMessage (sessionData, speciesId, 
   }
 
   const speciesName = speciesLabel.toLowerCase()
+  const match = getSpeciesMatch(speciesId)
+  const isGerminalProduct = match && isGerminalProductCommodity(match.commodity)
 
   if (!isSpeciesConsignmentComplete(sessionData, speciesId)) {
-    return `Enter the number of animals for ${speciesName}`
+    return isGerminalProduct
+      ? `Enter the number of packages for ${speciesName}`
+      : `Enter the number of animals for ${speciesName}`
   }
 
   return `Enter at least 1 animal identifier for ${speciesName}`
@@ -3895,10 +4218,9 @@ function reviewCardErrorState (isComplete, title) {
 }
 
 function isSpeciesConsignmentComplete (sessionData, speciesId) {
-  const numberOfAnimals = sessionData.numberOfAnimals || {}
-  const animalCount = numberOfAnimals[speciesId]
+  const total = getIdentificationEntryCount(sessionData, speciesId)
 
-  return animalCount && /^\d+$/.test(String(animalCount)) && Number(animalCount) >= 1
+  return total >= 1
 }
 
 function isSpeciesIdentifiersComplete (sessionData, speciesId) {
@@ -3908,7 +4230,7 @@ function isSpeciesIdentifiersComplete (sessionData, speciesId) {
     return true
   }
 
-  const total = Number((sessionData.numberOfAnimals || {})[speciesId]) || 0
+  const total = getIdentificationEntryCount(sessionData, speciesId)
 
   if (!total) {
     return false
@@ -4029,6 +4351,13 @@ function getReviewNotificationViewModel (sessionData) {
     additionalAnimalRows.push({
       key: 'Certified for',
       value: formatReviewValueOrNa(sessionData.certificationPurpose)
+    })
+  }
+
+  if (additionalConfig.showTemperatureQuestion) {
+    additionalAnimalRows.push({
+      key: 'Temperature',
+      value: formatReviewValueOrNa(sessionData.storageTemperature)
     })
   }
 
@@ -4388,13 +4717,12 @@ function buildDesignRelease2CommodityCards (sessionData, speciesSections, readOn
   const grouped = new Map()
 
   getConsignmentSpeciesEntries(sessionData).forEach((entry) => {
-    const commodity = getCommodityByCode(entry.commodityCode)
-    const cardKey = entry.commodityCode
+    const cardKey = entry.commodityId || entry.commodityCode
 
     if (!grouped.has(cardKey)) {
       grouped.set(cardKey, {
         id: `review-commodity-${cardKey}`,
-        title: `${commodity ? commodity.name : entry.commonName} (${entry.commodityCode})`,
+        title: `${entry.commodityName || entry.commonName} (${entry.commodityCode})`,
         changeHref: readOnly ? null : '/consignment-details',
         hasError: false,
         errorMessage: null,
@@ -4402,12 +4730,27 @@ function buildDesignRelease2CommodityCards (sessionData, speciesSections, readOn
       })
     }
 
-    const rows = [{
-      key: 'Number of animals',
-      value: formatReviewValueOrNa(entry.numberOfAnimals)
-    }]
+    const rows = entry.isGerminalProduct
+      ? [
+        {
+          key: 'Net weight',
+          value: entry.netWeight ? `${entry.netWeight} kg` : formatReviewValueOrNa(entry.netWeight)
+        },
+        {
+          key: 'Type of package',
+          value: formatReviewValueOrNa(entry.packageType)
+        },
+        {
+          key: 'Number of packages',
+          value: formatReviewValueOrNa(entry.numberOfPackages)
+        }
+      ]
+      : [{
+        key: 'Number of animals',
+        value: formatReviewValueOrNa(entry.numberOfAnimals)
+      }]
 
-    if (entry.showPackaging) {
+    if (!entry.isGerminalProduct && entry.showPackaging) {
       entry.packagingFields.forEach((field) => {
         rows.push({
           key: field.label,
@@ -4613,6 +4956,20 @@ function getDashboardNotificationMetadata (sessionData, reference) {
     }
   }
 
+  const draftMatch = (sessionData.draftNotifications || []).find((notification) =>
+    notification.reference === normalisedReference
+  )
+
+  if (draftMatch) {
+    return {
+      reference: draftMatch.reference,
+      statusText: 'Draft',
+      reviewVariant: 'draft',
+      dateCreated: formatDateForDashboard(draftMatch.createdAt),
+      snapshot: draftMatch.snapshot
+    }
+  }
+
   const staticNotification = dashboardData.notifications
     .map((notification, index) => ({
       ...notification,
@@ -4694,6 +5051,7 @@ function buildDr2ReviewPageHeader (metadata = {}, reviewVariant = 'journey') {
     showCopyButton: true,
     copyHref: metadata.copyHref || '/notifications/copy-as-new',
     amendHref: metadata.amendHref || '/notifications/amend',
+    deleteHref: metadata.deleteHref || '/notifications/delete',
     showDeleteButton: true
   }
 }
@@ -4713,21 +5071,13 @@ function getCopyAsNewSourceSnapshot (sessionData, options = {}) {
   }
 
   if (reference) {
-    const submittedMatch = (sessionData.submittedNotifications || []).find((notification) =>
-      notification.reference === reference
-    )
-
-    if (submittedMatch) {
-      return submittedMatch.snapshot
-    }
-
     const metadata = getDashboardNotificationMetadata(sessionData, reference)
 
     if (!metadata) {
       return null
     }
 
-    return buildDashboardNotificationSnapshot(metadata)
+    return metadata.snapshot || buildDashboardNotificationSnapshot(metadata)
   }
 
   return sessionData
@@ -4809,6 +5159,7 @@ function copyNotificationAsNewIntoSession (sessionData, sourceSnapshot) {
   sessionData.notificationStatus = 'New'
   sessionData.errorList = null
   sessionData.errors = null
+  saveDraftNotification(sessionData)
 
   return true
 }
@@ -4816,7 +5167,11 @@ function copyNotificationAsNewIntoSession (sessionData, sourceSnapshot) {
 function loadDraftSnapshotIntoSession (sessionData, snapshot) {
   const preserveKeys = [
     '_isDesignRelease2Version',
+    '_isDesignRelease21Version',
     '_designRelease2',
+    '_designRelease21',
+    'deletedNotificationReferences',
+    'draftNotifications',
     'submittedNotifications',
     'addressBookAddedAddresses'
   ]
@@ -4855,7 +5210,8 @@ function resolveDesignRelease2ReviewPageOptions (req, options = {}) {
       dateSubmitted: formatDateForDashboard(submittedNotification.submittedAt),
       conditionalItems,
       copyHref: `/notifications/copy-as-new?submitted=${encodeURIComponent(submittedId)}`,
-      amendHref: `/notifications/amend?submitted=${encodeURIComponent(submittedId)}`
+      amendHref: `/notifications/amend?submitted=${encodeURIComponent(submittedId)}`,
+      deleteHref: `/notifications/delete?submitted=${encodeURIComponent(submittedId)}`
     }
 
     return {
@@ -4875,7 +5231,7 @@ function resolveDesignRelease2ReviewPageOptions (req, options = {}) {
       return { redirectTo: dashboardBackLink }
     }
 
-    const snapshot = buildDashboardNotificationSnapshot(metadata)
+    const snapshot = metadata.snapshot || buildDashboardNotificationSnapshot(metadata)
     const reviewVariant = metadata.reviewVariant || mapStatusTextToReviewVariant(metadata.statusText)
     const isDraft = reviewVariant === 'draft'
     const isActionRequired = reviewVariant === 'action-required'
@@ -4894,7 +5250,8 @@ function resolveDesignRelease2ReviewPageOptions (req, options = {}) {
         ...metadata,
         reference,
         copyHref: `/notifications/copy-as-new?reference=${encodeURIComponent(reference)}`,
-        amendHref: `/notifications/amend?reference=${encodeURIComponent(reference)}`
+        amendHref: `/notifications/amend?reference=${encodeURIComponent(reference)}`,
+        deleteHref: `/notifications/delete?reference=${encodeURIComponent(reference)}`
       }, reviewVariant)
     }
   }
@@ -4943,6 +5300,7 @@ function renderReviewNotificationPage (req, res, options = {}) {
   }
 
   const isAmending = String(sessionData.notificationStatus || '').trim() === 'Amend'
+  const showAmendResubmitHeading = isAmending && hasAmendChanges(sessionData)
   const viewModel = readOnly
     ? applyReadOnlyReviewViewModel(getReviewNotificationViewModel(sessionData))
     : isAmending
@@ -4954,7 +5312,9 @@ function renderReviewNotificationPage (req, res, options = {}) {
     readOnly,
     reviewVariant,
     pageHeader,
-    pageName: reviewVariant === 'journey' ? 'Review your notification' : null,
+    pageName: reviewVariant === 'journey'
+      ? (showAmendResubmitHeading ? 'Review before re-submitting' : 'Review your notification')
+      : null,
     showActions,
     cancelAmendHref: isAmending
       ? '/notifications/cancel-amend'
@@ -4978,6 +5338,32 @@ function renderReviewNotificationPage (req, res, options = {}) {
   }
 
   return res.render('review-notification', renderOptions)
+}
+
+function renderDeleteNotificationPage (req, res) {
+  const submittedId = (req.query.submitted || '').trim()
+  const reference = (req.query.reference || '').trim()
+  const dashboardBackLink = getDashboardBackLink(req.session.data)
+
+  if (!isDesignRelease2SessionData(req.session.data) || (!submittedId && !reference)) {
+    return res.redirect(dashboardBackLink)
+  }
+
+  const reviewOptions = resolveDesignRelease2ReviewPageOptions(req, { submittedId, reference })
+
+  if (reviewOptions.redirectTo) {
+    return res.redirect(reviewOptions.redirectTo)
+  }
+
+  const notificationReference = reviewOptions.pageHeader && reviewOptions.pageHeader.reference
+    ? reviewOptions.pageHeader.reference
+    : PROTOTYPE_NOTIFICATION_REFERENCE
+
+  return res.render('design-release-2/delete-notification', {
+    backLink: buildDashboardNotificationViewHref(req.session.data, submittedId ? { submittedId } : { reference }),
+    notificationReference,
+    deleteAction: buildDashboardNotificationDeleteHref(submittedId ? { submittedId } : { reference })
+  })
 }
 
 function formatDeclarationDate (date = new Date()) {
@@ -5087,11 +5473,15 @@ function getNotificationHubViewModel (sessionData) {
   const statusTodo = { text: 'To do', class: 'govuk-tag--blue' }
   const totalAnimals = getTotalAnimalCount(sessionData)
   const totalPackages = getTotalPackageCount(sessionData)
+  const totalNetWeight = getTotalNetWeight(sessionData)
+  const showGerminalSummary = hasGerminalProductsOnly(sessionData)
 
   return {
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    showGerminalSummary,
     animalCountDisplay: totalAnimals > 0 ? String(totalAnimals) : '0',
     packagesDisplay: totalPackages > 0 ? String(totalPackages) : '0',
+    netWeightDisplay: formatNetWeightDisplay(totalNetWeight),
     sections: [
       {
         title: '1. About the consignment',
@@ -5436,16 +5826,85 @@ function cloneSubmittedNotificationSnapshot (sessionData) {
   return snapshot
 }
 
+function getComparableNotificationSnapshot (sessionData) {
+  const snapshot = cloneSubmittedNotificationSnapshot(sessionData)
+  const transientKeys = [
+    '_designRelease2',
+    '_designRelease21',
+    '_isDesignRelease2Version',
+    '_isDesignRelease21Version',
+    '_testing',
+    'addressBookAddedAddresses',
+    'amendingFrom',
+    'amendOriginalSnapshot',
+    'dashboardSuccessMessage',
+    'deletedNotificationReferences',
+    'draftNotifications',
+    'notificationStatus',
+    'submittedNotifications'
+  ]
+
+  transientKeys.forEach((key) => {
+    delete snapshot[key]
+  })
+
+  return snapshot
+}
+
+function hasAmendChanges (sessionData) {
+  if (!sessionData || !sessionData.amendOriginalSnapshot) {
+    return false
+  }
+
+  return JSON.stringify(getComparableNotificationSnapshot(sessionData)) !==
+    JSON.stringify(sessionData.amendOriginalSnapshot)
+}
+
+function saveDraftNotification (sessionData, sourceSnapshot = sessionData) {
+  if (!Array.isArray(sessionData.draftNotifications)) {
+    sessionData.draftNotifications = []
+  }
+
+  const snapshot = cloneSubmittedNotificationSnapshot(sourceSnapshot)
+  const reference = String(snapshot.notificationReference || '').trim()
+
+  if (!reference) {
+    return null
+  }
+
+  const existingDraft = sessionData.draftNotifications.find((notification) => notification.reference === reference)
+
+  sessionData.draftNotifications = sessionData.draftNotifications.filter((notification) => notification.reference !== reference)
+  sessionData.draftNotifications.unshift({
+    reference,
+    commodities: getReviewAnimalDetailsCommodityCodes(snapshot),
+    origin: snapshot.countryOfOrigin || 'Not applicable',
+    arrivalDate: formatDateForDashboard(snapshot.arrivalDateAtPort),
+    statusText: 'Draft',
+    createdAt: existingDraft ? existingDraft.createdAt : new Date().toISOString(),
+    snapshot
+  })
+
+  return reference
+}
+
 function saveSubmittedNotification (sessionData) {
   if (!Array.isArray(sessionData.submittedNotifications)) {
     sessionData.submittedNotifications = []
   }
 
   const snapshot = cloneSubmittedNotificationSnapshot(sessionData)
-  const id = `submitted-${Date.now()}`
-
-  sessionData.submittedNotifications.unshift({
-    id,
+  const submittedAt = new Date().toISOString()
+  const amendingFrom = sessionData.amendingFrom || {}
+  const amendedSubmittedId = String(amendingFrom.submittedId || '').trim()
+  const amendedReference = String(amendingFrom.reference || snapshot.notificationReference || '').trim()
+  const existingIndex = sessionData.submittedNotifications.findIndex((notification) =>
+    (amendedSubmittedId && notification.id === amendedSubmittedId) ||
+    (amendedReference && notification.reference === amendedReference)
+  )
+  const existingNotification = existingIndex > -1 ? sessionData.submittedNotifications[existingIndex] : null
+  const submittedNotification = {
+    id: existingNotification ? existingNotification.id : `submitted-${Date.now()}`,
     reference: snapshot.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     commodities: getReviewAnimalDetailsCommodityCodes(snapshot),
     origin: snapshot.countryOfOrigin || 'Not applicable',
@@ -5456,15 +5915,44 @@ function saveSubmittedNotification (sessionData) {
     statusTagClass: getConditionalSubmissionItems(snapshot).length
       ? 'govuk-tag--orange'
       : 'govuk-tag--green',
-    submittedAt: new Date().toISOString(),
+    submittedAt,
     snapshot
-  })
+  }
 
-  return id
+  if (existingIndex > -1) {
+    sessionData.submittedNotifications.splice(existingIndex, 1, submittedNotification)
+  } else {
+    sessionData.submittedNotifications.unshift(submittedNotification)
+  }
+
+  if (Array.isArray(sessionData.draftNotifications)) {
+    sessionData.draftNotifications = sessionData.draftNotifications.filter((notification) => notification.reference !== snapshot.notificationReference)
+  }
+
+  delete sessionData.amendingFrom
+  delete sessionData.amendOriginalSnapshot
+  delete sessionData.notificationStatus
+
+  return submittedNotification.id
 }
 
 function isDesignRelease2SessionData (sessionData) {
-  return Boolean(sessionData && sessionData._isDesignRelease2Version)
+  return Boolean(sessionData && (
+    sessionData._isDesignRelease2Version ||
+    sessionData._isDesignRelease21Version
+  ))
+}
+
+function getDesignReleaseBasePath (sessionData = {}) {
+  if (sessionData._isDesignRelease21Version) {
+    return '/design-release-2.1'
+  }
+
+  if (sessionData._isDesignRelease2Version) {
+    return '/design-release-2'
+  }
+
+  return ''
 }
 
 function getDashboardBackLink (sessionData = {}) {
@@ -5472,8 +5960,10 @@ function getDashboardBackLink (sessionData = {}) {
     return '/testing'
   }
 
-  if (isDesignRelease2SessionData(sessionData)) {
-    return '/design-release-2'
+  const designReleaseBasePath = getDesignReleaseBasePath(sessionData)
+
+  if (designReleaseBasePath) {
+    return designReleaseBasePath
   }
 
   return '/'
@@ -5508,6 +5998,20 @@ function buildDashboardNotificationCopyHref (options = {}) {
   return query ? `/notifications/copy-as-new?${query}` : '/notifications/copy-as-new'
 }
 
+function buildDashboardNotificationDeleteHref (options = {}) {
+  const params = new URLSearchParams()
+
+  if (options.submittedId) {
+    params.set('submitted', options.submittedId)
+  } else if (options.reference) {
+    params.set('reference', options.reference)
+  }
+
+  const query = params.toString()
+
+  return query ? `/notifications/delete?${query}` : '/notifications/delete'
+}
+
 function getDashboardNotificationSnapshotByReference (sessionData, reference) {
   const normalisedReference = String(reference || '').trim()
 
@@ -5515,28 +6019,13 @@ function getDashboardNotificationSnapshotByReference (sessionData, reference) {
     return null
   }
 
-  const submittedMatch = (sessionData.submittedNotifications || []).find((notification) =>
-    notification.reference === normalisedReference
-  )
+  const metadata = getDashboardNotificationMetadata(sessionData, normalisedReference)
 
-  if (submittedMatch) {
-    return submittedMatch.snapshot
-  }
-
-  const staticNotification = dashboardData.notifications
-    .map((notification, index) => ({
-      ...notification,
-      reference: isTestingSessionData(sessionData)
-        ? notification.reference
-        : toDesignReleaseDashboardReference(notification.reference, index)
-    }))
-    .find((notification) => notification.reference === normalisedReference)
-
-  if (!staticNotification) {
+  if (!metadata) {
     return null
   }
 
-  return buildDashboardNotificationSnapshot(staticNotification)
+  return metadata.snapshot || buildDashboardNotificationSnapshot(metadata)
 }
 
 function getSubmittedNotificationById (sessionData, submittedId) {
@@ -5545,6 +6034,33 @@ function getSubmittedNotificationById (sessionData, submittedId) {
   }
 
   return (sessionData.submittedNotifications || []).find((notification) => notification.id === submittedId) || null
+}
+
+function deleteNotification (sessionData, options = {}) {
+  const submittedId = String(options.submittedId || '').trim()
+  const reference = String(options.reference || '').trim()
+
+  if (submittedId && Array.isArray(sessionData.submittedNotifications)) {
+    sessionData.submittedNotifications = sessionData.submittedNotifications.filter((notification) => notification.id !== submittedId)
+  }
+
+  if (reference) {
+    if (Array.isArray(sessionData.draftNotifications)) {
+      sessionData.draftNotifications = sessionData.draftNotifications.filter((notification) => notification.reference !== reference)
+    }
+
+    if (!Array.isArray(sessionData.deletedNotificationReferences)) {
+      sessionData.deletedNotificationReferences = []
+    }
+
+    if (!sessionData.deletedNotificationReferences.includes(reference)) {
+      sessionData.deletedNotificationReferences.push(reference)
+    }
+
+    if (Array.isArray(sessionData.submittedNotifications)) {
+      sessionData.submittedNotifications = sessionData.submittedNotifications.filter((notification) => notification.reference !== reference)
+    }
+  }
 }
 
 function formatDashboardArrivalDate (value) {
@@ -5785,6 +6301,37 @@ function getDashboardNotificationList (sessionData = {}) {
     }
   }
 
+  const drafts = (sessionData.draftNotifications || []).map((notification, index) => {
+    const mapped = {
+      reference: notification.reference,
+      commodities: notification.commodities,
+      statusText: 'Draft',
+      statusTagClass: 'app-ipaffs-tag--draft',
+      statusModifier: 'draft',
+      origin: notification.origin,
+      arrivalDate: notification.arrivalDate,
+      consignee: notification.snapshot && notification.snapshot.consigneeAddress
+        ? notification.snapshot.consigneeAddress.name
+        : null,
+      consignor: notification.snapshot && notification.snapshot.consignorAddress
+        ? notification.snapshot.consignorAddress.name
+        : null,
+      viewHref: isDesignRelease2SessionData(sessionData)
+        ? buildDashboardNotificationViewHref(sessionData, { reference: notification.reference })
+        : `/review-notification?reference=${encodeURIComponent(notification.reference)}`,
+      copyHref: isDesignRelease2SessionData(sessionData)
+        ? buildDashboardNotificationCopyHref({ reference: notification.reference })
+        : null,
+      deleteHref: isDesignRelease2SessionData(sessionData)
+        ? buildDashboardNotificationDeleteHref({ reference: notification.reference })
+        : null
+    }
+
+    return isDesignRelease2SessionData(sessionData)
+      ? enrichDesignRelease2Notification(mapped, index)
+      : mapped
+  })
+
   const submitted = (sessionData.submittedNotifications || []).map((notification, index) => {
     const mapped = {
       reference: notification.reference,
@@ -5801,6 +6348,9 @@ function getDashboardNotificationList (sessionData = {}) {
         : `/review-notification?submitted=${encodeURIComponent(notification.id)}`,
       copyHref: isDesignRelease2SessionData(sessionData)
         ? buildDashboardNotificationCopyHref({ submittedId: notification.id })
+        : null,
+      deleteHref: isDesignRelease2SessionData(sessionData)
+        ? buildDashboardNotificationDeleteHref({ submittedId: notification.id })
         : null
     }
 
@@ -5811,7 +6361,9 @@ function getDashboardNotificationList (sessionData = {}) {
         : mapped
   })
 
+  const draftReferences = new Set(drafts.map((notification) => notification.reference))
   const submittedReferences = new Set(submitted.map((notification) => notification.reference))
+  const deletedReferences = new Set(sessionData.deletedNotificationReferences || [])
   const staticNotifications = dashboardData.notifications
     .map((notification, index) => {
       if (isTestingSessionData(sessionData)) {
@@ -5828,6 +6380,9 @@ function getDashboardNotificationList (sessionData = {}) {
           : notification.viewHref,
         copyHref: isDesignRelease2SessionData(sessionData)
           ? buildDashboardNotificationCopyHref({ reference })
+          : null,
+        deleteHref: isDesignRelease2SessionData(sessionData)
+          ? buildDashboardNotificationDeleteHref({ reference })
           : null
       }
 
@@ -5835,9 +6390,13 @@ function getDashboardNotificationList (sessionData = {}) {
         ? enrichDesignRelease2Notification(mapped, index + submitted.length)
         : mapped
     })
-    .filter((notification) => !submittedReferences.has(notification.reference))
+    .filter((notification) =>
+      !draftReferences.has(notification.reference) &&
+      !submittedReferences.has(notification.reference) &&
+      !deletedReferences.has(notification.reference)
+    )
 
-  return [...submitted, ...staticNotifications]
+  return [...drafts, ...submitted, ...staticNotifications]
 }
 
 function buildDashboardResultsText (start, end, total, options = {}) {
@@ -5953,7 +6512,7 @@ function getCommoditiesMatchingTemplateCode (commodityCode) {
     return []
   }
 
-  return commodities.filter((commodity) =>
+  return allCommodities.filter((commodity) =>
     commodity.code === code ||
     commodity.code.startsWith(code) ||
     code.startsWith(commodity.code)
@@ -5962,7 +6521,7 @@ function getCommoditiesMatchingTemplateCode (commodityCode) {
 
 function resolveSpeciesIdsFromTemplateReview (review) {
   const matchingCommodities = getCommoditiesMatchingTemplateCode(review.commodityCode)
-  const candidateCommodities = matchingCommodities.length ? matchingCommodities : commodities
+  const candidateCommodities = matchingCommodities.length ? matchingCommodities : allCommodities
   const speciesLabels = String(review.species || '')
     .split(',')
     .map((label) => label.trim())
@@ -6122,9 +6681,9 @@ function buildTemplateAddressValue (address) {
   }
 }
 
-function buildTemplateReviewViewModel (template) {
+function buildTemplateReviewViewModel (template, basePath = '/design-release-2') {
   const review = template.review
-  const changeBase = `/design-release-2/templates/${template.id}`
+  const changeBase = `${basePath}/templates/${template.id}`
   const addressValue = buildTemplateAddressValue(review.placeOfOrigin)
 
   return {
@@ -6190,8 +6749,9 @@ function buildTemplateReviewViewModel (template) {
   }
 }
 
-function getDashboardTemplatesViewModel (query = {}) {
+function getDashboardTemplatesViewModel (query = {}, sessionData = {}) {
   const sort = (query.sort || '').trim()
+  const basePath = getDesignReleaseBasePath(sessionData) || '/design-release-2'
   const templates = dashboardTemplates.map((template) => ({
     categoryLabel: template.categoryLabel,
     title: template.title,
@@ -6199,8 +6759,8 @@ function getDashboardTemplatesViewModel (query = {}) {
     origin: template.origin,
     consignee: template.consignee,
     consignor: template.consignor,
-    viewHref: `/design-release-2/templates/${template.id}`,
-    createHref: `/design-release-2/templates/${template.id}/use`
+    viewHref: `${basePath}/templates/${template.id}`,
+    createHref: `${basePath}/templates/${template.id}/use`
   }))
 
   return {
@@ -6222,12 +6782,14 @@ function renderViewTemplatePage (req, res) {
     return res.redirect('/templates')
   }
 
+  const basePath = getDesignReleaseBasePath(req.session.data) || '/design-release-2'
+
   return res.render('view-template', {
     serviceNavActive: 'templates',
     template,
-    templateReview: buildTemplateReviewViewModel(template),
-    formAction: `/design-release-2/templates/${template.id}`,
-    cancelHref: '/design-release-2',
+    templateReview: buildTemplateReviewViewModel(template, basePath),
+    formAction: `${basePath}/templates/${template.id}`,
+    cancelHref: basePath,
     backLink: '/templates'
   })
 }
@@ -6355,8 +6917,15 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
 }
 
 function renderDashboardPage (req, res) {
+  const successMessage = req.session.data.dashboardSuccessMessage || null
+
+  if (successMessage) {
+    delete req.session.data.dashboardSuccessMessage
+  }
+
   return res.render('dashboard', {
     serviceNavActive: 'dashboard',
+    successMessage,
     ...getDashboardViewModel(req.session.data, req.query)
   })
 }
@@ -6368,7 +6937,7 @@ function renderDashboardTemplatesPage (req, res) {
 
   return res.render('dashboard-templates', {
     serviceNavActive: 'templates',
-    ...getDashboardTemplatesViewModel(req.query)
+    ...getDashboardTemplatesViewModel(req.query, req.session.data)
   })
 }
 
@@ -7156,7 +7725,7 @@ function saveAddressBookEntry (sessionData, manualAddress, options = {}) {
   const consignmentReturn = options.consignmentReturn || getAddressBookConsignmentReturn(sessionData)
   const contactReturn = options.contactReturn || getAddressBookContactReturn(sessionData)
   const addressBookPath = isDesignRelease2SessionData(sessionData)
-    ? '/design-release-2/address-book'
+    ? `${getDesignReleaseBasePath(sessionData)}/address-book`
     : '/address-book'
   const entry = buildAddressBookEntryFromManual(
     manualAddress,
@@ -7247,7 +7816,7 @@ function getAddressBookViewModel (query = {}, sessionData = {}) {
   const pageSize = addressBookData.pageSize
   const normalisedSearch = searchQuery.toLowerCase()
   const addressBookBasePath = isDr2
-    ? '/design-release-2/address-book'
+    ? `${getDesignReleaseBasePath(sessionData)}/address-book`
     : '/address-book'
 
   let addresses = getAddressBookAddresses(sessionData)
@@ -7333,9 +7902,11 @@ const addressBookUsageOptionsByCategory = {
 }
 
 function getAddressBookBasePath (res) {
-  return res.locals.isDesignRelease2Version
-    ? '/design-release-2/address-book'
-    : '/address-book'
+  if (res.locals.isDesignRelease2Version && res.locals.journeyBasePath) {
+    return `${res.locals.journeyBasePath}/address-book`
+  }
+
+  return '/address-book'
 }
 
 function getAddressBookAddCategory (value) {
@@ -7734,7 +8305,7 @@ function renderWhatAreYouImportingPage (req, res, locals = {}) {
   return res.render('what-are-you-importing', {
     backLink: '/origin-of-the-import',
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
-    commoditiesSearchJson: JSON.stringify(getCommoditySearchData(commodities)),
+    commoditiesSearchJson: JSON.stringify(getCommoditySearchData(getSearchCommodities(sessionData))),
     commoditySelectionsJson: JSON.stringify(getInitialCommoditySelections(sessionData)),
     data: sessionData,
     ...locals
@@ -7762,10 +8333,15 @@ function renderAdditionalAnimalDetailsPage (req, res, locals = {}) {
     backLink: getAdditionalAnimalDetailsBackLink(sessionData),
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     showCertificationPurposeQuestion: config.showCertificationPurposeQuestion,
+    showTemperatureQuestion: config.showTemperatureQuestion,
     showUnweanedQuestion: config.showUnweanedQuestion,
     certificationPurposeItems: buildRadioItems(
       config.certificationPurposeOptions,
       sessionData.certificationPurpose
+    ),
+    temperatureItems: buildRadioItems(
+      config.temperatureOptions,
+      sessionData.storageTemperature
     ),
     unweanedItems: buildRadioItems(
       config.unweanedOptions,
@@ -7783,11 +8359,18 @@ function renderAnimalIdentificationDetailsPage (req, res, locals = {}) {
   }
 
   const commodityGroups = buildAnimalIdentificationCommodityGroups(sessionData, locals)
+  const selectedCommodityRows = getSelectedCommodityRows(sessionData)
+  const hasGerminalProducts = selectedCommodityRows.some((row) => row.isGerminalProduct)
+  const hasLiveAnimals = selectedCommodityRows.some((row) => !row.isGerminalProduct)
+  const quantityColumnLabel = hasGerminalProducts && !hasLiveAnimals
+    ? 'Number of packages'
+    : 'Number of animals'
 
   return res.render('animal-identification-details', {
     backLink: '/consignment-details',
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
-    selectedCommodityRows: getSelectedCommodityRows(sessionData),
+    selectedCommodityRows,
+    quantityColumnLabel,
     commodityGroups,
     data: sessionData,
     ...locals
@@ -8279,16 +8862,24 @@ router.post('/consignment-details', (req, res) => {
   const speciesIds = normalizeSelectedSpecies(req.session.data.selectedSpecies)
   const numberOfAnimals = parseNumberOfAnimals(req.body, speciesIds)
   const numberOfPackages = parseNumberOfPackages(req.body, speciesIds)
+  const netWeight = parseNetWeight(req.body, speciesIds)
+  const packageType = parsePackageType(req.body, speciesIds)
   const action = (req.body.action || '').trim()
 
   const animalValidation = validateNumberOfAnimals(numberOfAnimals, speciesIds)
   const packagingValidation = validateNumberOfPackages(numberOfPackages, speciesIds)
+  const netWeightValidation = validateNetWeight(netWeight, speciesIds)
+  const packageTypeValidation = validatePackageType(packageType, speciesIds)
   const errors = {
     ...animalValidation.errors,
-    ...packagingValidation.errors
+    ...packagingValidation.errors,
+    ...netWeightValidation.errors,
+    ...packageTypeValidation.errors
   }
   const errorList = [
     ...animalValidation.errorList,
+    ...netWeightValidation.errorList,
+    ...packageTypeValidation.errorList,
     ...packagingValidation.errorList
   ]
 
@@ -8297,6 +8888,8 @@ router.post('/consignment-details', (req, res) => {
     req.session.data.errors = errors
     req.session.data.numberOfAnimals = numberOfAnimals
     req.session.data.numberOfPackages = numberOfPackages
+    req.session.data.netWeight = netWeight
+    req.session.data.packageType = packageType
 
     return renderConsignmentDetailsPage(req, res)
   }
@@ -8305,6 +8898,8 @@ router.post('/consignment-details', (req, res) => {
   req.session.data.errors = null
   req.session.data.numberOfAnimals = numberOfAnimals
   req.session.data.numberOfPackages = numberOfPackages
+  req.session.data.netWeight = netWeight
+  req.session.data.packageType = packageType
 
   if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
     return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
@@ -8364,11 +8959,16 @@ router.post('/additional-animal-details', (req, res) => {
 
   const config = getAdditionalAnimalDetailsConfig(req.session.data)
   const certificationPurpose = (req.body.certificationPurpose || '').trim()
+  const storageTemperature = (req.body.storageTemperature || '').trim()
   const unweanedAnimals = (req.body.unweanedAnimals || '').trim()
 
   if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
     if (config.showCertificationPurposeQuestion && certificationPurposeOptions.includes(certificationPurpose)) {
       req.session.data.certificationPurpose = certificationPurpose
+    }
+
+    if (config.showTemperatureQuestion && config.temperatureOptions.includes(storageTemperature)) {
+      req.session.data.storageTemperature = storageTemperature
     }
 
     if (config.showUnweanedQuestion && config.unweanedOptions.includes(unweanedAnimals)) {
@@ -8382,6 +8982,9 @@ router.post('/additional-animal-details', (req, res) => {
   req.session.data.errors = null
   req.session.data.certificationPurpose = config.showCertificationPurposeQuestion
     ? (certificationPurpose || null)
+    : null
+  req.session.data.storageTemperature = config.showTemperatureQuestion
+    ? (storageTemperature || null)
     : null
   req.session.data.unweanedAnimals = config.showUnweanedQuestion
     ? (unweanedAnimals || null)
@@ -8499,6 +9102,7 @@ router.get('/notifications/amend', (req, res) => {
     submittedId: submittedId || null,
     reference: reference || notificationReference || null
   }
+  req.session.data.amendOriginalSnapshot = getComparableNotificationSnapshot(snapshot)
   req.session.data.errorList = null
   req.session.data.errors = null
 
@@ -8517,6 +9121,7 @@ router.get('/notifications/cancel-amend', (req, res) => {
   ).trim()
 
   delete req.session.data.amendingFrom
+  delete req.session.data.amendOriginalSnapshot
   delete req.session.data.notificationStatus
   req.session.data.errorList = null
   req.session.data.errors = null
@@ -8630,7 +9235,7 @@ router.post('/address-book/add', (req, res) => {
     if (category.value === 'transporter') {
       req.session.data.addressBookAddingTransporter = true
       req.session.data.transporterAddType = null
-      return res.redirect('/design-release-2/transporter/add')
+      return res.redirect('/transporter/add')
     }
 
     if (category.value === 'origin-and-sender') {
@@ -8897,6 +9502,29 @@ router.get('/review-notification', (req, res) => {
   ensurePrototypeNotificationReference(req.session.data)
 
   return renderReviewNotificationPage(req, res)
+})
+
+router.get('/notifications/delete', (req, res) => {
+  return renderDeleteNotificationPage(req, res)
+})
+
+router.post('/notifications/delete', (req, res) => {
+  const submittedId = (req.query.submitted || '').trim()
+  const reference = (req.query.reference || '').trim()
+  const reviewOptions = resolveDesignRelease2ReviewPageOptions(req, { submittedId, reference })
+  const notificationReference = reviewOptions.pageHeader && reviewOptions.pageHeader.reference
+    ? reviewOptions.pageHeader.reference
+    : reference
+
+  deleteNotification(req.session.data, {
+    submittedId,
+    reference: reference || notificationReference
+  })
+  req.session.data.dashboardSuccessMessage = notificationReference
+    ? `${notificationReference} has been deleted`
+    : 'Notification has been deleted'
+
+  return res.redirect(getDashboardBackLink(req.session.data))
 })
 
 router.post('/review-notification', (req, res) => {
@@ -9809,6 +10437,9 @@ router.post('/contact-address-for-consignment', (req, res) => {
 
 const { mountTestingVersion } = require('./lib/testing-version')
 const { mountDesignRelease2Version } = require('./lib/design-release-2-version')
+const { mountDesignRelease21Version } = require('./lib/design-release-2.1-version')
 
 mountTestingVersion(govukPrototypeKit, router)
+// Mount 2.1 before 2 so Express does not treat /design-release-2.1 as /design-release-2
+mountDesignRelease21Version(govukPrototypeKit, router)
 mountDesignRelease2Version(govukPrototypeKit, router)

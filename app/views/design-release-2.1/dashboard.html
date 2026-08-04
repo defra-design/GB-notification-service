@@ -8,7 +8,7 @@
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
 {% from "govuk/components/select/macro.njk" import govukSelect %}
 {% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
-{% from "partials/design-release-2/dashboard-notification-card.html" import dr2DashboardNotificationCard %}
+{% from "partials/design-release-2.1/dashboard-notification-card.html" import dr2DashboardNotificationCard %}
 
 {% set pageName = "Dashboard" %}
 
@@ -46,11 +46,11 @@
       <div class="app-dr2-dashboard-intro__actions">
         {{ govukButton({
           text: "Create new notification",
-          href: "/design-release-2/create-notification"
+          href: "/design-release-2.1/create-notification"
         }) }}
         {{ govukButton({
           text: "Use notification template",
-          href: "/design-release-2/templates",
+          href: "/design-release-2.1/templates",
           classes: "govuk-button--secondary"
         }) }}
       </div>
@@ -64,21 +64,21 @@
           <h3 class="app-dr2-dashboard-glance-card__title">Action needed</h3>
           <p class="app-dr2-dashboard-glance-card__description">Tasks requiring your attention</p>
           <p class="app-dr2-dashboard-glance-card__count">{{ glanceCounts.actionNeeded }}</p>
-          <a class="govuk-link app-dr2-dashboard-glance-card__link" href="/design-release-2/actions">View tasks</a>
+          <a class="govuk-link app-dr2-dashboard-glance-card__link" href="/design-release-2.1/actions">View tasks</a>
         </article>
 
         <article class="app-dr2-dashboard-glance-card">
           <h3 class="app-dr2-dashboard-glance-card__title">Status updates</h3>
           <p class="app-dr2-dashboard-glance-card__description">Changes in the past 24 hours</p>
           <p class="app-dr2-dashboard-glance-card__count app-dr2-dashboard-glance-card__count--blue">{{ glanceCounts.statusChange }}</p>
-          <a class="govuk-link app-dr2-dashboard-glance-card__link" href="/design-release-2/changes">View updates</a>
+          <a class="govuk-link app-dr2-dashboard-glance-card__link" href="/design-release-2.1/changes">View updates</a>
         </article>
 
         <article class="app-dr2-dashboard-glance-card">
           <h3 class="app-dr2-dashboard-glance-card__title">Inspection required</h3>
           <p class="app-dr2-dashboard-glance-card__description">Consignments due at the BCP</p>
           <p class="app-dr2-dashboard-glance-card__count app-dr2-dashboard-glance-card__count--blue">{{ glanceCounts.chosenForInspection }}</p>
-          <a class="govuk-link app-dr2-dashboard-glance-card__link" href="/design-release-2/inspection">View requirements</a>
+          <a class="govuk-link app-dr2-dashboard-glance-card__link" href="/design-release-2.1/inspection">View requirements</a>
         </article>
       </div>
     </section>
@@ -86,7 +86,7 @@
     <section class="app-dr2-dashboard-notifications" aria-labelledby="dashboard-notifications-heading">
       <h2 class="app-dr2-dashboard-notifications__heading" id="dashboard-notifications-heading">My notifications</h2>
 
-      <form method="get" action="/design-release-2" class="app-dr2-dashboard-search">
+      <form method="get" action="/design-release-2.1" class="app-dr2-dashboard-search">
         {% if currentPage > 1 %}
           <input type="hidden" name="page" value="{{ currentPage }}">
         {% endif %}

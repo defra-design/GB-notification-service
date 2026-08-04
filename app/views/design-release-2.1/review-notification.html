@@ -5,7 +5,7 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
 {% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
-{% from "partials/design-release-2/review-summary-card.html" import dr2ReviewCard, dr2ReviewCommodityCard %}
+{% from "partials/design-release-2.1/review-summary-card.html" import dr2ReviewCard, dr2ReviewCommodityCard %}
 
 {% block beforeContent %}
   {{ govukPhaseBanner({
@@ -26,9 +26,9 @@
   <div class="govuk-grid-column-full app-review-notification-page app-review-notification-page--dr2{% if reviewVariant %} app-review-notification-page--dr2-{{ reviewVariant }}{% endif %}">
 
     {% if reviewVariant == 'journey' %}
-      {% include "partials/design-release-2/notification-status.html" %}
+      {% include "partials/design-release-2.1/notification-status.html" %}
     {% elif pageHeader %}
-      {% include "partials/design-release-2/review-page-header.html" %}
+      {% include "partials/design-release-2.1/review-page-header.html" %}
     {% endif %}
 
     {% if data.errorList %}
@@ -136,7 +136,7 @@
     </section>
 
     {% if reviewVariant == 'journey' or reviewVariant == 'draft' %}
-    <form method="post" action="/design-release-2/review-notification" novalidate class="app-review-notification-page__form{% if data.notificationStatus == 'Amend' %} app-review-notification-page__form--amend{% endif %}">
+    <form method="post" action="/design-release-2.1/review-notification" novalidate class="app-review-notification-page__form{% if data.notificationStatus == 'Amend' %} app-review-notification-page__form--amend{% endif %}">
       {{ govukButton({
         text: "Continue"
       }) }}
@@ -148,7 +148,7 @@
     </form>
     {% elif reviewVariant == 'action-required' %}
     <p class="app-review-notification-page__form">
-      <a class="govuk-button" href="/design-release-2/notification-hub">Continue</a>
+      <a class="govuk-button" href="/design-release-2.1/notification-hub">Continue</a>
     </p>
     {% endif %}
 
@@ -156,6 +156,6 @@
 </div>
 
 {% if data.notificationStatus == 'Amend' %}
-  {% include "partials/design-release-2/cancel-amend-modal.html" %}
+  {% include "partials/design-release-2.1/cancel-amend-modal.html" %}
 {% endif %}
 {% endblock %}
