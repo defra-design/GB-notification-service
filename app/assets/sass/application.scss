@@ -3362,6 +3362,20 @@ button.govuk-link.app-govuk-body-link--small {
     max-width: 960px;
   }
 
+  &__title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+    width: 100%;
+    max-width: 960px;
+  }
+
+  &__title-row &__title {
+    flex: 1 1 auto;
+    max-width: 630px;
+  }
+
   &__title {
     max-width: 630px;
   }
@@ -3403,7 +3417,8 @@ button.govuk-link.app-govuk-body-link--small {
   }
 
   &__add-button.govuk-button {
-    margin: 0 0 45px;
+    flex-shrink: 0;
+    margin: 0;
   }
 
   &__search {
@@ -3559,6 +3574,13 @@ button.govuk-link.app-govuk-body-link--small {
     .app-consignment-address-select-page__form-actions {
       width: 100%;
       max-width: 960px;
+    }
+
+    .app-consignment-address-select-page__title-row {
+      @media (max-width: 40.0625em) {
+        flex-direction: column;
+        align-items: flex-start;
+      }
     }
 
     @media (max-width: 40.0625em) {

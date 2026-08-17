@@ -2,6 +2,8 @@
 {% from "govuk/components/select/macro.njk" import govukSelect %}
 
 <div class="app-address-book-manual-address-fields app-consignment-manual-address-fields">
+  <h2 class="app-address-book-lookup-page__section-heading">Address</h2>
+
   {{ govukInput({
     label: {
       text: "Name or organisation"
@@ -71,7 +73,7 @@
     errorMessage: data.errors.addressBookManualCountry if data.errors and data.errors.addressBookManualCountry
   }) }}
 
-  <h2 class="app-address-book-lookup-page__section-heading">Enter contact details</h2>
+  <h2 class="app-address-book-lookup-page__section-heading">Contact details</h2>
 
   {{ govukInput({
     label: {

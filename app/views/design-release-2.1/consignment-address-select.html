@@ -38,9 +38,17 @@
       }) }}
     {% endif %}
 
-    <div class="app-consignment-address-select-page__title">
-      <p class="app-consignment-address-select-page__caption">Consignment parties</p>
-      <h1 class="app-consignment-address-select-page__heading">{{ heading }}</h1>
+    <div class="app-consignment-address-select-page__title-row">
+      <div class="app-consignment-address-select-page__title">
+        <p class="app-consignment-address-select-page__caption">Consignment parties</p>
+        <h1 class="app-consignment-address-select-page__heading">{{ heading }}</h1>
+      </div>
+
+      {{ govukButton({
+        text: "Add a new address",
+        href: addAddressHref,
+        classes: "govuk-button--secondary app-consignment-address-select-page__add-button"
+      }) }}
     </div>
 
     <p class="app-consignment-address-select-page__intro">
@@ -219,10 +227,6 @@
         </fieldset>
       </div>
 
-      <p class="app-consignment-address-select-page__add-link">
-        <a class="govuk-link" href="{{ addAddressHref }}">Add a new address</a>
-      </p>
-
       {% if data.notificationStatus == 'Amend' %}
         {% set journeyFormActionOptions = {
           showHub: false,
@@ -249,7 +253,7 @@
           </div>
 
           <p class="app-origin-form-actions__cancel">
-            <a class="govuk-link" href="/design-release-2.1/notification-hub">Cancel and return to hub</a>
+            <a class="govuk-link" href="{{ hubCancelHref or ((journeyBasePath + '/notification-hub') if journeyBasePath else '/notification-hub') }}">Cancel and return to hub</a>
           </p>
         </div>
       {% endif %}

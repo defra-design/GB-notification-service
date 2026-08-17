@@ -5,7 +5,7 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
 
-{% set pageName = "Add address details" %}
+{% set pageName = "Add address and contact details" %}
 
 {% block beforeContent %}
   {{ govukPhaseBanner({
@@ -23,9 +23,11 @@
 
 {% block content %}
 <div class="govuk-grid-row">
-  <div class="govuk-grid-column-full app-consignment-add-address-page{% if showAddressLookup %} app-consignment-add-address-page--lookup{% endif %}{% if showManualAddress %} app-consignment-add-address-page--show-manual{% endif %}">
+  <div class="govuk-grid-column-full app-consignment-add-address-page{% if showAddressLookup %} app-consignment-add-address-page--lookup{% endif %}{% if showManualAddress %} app-consignment-add-address-page--show-manual{% endif %}{% if isAddressBookAdd %} app-consignment-add-address-page--address-book{% endif %}">
 
-    {% include "partials/notification-status.html" %}
+    {% if not isAddressBookAdd %}
+      {% include "partials/notification-status.html" %}
+    {% endif %}
 
     {% if data.errorList %}
       {{ govukErrorSummary({
@@ -36,7 +38,7 @@
 
     <div class="app-consignment-add-address-page__title">
       <span class="govuk-caption-l">Add new address</span>
-      <h1 class="govuk-heading-l">Add address details</h1>
+      <h1 class="govuk-heading-l">Add address and contact details</h1>
     </div>
 
     <form
@@ -44,8 +46,10 @@
       action="{{ formAction }}"
       novalidate
       class="app-consignment-add-address-form"
+      {% if not isAddressBookAdd %}
       data-module="app-consignment-add-address-uses"
       data-default-address-use="{{ defaultAddressUse }}"
+      {% endif %}
     >
 
       {% if showAddressLookup %}
@@ -105,22 +109,32 @@
 
       <div class="app-origin-form-actions app-consignment-add-address-page__form-actions">
         <div class="app-origin-actions">
-          {{ govukButton({
-            text: "Save and select",
-            name: "action",
-            value: "select"
-          }) }}
+          {% if isAddressBookAdd %}
+            {{ govukButton({
+              text: "Save and continue",
+              name: "action",
+              value: "continue"
+            }) }}
+          {% else %}
+            {{ govukButton({
+              text: "Save and select",
+              name: "action",
+              value: "select"
+            }) }}
 
-          {{ govukButton({
-            text: "Save and return to address page",
-            name: "action",
-            value: "return",
-            classes: "govuk-button--secondary"
-          }) }}
+            {{ govukButton({
+              text: "Save and return to address page",
+              name: "action",
+              value: "return",
+              classes: "govuk-button--secondary"
+            }) }}
+          {% endif %}
         </div>
 
         <p class="app-origin-form-actions__cancel">
-          <a class="govuk-link" href="{{ cancelHref }}">Cancel and return to hub</a>
+          <a class="govuk-link" href="{{ cancelHref }}">
+            {% if isAddressBookAdd %}Cancel and return to address book{% else %}Cancel and return to hub{% endif %}
+          </a>
         </p>
       </div>
 

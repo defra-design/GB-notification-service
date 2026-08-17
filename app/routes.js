@@ -1979,7 +1979,7 @@ function renderContactAddressPage (req, res, locals = {}) {
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     contactAddressItems: buildContactAddressItems(sessionData, selectedAddressId),
     selectedAddressId,
-    addAddressHref: '/address-book/add?from=contact-address',
+    addAddressHref: buildAddressBookHref(sessionData, '/add?from=contact-address'),
     successMessage: locals.successMessage != null
       ? locals.successMessage
       : sessionData.contactAddressSuccessMessage || null,
@@ -3547,18 +3547,19 @@ function getConsignmentAddressById (addressId, sectionId, sessionData = {}) {
   return getConsignmentAddressesForSection(sectionId, sessionData).find((address) => address.id === addressId)
 }
 
-function buildConsignmentAddressResults (searchQuery = '', sectionId = '', sessionData = {}, returnPath = '') {
+function buildConsignmentAddressResults (searchQuery = '', sectionId = '', sessionData = {}, returnPath = '', addressBookBasePath = null) {
   const sectionAddresses = getConsignmentAddressesForSection(sectionId, sessionData)
   const query = searchQuery.trim().toLowerCase()
   const filtered = query
     ? sectionAddresses.filter((address) => formatConsignmentAddressForSearch(address).includes(query))
     : sectionAddresses
+  const resolvedAddressBookBasePath = addressBookBasePath || getAddressBookBasePathFromSession(sessionData)
 
   return {
     addresses: filtered.map((address) => ({
       ...address,
       searchText: formatConsignmentAddressForSearch(address),
-      viewHref: buildAddressViewHref(address.id, returnPath)
+      viewHref: buildAddressViewHref(address.id, returnPath, resolvedAddressBookBasePath)
     })),
     visibleCount: filtered.length,
     totalCount: sectionAddresses.length
@@ -3574,8 +3575,11 @@ function renderConsignmentAddressSelectPage (section, req, res, locals = {}) {
     delete sessionData.consignmentAddressSuccessMessage
   }
 
+  const versionBasePath = getDesignReleaseBasePath(sessionData)
+
   return res.render('consignment-address-select', {
     backLink: '/roles-and-addresses',
+    hubCancelHref: versionBasePath ? `${versionBasePath}/notification-hub` : '/notification-hub',
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     sectionId: section.id,
     heading: section.heading,
@@ -6219,6 +6223,28 @@ function getDesignReleaseBasePath (sessionData = {}) {
   return ''
 }
 
+function getAddressBookBasePathFromSession (sessionData = {}) {
+  const versionBasePath = getDesignReleaseBasePath(sessionData)
+
+  return versionBasePath ? `${versionBasePath}/address-book` : '/address-book'
+}
+
+function buildAddressBookHref (sessionData, suffix = '') {
+  const basePath = getAddressBookBasePathFromSession(sessionData)
+
+  if (!suffix) {
+    return basePath
+  }
+
+  if (suffix.startsWith('?')) {
+    return `${basePath}${suffix}`
+  }
+
+  const normalizedSuffix = suffix.startsWith('/') ? suffix : `/${suffix}`
+
+  return `${basePath}${normalizedSuffix}`
+}
+
 function getDashboardBackLink (sessionData = {}) {
   if (isTestingSessionData(sessionData)) {
     return '/testing'
@@ -7015,7 +7041,7 @@ function buildTemplateReviewViewModel (template, basePath = '/design-release-2')
         { key: 'Consignor', value: addressValue },
         { key: 'Consignee', value: addressValue },
         { key: 'Importer', value: addressValue },
-        { key: 'County parish holding number (CPH)', value: review.cphNumber }
+        { key: 'County parish holding (CPH) number', value: review.cphNumber }
       ]
     }
   }
@@ -7520,11 +7546,11 @@ function getAddressBookAddresses (sessionData = {}) {
       ? {
         ...address,
         ...updated,
-        viewHref: `/address-book/${address.id}`
+        viewHref: buildAddressBookHref(sessionData, `/${address.id}`)
       }
       : {
         ...address,
-        viewHref: address.viewHref || `/address-book/${address.id}`
+        viewHref: buildAddressBookHref(sessionData, `/${address.id}`)
       }
     const types = Array.isArray(merged.types) && merged.types.length
       ? merged.types
@@ -7551,16 +7577,16 @@ function findAddressBookEntry (addressId, sessionData = {}) {
     .find((address) => address.id === addressId) || null
 }
 
-function buildAddressBookReturnQuery (returnPath) {
-  if (!returnPath || returnPath === '/address-book') {
+function buildAddressBookReturnQuery (returnPath, addressBookBasePath = '/address-book') {
+  if (!returnPath || returnPath === addressBookBasePath || returnPath === '/address-book') {
     return ''
   }
 
   return `?return=${encodeURIComponent(returnPath)}`
 }
 
-function buildAddressViewHref (addressId, returnTo) {
-  const baseHref = `/address-book/${encodeURIComponent(addressId)}`
+function buildAddressViewHref (addressId, returnTo, addressBookBasePath = '/address-book') {
+  const baseHref = `${addressBookBasePath}/${encodeURIComponent(addressId)}`
 
   if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) {
     return `${baseHref}?return=${encodeURIComponent(returnTo)}`
@@ -7569,11 +7595,26 @@ function buildAddressViewHref (addressId, returnTo) {
   return baseHref
 }
 
-function getSafeReturnPath (returnTo, fallback = '/address-book') {
+function normalizeAddressBookReturnPath (path, addressBookBasePath) {
+  if (
+    addressBookBasePath &&
+    addressBookBasePath !== '/address-book' &&
+    (path === '/address-book' || path.startsWith('/address-book/'))
+  ) {
+    return `${addressBookBasePath}${path.slice('/address-book'.length)}`
+  }
+
+  return path
+}
+
+function getSafeReturnPath (returnTo, fallback = '/address-book', addressBookBasePath = null) {
   const path = (returnTo || '').trim()
+  const versionedAddressBookBasePath = addressBookBasePath || (
+    fallback.endsWith('/address-book') ? fallback : null
+  )
 
   if (path.startsWith('/') && !path.startsWith('//')) {
-    return path
+    return normalizeAddressBookReturnPath(path, versionedAddressBookBasePath)
   }
 
   return fallback
@@ -7731,8 +7772,9 @@ function getAddressBookEntryViewModel (addressId, sessionData = {}, options = {}
 
   const addressBookEntry = findAddressBookEntry(addressId, sessionData)
   const details = resolveAddressBookDetails(address)
-  const backLink = options.backLink || '/address-book'
-  const returnQuery = buildAddressBookReturnQuery(backLink)
+  const addressBookBasePath = options.addressBookBasePath || getAddressBookBasePathFromSession(sessionData)
+  const backLink = options.backLink || addressBookBasePath
+  const returnQuery = buildAddressBookReturnQuery(backLink, addressBookBasePath)
   const encodedAddressId = encodeURIComponent(addressId)
 
   return {
@@ -7742,17 +7784,18 @@ function getAddressBookEntryViewModel (addressId, sessionData = {}, options = {}
     pageHeading: address.name,
     summaryRows: buildAddressBookViewSummaryRows(details),
     canManage: Boolean(addressBookEntry),
-    editHref: addressBookEntry ? `/address-book/${encodedAddressId}/edit${returnQuery}` : null,
-    deleteAction: addressBookEntry ? `/address-book/${encodedAddressId}/delete${returnQuery}` : null
+    editHref: addressBookEntry ? `${addressBookBasePath}/${encodedAddressId}/edit${returnQuery}` : null,
+    deleteAction: addressBookEntry ? `${addressBookBasePath}/${encodedAddressId}/delete${returnQuery}` : null
   }
 }
 
 function renderAddressBookViewPage (req, res) {
-  const backLink = getSafeReturnPath(req.query.return)
+  const addressBookBasePath = getAddressBookBasePath(res)
+  const backLink = getSafeReturnPath(req.query.return, addressBookBasePath)
   const viewModel = getAddressBookEntryViewModel(
     req.params.addressId,
     req.session.data,
-    { backLink }
+    { backLink, addressBookBasePath }
   )
 
   if (!viewModel) {
@@ -7764,13 +7807,14 @@ function renderAddressBookViewPage (req, res) {
 
 function updateAddressBookEntry (sessionData, addressId, manualAddress, addressType) {
   const entry = buildAddressBookEntryFromManual(manualAddress, addressType, addressId)
+  const viewHref = buildAddressBookHref(sessionData, `/${addressId}`)
   const addedAddresses = sessionData.addressBookAddedAddresses || []
   const addedIndex = addedAddresses.findIndex((address) => address.id === addressId)
 
   if (addedIndex >= 0) {
     sessionData.addressBookAddedAddresses[addedIndex] = {
       ...entry,
-      viewHref: `/address-book/${addressId}`
+      viewHref
     }
 
     return entry
@@ -7782,7 +7826,7 @@ function updateAddressBookEntry (sessionData, addressId, manualAddress, addressT
 
   sessionData.addressBookUpdatedEntries[addressId] = {
     ...entry,
-    viewHref: `/address-book/${addressId}`
+    viewHref
   }
 
   return entry
@@ -7814,24 +7858,29 @@ function deleteAddressBookEntry (sessionData, addressId) {
 function renderAddressBookEditPage (req, res, locals = {}) {
   const addressId = (req.params.addressId || '').trim()
   const sessionData = req.session.data
-  const viewBackLink = getSafeReturnPath(req.query.return, `/address-book/${addressId}`)
+  const addressBookBasePath = getAddressBookBasePath(res)
+  const viewBackLink = getSafeReturnPath(
+    req.query.return,
+    `${addressBookBasePath}/${addressId}`,
+    addressBookBasePath
+  )
   const entry = findAddressBookEntry(addressId, sessionData)
 
   if (!entry) {
-    return res.redirect(getSafeReturnPath(req.query.return))
+    return res.redirect(getSafeReturnPath(req.query.return, addressBookBasePath))
   }
 
   const details = resolveAddressBookDetails(entry)
   const manualAddress = locals.manualAddress || details
-  const returnQuery = buildAddressBookReturnQuery(viewBackLink)
+  const returnQuery = buildAddressBookReturnQuery(viewBackLink, addressBookBasePath)
 
   return res.render('address-book-lookup', {
     serviceNavActive: 'address-book',
     backLink: viewBackLink,
     cancelHref: viewBackLink,
     isEditMode: true,
-    pageHeading: 'Edit address details',
-    formAction: `/address-book/${encodeURIComponent(addressId)}/edit${returnQuery}`,
+    pageHeading: 'Edit address and contact details',
+    formAction: `${addressBookBasePath}/${encodeURIComponent(addressId)}/edit${returnQuery}`,
     selectedAddressType: entry.type,
     addressTypeItems: buildAddressBookAddressTypeSelectItems(entry.type),
     addressTypeLabel: getAddressBookAddressTypeLabel(entry.type),
@@ -8040,7 +8089,7 @@ function getAddressBookCancelHref (sessionData, addressBookBasePath = '/address-
     return addressBookBasePath
   }
 
-  return '/'
+  return getDashboardBackLink(sessionData)
 }
 
 function buildConsignmentAddressFromManual (manualAddress, sectionId) {
@@ -8077,7 +8126,7 @@ function saveAddressBookEntry (sessionData, manualAddress, options = {}) {
     ? options.contactReturn
     : getAddressBookContactReturn(sessionData)
   const addressBookPath = isDesignRelease2SessionData(sessionData)
-    ? `${getDesignReleaseBasePath(sessionData)}/address-book`
+    ? getAddressBookBasePathFromSession(sessionData)
     : '/address-book'
   const entry = buildAddressBookEntryFromManual(
     manualAddress,
@@ -8157,7 +8206,7 @@ function getAddressBookViewModel (query = {}, sessionData = {}) {
   const pageSize = addressBookData.pageSize
   const normalisedSearch = searchQuery.toLowerCase()
   const addressBookBasePath = isDr2
-    ? `${getDesignReleaseBasePath(sessionData)}/address-book`
+    ? getAddressBookBasePathFromSession(sessionData)
     : '/address-book'
 
   let addresses = getAddressBookAddresses(sessionData)
@@ -8276,6 +8325,153 @@ function parseAddressBookUses (rawValue, category) {
   return values
     .map((value) => String(value || '').trim())
     .filter((value) => allowedValues.has(value))
+}
+
+function addressBookCategoryUsesLookup (category) {
+  return category === 'destination-consignee-importer' || category === 'branch'
+}
+
+function getAddressBookAddressUseGroupsForCategory (category) {
+  const options = getAddressBookUsageOptions(category)
+
+  if (!options.length) {
+    return []
+  }
+
+  return [{
+    id: category,
+    options
+  }]
+}
+
+function buildEmptyAddressBookManualAddress (showAddressLookup) {
+  return {
+    nameOrOrganisation: '',
+    addressLine1: '',
+    addressLine2: '',
+    townOrCity: '',
+    county: '',
+    postcode: '',
+    country: showAddressLookup ? 'United Kingdom' : '',
+    email: '',
+    phone: ''
+  }
+}
+
+function renderAddressBookAddDetailsPage (req, res, locals = {}) {
+  const sessionData = req.session.data
+  const category = sessionData.addressBookAddressCategory
+  const addressBookBasePath = getAddressBookBasePath(res)
+  const showAddressLookup = addressBookCategoryUsesLookup(category)
+  const manualAddress = locals.manualAddress || getAddressBookManualAddress(sessionData) || buildEmptyAddressBookManualAddress(showAddressLookup)
+  const showManualAddress = locals.showManualAddress != null
+    ? locals.showManualAddress
+    : Boolean(
+      showAddressLookup && (
+        manualAddress.addressLine1 ||
+        locals.selectedLookupAddressId ||
+        sessionData.addressBookLookupAddressId
+      )
+    )
+
+  return res.render('consignment-add-address', {
+    isAddressBookAdd: true,
+    serviceNavActive: 'address-book',
+    backLink: `${addressBookBasePath}/add`,
+    cancelHref: addressBookBasePath,
+    formAction: `${addressBookBasePath}/add/lookup`,
+    showAddressLookup,
+    showManualAddress,
+    manualAddress,
+    countryItems: showAddressLookup
+      ? [{
+        value: 'United Kingdom',
+        text: 'United Kingdom',
+        selected: true
+      }]
+      : [
+        {
+          value: '',
+          text: 'Select one',
+          selected: !manualAddress.country
+        },
+        ...buildAddressBookCountryItems(manualAddress.country)
+      ],
+    lookupAddressesJson: JSON.stringify(getUkConsignmentLookupAddresses()),
+    addressLookup: locals.addressLookup != null
+      ? locals.addressLookup
+      : sessionData.addressBookLookup || '',
+    selectedLookupAddressId: locals.selectedLookupAddressId != null
+      ? locals.selectedLookupAddressId
+      : sessionData.addressBookLookupAddressId || '',
+    addressUseGroups: getAddressBookAddressUseGroupsForCategory(category),
+    selectedAddressUses: locals.selectedAddressUses != null
+      ? locals.selectedAddressUses
+      : (sessionData.addressBookAddressUses || []),
+    data: sessionData,
+    ...locals
+  })
+}
+
+function handleAddressBookAddDetailsPost (req, res) {
+  const sessionData = req.session.data
+  const category = sessionData.addressBookAddressCategory
+  const addressBookBasePath = getAddressBookBasePath(res)
+  const showAddressLookup = addressBookCategoryUsesLookup(category)
+  const addressBookLookupAddressId = (req.body.addressBookLookupAddressId || '').trim()
+  const lookupManualAddress = getAddressDetailsFromLookup(addressBookLookupAddressId)
+  const manualAddress = mergeManualAddressFromLookupAndBody(
+    lookupManualAddress,
+    req.body,
+    showAddressLookup ? { country: 'United Kingdom' } : {}
+  )
+  const selectedAddressUses = parseAddressBookUses(req.body.addressUses, category)
+  const firstUseOption = getAddressBookUsageOptions(category)[0]
+  const addressValidation = validateAddressBookManualAddress(manualAddress)
+  const renderWithErrors = (extraLocals = {}) => renderAddressBookAddDetailsPage(req, res, {
+    manualAddress: addressValidation.value,
+    selectedAddressUses,
+    showManualAddress: showAddressLookup
+      ? Boolean(
+        manualAddress.addressLine1 ||
+        req.body.manualAddressEntry ||
+        addressBookLookupAddressId
+      )
+      : undefined,
+    addressLookup: (req.body.addressLookup || '').trim(),
+    selectedLookupAddressId: addressBookLookupAddressId,
+    ...extraLocals
+  })
+
+  if (addressValidation.errorList.length) {
+    req.session.data.errorList = addressValidation.errorList
+    req.session.data.errors = addressValidation.errors
+
+    return renderWithErrors()
+  }
+
+  if (!selectedAddressUses.length) {
+    req.session.data.errorList = [{
+      text: 'Select what this address can be used for',
+      href: firstUseOption ? `#address-use-${firstUseOption.value}` : '#address-uses-error'
+    }]
+    req.session.data.errors = {
+      addressUses: {
+        text: 'Select what this address can be used for'
+      }
+    }
+
+    return renderWithErrors()
+  }
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+
+  const { redirectTo } = saveAddressBookEntry(sessionData, addressValidation.value, {
+    addressTypes: selectedAddressUses
+  })
+
+  return res.redirect(redirectTo || addressBookBasePath)
 }
 
 function renderAddressBookAddUsagePage (req, res, locals = {}) {
@@ -9512,19 +9708,20 @@ router.get('/address-book', (req, res) => {
 })
 
 router.get('/address-book/add', (req, res) => {
+  const addressBookBasePath = getAddressBookBasePath(res)
   const fromSection = (req.query.from || '').trim()
 
   if (fromSection === CONTACT_ADDRESS_RETURN_ID) {
     setAddressBookContactReturn(req.session.data)
-    return res.redirect('/address-book/add/lookup')
+    return res.redirect(`${addressBookBasePath}/add/lookup`)
   }
 
   if (fromSection) {
     if (!setAddressBookConsignmentReturn(req.session.data, fromSection)) {
-      return res.redirect('/address-book/add/lookup')
+      return res.redirect(`${addressBookBasePath}/add/lookup`)
     }
 
-    return res.redirect('/address-book/add/lookup')
+    return res.redirect(`${addressBookBasePath}/add/lookup`)
   }
 
   clearAddressBookConsignmentReturn(req.session.data)
@@ -9575,16 +9772,12 @@ router.post('/address-book/add', (req, res) => {
     req.session.data.addressBookAddingTransporter = null
     req.session.data.addressBookHideSearch = false
     req.session.data.addressBookShowManualAddress = false
+    req.session.data.addressBookAddressUses = null
 
     if (category.value === 'transporter') {
       req.session.data.addressBookAddingTransporter = true
       req.session.data.transporterAddType = null
       return res.redirect('/transporter/add')
-    }
-
-    if (category.value === 'origin-and-consignor') {
-      req.session.data.addressBookHideSearch = true
-      req.session.data.addressBookShowManualAddress = true
     }
 
     return res.redirect(`${addressBookBasePath}/add/lookup`)
@@ -9610,6 +9803,10 @@ router.get('/address-book/add/lookup', (req, res) => {
 
   if (redirectIfNoAddressBookAddressType(req, res)) {
     return
+  }
+
+  if (res.locals.isDesignRelease2Version && isAddressBookUsageCategory(req.session.data.addressBookAddressCategory)) {
+    return renderAddressBookAddDetailsPage(req, res)
   }
 
   return renderAddressBookLookupPage(req, res)
@@ -9645,6 +9842,10 @@ router.post('/address-book/add/lookup', (req, res) => {
     return
   }
 
+  if (res.locals.isDesignRelease2Version && isAddressBookUsageCategory(req.session.data.addressBookAddressCategory)) {
+    return handleAddressBookAddDetailsPost(req, res)
+  }
+
   const validation = validateAddressBookManualAddress(manualAddress)
 
   if (validation.errorList.length) {
@@ -9666,17 +9867,6 @@ router.post('/address-book/add/lookup', (req, res) => {
   req.session.data.errorList = null
   req.session.data.errors = null
 
-  const isDr2 = Boolean(res.locals.isDesignRelease2Version)
-  const addressBookBasePath = getAddressBookBasePath(res)
-
-  if (isDr2 && isAddressBookUsageCategory(req.session.data.addressBookAddressCategory)) {
-    req.session.data.addressBookPendingManualAddress = validation.value
-    req.session.data.addressBookManualAddress = validation.value
-    req.session.data.addressBookShowManualAddress = true
-
-    return res.redirect(`${addressBookBasePath}/add/usage`)
-  }
-
   const { redirectTo } = saveAddressBookEntry(req.session.data, validation.value)
 
   return res.redirect(redirectTo)
@@ -9687,7 +9877,7 @@ router.get('/address-book/add/usage', (req, res) => {
   const category = req.session.data.addressBookAddressCategory
 
   if (!res.locals.isDesignRelease2Version) {
-    return res.redirect('/address-book/add')
+    return res.redirect(`${getAddressBookBasePath(res)}/add`)
   }
 
   if (!isAddressBookUsageCategory(category)) {
@@ -9708,7 +9898,7 @@ router.post('/address-book/add/usage', (req, res) => {
   const firstUseOption = getAddressBookUsageOptions(category)[0]
 
   if (!res.locals.isDesignRelease2Version) {
-    return res.redirect('/address-book/add')
+    return res.redirect(`${getAddressBookBasePath(res)}/add`)
   }
 
   if (!isAddressBookUsageCategory(category)) {
@@ -9756,11 +9946,16 @@ router.get('/address-book/:addressId/edit', (req, res) => {
 router.post('/address-book/:addressId/edit', (req, res) => {
   const addressId = (req.params.addressId || '').trim()
   const action = (req.body.action || '').trim()
-  const returnPath = getSafeReturnPath(req.query.return, `/address-book/${addressId}`)
+  const addressBookBasePath = getAddressBookBasePath(res)
+  const returnPath = getSafeReturnPath(
+    req.query.return,
+    `${addressBookBasePath}/${addressId}`,
+    addressBookBasePath
+  )
   const entry = findAddressBookEntry(addressId, req.session.data)
 
   if (!entry) {
-    return res.redirect(getSafeReturnPath(req.query.return, '/address-book'))
+    return res.redirect(getSafeReturnPath(req.query.return, addressBookBasePath))
   }
 
   if (action === 'cancel') {
@@ -9787,12 +9982,13 @@ router.post('/address-book/:addressId/edit', (req, res) => {
   req.session.data.errors = null
   req.session.data.addressBookSuccessMessage = formatAddressBookUpdatedMessage(validation.value.nameOrOrganisation)
 
-  return res.redirect('/address-book')
+  return res.redirect(addressBookBasePath)
 })
 
 router.post('/address-book/:addressId/delete', (req, res) => {
   const addressId = (req.params.addressId || '').trim()
-  const returnPath = getSafeReturnPath(req.query.return, '/address-book')
+  const addressBookBasePath = getAddressBookBasePath(res)
+  const returnPath = getSafeReturnPath(req.query.return, addressBookBasePath)
   const entry = findAddressBookEntry(addressId, req.session.data)
 
   if (entry) {
@@ -9800,7 +9996,7 @@ router.post('/address-book/:addressId/delete', (req, res) => {
     req.session.data.addressBookSuccessMessage = formatAddressBookDeletedMessage(entry.name)
   }
 
-  return res.redirect(returnPath.startsWith(`/address-book/${addressId}`) ? '/address-book' : returnPath)
+  return res.redirect(returnPath.startsWith(`${addressBookBasePath}/${addressId}`) ? addressBookBasePath : returnPath)
 })
 
 router.get('/address-book/:addressId', (req, res) => {

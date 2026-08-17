@@ -20,7 +20,7 @@
 {% set cancelClass = options.cancelClass if options.cancelClass else 'app-origin-form-actions__cancel' %}
 {% set continueClasses = options.continueClasses if options.continueClasses else '' %}
 {% set hubClasses = options.hubClasses if options.hubClasses else 'govuk-button--secondary' %}
-{% set cancelHref = options.cancelHref if options.cancelHref else '/design-release-2.1/notification-hub' %}
+{% set cancelHref = options.cancelHref if options.cancelHref else ((journeyBasePath + '/notification-hub') if journeyBasePath else '/notification-hub') %}
 {% set showHub = true if options.showHub is not defined else options.showHub %}
 {% set showCancel = true if options.showCancel is not defined else options.showCancel %}
 {% set continueText = options.continueText if options.continueText else 'Save and continue' %}
