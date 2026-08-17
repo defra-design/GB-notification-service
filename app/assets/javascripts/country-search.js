@@ -159,6 +159,11 @@ function initCountrySearch (root) {
     }
 
     updateRegionOriginCodePrefix(root, country)
+
+    root.dispatchEvent(new CustomEvent('app-country-search:change', {
+      bubbles: true,
+      detail: { country }
+    }))
   }
 
   function closeResults () {
@@ -250,6 +255,10 @@ function initCountrySearch (root) {
       }
 
       updateRegionOriginCodePrefix(root, '')
+      root.dispatchEvent(new CustomEvent('app-country-search:change', {
+        bubbles: true,
+        detail: { country: '' }
+      }))
     }
 
     renderResults(input.value)

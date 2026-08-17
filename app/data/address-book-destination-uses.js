@@ -13,10 +13,5 @@ module.exports = [
     value: 'importer',
     text: 'Importer',
     hint: 'This is usually the same as the consignee. You can select a different person if needed.'
-  },
-  {
-    value: 'branch-address',
-    text: 'Branch address',
-    hint: 'The specific business location acting as the importer or consignee where an organisation has multiple premises. This ensures the correct site is associated with the notification.'
   }
 ]

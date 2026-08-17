@@ -9,8 +9,12 @@ function normaliseSearchText (value) {
 }
 
 function initConsignmentAddressSearch (root) {
-  const input = root.querySelector('.app-consignment-address-select-page__search-input')
-  const button = root.querySelector('.app-consignment-address-select-page__search-button')
+  const input = root.querySelector('.app-consignment-address-select-page__search-input') ||
+    root.querySelector('.app-commodity-search__input')
+  const button = root.querySelector('.app-consignment-address-select-page__search-button') ||
+    root.querySelector('.app-commodity-search__button')
+  const countryValueInput = root.querySelector('.app-country-search__value')
+  const filterByCountry = root.getAttribute('data-filter') === 'country'
   const form = root.closest('form')
   const scope = form || root
   const tableBody = scope.querySelector('[data-address-results]')
@@ -28,7 +32,38 @@ function initConsignmentAddressSearch (root) {
     visibleCount.textContent = String(shown)
   }
 
+  function getCountryQuery () {
+    const typed = normaliseSearchText(input.value)
+    const selectedCountry = countryValueInput
+      ? normaliseSearchText(countryValueInput.value)
+      : ''
+
+    if (selectedCountry && selectedCountry === typed) {
+      return { exact: true, query: selectedCountry }
+    }
+
+    return { exact: false, query: typed }
+  }
+
   function filterRows () {
+    if (filterByCountry) {
+      const { exact, query } = getCountryQuery()
+
+      rows.forEach((row) => {
+        if (!query || query.length < MIN_SEARCH_LENGTH) {
+          row.hidden = false
+          return
+        }
+
+        const country = normaliseSearchText(row.dataset.addressCountry)
+
+        row.hidden = exact ? country !== query : !country.includes(query)
+      })
+
+      updateVisibleCount()
+      return
+    }
+
     const query = normaliseSearchText(input.value)
 
     rows.forEach((row) => {
@@ -45,6 +80,7 @@ function initConsignmentAddressSearch (root) {
   }
 
   input.addEventListener('input', filterRows)
+  root.addEventListener('app-country-search:change', filterRows)
 
   if (button) {
     button.addEventListener('click', () => {

@@ -110,6 +110,8 @@ function showManualAddressSection (root) {
   manualToggle?.setAttribute('aria-expanded', 'true')
   manualEntryField.removeAttribute('disabled')
 
+  root?.closest('.app-consignment-add-address-page')?.classList.add('app-consignment-add-address-page--show-manual')
+
   const revealSelector = root && root.getAttribute('data-reveal-with-address')
 
   if (revealSelector) {
@@ -192,7 +194,19 @@ function initAddressLookupManualToggle (root) {
     }
   }
 
-  manualToggle.addEventListener('click', showManualAddress)
+  manualToggle.addEventListener('click', () => {
+    showManualAddress()
+
+    const revealSelector = root.getAttribute('data-reveal-with-address')
+
+    if (revealSelector) {
+      const scope = root.closest('form') || document
+
+      scope.querySelectorAll(revealSelector).forEach((element) => {
+        element.classList.remove('app-address-book-lookup-page__manual--hidden')
+      })
+    }
+  })
 
   if (!manualSection.classList.contains('app-address-book-lookup-page__manual--hidden')) {
     manualLink.classList.add('app-address-book-lookup-page__manual-link--hidden')
@@ -228,7 +242,24 @@ function initAddressBookLookupSearch (root) {
 
     if (selectedAddress?.manual) {
       populateManualAddressFields(selectedAddress.manual, root)
-      showManualAddressSection(root)
+
+      if (root.getAttribute('data-hide-manual-on-select') === 'true') {
+        const { manualEntryField } = getManualElements(root)
+
+        manualEntryField?.removeAttribute('disabled')
+
+        const revealSelector = root.getAttribute('data-reveal-with-address')
+
+        if (revealSelector) {
+          const scope = root.closest('form') || document
+
+          scope.querySelectorAll(revealSelector).forEach((element) => {
+            element.classList.remove('app-address-book-lookup-page__manual--hidden')
+          })
+        }
+      } else {
+        showManualAddressSection(root)
+      }
     }
   } else if (valueInput && valueInput.value) {
     selectedAddress = addresses.find((address) => address.label === valueInput.value) || null
@@ -292,7 +323,24 @@ function initAddressBookLookupSearch (root) {
 
     if (address.manual) {
       populateManualAddressFields(address.manual, root)
-      showManualAddressSection(root)
+
+      if (root.getAttribute('data-hide-manual-on-select') === 'true') {
+        const { manualEntryField } = getManualElements(root)
+
+        manualEntryField?.removeAttribute('disabled')
+
+        const revealSelector = root.getAttribute('data-reveal-with-address')
+
+        if (revealSelector) {
+          const scope = root.closest('form') || document
+
+          scope.querySelectorAll(revealSelector).forEach((element) => {
+            element.classList.remove('app-address-book-lookup-page__manual--hidden')
+          })
+        }
+      } else {
+        showManualAddressSection(root)
+      }
     }
 
     announce(`Selected ${address.name}`)
@@ -303,6 +351,15 @@ function initAddressBookLookupSearch (root) {
 
     if (trimmedQuery.length < MIN_SEARCH_LENGTH) {
       closeResults()
+
+      if (root.getAttribute('data-hide-manual-on-select') === 'true') {
+        const { manualSection, manualLink } = getManualElements(root)
+
+        if (manualSection?.classList.contains('app-address-book-lookup-page__manual--hidden')) {
+          manualLink?.classList.add('app-address-book-lookup-page__manual-link--hidden')
+        }
+      }
+
       return
     }
 
@@ -318,7 +375,22 @@ function initAddressBookLookupSearch (root) {
       results.hidden = false
       setExpanded(true)
       announce('No results found')
+
+      if (root.getAttribute('data-hide-manual-on-select') === 'true') {
+        const { manualLink } = getManualElements(root)
+
+        manualLink?.classList.remove('app-address-book-lookup-page__manual-link--hidden')
+      }
+
       return
+    }
+
+    if (root.getAttribute('data-hide-manual-on-select') === 'true') {
+      const { manualSection, manualLink } = getManualElements(root)
+
+      if (manualSection?.classList.contains('app-address-book-lookup-page__manual--hidden')) {
+        manualLink?.classList.add('app-address-book-lookup-page__manual-link--hidden')
+      }
     }
 
     results.innerHTML = matches.map((address, index) => {

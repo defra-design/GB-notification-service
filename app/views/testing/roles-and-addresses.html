@@ -74,14 +74,24 @@
                 <a class="govuk-link" href="{{ section.changeHref }}">Change</a>
               </p>
             </div>
-          {% elif section.showSameAsConsignee %}
+          {% elif section.showSameAsPlaceOfOrigin or section.showSameAsConsignee %}
             <p class="app-roles-and-addresses-page__section-actions">
-              <button
-                type="submit"
-                name="action"
-                value="{{ section.sameAsConsigneeAction }}"
-                class="govuk-link app-roles-and-addresses-page__section-link-button"
-              >Same as consignee</button>
+              {% if section.showSameAsPlaceOfOrigin %}
+                <button
+                  type="submit"
+                  name="action"
+                  value="{{ section.sameAsPlaceOfOriginAction }}"
+                  class="govuk-link app-roles-and-addresses-page__section-link-button"
+                >Same as place of origin</button>
+              {% endif %}
+              {% if section.showSameAsConsignee %}
+                <button
+                  type="submit"
+                  name="action"
+                  value="{{ section.sameAsConsigneeAction }}"
+                  class="govuk-link app-roles-and-addresses-page__section-link-button"
+                >Same as consignee</button>
+              {% endif %}
               <a class="govuk-link" href="{{ section.href }}">{{ section.linkText }}</a>
             </p>
           {% else %}

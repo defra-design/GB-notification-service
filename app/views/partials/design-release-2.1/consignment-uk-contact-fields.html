@@ -1,0 +1,30 @@
+{% from "govuk/components/input/macro.njk" import govukInput %}
+
+<div class="app-consignment-uk-contact-fields">
+  <h2 class="app-address-book-lookup-page__section-heading">Enter contact details</h2>
+
+  {{ govukInput({
+    label: {
+      text: "Email address"
+    },
+    id: "address-book-manual-email",
+    name: "addressBookManualEmail",
+    value: manualAddress.email,
+    classes: "app-address-book-manual-address-fields__input app-address-book-manual-address-fields__input--full",
+    errorMessage: data.errors.addressBookManualEmail if data.errors and data.errors.addressBookManualEmail
+  }) }}
+
+  {{ govukInput({
+    label: {
+      text: "Phone number"
+    },
+    hint: {
+      text: "For international numbers include the country code"
+    },
+    id: "address-book-manual-phone",
+    name: "addressBookManualPhone",
+    value: manualAddress.phone,
+    classes: "app-address-book-manual-address-fields__input app-address-book-manual-address-fields__input--two-thirds",
+    errorMessage: data.errors.addressBookManualPhone if data.errors and data.errors.addressBookManualPhone
+  }) }}
+</div>

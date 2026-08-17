@@ -24,6 +24,8 @@
 {% set showHub = true if options.showHub is not defined else options.showHub %}
 {% set showCancel = true if options.showCancel is not defined else options.showCancel %}
 {% set continueText = options.continueText if options.continueText else 'Save and continue' %}
+{% set hubText = options.hubText if options.hubText else 'Save and return to overview' %}
+{% set cancelText = options.cancelText if options.cancelText else 'Cancel and return to overview' %}
 {% set amendContinueClasses = ('govuk-button--secondary ' + continueClasses) | trim %}
 
 <div class="{{ wrapperClass }}">
@@ -59,7 +61,7 @@
 
       {% if showHub %}
         {{ govukButton({
-          text: "Save and return to overview",
+          text: hubText,
           name: "action",
           value: "hub",
           classes: hubClasses
@@ -79,7 +81,7 @@
     </p>
   {% elif showCancel %}
     <p class="{{ cancelClass }}">
-      <a class="govuk-link" href="{{ cancelHref }}">Cancel and return to overview</a>
+      <a class="govuk-link" href="{{ cancelHref }}">{{ cancelText }}</a>
     </p>
   {% endif %}
 </div>

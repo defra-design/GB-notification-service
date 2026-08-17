@@ -1,7 +1,10 @@
 const SCROLL_STORAGE_KEY = 'roles-and-addresses-scroll-y'
 
 function shouldPreserveScroll (action) {
-  return typeof action === 'string' && action.startsWith('same-as-consignee:')
+  return typeof action === 'string' && (
+    action.startsWith('same-as-consignee:') ||
+    action.startsWith('same-as-place-of-origin:')
+  )
 }
 
 function restoreScrollPosition () {

@@ -58,10 +58,12 @@
         } %}
         {% include "partials/design-release-2.1/journey-form-actions.html" %}
       {% else %}
-        {{ govukButton({
-          text: "Save and continue",
-          classes: "app-cph-number-page__continue-button"
-        }) }}
+        {% set journeyFormActionOptions = {
+          continueClasses: "app-cph-number-page__continue-button",
+          hubText: "Save and return to hub",
+          cancelText: "Cancel and return to hub"
+        } %}
+        {% include "partials/design-release-2.1/journey-form-actions.html" %}
       {% endif %}
 
     </form>

@@ -22,7 +22,7 @@
         Are you sure you want to amend this consignment?
       </h2>
       <div class="app-dr2-amend-modal__actions">
-        <a class="govuk-button" href="{{ pageHeader.amendHref or '/notifications/amend' }}">Yes, amend consignment</a>
+        <a class="govuk-button" href="{{ pageHeader.amendHref or ((journeyBasePath + '/notifications/amend') if journeyBasePath else '/notifications/amend') }}">Yes, amend consignment</a>
         <button class="govuk-link app-dr2-amend-modal__back-link" type="button" data-amend-modal-dismiss>
           Go back
         </button>

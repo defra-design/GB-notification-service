@@ -15,13 +15,13 @@
     {% endif %}
     {% if pageHeader.showCopyButton %}
       {% if pageHeader.showAmendButton %}
-        <a class="govuk-button govuk-button--secondary" href="{{ pageHeader.copyHref or '/notifications/copy-as-new' }}">Copy as new</a>
+        <a class="govuk-button govuk-button--secondary" href="{{ pageHeader.copyHref or ((journeyBasePath + '/notifications/copy-as-new') if journeyBasePath else '/notifications/copy-as-new') }}">Copy as new</a>
       {% else %}
-        <a class="govuk-button" href="{{ pageHeader.copyHref or '/notifications/copy-as-new' }}">Copy as new</a>
+        <a class="govuk-button" href="{{ pageHeader.copyHref or ((journeyBasePath + '/notifications/copy-as-new') if journeyBasePath else '/notifications/copy-as-new') }}">Copy as new</a>
       {% endif %}
     {% endif %}
     {% if pageHeader.showDeleteButton %}
-      <a class="govuk-button govuk-button--warning" href="{{ pageHeader.deleteHref or '/notifications/delete' }}">Delete</a>
+      <a class="govuk-button govuk-button--warning" href="{{ pageHeader.deleteHref or ((journeyBasePath + '/notifications/delete') if journeyBasePath else '/notifications/delete') }}">Delete</a>
     {% endif %}
   </div>
 

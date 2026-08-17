@@ -165,8 +165,14 @@ function initAddressBookSearch (root) {
     const type = typeSelect ? typeSelect.value : ''
 
     return allAddresses.filter((address) => {
-      if (category && address.category && address.category !== category) {
-        return false
+      if (category) {
+        const categoryIds = Array.isArray(address.categoryIds) && address.categoryIds.length
+          ? address.categoryIds
+          : [address.category].filter(Boolean)
+
+        if (!categoryIds.includes(category)) {
+          return false
+        }
       }
 
       if (!addressMatchesTypeFilter(address, type)) {

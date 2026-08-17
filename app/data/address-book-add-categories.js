@@ -1,14 +1,14 @@
 module.exports = [
   {
-    value: 'origin-and-sender',
-    text: 'Origin and sender',
+    value: 'origin-and-consignor',
+    text: 'Origin and Consignor',
     hint: 'Place of origin, Consignor',
     defaultAddressType: 'place-of-origin'
   },
   {
-    value: 'destination-and-receiver',
-    text: 'Destination and receiver',
-    hint: 'Place of destination, Consignee, Importer, Branch address, CPH number',
+    value: 'destination-consignee-importer',
+    text: 'Destination, Consignee and Importer',
+    hint: 'Place of destination, Consignee, Importer',
     defaultAddressType: 'place-of-destination'
   },
   {
@@ -16,5 +16,11 @@ module.exports = [
     text: 'Transporter',
     hint: 'Private, Commercial',
     defaultAddressType: 'transporter'
+  },
+  {
+    value: 'branch',
+    text: 'Branch',
+    hint: 'Branch address',
+    defaultAddressType: 'branch-address'
   }
 ]

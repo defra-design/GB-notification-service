@@ -23,7 +23,8 @@ const consignmentAddressSections = [
     formFieldName: 'consignorAddressId',
     inputIdPrefix: 'consignor-address',
     searchInputId: 'consignor-search',
-    selectable: true
+    selectable: true,
+    canUseSameAsPlaceOfOrigin: true
   },
   {
     id: 'consignee',

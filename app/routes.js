@@ -30,6 +30,16 @@ const addressBookAddressTypes = require('./data/address-book-address-types')
 const addressBookAddCategories = require('./data/address-book-add-categories')
 const addressBookOriginUses = require('./data/address-book-origin-uses')
 const addressBookDestinationUses = require('./data/address-book-destination-uses')
+const addressBookBranchUses = require('./data/address-book-branch-uses')
+const consignmentAddressUseGroups = require('./data/consignment-address-use-groups')
+const getConsignmentAddressUseGroupsForSection = consignmentAddressUseGroups.getConsignmentAddressUseGroupsForSection
+const getConsignmentAddressUseOptionsForSection = consignmentAddressUseGroups.getConsignmentAddressUseOptionsForSection
+const getConsignmentAddressUseValuesForSection = consignmentAddressUseGroups.getConsignmentAddressUseValuesForSection
+const consignmentAddAddressUsesLookup = consignmentAddressUseGroups.consignmentAddAddressUsesLookup
+
+function getUkConsignmentLookupAddresses () {
+  return addressBookLookupAddresses.addresses.filter((address) => address.country === 'United Kingdom')
+}
 const addressBookLookupAddresses = require('./data/address-book-lookup-addresses')
 const dashboardData = require('./data/dashboard-notifications')
 const dashboardTemplates = require('./data/dashboard-templates')
@@ -2036,6 +2046,7 @@ function isConsignmentAddressSectionActive (sessionData, sectionId) {
 
 function buildConsignmentAddressSections (sessionData) {
   const hasConsigneeAddress = Boolean(sessionData.consigneeAddress)
+  const hasPlaceOfOriginAddress = Boolean(sessionData.placeOfOriginAddress)
 
   return getSessionConsignmentAddressSections(sessionData).map((section) => {
     if (section.isCph) {
@@ -2105,6 +2116,15 @@ function buildConsignmentAddressSections (sessionData) {
       }
     }
 
+    if (section.canUseSameAsPlaceOfOrigin && hasPlaceOfOriginAddress) {
+      return {
+        ...section,
+        href: section.path,
+        showSameAsPlaceOfOrigin: true,
+        sameAsPlaceOfOriginAction: `same-as-place-of-origin:${section.id}`
+      }
+    }
+
     if (section.canUseSameAsConsignee && hasConsigneeAddress) {
       return {
         ...section,
@@ -2119,6 +2139,23 @@ function buildConsignmentAddressSections (sessionData) {
       href: section.path
     }
   })
+}
+
+function copyPlaceOfOriginAddressToSection (sessionData, sectionId) {
+  const section = consignmentAddressSections.find((item) => item.id === sectionId)
+
+  if (!section || !section.canUseSameAsPlaceOfOrigin || !sessionData.placeOfOriginAddress) {
+    return false
+  }
+
+  sessionData[section.sessionAddressIdKey] = sessionData.placeOfOriginAddressId
+  sessionData[section.sessionAddressKey] = {
+    name: sessionData.placeOfOriginAddress.name,
+    addressLines: [...(sessionData.placeOfOriginAddress.addressLines || [])],
+    country: sessionData.placeOfOriginAddress.country
+  }
+
+  return true
 }
 
 function copyConsigneeAddressToSection (sessionData, sectionId) {
@@ -2757,11 +2794,17 @@ function renderPermanentAddressPage (req, res, locals = {}) {
 
 function renderRolesAndAddressesPage (req, res, locals = {}) {
   const sessionData = req.session.data
+  const successMessage = sessionData.consignmentAddressSuccessMessage || null
+
+  if (successMessage) {
+    delete sessionData.consignmentAddressSuccessMessage
+  }
 
   return res.render('roles-and-addresses', {
     backLink: '/notification-hub',
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     addressSections: buildConsignmentAddressSections(sessionData),
+    successMessage,
     data: sessionData,
     ...locals
   })
@@ -3534,6 +3577,7 @@ function renderConsignmentAddressSelectPage (section, req, res, locals = {}) {
   return res.render('consignment-address-select', {
     backLink: '/roles-and-addresses',
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    sectionId: section.id,
     heading: section.heading,
     intro: section.hint,
     introList: section.hintList || null,
@@ -3541,16 +3585,232 @@ function renderConsignmentAddressSelectPage (section, req, res, locals = {}) {
     formFieldName: section.formFieldName,
     inputIdPrefix: section.inputIdPrefix,
     searchInputId: section.searchInputId,
+    countriesJson: JSON.stringify(countryOptions),
     addressResults: buildConsignmentAddressResults(searchQuery, section.id, sessionData, section.path),
     selectedAddressId: locals.selectedAddressId != null
       ? locals.selectedAddressId
       : sessionData[section.sessionAddressIdKey] || '',
     searchQuery,
-    addAddressHref: `/address-book/add?from=${section.id}`,
+    addAddressHref: isDesignRelease21SessionData(sessionData)
+      ? `${section.path}/add-address`
+      : `/address-book/add?from=${section.id}`,
     successMessage,
     data: sessionData,
     ...locals
   })
+}
+
+function getDefaultConsignmentAddressUses (sectionId) {
+  const addressType = CONSIGNMENT_SECTION_ADDRESS_TYPE_MAP[sectionId]
+
+  return addressType ? [addressType] : []
+}
+
+function parseConsignmentAddressUses (rawValue, sectionId) {
+  const allowedValues = new Set(getConsignmentAddressUseValuesForSection(sectionId))
+  const values = Array.isArray(rawValue)
+    ? rawValue
+    : (rawValue ? [rawValue] : [])
+
+  return values
+    .map((value) => String(value || '').trim())
+    .filter((value) => allowedValues.has(value))
+}
+
+function renderConsignmentAddAddressPage (section, req, res, locals = {}) {
+  const sessionData = req.session.data
+  const showAddressLookup = consignmentAddAddressUsesLookup(section.id)
+  const manualAddress = locals.manualAddress || {
+    nameOrOrganisation: '',
+    addressLine1: '',
+    addressLine2: '',
+    townOrCity: '',
+    county: '',
+    postcode: '',
+    country: showAddressLookup ? 'United Kingdom' : '',
+    email: '',
+    phone: ''
+  }
+  const versionBasePath = getDesignReleaseBasePath(sessionData)
+  const defaultAddressUse = CONSIGNMENT_SECTION_ADDRESS_TYPE_MAP[section.id] || ''
+  const showManualAddress = locals.showManualAddress != null
+    ? locals.showManualAddress
+    : Boolean(
+      showAddressLookup && (
+        manualAddress.addressLine1 ||
+        locals.selectedLookupAddressId
+      )
+    )
+
+  return res.render('consignment-add-address', {
+    backLink: section.path,
+    cancelHref: `${versionBasePath}/notification-hub`,
+    formAction: `${section.path}/add-address`,
+    sectionId: section.id,
+    defaultAddressUse,
+    showAddressLookup,
+    showManualAddress,
+    notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    manualAddress,
+    countryItems: showAddressLookup
+      ? [{
+        value: 'United Kingdom',
+        text: 'United Kingdom',
+        selected: true
+      }]
+      : [
+        {
+          value: '',
+          text: 'Select one',
+          selected: !manualAddress.country
+        },
+        ...buildAddressBookCountryItems(manualAddress.country)
+      ],
+    lookupAddressesJson: JSON.stringify(getUkConsignmentLookupAddresses()),
+    addressLookup: locals.addressLookup != null
+      ? locals.addressLookup
+      : '',
+    selectedLookupAddressId: locals.selectedLookupAddressId != null
+      ? locals.selectedLookupAddressId
+      : '',
+    addressUseGroups: getConsignmentAddressUseGroupsForSection(section.id),
+    selectedAddressUses: locals.selectedAddressUses != null
+      ? locals.selectedAddressUses
+      : getDefaultConsignmentAddressUses(section.id),
+    data: sessionData,
+    ...locals
+  })
+}
+
+function handleConsignmentAddAddressGet (section, req, res) {
+  if (!isDesignRelease21SessionData(req.session.data)) {
+    return res.redirect(`/address-book/add?from=${section.id}`)
+  }
+
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (!isConsignmentAddressSectionActive(req.session.data, section.id)) {
+    return res.redirect('/roles-and-addresses')
+  }
+
+  setAddressBookConsignmentReturn(req.session.data, section.id)
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+
+  return renderConsignmentAddAddressPage(section, req, res)
+}
+
+function mergeManualAddressFromLookupAndBody (lookupManualAddress, body, options = {}) {
+  const parsedBody = parseAddressBookManualAddressBody(body)
+  const merged = { ...(lookupManualAddress || {}) }
+
+  Object.entries(parsedBody).forEach(([key, value]) => {
+    if (value || !merged[key]) {
+      merged[key] = value
+    }
+  })
+
+  if (options.country) {
+    merged.country = options.country
+  }
+
+  return merged
+}
+
+function handleConsignmentAddAddressPost (section, req, res) {
+  if (!isDesignRelease21SessionData(req.session.data)) {
+    return res.redirect(`/address-book/add?from=${section.id}`)
+  }
+
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (!isConsignmentAddressSectionActive(req.session.data, section.id)) {
+    return res.redirect('/roles-and-addresses')
+  }
+
+  const action = (req.body.action || 'select').trim()
+  const showAddressLookup = consignmentAddAddressUsesLookup(section.id)
+  const addressBookLookupAddressId = (req.body.addressBookLookupAddressId || '').trim()
+  const lookupManualAddress = getAddressDetailsFromLookup(addressBookLookupAddressId)
+  const manualAddress = mergeManualAddressFromLookupAndBody(
+    lookupManualAddress,
+    req.body,
+    showAddressLookup ? { country: 'United Kingdom' } : {}
+  )
+  const selectedAddressUses = parseConsignmentAddressUses(req.body.addressUses, section.id)
+  const firstUseOption = getConsignmentAddressUseOptionsForSection(section.id)[0]
+
+  setAddressBookConsignmentReturn(req.session.data, section.id)
+
+  const addressValidation = validateAddressBookManualAddress(manualAddress)
+
+  if (addressValidation.errorList.length) {
+    req.session.data.errorList = addressValidation.errorList
+    req.session.data.errors = addressValidation.errors
+
+    return renderConsignmentAddAddressPage(section, req, res, {
+      manualAddress: addressValidation.value,
+      selectedAddressUses,
+      showManualAddress: showAddressLookup
+        ? Boolean(
+          manualAddress.addressLine1 ||
+          req.body.manualAddressEntry ||
+          addressBookLookupAddressId
+        )
+        : undefined,
+      addressLookup: (req.body.addressLookup || '').trim(),
+      selectedLookupAddressId: addressBookLookupAddressId
+    })
+  }
+
+  if (!selectedAddressUses.length) {
+    req.session.data.errorList = [{
+      text: 'Select what this address can be used for',
+      href: firstUseOption ? `#address-use-${firstUseOption.value}` : '#address-uses-error'
+    }]
+    req.session.data.errors = {
+      addressUses: {
+        text: 'Select what this address can be used for'
+      }
+    }
+
+    return renderConsignmentAddAddressPage(section, req, res, {
+      manualAddress: addressValidation.value,
+      selectedAddressUses,
+      showManualAddress: showAddressLookup
+        ? Boolean(
+          manualAddress.addressLine1 ||
+          req.body.manualAddressEntry ||
+          addressBookLookupAddressId
+        )
+        : undefined,
+      addressLookup: (req.body.addressLookup || '').trim(),
+      selectedLookupAddressId: addressBookLookupAddressId
+    })
+  }
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+
+  if (action === 'return') {
+    clearAddressBookConsignmentReturn(req.session.data)
+
+    const { entry } = saveAddressBookEntry(req.session.data, addressValidation.value, {
+      addressTypes: selectedAddressUses,
+      consignmentReturn: null
+    })
+
+    req.session.data.consignmentAddressSuccessMessage = formatAddressBookSuccessMessage(entry.name)
+
+    return res.redirect(section.path)
+  }
+
+  saveAddressBookEntry(req.session.data, addressValidation.value, {
+    addressTypes: selectedAddressUses
+  })
+
+  return res.redirect('/roles-and-addresses')
 }
 
 function handleConsignmentAddressSelectGet (req, res) {
@@ -5359,7 +5619,7 @@ function renderDeleteNotificationPage (req, res) {
     ? reviewOptions.pageHeader.reference
     : PROTOTYPE_NOTIFICATION_REFERENCE
 
-  return res.render('design-release-2/delete-notification', {
+  return res.render('delete-notification', {
     backLink: buildDashboardNotificationViewHref(req.session.data, submittedId ? { submittedId } : { reference }),
     notificationReference,
     deleteAction: buildDashboardNotificationDeleteHref(submittedId ? { submittedId } : { reference })
@@ -6970,6 +7230,8 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
 
 function renderDashboardPage (req, res) {
   const successMessage = req.session.data.dashboardSuccessMessage || null
+  const journeyBasePath = res.locals.journeyBasePath || ''
+  const backLink = journeyBasePath ? `${journeyBasePath}/index` : '/index'
 
   if (successMessage) {
     delete req.session.data.dashboardSuccessMessage
@@ -6977,6 +7239,7 @@ function renderDashboardPage (req, res) {
 
   return res.render('dashboard', {
     serviceNavActive: 'dashboard',
+    backLink,
     successMessage,
     ...getDashboardViewModel(req.session.data, req.query)
   })
@@ -7033,7 +7296,7 @@ function getDashboardActionsViewModel (sessionData = {}, query = {}) {
   const notifications = filteredNotifications.slice(startIndex, endIndex)
 
   return {
-    backLink: '/',
+    backLink: getDashboardBackLink(sessionData),
     delayFilterItems: buildDashboardActionsDelayFilterItems(actionNotifications, delayFilter),
     notifications,
     sort,
@@ -7058,7 +7321,7 @@ function renderDashboardActionsPage (req, res) {
 
 function getDashboardChangesViewModel (sessionData = {}) {
   return {
-    backLink: '/',
+    backLink: getDashboardBackLink(sessionData),
     sections: getDashboardChangesSections(sessionData)
   }
 }
@@ -7087,7 +7350,7 @@ function getDashboardInspectionViewModel (sessionData = {}, query = {}) {
   const notifications = inspectionNotifications.slice(startIndex, endIndex)
 
   return {
-    backLink: '/',
+    backLink: getDashboardBackLink(sessionData),
     notifications,
     sort,
     sortItems: buildDashboardSortItems(sort),
@@ -7277,7 +7540,8 @@ function getAddressBookAddresses (sessionData = {}) {
       types,
       typeLabels,
       typeLabel: merged.typeLabel || typeLabels.join(', '),
-      category: merged.category || addressBookData.getAddressCategoryId(primaryType)
+      category: merged.category || addressBookData.getAddressCategoryId(primaryType),
+      categoryIds: merged.categoryIds || addressBookData.getAddressCategoryIds({ types, type: primaryType })
     }
   })
 }
@@ -7591,10 +7855,10 @@ function formatAddressBookSuccessMessage (name) {
   const trimmed = (name || '').trim()
 
   if (!trimmed) {
-    return 'Address added'
+    return 'Address added to your address book'
   }
 
-  return `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1).toLowerCase()} address added`
+  return `${trimmed} address added to your address book`
 }
 
 function formatAddressBookUpdatedMessage (name) {
@@ -7672,6 +7936,38 @@ const CONSIGNMENT_SECTION_ADDRESS_TYPE_MAP = {
   consignee: 'consignee',
   importer: 'importer',
   'place-of-destination': 'place-of-destination'
+}
+
+function buildConsignmentAddressPayloadFromManual (manualAddress) {
+  const townPostcode = [
+    manualAddress.townOrCity,
+    manualAddress.county,
+    manualAddress.postcode
+  ].filter(Boolean).join(', ')
+  const addressLines = [
+    manualAddress.addressLine1,
+    manualAddress.addressLine2,
+    townPostcode
+  ].filter(Boolean)
+
+  return {
+    name: manualAddress.nameOrOrganisation,
+    addressLines,
+    country: manualAddress.country
+  }
+}
+
+function syncConsignmentAddressToSection (sessionData, manualAddress, entryId, sectionId) {
+  const section = getConsignmentAddressSectionById(sectionId)
+
+  if (!section) {
+    return
+  }
+
+  const addressPayload = buildConsignmentAddressPayloadFromManual(manualAddress)
+
+  sessionData[section.sessionAddressIdKey] = entryId
+  sessionData[section.sessionAddressKey] = addressPayload
 }
 
 function getConsignmentAddressSectionById (sectionId) {
@@ -7774,8 +8070,12 @@ function saveAddressBookEntry (sessionData, manualAddress, options = {}) {
   const addressTypes = (options.addressTypes && options.addressTypes.length)
     ? options.addressTypes
     : [options.addressType || sessionData.addressBookAddressType].filter(Boolean)
-  const consignmentReturn = options.consignmentReturn || getAddressBookConsignmentReturn(sessionData)
-  const contactReturn = options.contactReturn || getAddressBookContactReturn(sessionData)
+  const consignmentReturn = Object.prototype.hasOwnProperty.call(options, 'consignmentReturn')
+    ? options.consignmentReturn
+    : getAddressBookConsignmentReturn(sessionData)
+  const contactReturn = Object.prototype.hasOwnProperty.call(options, 'contactReturn')
+    ? options.contactReturn
+    : getAddressBookContactReturn(sessionData)
   const addressBookPath = isDesignRelease2SessionData(sessionData)
     ? `${getDesignReleaseBasePath(sessionData)}/address-book`
     : '/address-book'
@@ -7795,22 +8095,11 @@ function saveAddressBookEntry (sessionData, manualAddress, options = {}) {
   })
 
   if (consignmentReturn) {
-    const consignmentAddress = buildConsignmentAddressFromManual(manualAddress, consignmentReturn.sectionId)
     const section = getConsignmentAddressSectionById(consignmentReturn.sectionId)
+    const sectionAddressType = section && CONSIGNMENT_SECTION_ADDRESS_TYPE_MAP[section.id]
 
-    if (!sessionData.consignmentAddedAddresses) {
-      sessionData.consignmentAddedAddresses = []
-    }
-
-    sessionData.consignmentAddedAddresses.unshift(consignmentAddress)
-
-    if (section) {
-      sessionData[section.sessionAddressIdKey] = consignmentAddress.id
-      sessionData[section.sessionAddressKey] = {
-        name: consignmentAddress.name,
-        addressLines: consignmentAddress.addressLines,
-        country: consignmentAddress.country
-      }
+    if (section && sectionAddressType && addressTypes.includes(sectionAddressType)) {
+      syncConsignmentAddressToSection(sessionData, manualAddress, entry.id, section.id)
     }
 
     clearAddressBookConsignmentReturn(sessionData)
@@ -7859,10 +8148,10 @@ function getAddressBookViewModel (query = {}, sessionData = {}) {
   const searchQuery = (query.search || '').trim()
   const typeFilter = (query.type || '').trim()
   const isDr2 = isDesignRelease2SessionData(sessionData)
-  const requestedCategory = (query.category || '').trim()
+  const requestedCategory = ADDRESS_BOOK_CATEGORY_ALIASES[query.category] || (query.category || '').trim()
   const categoryId = isDr2 && addressBookData.categories[requestedCategory]
     ? requestedCategory
-    : 'origin-and-sender'
+    : 'origin-and-consignor'
   const category = addressBookData.categories[categoryId]
   const requestedPage = Math.max(1, Number(query.page) || 1)
   const pageSize = addressBookData.pageSize
@@ -7874,10 +8163,7 @@ function getAddressBookViewModel (query = {}, sessionData = {}) {
   let addresses = getAddressBookAddresses(sessionData)
 
   if (isDr2) {
-    addresses = addresses.filter((address) => {
-      const addressCategory = address.category || addressBookData.getAddressCategoryId(address.type)
-      return addressCategory === categoryId
-    })
+    addresses = addresses.filter((address) => addressBookData.addressBelongsToCategory(address, categoryId))
   }
 
   if (typeFilter) {
@@ -7948,9 +8234,15 @@ const addressBookAddressTypeValues = addressBookAddressTypes
 
 const addressBookAddCategoryValues = addressBookAddCategories.map((item) => item.value)
 
+const ADDRESS_BOOK_CATEGORY_ALIASES = {
+  'origin-and-sender': 'origin-and-consignor',
+  'destination-and-receiver': 'destination-consignee-importer'
+}
+
 const addressBookUsageOptionsByCategory = {
-  'origin-and-sender': addressBookOriginUses,
-  'destination-and-receiver': addressBookDestinationUses
+  'origin-and-consignor': addressBookOriginUses,
+  'destination-consignee-importer': addressBookDestinationUses,
+  branch: addressBookBranchUses
 }
 
 function getAddressBookBasePath (res) {
@@ -8035,7 +8327,7 @@ function validateAddressBookAddressType (addressType) {
 }
 
 function getAddressBookAddressTypeLabel (addressType) {
-  const usageLabel = [...addressBookOriginUses, ...addressBookDestinationUses]
+  const usageLabel = [...addressBookOriginUses, ...addressBookDestinationUses, ...addressBookBranchUses]
     .find((item) => item.value === addressType)
 
   if (usageLabel) {
@@ -9270,7 +9562,7 @@ router.post('/address-book/add', (req, res) => {
       }
       req.session.data.errorList = [{
         text: 'Select an address type',
-        href: '#address-type-origin-and-sender'
+        href: '#address-type-origin-and-consignor'
       }]
 
       return renderAddressBookAddPage(req, res, {
@@ -9290,13 +9582,11 @@ router.post('/address-book/add', (req, res) => {
       return res.redirect('/transporter/add')
     }
 
-    if (category.value === 'origin-and-sender') {
+    if (category.value === 'origin-and-consignor') {
       req.session.data.addressBookHideSearch = true
       req.session.data.addressBookShowManualAddress = true
-      return res.redirect(`${addressBookBasePath}/add/lookup`)
     }
 
-    // Destination and receiver — current address finder
     return res.redirect(`${addressBookBasePath}/add/lookup`)
   }
 
@@ -10421,6 +10711,13 @@ router.post('/permanent-address/enter-address', (req, res) => {
 consignmentAddressSections
   .filter((section) => section.selectable)
   .forEach((section) => {
+    router.get(`${section.path}/add-address`, (req, res) => handleConsignmentAddAddressGet(section, req, res))
+    router.post(`${section.path}/add-address`, (req, res) => handleConsignmentAddAddressPost(section, req, res))
+  })
+
+consignmentAddressSections
+  .filter((section) => section.selectable)
+  .forEach((section) => {
     router.get(section.path, handleConsignmentAddressSelectGet)
     router.post(section.path, handleConsignmentAddressSelectPost)
   })
@@ -10429,6 +10726,13 @@ router.post('/roles-and-addresses', (req, res) => {
   ensurePrototypeNotificationReference(req.session.data)
 
   const action = (req.body.action || '').trim()
+
+  if (action.startsWith('same-as-place-of-origin:')) {
+    const sectionId = action.split(':')[1]
+    copyPlaceOfOriginAddressToSection(req.session.data, sectionId)
+
+    return res.redirect('/roles-and-addresses')
+  }
 
   if (action.startsWith('same-as-consignee:')) {
     const sectionId = action.split(':')[1]

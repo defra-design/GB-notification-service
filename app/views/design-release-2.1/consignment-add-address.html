@@ -1,0 +1,131 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+
+{% set pageName = "Add address details" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full app-consignment-add-address-page{% if showAddressLookup %} app-consignment-add-address-page--lookup{% endif %}{% if showManualAddress %} app-consignment-add-address-page--show-manual{% endif %}">
+
+    {% include "partials/notification-status.html" %}
+
+    {% if data.errorList %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: data.errorList
+      }) }}
+    {% endif %}
+
+    <div class="app-consignment-add-address-page__title">
+      <span class="govuk-caption-l">Add new address</span>
+      <h1 class="govuk-heading-l">Add address details</h1>
+    </div>
+
+    <form
+      method="post"
+      action="{{ formAction }}"
+      novalidate
+      class="app-consignment-add-address-form"
+      data-module="app-consignment-add-address-uses"
+      data-default-address-use="{{ defaultAddressUse }}"
+    >
+
+      {% if showAddressLookup %}
+        <div class="app-consignment-add-address-page__lookup-fields">
+          {% include "partials/design-release-2.1/consignment-uk-add-address-fields.html" %}
+        </div>
+      {% else %}
+        {% include "partials/design-release-2.1/consignment-manual-address-fields.html" %}
+
+        <hr class="app-consignment-add-address-page__section-break">
+      {% endif %}
+
+      <div class="app-consignment-add-address-page__usage{% if data.errors and data.errors.addressUses %} govuk-form-group--error{% endif %}">
+        <fieldset class="govuk-fieldset">
+          <legend class="govuk-fieldset__legend govuk-fieldset__legend--m app-consignment-add-address-page__usage-heading">
+            {% if showAddressLookup %}Address type{% else %}What can this address be used for?{% endif %}
+          </legend>
+          <p class="govuk-hint app-consignment-add-address-page__usage-hint">
+            Select where this address can be used
+          </p>
+
+          {% if data.errors and data.errors.addressUses %}
+            <p id="address-uses-error" class="govuk-error-message">
+              <span class="govuk-visually-hidden">Error:</span>
+              {{ data.errors.addressUses.text }}
+            </p>
+          {% endif %}
+
+          <div class="app-consignment-add-address-page__usage-groups">
+            {% for group in addressUseGroups %}
+              <div class="app-consignment-add-address-page__usage-group">
+                <div class="govuk-checkboxes app-consignment-add-address-page__checkboxes" data-module="govuk-checkboxes">
+                  {% for item in group.options %}
+                    <div class="govuk-checkboxes__item">
+                      <input
+                        class="govuk-checkboxes__input"
+                        id="address-use-{{ item.value }}"
+                        name="addressUses"
+                        type="checkbox"
+                        value="{{ item.value }}"
+                        {% if selectedAddressUses and (item.value in selectedAddressUses) %}checked{% endif %}
+                        {% if data.errors and data.errors.addressUses %}
+                          aria-describedby="address-uses-error"
+                        {% endif %}
+                      >
+                      <label class="govuk-label govuk-checkboxes__label" for="address-use-{{ item.value }}">
+                        {{ item.text }}
+                      </label>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </fieldset>
+      </div>
+
+      <div class="app-origin-form-actions app-consignment-add-address-page__form-actions">
+        <div class="app-origin-actions">
+          {{ govukButton({
+            text: "Save and select",
+            name: "action",
+            value: "select"
+          }) }}
+
+          {{ govukButton({
+            text: "Save and return to address page",
+            name: "action",
+            value: "return",
+            classes: "govuk-button--secondary"
+          }) }}
+        </div>
+
+        <p class="app-origin-form-actions__cancel">
+          <a class="govuk-link" href="{{ cancelHref }}">Cancel and return to hub</a>
+        </p>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+{% endblock %}
