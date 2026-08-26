@@ -1,6 +1,9 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
 {#
+  Template review edit:
+    Save and return (primary) → template review
+
   Amend state (notificationStatus == 'Amend'):
     Save and return (primary) → review
     Save and continue (secondary) → continue
@@ -14,6 +17,7 @@
   Optional: set journeyFormActionOptions before include.
 #}
 {% set options = journeyFormActionOptions if journeyFormActionOptions else {} %}
+{% set isTemplateReview = data.isEditingTemplateFromReview %}
 {% set isAmend = data.notificationStatus == 'Amend' %}
 {% set wrapperClass = options.wrapperClass if options.wrapperClass else 'app-origin-form-actions' %}
 {% set buttonsClass = options.buttonsClass if options.buttonsClass else 'app-origin-actions' %}
@@ -21,6 +25,7 @@
 {% set continueClasses = options.continueClasses if options.continueClasses else '' %}
 {% set hubClasses = options.hubClasses if options.hubClasses else 'govuk-button--secondary' %}
 {% set cancelHref = options.cancelHref if options.cancelHref else ((journeyBasePath + '/notification-hub') if journeyBasePath else '/notification-hub') %}
+{% set templateReviewCancelHref = '/templates/' + (data.editingTemplateId or data.templateId or '') %}
 {% set showHub = true if options.showHub is not defined else options.showHub %}
 {% set showCancel = true if options.showCancel is not defined else options.showCancel %}
 {% set continueText = options.continueText if options.continueText else 'Save and continue' %}
@@ -30,7 +35,13 @@
 
 <div class="{{ wrapperClass }}">
   <div class="{{ buttonsClass }}">
-    {% if isAmend %}
+    {% if isTemplateReview %}
+      {{ govukButton({
+        text: "Save and return",
+        name: "action",
+        value: "continue"
+      }) }}
+    {% elif isAmend %}
       {{ govukButton({
         text: "Save and return",
         name: "action",
@@ -70,7 +81,11 @@
     {% endif %}
   </div>
 
-  {% if isAmend %}
+  {% if isTemplateReview %}
+    <p class="{{ cancelClass }}">
+      <a class="govuk-link" href="{{ templateReviewCancelHref }}">Cancel</a>
+    </p>
+  {% elif isAmend %}
     <p class="{{ cancelClass }}">
       <button
         type="submit"

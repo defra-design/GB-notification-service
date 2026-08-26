@@ -1,6 +1,7 @@
 {% extends "layouts/main.html" %}
 
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
 {% from "govuk/components/select/macro.njk" import govukSelect %}
 {% from "partials/design-release-2.1/dashboard-template-card.html" import dr2DashboardTemplateCard %}
@@ -20,11 +21,25 @@
 <div class="govuk-grid-row">
   <div class="govuk-grid-column-full app-dashboard-page app-dashboard-page--dr2">
 
+    {% if successMessage %}
+      {% set successBannerHtml %}
+        <h3 class="govuk-notification-banner__heading">{{ successMessage }}</h3>
+      {% endset %}
+      {{ govukNotificationBanner({
+        type: "success",
+        titleText: "Success",
+        html: successBannerHtml,
+        classes: "app-dr2-dashboard__success-banner",
+        attributes: {
+          "data-auto-dismiss-ms": "5000"
+        }
+      }) }}
+    {% endif %}
+
     <section class="app-dr2-dashboard-intro app-dr2-dashboard-intro--templates" aria-labelledby="dashboard-templates-heading">
       <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
           <div class="app-dr2-dashboard-intro__header">
-            <p class="app-dr2-dashboard-intro__caption">Notification templates</p>
             <h1 class="app-dr2-dashboard-intro__heading" id="dashboard-templates-heading">Manage templates</h1>
             <p class="app-dr2-dashboard-intro__description">Select, manage or create new notification templates</p>
           </div>

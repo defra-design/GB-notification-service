@@ -81,7 +81,12 @@
         </div>'
     }) }}
 
-    <form method="post" action="/design-release-2/upload-documents" novalidate class="app-upload-documents-form">
+    <form method="post" action="{{ (journeyBasePath + '/upload-documents') if journeyBasePath else '/upload-documents' }}{% if fromReview %}?from=review{% elif fromHub %}?from=hub{% endif %}" novalidate class="app-upload-documents-form">
+      {% if fromReview %}
+        <input type="hidden" name="from" value="review">
+      {% elif fromHub %}
+        <input type="hidden" name="from" value="hub">
+      {% endif %}
       {% if data.errorList %}
         {{ govukErrorSummary({
           titleText: "There is a problem",

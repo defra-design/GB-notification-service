@@ -2,10 +2,11 @@
 
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
-{% from "partials/design-release-2.1/review-summary-card.html" import dr2ReviewCard %}
+{% from "partials/design-release-2.1/review-summary-card.html" import dr2ReviewCard, dr2ReviewCommodityCard %}
 
-{% set pageName = "Review your template" %}
+{% set pageName = template.title %}
 
 {% block beforeContent %}
   {{ govukPhaseBanner({
@@ -25,7 +26,46 @@
 <div class="govuk-grid-row">
   <div class="govuk-grid-column-full app-review-notification-page app-review-notification-page--dr2 app-view-template-page">
 
-    <h1 class="app-view-template-page__title">Review your template</h1>
+    {% if successMessage %}
+      {% set successBannerHtml %}
+        <h3 class="govuk-notification-banner__heading">{{ successMessage }}</h3>
+      {% endset %}
+      {{ govukNotificationBanner({
+        type: "success",
+        titleText: "Success",
+        html: successBannerHtml,
+        classes: "app-view-template-page__success-banner",
+        attributes: {
+          "data-auto-dismiss-ms": "5000"
+        }
+      }) }}
+    {% endif %}
+
+    <div class="app-view-template-page__body">
+    <div class="app-view-template-page__intro">
+      <div class="app-view-template-page__header">
+        <p class="app-view-template-page__caption">Templates</p>
+        <h1 class="app-view-template-page__title">{{ template.title }}</h1>
+      </div>
+
+      <p class="app-view-template-page__date">
+        <span class="app-view-template-page__date-label">Date created:</span>
+        {{ dateCreated }}
+      </p>
+
+      <div class="app-view-template-page__actions">
+        {{ govukButton({
+          text: "Use template",
+          href: useHref
+        }) }}
+
+        {{ govukButton({
+          text: "Delete",
+          href: deleteHref,
+          classes: "govuk-button--warning"
+        }) }}
+      </div>
+    </div>
 
     <section class="app-review-notification-page__section" aria-labelledby="template-section-about">
       <h2 class="app-review-notification-page__section-heading" id="template-section-about">1. About the consignment</h2>
@@ -43,27 +83,39 @@
     <section class="app-review-notification-page__section" aria-labelledby="template-section-goods">
       <h2 class="app-review-notification-page__section-heading" id="template-section-goods">2. Description of the goods</h2>
 
+      <h3 class="app-review-notification-page__subsection-heading">Commodity details</h3>
+      {% for commodityCard in templateReview.commodityCards %}
+        {{ dr2ReviewCommodityCard(commodityCard, true) }}
+      {% endfor %}
+
       <h3 class="app-review-notification-page__subsection-heading">Additional details</h3>
       {{ dr2ReviewCard(templateReview.additionalAnimalDetailsCard, true) }}
     </section>
 
+    <section class="app-review-notification-page__section" aria-labelledby="template-section-movement">
+      <h2 class="app-review-notification-page__section-heading" id="template-section-movement">3. Transport and arrival</h2>
+
+      <h3 class="app-review-notification-page__subsection-heading">Arrival details</h3>
+      {{ dr2ReviewCard(templateReview.arrivalDetailsCard, true) }}
+
+      <h3 class="app-review-notification-page__subsection-heading">Transport details</h3>
+      {{ dr2ReviewCard(templateReview.transportDetailsCard, true) }}
+    </section>
+
     <section class="app-review-notification-page__section" aria-labelledby="template-section-parties">
-      <h2 class="app-review-notification-page__section-heading" id="template-section-parties">3. Consignment parties</h2>
+      <h2 class="app-review-notification-page__section-heading" id="template-section-parties">4. Consignment parties</h2>
 
       <h3 class="app-review-notification-page__subsection-heading">Roles and addresses</h3>
       {{ dr2ReviewCard(templateReview.addressesCard, true) }}
     </section>
 
-    <form method="post" action="{{ formAction }}" novalidate class="app-view-template-page__form">
-      {{ govukButton({
-        text: "Save and continue",
-        classes: "app-view-template-page__continue"
-      }) }}
+    <section class="app-review-notification-page__section" aria-labelledby="template-section-contact">
+      <h2 class="app-review-notification-page__section-heading" id="template-section-contact">5. Contact address</h2>
 
-      <p class="app-view-template-page__cancel">
-        <a class="govuk-link" href="{{ cancelHref }}">Cancel and return to dashboard</a>
-      </p>
-    </form>
+      <h3 class="app-review-notification-page__subsection-heading">Contact address for this consignment</h3>
+      {{ dr2ReviewCard(templateReview.contactAddressCard, true) }}
+    </section>
+    </div>
 
   </div>
 </div>

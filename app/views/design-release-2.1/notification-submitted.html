@@ -3,8 +3,11 @@
 {% set journeyPageClass = "app-notification-submitted-page" %}
 
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
 
-{% set pageName = "Import notification submitted" %}
+{% set pageName = "Import notification submitted" if hasItahcAttached else "Import notification started" %}
+{% set dashboardHref = journeyBasePath if journeyBasePath else "/design-release-2.1" %}
+{% set createNotificationHref = (journeyBasePath + "/create-notification") if journeyBasePath else "/design-release-2.1/create-notification" %}
 
 {% block beforeContent %}
   {{ govukPhaseBanner({
@@ -17,22 +20,37 @@
 
 {% block journeyContent %}
 
-    <div class="govuk-panel govuk-panel--confirmation app-notification-submitted-page__panel">
-      <h1 class="govuk-panel__title">Import notification submitted</h1>
+    <div class="govuk-panel app-notification-submitted-page__panel {% if hasItahcAttached %}govuk-panel--confirmation app-notification-submitted-page__panel--submitted{% else %}app-notification-submitted-page__panel--started{% endif %}">
+      <h1 class="govuk-panel__title">
+        {% if hasItahcAttached %}
+          Import notification submitted
+        {% else %}
+          Import notification started
+        {% endif %}
+      </h1>
       <div class="govuk-panel__body">
         Your reference number<br><strong>{{ notificationReference }}</strong>
       </div>
+      <ol class="app-notification-submitted-page__progress" aria-label="Notification progress">
+        <li class="app-notification-submitted-page__progress-step {% if hasItahcAttached %}app-notification-submitted-page__progress-step--complete{% else %}app-notification-submitted-page__progress-step--current{% endif %}">
+          <span class="app-notification-submitted-page__progress-label">Notification started</span>
+        </li>
+        <li class="app-notification-submitted-page__progress-step {% if hasItahcAttached %}app-notification-submitted-page__progress-step--complete{% else %}app-notification-submitted-page__progress-step--incomplete{% endif %}">
+          <span class="app-notification-submitted-page__progress-label">Documents uploaded</span>
+        </li>
+        <li class="app-notification-submitted-page__progress-step {% if hasItahcAttached %}app-notification-submitted-page__progress-step--complete{% else %}app-notification-submitted-page__progress-step--incomplete{% endif %}">
+          <span class="app-notification-submitted-page__progress-label">Notification complete</span>
+        </li>
+      </ol>
     </div>
 
     {% if isIncompleteSubmission %}
-      <section class="app-notification-submitted-page__section" aria-labelledby="submitted-incomplete-heading">
-        <h2 class="app-notification-submitted-page__section-heading" id="submitted-incomplete-heading">Before the consignment is imported</h2>
-        <p class="govuk-body">You still need to:</p>
-        <ul class="govuk-list govuk-list--bullet app-notification-submitted-page__list">
-          {% for item in beforeImportItems %}
-            <li>{{ item }}</li>
-          {% endfor %}
-        </ul>
+      <section class="app-notification-submitted-page__section" aria-label="Incomplete notification">
+        {{ govukWarningText({
+          text: "Your notification is incomplete",
+          iconFallbackText: "Warning"
+        }) }}
+        <p class="govuk-body">You need to upload the ITAHC and any other required documents. You must do this before the consignment arrives in Great Britain.</p>
       </section>
     {% endif %}
 
@@ -51,10 +69,10 @@
       <h2 class="app-notification-submitted-page__section-heading" id="submitted-amend-heading">How to view or amend this notification</h2>
       <p class="govuk-body">You can view or change this notification from your dashboard.</p>
       <p class="govuk-body">
-        <a class="govuk-link" href="/design-release-2.1">Return to your dashboard</a>
+        <a class="govuk-link" href="{{ dashboardHref }}">Return to your dashboard</a>
       </p>
       <p class="govuk-body">
-        <a class="govuk-link" href="/design-release-2.1/create-notification">Create a new notification</a>
+        <a class="govuk-link" href="{{ createNotificationHref }}">Create a new notification</a>
       </p>
     </section>
 

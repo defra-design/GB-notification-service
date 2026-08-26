@@ -40,6 +40,10 @@
 
         <form method="post" action="/design-release-2.1/consignment-details" novalidate class="app-consignment-details-form">
 
+          {% if fromHub %}
+            <input type="hidden" name="from" value="hub">
+          {% endif %}
+
           <div class="app-consignment-details-page__intro">
             <div class="app-consignment-details-page__header">
               <p class="app-consignment-details-page__caption">Description of the goods</p>

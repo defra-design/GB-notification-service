@@ -42,6 +42,10 @@
 
     <form method="post" action="/design-release-2.1/origin-of-the-import" novalidate class="app-origin-form">
 
+      {% if fromHub %}
+        <input type="hidden" name="from" value="hub">
+      {% endif %}
+
       <div class="govuk-form-group{% if data.errors and data.errors.countryOfOrigin %} govuk-form-group--error{% endif %} app-origin-country">
         <h2 class="app-eu-heading-m app-origin-country__label">Country of origin</h2>
         {% if data.errors and data.errors.countryOfOrigin %}
@@ -127,7 +131,7 @@
             Does the consignment have a region of origin code?
           </legend>
           <p id="region-of-origin-hint" class="govuk-hint app-origin-radios-block__hint">
-            If a region of origin code is required it will be shown on your health certificate.
+            If a region of origin code is required it will be shown on your health certificate. You can add the code later if you do not have the certificate now.
           </p>
           {% if data.errors and data.errors.regionOfOriginRequired %}
             {{ govukErrorMessage({

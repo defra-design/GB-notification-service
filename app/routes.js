@@ -170,6 +170,8 @@ function resetNotificationJourneySession (sessionData) {
   const draftNotifications = sessionData.draftNotifications
   const deletedNotificationReferences = sessionData.deletedNotificationReferences
   const submittedNotifications = sessionData.submittedNotifications
+  const savedTemplates = sessionData.savedTemplates
+  const deletedTemplateIds = sessionData.deletedTemplateIds
   const testingSession = sessionData._testing
   const designRelease2Session = sessionData._designRelease2
   const designRelease21Session = sessionData._designRelease21
@@ -192,6 +194,14 @@ function resetNotificationJourneySession (sessionData) {
 
   if (submittedNotifications && submittedNotifications.length) {
     sessionData.submittedNotifications = submittedNotifications
+  }
+
+  if (savedTemplates && savedTemplates.length) {
+    sessionData.savedTemplates = savedTemplates
+  }
+
+  if (deletedTemplateIds && deletedTemplateIds.length) {
+    sessionData.deletedTemplateIds = deletedTemplateIds
   }
 
   if (testingSession && typeof testingSession === 'object') {
@@ -272,6 +282,58 @@ function isFromHub (req) {
 
 function isFromReview (req) {
   return req.query.from === 'review' || (req.body && req.body.from === 'review')
+}
+
+function isFromTemplateReview (req) {
+  return req.query.from === 'template-review' ||
+    (req.body && req.body.from === 'template-review')
+}
+
+function isEditingTemplateFromReview (sessionData) {
+  return Boolean(sessionData && sessionData.isEditingTemplateFromReview)
+}
+
+function getTemplateReviewReturnPath (sessionData = {}) {
+  const templateId = sessionData.editingTemplateId || sessionData.templateId
+
+  return templateId ? `/templates/${templateId}` : '/templates'
+}
+
+function clearTemplateReviewEditState (sessionData) {
+  delete sessionData.isEditingTemplateFromReview
+  delete sessionData.editingTemplateId
+}
+
+function saveAndReturnToTemplateReview (sessionData) {
+  const editingTemplateId = sessionData.editingTemplateId || sessionData.templateId || null
+
+  if (editingTemplateId) {
+    sessionData.templateId = editingTemplateId
+  }
+
+  const savedTemplate = saveTemplateFromSession(sessionData)
+  const templateId = editingTemplateId || savedTemplate.id
+  const templateTitle = savedTemplate.title || sessionData.templateName || 'Template'
+
+  sessionData.templateReviewSuccessMessage = `${templateTitle} has been updated`
+  clearTemplateReviewEditState(sessionData)
+  sessionData.isCreatingTemplate = false
+  delete sessionData.templateName
+  delete sessionData.templateId
+
+  return `/templates/${templateId}`
+}
+
+function getJourneyBackLink (req, linearBackLink) {
+  if (isFromTemplateReview(req) || isEditingTemplateFromReview(req.session.data)) {
+    return getTemplateReviewReturnPath(req.session.data)
+  }
+
+  if (isFromHub(req)) {
+    return '/notification-hub'
+  }
+
+  return linearBackLink
 }
 
 function normalizeSelectedSpecies (value) {
@@ -1316,7 +1378,15 @@ function isJourneySoftSaveAction (action) {
   return action === 'hub' || action === 'review'
 }
 
-function getJourneySaveRedirect (action, continuePath) {
+function getJourneySaveRedirect (action, continuePath, sessionData) {
+  if (sessionData && isEditingTemplateFromReview(sessionData)) {
+    return saveAndReturnToTemplateReview(sessionData)
+  }
+
+  if (sessionData) {
+    persistDraftNotification(sessionData)
+  }
+
   if (action === 'review') {
     return '/review-notification'
   }
@@ -1326,6 +1396,22 @@ function getJourneySaveRedirect (action, continuePath) {
   }
 
   return continuePath
+}
+
+function getSectionContinueRedirect (req, linearPath) {
+  if (isFromTemplateReview(req) || isEditingTemplateFromReview(req.session.data)) {
+    return saveAndReturnToTemplateReview(req.session.data)
+  }
+
+  if (isFromHub(req)) {
+    return '/notification-hub'
+  }
+
+  if (isFromReview(req)) {
+    return '/review-notification'
+  }
+
+  return linearPath
 }
 
 function getPostConsignmentDetailsPath (sessionData) {
@@ -1967,15 +2053,16 @@ function renderContactAddressPage (req, res, locals = {}) {
   const selectedAddressId = locals.selectedAddressId != null
     ? locals.selectedAddressId
     : sessionData.contactAddressId || ''
+  const fromTemplateReview = isFromTemplateReview(req) || isEditingTemplateFromReview(sessionData)
 
   return res.render('contact-address-for-consignment', {
-    backLink: isFromHub(req)
-      ? '/notification-hub'
-      : isFromReview(req)
-        ? '/review-notification'
-        : '/roles-and-addresses',
+    backLink: getJourneyBackLink(
+      req,
+      isFromReview(req) ? '/review-notification' : '/roles-and-addresses'
+    ),
     fromHub: isFromHub(req),
     fromReview: isFromReview(req),
+    fromTemplateReview,
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     contactAddressItems: buildContactAddressItems(sessionData, selectedAddressId),
     selectedAddressId,
@@ -2795,13 +2882,15 @@ function renderPermanentAddressPage (req, res, locals = {}) {
 function renderRolesAndAddressesPage (req, res, locals = {}) {
   const sessionData = req.session.data
   const successMessage = sessionData.consignmentAddressSuccessMessage || null
+  const fromTemplateReview = isFromTemplateReview(req) || isEditingTemplateFromReview(sessionData)
 
   if (successMessage) {
     delete sessionData.consignmentAddressSuccessMessage
   }
 
   return res.render('roles-and-addresses', {
-    backLink: '/notification-hub',
+    backLink: getJourneyBackLink(req, '/notification-hub'),
+    fromTemplateReview,
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     addressSections: buildConsignmentAddressSections(sessionData),
     successMessage,
@@ -2924,13 +3013,15 @@ function renderTransporterPage (req, res, locals = {}) {
   const sessionData = req.session.data
   const searchQuery = locals.searchQuery != null ? locals.searchQuery : ''
   const successMessage = sessionData.transporterSuccessMessage || null
+  const fromTemplateReview = isFromTemplateReview(req) || isEditingTemplateFromReview(sessionData)
 
   if (successMessage) {
     delete sessionData.transporterSuccessMessage
   }
 
   return res.render('transporter', {
-    backLink: '/notification-hub',
+    backLink: getJourneyBackLink(req, '/notification-hub'),
+    fromTemplateReview,
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     transporterResults: buildTransporterResults(searchQuery, sessionData),
     selectedTransporterId: locals.selectedTransporterId != null
@@ -3605,9 +3696,25 @@ function renderConsignmentAddressSelectPage (section, req, res, locals = {}) {
 }
 
 function getDefaultConsignmentAddressUses (sectionId) {
-  const addressType = CONSIGNMENT_SECTION_ADDRESS_TYPE_MAP[sectionId]
+  // Current role is implied by the journey — do not preselect optional extra uses
+  return []
+}
 
-  return addressType ? [addressType] : []
+function buildConsignmentSavedAddressTypes (sectionId, selectedAddressUses) {
+  const sectionType = CONSIGNMENT_SECTION_ADDRESS_TYPE_MAP[sectionId]
+  const types = []
+
+  if (sectionType) {
+    types.push(sectionType)
+  }
+
+  ;(selectedAddressUses || []).forEach((value) => {
+    if (value && !types.includes(value)) {
+      types.push(value)
+    }
+  })
+
+  return types
 }
 
 function parseConsignmentAddressUses (rawValue, sectionId) {
@@ -3636,7 +3743,11 @@ function renderConsignmentAddAddressPage (section, req, res, locals = {}) {
     phone: ''
   }
   const versionBasePath = getDesignReleaseBasePath(sessionData)
-  const defaultAddressUse = CONSIGNMENT_SECTION_ADDRESS_TYPE_MAP[section.id] || ''
+  const sectionAddressUse = CONSIGNMENT_SECTION_ADDRESS_TYPE_MAP[section.id] || ''
+  const defaultAddressUseLabel = sectionAddressUse
+    ? getAddressBookAddressTypeLabel(sectionAddressUse)
+    : (section.heading || 'this')
+  const defaultAddressUseArticle = /^[aeiou]/i.test(defaultAddressUseLabel) ? 'an' : 'a'
   const showManualAddress = locals.showManualAddress != null
     ? locals.showManualAddress
     : Boolean(
@@ -3651,7 +3762,8 @@ function renderConsignmentAddAddressPage (section, req, res, locals = {}) {
     cancelHref: `${versionBasePath}/notification-hub`,
     formAction: `${section.path}/add-address`,
     sectionId: section.id,
-    defaultAddressUse,
+    defaultAddressUseLabel,
+    defaultAddressUseArticle,
     showAddressLookup,
     showManualAddress,
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
@@ -3743,7 +3855,6 @@ function handleConsignmentAddAddressPost (section, req, res) {
     showAddressLookup ? { country: 'United Kingdom' } : {}
   )
   const selectedAddressUses = parseConsignmentAddressUses(req.body.addressUses, section.id)
-  const firstUseOption = getConsignmentAddressUseOptionsForSection(section.id)[0]
 
   setAddressBookConsignmentReturn(req.session.data, section.id)
 
@@ -3768,40 +3879,16 @@ function handleConsignmentAddAddressPost (section, req, res) {
     })
   }
 
-  if (!selectedAddressUses.length) {
-    req.session.data.errorList = [{
-      text: 'Select what this address can be used for',
-      href: firstUseOption ? `#address-use-${firstUseOption.value}` : '#address-uses-error'
-    }]
-    req.session.data.errors = {
-      addressUses: {
-        text: 'Select what this address can be used for'
-      }
-    }
-
-    return renderConsignmentAddAddressPage(section, req, res, {
-      manualAddress: addressValidation.value,
-      selectedAddressUses,
-      showManualAddress: showAddressLookup
-        ? Boolean(
-          manualAddress.addressLine1 ||
-          req.body.manualAddressEntry ||
-          addressBookLookupAddressId
-        )
-        : undefined,
-      addressLookup: (req.body.addressLookup || '').trim(),
-      selectedLookupAddressId: addressBookLookupAddressId
-    })
-  }
-
   req.session.data.errorList = null
   req.session.data.errors = null
+
+  const addressTypes = buildConsignmentSavedAddressTypes(section.id, selectedAddressUses)
 
   if (action === 'return') {
     clearAddressBookConsignmentReturn(req.session.data)
 
     const { entry } = saveAddressBookEntry(req.session.data, addressValidation.value, {
-      addressTypes: selectedAddressUses,
+      addressTypes,
       consignmentReturn: null
     })
 
@@ -3811,7 +3898,7 @@ function handleConsignmentAddAddressPost (section, req, res) {
   }
 
   saveAddressBookEntry(req.session.data, addressValidation.value, {
-    addressTypes: selectedAddressUses
+    addressTypes
   })
 
   return res.redirect('/roles-and-addresses')
@@ -3869,7 +3956,7 @@ function handleConsignmentAddressSelectPost (req, res) {
   }
 
   if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
-    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/roles-and-addresses'))
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/roles-and-addresses', req.session.data))
   }
 
   return res.redirect('/roles-and-addresses')
@@ -3993,10 +4080,13 @@ function parseArrivalDetailsBody (body) {
 function renderArrivalDetailsPage (req, res) {
   const sessionData = req.session.data
   const arrivalDateBounds = getArrivalDatePickerBounds()
+  const fromHub = isFromHub(req)
+  const fromTemplateReview = isFromTemplateReview(req) || isEditingTemplateFromReview(sessionData)
 
   return res.render('arrival-details', {
-    backLink: '/notification-hub',
-    fromHub: isFromHub(req),
+    backLink: getJourneyBackLink(req, '/notification-hub'),
+    fromHub,
+    fromTemplateReview,
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     ukAirportItemsJson: JSON.stringify(getUkAirportDisplayOptions()),
     meansOfTransportItems: buildMeansOfTransportItems(sessionData.meansOfTransport),
@@ -4858,7 +4948,7 @@ function getReviewNotificationViewModel (sessionData) {
       uploadedDocumentsCard: {
         id: 'review-uploaded-documents',
         title: 'Uploaded documents',
-        changeHref: '/upload-documents',
+        changeHref: '/upload-documents?from=review',
         documents: uploadedDocuments,
         // Documents are optional for submission.
         ...reviewCardErrorState(true, 'Uploaded documents')
@@ -5059,11 +5149,19 @@ function buildDesignRelease2CommodityCards (sessionData, speciesSections, readOn
 
 function buildDesignRelease2DocumentCards (uploadedDocumentsCard, readOnly) {
   const documents = uploadedDocumentsCard.documents || []
+  const headerAction = readOnly
+    ? null
+    : {
+      type: 'change',
+      href: uploadedDocumentsCard.changeHref || '/upload-documents'
+    }
 
   if (!documents.length) {
     return [{
       id: uploadedDocumentsCard.id,
       title: 'Document 1',
+      headerAction,
+      changeHref: headerAction ? headerAction.href : null,
       rows: [{
         key: 'Document reference',
         value: 'Not applicable'
@@ -5076,12 +5174,8 @@ function buildDesignRelease2DocumentCards (uploadedDocumentsCard, readOnly) {
   return documents.map((document, index) => ({
     id: `${uploadedDocumentsCard.id}-${index + 1}`,
     title: document.title || `Document ${index + 1}`,
-    headerAction: readOnly
-      ? null
-      : {
-        type: 'change',
-        href: '/upload-documents'
-      },
+    headerAction,
+    changeHref: headerAction ? headerAction.href : null,
     rows: document.rows,
     hasError: false,
     errorMessage: null
@@ -5190,7 +5284,7 @@ function mapStatusTextToReviewVariant (statusText = '') {
     return 'action-required'
   }
 
-  if (normalised === 'draft') {
+  if (normalised === 'draft' || normalised === 'new' || normalised === 'in progress' || normalised === 'in-progress') {
     return 'draft'
   }
 
@@ -5227,7 +5321,7 @@ function getDashboardNotificationMetadata (sessionData, reference) {
   if (draftMatch) {
     return {
       reference: draftMatch.reference,
-      statusText: 'Draft',
+      statusText: draftMatch.statusText || 'Draft',
       reviewVariant: 'draft',
       dateCreated: formatDateForDashboard(draftMatch.createdAt),
       snapshot: draftMatch.snapshot
@@ -5420,10 +5514,10 @@ function copyNotificationAsNewIntoSession (sessionData, sourceSnapshot) {
   resetNotificationJourneySession(sessionData)
   applyCarriedOverNotificationFields(sessionData, source)
   sessionData.notificationReference = generateDesignReleaseNotificationReference(sessionData)
-  sessionData.notificationStatus = 'New'
+  sessionData.notificationStatus = 'Draft'
   sessionData.errorList = null
   sessionData.errors = null
-  saveDraftNotification(sessionData)
+  persistDraftNotification(sessionData)
 
   return true
 }
@@ -5671,11 +5765,48 @@ function hasDeclarationConfirmed (sessionData) {
   return Boolean(sessionData.declarationConfirmedAt)
 }
 
+function hasAttachedItahc (sessionData) {
+  return ensureUploadedDocuments(sessionData).some((document) => {
+    const documentType = String(document.documentType || '').trim()
+
+    return documentType === 'itahc' || documentType === 'health-certificate'
+  })
+}
+
+function getSubmittedNotificationDashboardErrorMessage (sessionData) {
+  if (!sessionData) {
+    return null
+  }
+
+  if (!hasAttachedItahc(sessionData)) {
+    return 'ITAHC is missing'
+  }
+
+  if (
+    hasAnimalIdentifiersRequired(sessionData) &&
+    !hasAnimalIdentifiersComplete(sessionData)
+  ) {
+    return 'Information is missing'
+  }
+
+  return null
+}
+
+function getDashboardActionRequiredErrorMessage (notification = {}) {
+  if (notification.errorMessage) {
+    return notification.errorMessage
+  }
+
+  const snapshot = notification.snapshot || buildDashboardNotificationSnapshot(notification)
+
+  return getSubmittedNotificationDashboardErrorMessage(snapshot) || 'ITAHC is missing'
+}
+
 function getConditionalSubmissionItems (sessionData) {
   const items = []
 
-  if (!hasUploadedDocuments(sessionData)) {
-    items.push('upload the health certificate and any other required documents')
+  if (!hasAttachedItahc(sessionData)) {
+    items.push('upload the ITAHC and any other required documents')
   }
 
   // Soft follow-up only when identifiers are optional for submit (single commodity),
@@ -5707,14 +5838,12 @@ function renderDeclarationPage (req, res, locals = {}) {
 
 function renderNotificationSubmittedPage (req, res) {
   const sessionData = req.session.data
-  const beforeImportItems = Array.isArray(sessionData.conditionalSubmissionItems)
-    ? sessionData.conditionalSubmissionItems
-    : getConditionalSubmissionItems(sessionData)
+  const hasItahcAttached = hasAttachedItahc(sessionData)
 
   return res.render('notification-submitted', {
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
-    beforeImportItems,
-    isIncompleteSubmission: beforeImportItems.length > 0
+    hasItahcAttached,
+    isIncompleteSubmission: !hasItahcAttached
   })
 }
 
@@ -5739,30 +5868,52 @@ function getNotificationHubViewModel (sessionData) {
   const totalPackages = getTotalPackageCount(sessionData)
   const totalNetWeight = getTotalNetWeight(sessionData)
   const showGerminalSummary = hasGerminalProductsOnly(sessionData)
+  const isCreatingTemplate = isCreatingTemplateJourney(sessionData)
 
   return {
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    isCreatingTemplate,
+    templateName: sessionData.templateName || '',
+    primaryAction: isCreatingTemplate
+      ? {
+          text: 'Save template',
+          href: '/templates/save'
+        }
+      : {
+          text: 'Review and submit',
+          href: '/review-notification'
+        },
+    secondaryAction: isCreatingTemplate
+      ? {
+          text: 'Return to manage templates',
+          href: '/templates'
+        }
+      : {
+          text: 'Return to dashboard',
+          href: '/'
+        },
     showGerminalSummary,
     animalCountDisplay: totalAnimals > 0 ? String(totalAnimals) : '0',
     packagesDisplay: totalPackages > 0 ? String(totalPackages) : '0',
     netWeightDisplay: formatNetWeightDisplay(totalNetWeight),
+    tasklistHeading: isCreatingTemplate ? 'Template tasklist' : 'Notification tasklist',
     sections: [
       {
         title: '1. About the consignment',
         items: [
           {
             text: 'Where is this consignment coming from?',
-            href: '/origin-of-the-import',
+            href: '/origin-of-the-import?from=hub',
             status: hasOriginDetails(sessionData) ? statusComplete : statusTodo
           },
           {
             text: 'What are you importing?',
-            href: '/what-are-you-importing',
+            href: '/what-are-you-importing?from=hub',
             status: hasCommoditySelection(sessionData) ? statusComplete : statusTodo
           },
           {
             text: 'Main reason for import',
-            href: '/reason-for-import',
+            href: '/reason-for-import?from=hub',
             status: hasImportReasonComplete(sessionData) ? statusComplete : statusTodo
           }
         ]
@@ -5772,17 +5923,17 @@ function getNotificationHubViewModel (sessionData) {
         items: [
           {
             text: 'Commodity details',
-            href: '/consignment-details',
+            href: '/consignment-details?from=hub',
             status: hasConsignmentDetails(sessionData) ? statusComplete : statusTodo
           },
           ...(hasAnimalIdentifiersRequired(sessionData) ? [{
             text: 'Identification details',
-            href: '/animal-identification-details',
+            href: '/animal-identification-details?from=hub',
             status: hasAnimalIdentifiersComplete(sessionData) ? statusComplete : statusTodo
           }] : []),
           {
             text: 'Additional details',
-            href: '/additional-animal-details',
+            href: '/additional-animal-details?from=hub',
             status: hasAdditionalAnimalDetailsComplete(sessionData) ? statusComplete : statusTodo
           }
         ]
@@ -5802,7 +5953,7 @@ function getNotificationHubViewModel (sessionData) {
           }] : []),
           {
             text: 'Transport details',
-            href: '/transporter',
+            href: '/transporter?from=hub',
             status: hasTransportDetailsComplete(sessionData) ? statusComplete : statusTodo
           }
         ]
@@ -5812,7 +5963,7 @@ function getNotificationHubViewModel (sessionData) {
         items: [
           {
             text: 'Upload documents',
-            href: '/upload-documents',
+            href: '/upload-documents?from=hub',
             status: hasUploadedDocuments(sessionData) ? statusComplete : statusTodo
           }
         ]
@@ -5822,7 +5973,7 @@ function getNotificationHubViewModel (sessionData) {
         items: [
           {
             text: 'Roles and addresses',
-            href: '/roles-and-addresses',
+            href: '/roles-and-addresses?from=hub',
             hint: 'Consignor or Exporter, Consignee, Importer and Place of Destination',
             status: hasConsignmentAddressesComplete(sessionData) ? statusComplete : statusTodo
           }
@@ -5844,6 +5995,7 @@ function getNotificationHubViewModel (sessionData) {
 
 function renderNotificationHubPage (req, res) {
   ensurePrototypeNotificationReference(req.session.data)
+  persistDraftNotification(req.session.data)
 
   return res.render('notification-hub', {
     ...getNotificationHubViewModel(req.session.data)
@@ -6109,7 +6261,9 @@ function getComparableNotificationSnapshot (sessionData) {
     'deletedNotificationReferences',
     'draftNotifications',
     'notificationStatus',
-    'submittedNotifications'
+    'savedTemplates',
+    'submittedNotifications',
+    'templatesSuccessMessage'
   ]
 
   transientKeys.forEach((key) => {
@@ -6126,6 +6280,20 @@ function hasAmendChanges (sessionData) {
 
   return JSON.stringify(getComparableNotificationSnapshot(sessionData)) !==
     JSON.stringify(sessionData.amendOriginalSnapshot)
+}
+
+function persistDraftNotification (sessionData) {
+  if (
+    !isDesignRelease2SessionData(sessionData) ||
+    isCreatingTemplateJourney(sessionData) ||
+    isAmendingNotification(sessionData)
+  ) {
+    return null
+  }
+
+  ensurePrototypeNotificationReference(sessionData)
+
+  return saveDraftNotification(sessionData)
 }
 
 function saveDraftNotification (sessionData, sourceSnapshot = sessionData) {
@@ -6428,7 +6596,7 @@ function enrichDesignRelease2Notification (notification, index, sessionData = {}
       text: 'Action required',
       style: 'action-required'
     }
-    errorMessage = 'Error message'
+    errorMessage = getDashboardActionRequiredErrorMessage(notification)
   } else if (reviewVariant === 'draft') {
     statusDisplay = {
       type: 'tag',
@@ -6437,7 +6605,9 @@ function enrichDesignRelease2Notification (notification, index, sessionData = {}
     }
   }
 
-  if (!notificationHasCategoryLabel && index % 6 === 3) {
+  const preserveStatusVariant = reviewVariant === 'draft' || reviewVariant === 'submission-complete'
+
+  if (!preserveStatusVariant && !notificationHasCategoryLabel && index % 6 === 3) {
     categoryLabel = 'Plants'
     cardVariant = 'default'
     statusDisplay = {
@@ -6448,7 +6618,7 @@ function enrichDesignRelease2Notification (notification, index, sessionData = {}
     errorMessage = null
   }
 
-  if (!notificationHasCategoryLabel && index % 6 === 4) {
+  if (!preserveStatusVariant && !notificationHasCategoryLabel && index % 6 === 4) {
     inspectionRequired = true
     statusDisplay = {
       type: 'text',
@@ -6469,15 +6639,15 @@ function enrichDesignRelease2Notification (notification, index, sessionData = {}
   let finalErrorMessage = errorMessage
   let finalInspectionRequired = inspectionRequired
 
-  if (actionDemoIndices.has(index)) {
+  if (!preserveStatusVariant && actionDemoIndices.has(index)) {
     finalCardVariant = 'error'
     finalStatusDisplay = {
       type: 'tag',
       text: 'Action required',
       style: 'action-required'
     }
-    finalErrorMessage = finalErrorMessage || 'Error message'
-  } else {
+    finalErrorMessage = getDashboardActionRequiredErrorMessage(notification)
+  } else if (!preserveStatusVariant) {
     const statusChangeCategory = statusChangeDemoMap[index]
 
     if (statusChangeCategory === 'passed-inspection') {
@@ -6606,6 +6776,7 @@ function getDashboardNotificationList (sessionData = {}) {
       statusText: 'Draft',
       statusTagClass: 'app-ipaffs-tag--draft',
       statusModifier: 'draft',
+      reviewVariant: 'draft',
       origin: notification.origin,
       arrivalDate: notification.arrivalDate,
       consignee: notification.snapshot && notification.snapshot.consigneeAddress
@@ -6631,16 +6802,24 @@ function getDashboardNotificationList (sessionData = {}) {
   })
 
   const submitted = (sessionData.submittedNotifications || []).map((notification, index) => {
+    const snapshot = notification.snapshot || {}
+    const reviewVariant = mapStatusTextToReviewVariant(notification.statusText)
+    const errorMessage = reviewVariant === 'action-required'
+      ? getSubmittedNotificationDashboardErrorMessage(snapshot)
+      : null
     const mapped = {
       reference: notification.reference,
       commodities: notification.commodities,
       statusText: notification.statusText,
       statusTagClass: notification.statusTagClass,
-      statusModifier: mapStatusTextToReviewVariant(notification.statusText),
+      statusModifier: reviewVariant,
+      reviewVariant,
       origin: notification.origin,
       arrivalDate: notification.arrivalDate,
       consignee: notification.consignee,
       consignor: notification.consignor,
+      snapshot,
+      errorMessage,
       viewHref: isDesignRelease2SessionData(sessionData)
         ? buildDashboardNotificationViewHref(sessionData, { submittedId: notification.id })
         : `/review-notification?submitted=${encodeURIComponent(notification.id)}`,
@@ -6729,8 +6908,145 @@ function buildDashboardSortItems (selectedValue, options = {}) {
   }))
 }
 
-function getDashboardTemplateById (templateId) {
-  return dashboardTemplates.find((template) => template.id === templateId) || null
+function getSavedTemplates (sessionData = {}) {
+  return Array.isArray(sessionData.savedTemplates) ? sessionData.savedTemplates : []
+}
+
+function getAllDashboardTemplates (sessionData = {}) {
+  const deletedIds = new Set(sessionData.deletedTemplateIds || [])
+  const savedTemplates = getSavedTemplates(sessionData).filter((template) => !deletedIds.has(template.id))
+  const savedIds = new Set(savedTemplates.map((template) => template.id))
+
+  return [
+    ...savedTemplates,
+    ...dashboardTemplates.filter((template) => !deletedIds.has(template.id) && !savedIds.has(template.id))
+  ]
+}
+
+function getDashboardTemplateById (templateId, sessionData = {}) {
+  return getAllDashboardTemplates(sessionData).find((template) => template.id === templateId) || null
+}
+
+function buildTemplateIdFromName (title, sessionData = {}) {
+  const base = String(title || 'template')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'template'
+  const existingIds = new Set(getAllDashboardTemplates(sessionData).map((template) => template.id))
+
+  if (!existingIds.has(base)) {
+    return base
+  }
+
+  let suffix = 2
+  while (existingIds.has(`${base}-${suffix}`)) {
+    suffix += 1
+  }
+
+  return `${base}-${suffix}`
+}
+
+function buildTemplatePlaceFromSessionAddress (address) {
+  if (!address || typeof address !== 'object') {
+    return {
+      name: '',
+      lines: []
+    }
+  }
+
+  return {
+    name: address.name || '',
+    lines: [...(address.addressLines || []), address.country].filter(Boolean)
+  }
+}
+
+function buildTemplateFromSession (sessionData) {
+  const title = String(sessionData.templateName || '').trim() || 'Untitled template'
+  const commodityLabel = getReviewAnimalDetailsCommonNames(sessionData) || 'Not applicable'
+  const speciesLabels = getSelectedSpeciesLabelsForReview(sessionData)
+  const placeOfOrigin = buildTemplatePlaceFromSessionAddress(sessionData.placeOfOriginAddress)
+  const contactAddress = buildTemplatePlaceFromSessionAddress(
+    sessionData.contactAddressId
+      ? getContactAddressById(sessionData.contactAddressId, sessionData)
+      : null
+  )
+  const consigneeName = sessionData.consigneeAddress && sessionData.consigneeAddress.name
+    ? sessionData.consigneeAddress.name
+    : 'Not applicable'
+  const consignorName = sessionData.consignorAddress && sessionData.consignorAddress.name
+    ? sessionData.consignorAddress.name
+    : 'Not applicable'
+  const totalAnimals = getTotalAnimalCount(sessionData)
+  const totalPackages = getTotalPackageCount(sessionData)
+  const transporter = sessionData.transporter || null
+  const selectedSpecies = normalizeSelectedSpecies(sessionData.selectedSpecies)
+  const animalIdentifiers = getAnimalIdentifiers(sessionData)
+
+  return {
+    id: sessionData.templateId || buildTemplateIdFromName(title, sessionData),
+    categoryLabel: hasGerminalProductsOnly(sessionData) ? 'Germinal products' : 'Live animals',
+    title,
+    commodityLabel,
+    origin: sessionData.countryOfOrigin || 'Not applicable',
+    consignee: consigneeName,
+    consignor: consignorName,
+    dateCreated: formatDeclarationDate(),
+    review: {
+      countryOfOrigin: sessionData.countryOfOrigin || null,
+      regionOfOriginCode: sessionData.regionOfOriginCode || 'N/A',
+      internalReferenceNumber: sessionData.internalReference || 'N/A',
+      commodityCode: getReviewAnimalDetailsCommodityCodes(sessionData) || '',
+      commonName: commodityLabel,
+      species: speciesLabels || '',
+      reasonForImport: sessionData.importReason || null,
+      purposeInTheMarket: sessionData.internalMarketPurpose || null,
+      certifiedFor: sessionData.certificationPurpose || null,
+      unweanedAnimals: sessionData.unweanedAnimals || null,
+      numberOfAnimals: totalAnimals > 0 ? String(totalAnimals) : null,
+      numberOfPackages: totalPackages > 0 ? String(totalPackages) : null,
+      selectedSpecies,
+      commoditySelections: Array.isArray(sessionData.commoditySelections)
+        ? sessionData.commoditySelections
+        : [],
+      numberOfAnimalsBySpecies: sessionData.numberOfAnimals || {},
+      numberOfPackagesBySpecies: sessionData.numberOfPackages || {},
+      netWeight: sessionData.netWeight || {},
+      packageType: sessionData.packageType || {},
+      animalIdentifiers: Object.keys(animalIdentifiers).length
+        ? JSON.parse(JSON.stringify(animalIdentifiers))
+        : {},
+      arrivalDateAtPort: sessionData.arrivalDateAtPort || null,
+      portOfEntry: sessionData.portOfEntry || null,
+      meansOfTransport: sessionData.meansOfTransport || null,
+      transportIdentification: sessionData.transportIdentification || null,
+      transportDocumentReference: sessionData.transportDocumentReference || null,
+      transporter: transporter
+        ? {
+            name: transporter.name || null,
+            address: transporter.address || null,
+            country: getTransporterCountryLabel(sessionData) || null,
+            approvalNumber: transporter.approvalNumber || null,
+            type: transporter.type || null
+          }
+        : null,
+      placeOfOrigin,
+      contactAddress: contactAddress.name ? contactAddress : placeOfOrigin,
+      useSameAddressForParties: true,
+      cphNumber: sessionData.cphNumber || null
+    }
+  }
+}
+
+function saveTemplateFromSession (sessionData) {
+  if (!Array.isArray(sessionData.savedTemplates)) {
+    sessionData.savedTemplates = []
+  }
+
+  const template = buildTemplateFromSession(sessionData)
+  sessionData.savedTemplates = sessionData.savedTemplates.filter((item) => item.id !== template.id)
+  sessionData.savedTemplates.unshift(template)
+
+  return template
 }
 
 function generateDesignReleaseNotificationReference (sessionData = {}) {
@@ -6919,7 +7235,7 @@ function seedNotificationSessionFromTemplate (sessionData, template) {
   const internalReference = String(review.internalReferenceNumber || '').trim()
 
   sessionData.notificationReference = generateDesignReleaseNotificationReference(sessionData)
-  sessionData.notificationStatus = 'New'
+  sessionData.notificationStatus = 'Draft'
   sessionData.templateId = template.id
   sessionData.templateName = template.title
   sessionData.countryOfOrigin = review.countryOfOrigin || null
@@ -6931,6 +7247,30 @@ function seedNotificationSessionFromTemplate (sessionData, template) {
     : internalReference
 
   applySpeciesSelectionToSession(sessionData, speciesIds)
+
+  if (Array.isArray(review.commoditySelections) && review.commoditySelections.length) {
+    sessionData.commoditySelections = review.commoditySelections
+  }
+
+  if (review.numberOfAnimalsBySpecies && typeof review.numberOfAnimalsBySpecies === 'object') {
+    sessionData.numberOfAnimals = { ...review.numberOfAnimalsBySpecies }
+  }
+
+  if (review.numberOfPackagesBySpecies && typeof review.numberOfPackagesBySpecies === 'object') {
+    sessionData.numberOfPackages = { ...review.numberOfPackagesBySpecies }
+  }
+
+  if (review.netWeight && typeof review.netWeight === 'object') {
+    sessionData.netWeight = { ...review.netWeight }
+  }
+
+  if (review.packageType && typeof review.packageType === 'object') {
+    sessionData.packageType = { ...review.packageType }
+  }
+
+  if (review.animalIdentifiers && typeof review.animalIdentifiers === 'object') {
+    sessionData.animalIdentifiers = JSON.parse(JSON.stringify(review.animalIdentifiers))
+  }
 
   sessionData.importReason = review.reasonForImport || null
   sessionData.internalMarketPurpose = review.reasonForImport === 'Internal market'
@@ -6979,78 +7319,235 @@ function buildTemplateAddressValue (address) {
   }
 }
 
-function buildTemplateReviewViewModel (template, basePath = '/design-release-2') {
-  const review = template.review
-  const changeBase = `${basePath}/templates/${template.id}`
-  const addressValue = buildTemplateAddressValue(review.placeOfOrigin)
+function buildTemplateSessionFromReview (review = {}) {
+  const speciesIds = Array.isArray(review.selectedSpecies) && review.selectedSpecies.length
+    ? review.selectedSpecies
+    : resolveSpeciesIdsFromTemplateReview(review)
+  const sessionLike = {
+    selectedSpecies: speciesIds,
+    commoditySelections: Array.isArray(review.commoditySelections) ? review.commoditySelections : [],
+    numberOfAnimals: review.numberOfAnimalsBySpecies || {},
+    numberOfPackages: review.numberOfPackagesBySpecies || {},
+    netWeight: review.netWeight || {},
+    packageType: review.packageType || {},
+    animalIdentifiers: review.animalIdentifiers || {}
+  }
+
+  if (!Object.keys(sessionLike.numberOfAnimals).length && review.numberOfAnimals && speciesIds.length === 1) {
+    sessionLike.numberOfAnimals = {
+      [speciesIds[0]]: String(review.numberOfAnimals)
+    }
+  }
+
+  if (!Object.keys(sessionLike.numberOfPackages).length && review.numberOfPackages && speciesIds.length === 1) {
+    sessionLike.numberOfPackages = {
+      [speciesIds[0]]: String(review.numberOfPackages)
+    }
+  }
+
+  if (!sessionLike.commoditySelections.length && speciesIds.length) {
+    applySpeciesSelectionToSession(sessionLike, speciesIds)
+  }
+
+  return sessionLike
+}
+
+function buildTemplateCommodityCards (review = {}) {
+  const sessionLike = buildTemplateSessionFromReview(review)
+  const speciesIds = normalizeSelectedSpecies(sessionLike.selectedSpecies)
+
+  if (!speciesIds.length) {
+    const commodityTitle = review.commodityCode
+      ? `${formatReviewValueOrNa(review.commonName)} (${review.commodityCode})`
+      : formatReviewValueOrNa(review.commonName)
+
+    return [{
+      id: 'template-commodity-details',
+      title: commodityTitle,
+      speciesBlocks: [{
+        speciesLabel: formatReviewValueOrNa(review.species || review.commonName),
+        rows: [
+          { key: 'Number of animals', value: formatReviewValueOrNa(review.numberOfAnimals) },
+          { key: 'Number of packages', value: formatReviewValueOrNa(review.numberOfPackages) }
+        ],
+        identification: null,
+        identificationError: null
+      }]
+    }]
+  }
+
+  const speciesSections = buildReviewSpeciesSections(sessionLike)
+  return buildDesignRelease2CommodityCards(sessionLike, speciesSections, true)
+}
+
+function withTemplateReviewChangeAction (card, changeHref) {
+  if (!card) {
+    return card
+  }
+
+  if (!changeHref) {
+    return {
+      ...card,
+      headerAction: null,
+      changeHref: null
+    }
+  }
 
   return {
-    importDetailsCard: {
+    ...card,
+    changeHref,
+    headerAction: {
+      type: 'change',
+      href: changeHref
+    }
+  }
+}
+
+function getTemplateReviewChangeHref (templateId, section) {
+  if (!templateId || !section) {
+    return null
+  }
+
+  return `/templates/${templateId}/change/${section}`
+}
+
+function buildTemplateReviewViewModel (template, basePath = '/design-release-2') {
+  const review = template.review || {}
+  const templateId = template.id
+  const addressValue = buildTemplateAddressValue(review.placeOfOrigin || { name: '', lines: [] })
+  const contactAddressValue = review.contactAddress
+    ? buildTemplateAddressValue(review.contactAddress)
+    : addressValue
+  const transporter = review.transporter || {}
+  const commodityChangeHref = getTemplateReviewChangeHref(templateId, 'consignment-details')
+  const identificationChangeHref = getTemplateReviewChangeHref(templateId, 'animal-identification-details')
+  const commodityCards = buildTemplateCommodityCards(review).map((card) => {
+    const withChange = withTemplateReviewChangeAction(card, commodityChangeHref)
+
+    return {
+      ...withChange,
+      speciesBlocks: (card.speciesBlocks || []).map((block) => ({
+        ...block,
+        rows: (block.rows || []).map((row) => ({
+          ...row,
+          showChange: false
+        })),
+        identification: block.identification
+          ? {
+            ...block.identification,
+            changeHref: identificationChangeHref
+          }
+          : null
+      }))
+    }
+  })
+
+  const transporterAddress = (() => {
+    if (!transporter.address) {
+      return 'Not applicable'
+    }
+
+    if (typeof transporter.address === 'string') {
+      return {
+        isAddress: true,
+        name: '',
+        lines: transporter.address.split('\n').map((line) => line.trim()).filter(Boolean)
+      }
+    }
+
+    if (Array.isArray(transporter.address)) {
+      return {
+        isAddress: true,
+        name: '',
+        lines: transporter.address
+      }
+    }
+
+    return formatReviewValueOrNa(transporter.address)
+  })()
+
+  return {
+    importDetailsCard: withTemplateReviewChangeAction({
       id: 'template-import-details',
       title: 'Import details',
-      headerAction: {
-        href: `${changeBase}#import-details`
-      },
       rows: [
-        { key: 'Country of origin', value: review.countryOfOrigin },
-        { key: 'Region of origin code', value: review.regionOfOriginCode },
-        { key: 'Internal reference number', value: review.internalReferenceNumber }
+        { key: 'Country of origin', value: formatReviewValueOrNa(review.countryOfOrigin) },
+        { key: 'Region of origin code', value: formatReviewValueOrNa(review.regionOfOriginCode) },
+        { key: 'Internal reference number', value: formatReviewValueOrNa(review.internalReferenceNumber) }
       ]
-    },
-    animalDetailsCard: {
+    }, getTemplateReviewChangeHref(templateId, 'origin-of-the-import')),
+    animalDetailsCard: withTemplateReviewChangeAction({
       id: 'template-animal-details',
       title: 'Animal details',
-      headerAction: {
-        href: `${changeBase}#animal-details`
-      },
       rows: [
-        { key: 'Commodity code', value: review.commodityCode },
-        { key: 'Common name', value: review.commonName },
-        { key: 'Species', value: review.species }
+        { key: 'Commodity code', value: formatReviewValueOrNa(review.commodityCode) },
+        { key: 'Common name', value: formatReviewValueOrNa(review.commonName) },
+        { key: 'Species', value: formatReviewValueOrNa(review.species) }
       ]
-    },
-    importReasonCard: {
+    }, getTemplateReviewChangeHref(templateId, 'what-are-you-importing')),
+    importReasonCard: withTemplateReviewChangeAction({
       id: 'template-import-reason',
-      title: 'Main reason for import',
-      headerAction: {
-        href: `${changeBase}#import-reason`
-      },
+      title: 'Additional animal details',
       rows: [
-        { key: 'Reason for import', value: review.reasonForImport },
-        { key: 'Purpose in the market', value: review.purposeInTheMarket }
+        { key: 'Reason for import', value: formatReviewValueOrNa(review.reasonForImport) },
+        { key: 'Purpose in the market', value: formatReviewValueOrNa(review.purposeInTheMarket) }
       ]
-    },
-    additionalAnimalDetailsCard: {
+    }, getTemplateReviewChangeHref(templateId, 'reason-for-import')),
+    commodityCards,
+    additionalAnimalDetailsCard: withTemplateReviewChangeAction({
       id: 'template-additional-animal-details',
       title: 'Additional animal details',
-      headerAction: {
-        href: `${changeBase}#additional-animal-details`
-      },
       rows: [
-        { key: 'Certified for', value: review.certifiedFor }
+        { key: 'Certified for', value: formatReviewValueOrNa(review.certifiedFor) }
       ]
-    },
-    addressesCard: {
+    }, getTemplateReviewChangeHref(templateId, 'additional-animal-details')),
+    arrivalDetailsCard: withTemplateReviewChangeAction({
+      id: 'template-arrival-details',
+      title: 'Arrival details',
+      rows: [
+        { key: 'Arrival date at destination', value: formatReviewValueOrNa(review.arrivalDateAtPort) },
+        { key: 'Port of entry', value: formatReviewValueOrNa(review.portOfEntry) },
+        { key: 'Means of transport to the port of entry', value: formatReviewValueOrNa(review.meansOfTransport) },
+        { key: 'Transport identification', value: formatReviewValueOrNa(review.transportIdentification) },
+        { key: 'Transport document reference', value: formatReviewValueOrNa(review.transportDocumentReference) }
+      ]
+    }, getTemplateReviewChangeHref(templateId, 'arrival-details')),
+    transportDetailsCard: withTemplateReviewChangeAction({
+      id: 'template-transport-details',
+      title: 'Transport details',
+      rows: [
+        { key: 'Name', value: formatReviewValueOrNa(transporter.name) },
+        { key: 'Address', value: transporterAddress },
+        { key: 'Country', value: formatReviewValueOrNa(transporter.country) },
+        { key: 'Approval number', value: formatReviewValueOrNa(transporter.approvalNumber) },
+        { key: 'Type', value: formatReviewValueOrNa(transporter.type) }
+      ]
+    }, getTemplateReviewChangeHref(templateId, 'transporter')),
+    addressesCard: withTemplateReviewChangeAction({
       id: 'template-addresses',
-      title: 'Addresses',
-      headerAction: {
-        href: `${changeBase}#addresses`
-      },
+      title: 'Import details',
       rows: [
         { key: 'Place of origin', value: addressValue },
         { key: 'Consignor', value: addressValue },
         { key: 'Consignee', value: addressValue },
         { key: 'Importer', value: addressValue },
-        { key: 'County parish holding (CPH) number', value: review.cphNumber }
+        { key: 'Place of destination', value: addressValue }
       ]
-    }
+    }, getTemplateReviewChangeHref(templateId, 'roles-and-addresses')),
+    contactAddressCard: withTemplateReviewChangeAction({
+      id: 'template-contact-address',
+      title: 'Contact address',
+      rows: [
+        { key: 'Contact address', value: contactAddressValue }
+      ]
+    }, getTemplateReviewChangeHref(templateId, 'contact-address-for-consignment'))
   }
 }
 
 function getDashboardTemplatesViewModel (query = {}, sessionData = {}) {
   const sort = (query.sort || '').trim()
   const basePath = getDesignReleaseBasePath(sessionData) || '/design-release-2'
-  const templates = dashboardTemplates.map((template) => ({
+  const templates = getAllDashboardTemplates(sessionData).map((template) => ({
     categoryLabel: template.categoryLabel,
     title: template.title,
     commodityLabel: template.commodityLabel,
@@ -7074,22 +7571,127 @@ function renderViewTemplatePage (req, res) {
     return res.redirect('/')
   }
 
-  const template = getDashboardTemplateById(req.params.templateId)
+  const template = getDashboardTemplateById(req.params.templateId, req.session.data)
 
   if (!template) {
     return res.redirect('/templates')
   }
 
   const basePath = getDesignReleaseBasePath(req.session.data) || '/design-release-2'
+  const editHref = `${basePath}/templates/${template.id}/edit`
+  const successMessage = req.session.data.templateReviewSuccessMessage || null
+
+  if (successMessage) {
+    delete req.session.data.templateReviewSuccessMessage
+  }
+
+  clearTemplateReviewEditState(req.session.data)
 
   return res.render('view-template', {
     serviceNavActive: 'templates',
+    pageName: template.title,
     template,
     templateReview: buildTemplateReviewViewModel(template, basePath),
-    formAction: `${basePath}/templates/${template.id}`,
-    cancelHref: basePath,
-    backLink: '/templates'
+    dateCreated: template.dateCreated || '15 April 2026',
+    useHref: `${basePath}/templates/${template.id}/use`,
+    editHref,
+    deleteHref: `${basePath}/templates/${template.id}/delete`,
+    backLink: '/templates',
+    successMessage
   })
+}
+
+function handleChangeTemplateSectionPage (req, res) {
+  if (!isDesignRelease2SessionData(req.session.data)) {
+    return res.redirect('/')
+  }
+
+  const template = getDashboardTemplateById(req.params.templateId, req.session.data)
+
+  if (!template) {
+    return res.redirect('/templates')
+  }
+
+  const allowedSections = [
+    'origin-of-the-import',
+    'what-are-you-importing',
+    'reason-for-import',
+    'consignment-details',
+    'animal-identification-details',
+    'additional-animal-details',
+    'arrival-details',
+    'transporter',
+    'roles-and-addresses',
+    'contact-address-for-consignment'
+  ]
+  const section = String(req.params.section || '').trim()
+
+  if (!allowedSections.includes(section)) {
+    return res.redirect(`/templates/${template.id}`)
+  }
+
+  resetNotificationJourneySession(req.session.data)
+  seedNotificationSessionFromTemplate(req.session.data, template)
+  req.session.data.isCreatingTemplate = true
+  req.session.data.isEditingTemplateFromReview = true
+  req.session.data.editingTemplateId = template.id
+  req.session.data.templateId = template.id
+  req.session.data.templateName = template.title
+  req.session.data.notificationStatus = 'Draft'
+
+  return res.redirect(`/${section}?from=template-review`)
+}
+
+function handleEditTemplatePage (req, res) {
+  if (!isDesignRelease2SessionData(req.session.data)) {
+    return res.redirect('/')
+  }
+
+  const template = getDashboardTemplateById(req.params.templateId, req.session.data)
+
+  if (!template) {
+    return res.redirect('/templates')
+  }
+
+  resetNotificationJourneySession(req.session.data)
+  seedNotificationSessionFromTemplate(req.session.data, template)
+  req.session.data.isCreatingTemplate = true
+  req.session.data.notificationStatus = 'Draft'
+  req.session.data.templateName = template.title
+
+  return res.redirect('/notification-hub')
+}
+
+function handleDeleteTemplatePage (req, res) {
+  if (!isDesignRelease2SessionData(req.session.data)) {
+    return res.redirect('/')
+  }
+
+  const templateId = String(req.params.templateId || '').trim()
+  const template = getDashboardTemplateById(templateId, req.session.data)
+
+  if (!template) {
+    return res.redirect('/templates')
+  }
+
+  const savedTemplates = getSavedTemplates(req.session.data)
+  const isSavedTemplate = savedTemplates.some((item) => item.id === templateId)
+
+  if (isSavedTemplate) {
+    req.session.data.savedTemplates = savedTemplates.filter((item) => item.id !== templateId)
+  } else {
+    if (!Array.isArray(req.session.data.deletedTemplateIds)) {
+      req.session.data.deletedTemplateIds = []
+    }
+
+    if (!req.session.data.deletedTemplateIds.includes(templateId)) {
+      req.session.data.deletedTemplateIds.push(templateId)
+    }
+  }
+
+  req.session.data.templatesSuccessMessage = `${template.title} deleted`
+
+  return res.redirect('/templates')
 }
 
 function handleViewTemplatePage (req, res) {
@@ -7097,15 +7699,7 @@ function handleViewTemplatePage (req, res) {
     return res.redirect('/')
   }
 
-  const template = getDashboardTemplateById(req.params.templateId)
-
-  if (!template) {
-    return res.redirect('/templates')
-  }
-
-  req.session.data.templateName = template.title
-
-  return res.redirect('/templates')
+  return res.redirect(`/templates/${req.params.templateId}`)
 }
 
 function buildDashboardDateRangeItems (selectedValue = '') {
@@ -7154,7 +7748,7 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
   const validTabs = new Set(['in-progress', 'drafts', 'completed'])
   const activeTab = validTabs.has(tab) ? tab : 'in-progress'
   const inProgressNotifications = allNotifications.filter((notification) =>
-    notification.reviewVariant !== 'draft' && notification.reviewVariant !== 'submission-complete'
+    notification.reviewVariant === 'submitted' || notification.reviewVariant === 'action-required'
   )
   const draftNotifications = allNotifications.filter((notification) => notification.reviewVariant === 'draft')
   const completedNotifications = allNotifications.filter((notification) => notification.reviewVariant === 'submission-complete')
@@ -7276,10 +7870,21 @@ function renderDashboardTemplatesPage (req, res) {
     return res.redirect('/')
   }
 
+  const successMessage = req.session.data.templatesSuccessMessage || null
+
+  if (successMessage) {
+    delete req.session.data.templatesSuccessMessage
+  }
+
   return res.render('dashboard-templates', {
     serviceNavActive: 'templates',
+    successMessage,
     ...getDashboardTemplatesViewModel(req.query, req.session.data)
   })
+}
+
+function isCreatingTemplateJourney (sessionData) {
+  return Boolean(sessionData && sessionData.isCreatingTemplate)
 }
 
 function renderCreateTemplatePage (req, res) {
@@ -7287,9 +7892,20 @@ function renderCreateTemplatePage (req, res) {
     return res.redirect('/')
   }
 
+  // Only keep the name when the user is mid-create and navigates back to this page.
+  // After a template is saved, starting create again must show an empty name field.
+  const isContinuingCreate = isCreatingTemplateJourney(req.session.data)
+  const templateName = isContinuingCreate
+    ? String(req.session.data.templateName || '').trim()
+    : ''
+
+  if (!isContinuingCreate) {
+    delete req.session.data.templateName
+  }
+
   return res.render('create-template', {
     serviceNavActive: 'templates',
-    templateName: req.session.data.templateName || '',
+    templateName,
     backLink: '/templates'
   })
 }
@@ -7300,7 +7916,27 @@ function handleCreateTemplatePage (req, res) {
   }
 
   const templateName = String(req.body.templateName || '').trim()
+
+  resetNotificationJourneySession(req.session.data)
   req.session.data.templateName = templateName
+  req.session.data.isCreatingTemplate = true
+  req.session.data.notificationStatus = 'Draft'
+
+  return res.redirect('/origin-of-the-import')
+}
+
+function handleSaveTemplateFromHub (req, res) {
+  if (!isDesignRelease2SessionData(req.session.data)) {
+    return res.redirect('/')
+  }
+
+  const savedTemplate = saveTemplateFromSession(req.session.data)
+  const successMessage = `${savedTemplate.title} saved to templates`
+
+  resetNotificationJourneySession(req.session.data)
+  req.session.data.templatesSuccessMessage = successMessage
+  delete req.session.data.templateName
+  delete req.session.data.isCreatingTemplate
 
   return res.redirect('/templates')
 }
@@ -8825,9 +9461,16 @@ function renderOriginPage (req, res, locals = {}) {
   const internalReference = sessionData.internalReference
   const displayReference = internalReference && internalReference.trim() ? internalReference.trim() : ''
   const countryOfOrigin = sessionData.countryOfOrigin
+  const fromHub = isFromHub(req)
+  const fromTemplateReview = isFromTemplateReview(req) || isEditingTemplateFromReview(sessionData)
 
   return res.render('origin-of-the-import', {
-    backLink: '/',
+    backLink: getJourneyBackLink(
+      req,
+      isCreatingTemplateJourney(sessionData) ? '/templates/create' : '/'
+    ),
+    fromHub,
+    fromTemplateReview,
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     countriesJson: JSON.stringify(countryOptions),
     countryPrefixesJson: JSON.stringify(countryRegionPrefixes),
@@ -8841,9 +9484,13 @@ function renderOriginPage (req, res, locals = {}) {
 
 function renderWhatAreYouImportingPage (req, res, locals = {}) {
   const sessionData = req.session.data
+  const fromHub = isFromHub(req)
+  const fromTemplateReview = isFromTemplateReview(req) || isEditingTemplateFromReview(sessionData)
 
   return res.render('what-are-you-importing', {
-    backLink: '/origin-of-the-import',
+    backLink: getJourneyBackLink(req, '/origin-of-the-import'),
+    fromHub,
+    fromTemplateReview,
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     commoditiesSearchJson: JSON.stringify(getCommoditySearchData(getSearchCommodities(sessionData))),
     commoditySelectionsJson: JSON.stringify(getInitialCommoditySelections(sessionData)),
@@ -8854,9 +9501,13 @@ function renderWhatAreYouImportingPage (req, res, locals = {}) {
 
 function renderConsignmentDetailsPage (req, res, locals = {}) {
   const sessionData = req.session.data
+  const fromHub = isFromHub(req)
+  const fromTemplateReview = isFromTemplateReview(req) || isEditingTemplateFromReview(sessionData)
 
   return res.render('consignment-details', {
-    backLink: '/what-are-you-importing',
+    backLink: getJourneyBackLink(req, '/what-are-you-importing'),
+    fromHub,
+    fromTemplateReview,
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     selectedCommodityRows: getSelectedCommodityRows(sessionData),
     commodityGroups: getConsignmentCommodityGroups(sessionData),
@@ -8868,9 +9519,13 @@ function renderConsignmentDetailsPage (req, res, locals = {}) {
 function renderAdditionalAnimalDetailsPage (req, res, locals = {}) {
   const sessionData = req.session.data
   const config = getAdditionalAnimalDetailsConfig(sessionData)
+  const fromHub = isFromHub(req)
+  const fromTemplateReview = isFromTemplateReview(req) || isEditingTemplateFromReview(sessionData)
 
   return res.render('additional-animal-details', {
-    backLink: getAdditionalAnimalDetailsBackLink(sessionData),
+    backLink: getJourneyBackLink(req, getAdditionalAnimalDetailsBackLink(sessionData)),
+    fromHub,
+    fromTemplateReview,
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     showCertificationPurposeQuestion: config.showCertificationPurposeQuestion,
     showTemperatureQuestion: config.showTemperatureQuestion,
@@ -8887,6 +9542,7 @@ function renderAdditionalAnimalDetailsPage (req, res, locals = {}) {
       config.unweanedOptions,
       sessionData.unweanedAnimals
     ),
+    data: sessionData,
     ...locals
   })
 }
@@ -8905,9 +9561,13 @@ function renderAnimalIdentificationDetailsPage (req, res, locals = {}) {
   const quantityColumnLabel = hasGerminalProducts && !hasLiveAnimals
     ? 'Number of packages'
     : 'Number of animals'
+  const fromHub = isFromHub(req)
+  const fromTemplateReview = isFromTemplateReview(req) || isEditingTemplateFromReview(sessionData)
 
   return res.render('animal-identification-details', {
-    backLink: '/consignment-details',
+    backLink: getJourneyBackLink(req, '/consignment-details'),
+    fromHub,
+    fromTemplateReview,
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     selectedCommodityRows,
     quantityColumnLabel,
@@ -8979,7 +9639,9 @@ function renderReasonForImportPage (req, res, locals = {}) {
           }
 
           return res.render('reason-for-import', {
-            backLink: '/what-are-you-importing',
+            backLink: getJourneyBackLink(req, '/what-are-you-importing'),
+            fromHub: isFromHub(req),
+            fromTemplateReview: isFromTemplateReview(req) || isEditingTemplateFromReview(sessionData),
             notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
             data: sessionData,
             importReasonItems: buildImportReasonItems(
@@ -9200,6 +9862,41 @@ function resetUploadDocumentFormState (sessionData) {
   delete sessionData.attachment
 }
 
+function trySavePendingUploadDocument (sessionData, body) {
+  const values = parseUploadDocumentBody(body)
+
+  if (!getDocumentTypeValues(sessionData).includes(values.documentType)) {
+    return { saved: false, values }
+  }
+
+  const validation = validateUploadDocument(values, sessionData)
+
+  if (validation.errorList.length) {
+    return {
+      saved: false,
+      values,
+      errorList: validation.errorList,
+      errors: validation.errors
+    }
+  }
+
+  addUploadedDocument(sessionData, values)
+
+  return { saved: true, values }
+}
+
+function getUploadDocumentsReturnQuery (req) {
+  if (isFromReview(req) || isAmendingNotification(req.session.data)) {
+    return '?from=review'
+  }
+
+  if (isFromHub(req)) {
+    return '?from=hub'
+  }
+
+  return ''
+}
+
 function renderUploadDocumentsPage (req, res, locals = {}) {
   const sessionData = req.session.data
   const formValues = locals.formValues || {
@@ -9208,9 +9905,13 @@ function renderUploadDocumentsPage (req, res, locals = {}) {
     dateOfIssue: '',
     attachmentFileName: ''
   }
+  const fromReview = isFromReview(req) || isAmendingNotification(sessionData)
+  const fromHub = isFromHub(req)
 
   return res.render('upload-documents', {
-    backLink: '/notification-hub',
+    backLink: fromReview ? '/review-notification' : '/notification-hub',
+    fromReview,
+    fromHub,
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     documentTypeItems: buildDocumentTypeItems(formValues.documentType, sessionData),
     uploadedDocuments: getUploadedDocumentsForDisplay(sessionData),
@@ -9223,6 +9924,8 @@ function renderUploadDocumentsPage (req, res, locals = {}) {
 router.get('/create-notification', (req, res) => {
   resetNotificationJourneySession(req.session.data)
   req.session.data.notificationStatus = 'Draft'
+  delete req.session.data.isCreatingTemplate
+  persistDraftNotification(req.session.data)
   return res.redirect('/origin-of-the-import')
 })
 
@@ -9265,7 +9968,7 @@ router.post('/origin-of-the-import', (req, res) => {
   if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
     req.session.data.errorList = null
     req.session.data.errors = null
-    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
   }
 
   if (validation.errorList.length) {
@@ -9278,7 +9981,7 @@ router.post('/origin-of-the-import', (req, res) => {
   req.session.data.errorList = null
   req.session.data.errors = null
 
-  return res.redirect('/what-are-you-importing')
+  return res.redirect(getSectionContinueRedirect(req, '/what-are-you-importing'))
 })
 
 router.get('/what-are-you-importing', (req, res) => {
@@ -9315,7 +10018,7 @@ router.post('/what-are-you-importing', (req, res) => {
     req.session.data.errorList = null
     req.session.data.errors = null
 
-    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
   }
 
   const validation = validateCommoditySelection(selectedSpecies, commoditySelections)
@@ -9336,7 +10039,11 @@ router.post('/what-are-you-importing', (req, res) => {
   req.session.data.errors = null
   delete req.session.data.commoditySearch
 
-  return res.redirect('/reason-for-import')
+  if (isCreatingTemplateJourney(req.session.data)) {
+    return res.redirect('/notification-hub')
+  }
+
+  return res.redirect(getSectionContinueRedirect(req, '/reason-for-import'))
 })
 
 router.get('/consignment-details', (req, res) => {
@@ -9442,10 +10149,10 @@ router.post('/consignment-details', (req, res) => {
   req.session.data.packageType = packageType
 
   if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
-    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
   }
 
-  return res.redirect(getPostConsignmentDetailsPath(req.session.data))
+  return res.redirect(getSectionContinueRedirect(req, getPostConsignmentDetailsPath(req.session.data)))
 })
 
 router.get('/additional-animal-details', (req, res) => {
@@ -9515,7 +10222,7 @@ router.post('/additional-animal-details', (req, res) => {
       req.session.data.unweanedAnimals = unweanedAnimals
     }
 
-    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
   }
 
   req.session.data.errorList = null
@@ -9530,7 +10237,10 @@ router.post('/additional-animal-details', (req, res) => {
     ? (unweanedAnimals || null)
     : null
 
-  return res.redirect(getNextJourneyPath('/additional-animal-details', req.session.data))
+  return res.redirect(getSectionContinueRedirect(
+    req,
+    getNextJourneyPath('/additional-animal-details', req.session.data)
+  ))
 })
 
 router.get('/prototype/reason-for-import', (req, res) => {
@@ -9565,6 +10275,10 @@ router.post('/templates/create', (req, res) => {
   return handleCreateTemplatePage(req, res)
 })
 
+router.get('/templates/save', (req, res) => {
+  return handleSaveTemplateFromHub(req, res)
+})
+
 router.get('/templates/:templateId', (req, res) => {
   return renderViewTemplatePage(req, res)
 })
@@ -9573,12 +10287,16 @@ router.post('/templates/:templateId', (req, res) => {
   return handleViewTemplatePage(req, res)
 })
 
+router.get('/templates/:templateId/change/:section', (req, res) => {
+  return handleChangeTemplateSectionPage(req, res)
+})
+
 router.get('/templates/:templateId/use', (req, res) => {
   if (!isDesignRelease2SessionData(req.session.data)) {
     return res.redirect('/')
   }
 
-  const template = getDashboardTemplateById(req.params.templateId)
+  const template = getDashboardTemplateById(req.params.templateId, req.session.data)
 
   if (!template) {
     return res.redirect('/templates')
@@ -9586,8 +10304,17 @@ router.get('/templates/:templateId/use', (req, res) => {
 
   resetNotificationJourneySession(req.session.data)
   seedNotificationSessionFromTemplate(req.session.data, template)
+  persistDraftNotification(req.session.data)
 
   return res.redirect('/notification-hub')
+})
+
+router.get('/templates/:templateId/edit', (req, res) => {
+  return handleEditTemplatePage(req, res)
+})
+
+router.get('/templates/:templateId/delete', (req, res) => {
+  return handleDeleteTemplatePage(req, res)
 })
 
 router.get('/notifications/copy-as-new', (req, res) => {
@@ -10136,6 +10863,7 @@ router.post('/upload-documents', (req, res) => {
 
   const action = (req.body.action || '').trim()
   const values = parseUploadDocumentBody(req.body)
+  const returnQuery = getUploadDocumentsReturnQuery(req)
 
   if (action.startsWith('remove:')) {
     const documentId = action.slice('remove:'.length)
@@ -10143,7 +10871,7 @@ router.post('/upload-documents', (req, res) => {
     removeUploadedDocument(req.session.data, documentId)
     resetUploadDocumentFormState(req.session.data)
 
-    return res.redirect('/upload-documents')
+    return res.redirect(`/upload-documents${returnQuery}`)
   }
 
   if (action === 'add-another') {
@@ -10161,36 +10889,46 @@ router.post('/upload-documents', (req, res) => {
     resetUploadDocumentFormState(req.session.data)
     addUploadedDocument(req.session.data, values)
 
-    return res.redirect('/upload-documents')
+    return res.redirect(`/upload-documents${returnQuery}`)
   }
 
   if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
+    const pendingSave = trySavePendingUploadDocument(req.session.data, req.body)
+
+    if (pendingSave.errorList) {
+      req.session.data.errorList = pendingSave.errorList
+      req.session.data.errors = pendingSave.errors
+
+      return renderUploadDocumentsPage(req, res, {
+        formValues: pendingSave.values
+      })
+    }
+
     resetUploadDocumentFormState(req.session.data)
 
-    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
   }
 
   if (action === 'continue') {
     // Soft validation: uploads are optional, but once a document type is chosen
     // all document fields must be completed before continuing.
-    if (getDocumentTypeValues(req.session.data).includes(values.documentType)) {
-      const validation = validateUploadDocument(values, req.session.data)
+    const pendingSave = trySavePendingUploadDocument(req.session.data, req.body)
 
-      if (validation.errorList.length) {
-        req.session.data.errorList = validation.errorList
-        req.session.data.errors = validation.errors
+    if (pendingSave.errorList) {
+      req.session.data.errorList = pendingSave.errorList
+      req.session.data.errors = pendingSave.errors
 
-        return renderUploadDocumentsPage(req, res, {
-          formValues: values
-        })
-      }
-
-      addUploadedDocument(req.session.data, values)
+      return renderUploadDocumentsPage(req, res, {
+        formValues: pendingSave.values
+      })
     }
 
     resetUploadDocumentFormState(req.session.data)
 
-    return res.redirect(getNextJourneyPath('/upload-documents', req.session.data))
+    return res.redirect(getSectionContinueRedirect(
+      req,
+      getNextJourneyPath('/upload-documents', req.session.data)
+    ))
   }
 
   resetUploadDocumentFormState(req.session.data)
@@ -10242,7 +10980,7 @@ router.post('/reason-for-import', (req, res) => {
         : null
     }
 
-    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
   }
 
   req.session.data.importReason = importReason || null
@@ -10268,7 +11006,7 @@ router.post('/reason-for-import', (req, res) => {
   if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
     req.session.data.errorList = null
     req.session.data.errors = null
-    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
   }
 
   const validation = validateImportReasonProceed({
@@ -10291,7 +11029,7 @@ router.post('/reason-for-import', (req, res) => {
   req.session.data.errorList = null
   req.session.data.errors = null
 
-  return res.redirect('/consignment-details')
+  return res.redirect(getSectionContinueRedirect(req, '/consignment-details'))
 })
 
 router.get('/animal-identification-details', (req, res) => {
@@ -10409,7 +11147,7 @@ router.post('/animal-identification-details', (req, res) => {
     req.session.data.errorList = null
     req.session.data.errors = null
 
-    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
   }
 
   if (action === 'continue') {
@@ -10419,7 +11157,10 @@ router.post('/animal-identification-details', (req, res) => {
     req.session.data.errorList = null
     req.session.data.errors = null
 
-    return res.redirect(getNextJourneyPath('/animal-identification-details', req.session.data))
+    return res.redirect(getSectionContinueRedirect(
+      req,
+      getNextJourneyPath('/animal-identification-details', req.session.data)
+    ))
   }
 
   return res.redirect('/animal-identification-details')
@@ -10458,7 +11199,7 @@ router.post('/arrival-details', (req, res) => {
     req.session.data.errorList = null
     req.session.data.errors = null
 
-    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
   }
 
   const validation = validateArrivalDetails(values)
@@ -10475,7 +11216,7 @@ router.post('/arrival-details', (req, res) => {
   req.session.data.errors = null
   saveArrivalDetailsToSession(req.session.data, values)
 
-  return res.redirect(getArrivalDetailsContinuePath(req.session.data))
+  return res.redirect(getSectionContinueRedirect(req, getArrivalDetailsContinuePath(req.session.data)))
 })
 
 router.get('/transit-countries', (req, res) => {
@@ -10527,14 +11268,17 @@ router.post('/transit-countries', (req, res) => {
     req.session.data.errorList = null
     req.session.data.errors = null
 
-    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
   }
 
   req.session.data.errorList = null
   req.session.data.errors = null
   saveTransitCountriesToSession(req.session.data, countries)
 
-  return res.redirect(getNextJourneyPath('/transit-countries', req.session.data))
+  return res.redirect(getSectionContinueRedirect(
+    req,
+    getNextJourneyPath('/transit-countries', req.session.data)
+  ))
 })
 
 router.get('/contact-address-for-consignment', (req, res) => {
@@ -10729,21 +11473,27 @@ router.post('/transporter', (req, res) => {
     req.session.data.errorList = null
     req.session.data.errors = null
 
-    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
   }
 
   if (!transporter) {
     req.session.data.errorList = null
     req.session.data.errors = null
 
-    return res.redirect(getNextJourneyPath('/transporter', req.session.data))
+    return res.redirect(getSectionContinueRedirect(
+      req,
+      getNextJourneyPath('/transporter', req.session.data)
+    ))
   }
 
   req.session.data.errorList = null
   req.session.data.errors = null
   syncTransporterSession(req.session.data, transporter)
 
-  return res.redirect(getNextJourneyPath('/transporter', req.session.data))
+  return res.redirect(getSectionContinueRedirect(
+    req,
+    getNextJourneyPath('/transporter', req.session.data)
+  ))
 })
 
 router.get('/cph-number', (req, res) => {
@@ -10780,7 +11530,7 @@ router.post('/cph-number', (req, res) => {
   req.session.data.cphNumber = validation.value
 
   if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
-    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/roles-and-addresses'))
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/roles-and-addresses', req.session.data))
   }
 
   return res.redirect('/roles-and-addresses')
@@ -10890,7 +11640,7 @@ router.post('/permanent-address/select', (req, res) => {
   syncPermanentAddressSummary(req.session.data)
 
   if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
-    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
   }
 
   return res.redirect('/roles-and-addresses')
@@ -10941,10 +11691,13 @@ router.post('/roles-and-addresses', (req, res) => {
   req.session.data.errors = null
 
   if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
-    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub'))
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
   }
 
-  return res.redirect(getNextJourneyPath('/roles-and-addresses', req.session.data))
+  return res.redirect(getSectionContinueRedirect(
+    req,
+    getNextJourneyPath('/roles-and-addresses', req.session.data)
+  ))
 })
 
 router.post('/contact-address-for-consignment', (req, res) => {
@@ -10969,7 +11722,7 @@ router.post('/contact-address-for-consignment', (req, res) => {
   const action = getJourneyFormAction(req)
 
   if (isJourneySoftSaveAction(action)) {
-    return res.redirect(getJourneySaveRedirect(action, '/notification-hub'))
+    return res.redirect(getJourneySaveRedirect(action, '/notification-hub', req.session.data))
   }
 
   if (action === 'continue') {

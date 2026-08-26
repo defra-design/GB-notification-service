@@ -44,6 +44,10 @@
 
         <form method="post" action="/design-release-2.1/reason-for-import" novalidate class="app-reason-for-import-form">
 
+          {% if fromHub %}
+            <input type="hidden" name="from" value="hub">
+          {% endif %}
+
           {{ govukRadios({
             idPrefix: "import-reason",
             name: "importReason",

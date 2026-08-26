@@ -1,10 +1,12 @@
-{% set statusText = data.notificationStatus if data.notificationStatus else "Draft" %}
+{% set isCreatingTemplate = data.isCreatingTemplate %}
+{% set statusText = "Template" if isCreatingTemplate else (data.notificationStatus if data.notificationStatus else "Draft") %}
 {% set statusModifier = statusText | lower | replace(" ", "-") %}
 {% set isAmendStatus = statusText == "Amend" %}
+{% set statusReference = data.templateName if isCreatingTemplate else notificationReference %}
 
 <div class="app-dr2-notification-status{% if isAmendStatus %} app-dr2-notification-status--amend{% endif %}">
   <strong class="govuk-tag app-dr2-review-status__tag app-dr2-review-status__tag--{{ statusModifier }}">{{ statusText }}</strong>
-  <span class="app-dr2-notification-status__reference">{{ notificationReference }}</span>
+  <span class="app-dr2-notification-status__reference">{{ statusReference }}</span>
   {% if isAmendStatus %}
     <button class="govuk-link app-dr2-notification-status__cancel-link" type="button" data-modal-open="cancel-amend-modal">
       Cancel amend

@@ -46,10 +46,6 @@
       action="{{ formAction }}"
       novalidate
       class="app-consignment-add-address-form"
-      {% if not isAddressBookAdd %}
-      data-module="app-consignment-add-address-uses"
-      data-default-address-use="{{ defaultAddressUse }}"
-      {% endif %}
     >
 
       {% if showAddressLookup %}
@@ -62,13 +58,21 @@
         <hr class="app-consignment-add-address-page__section-break">
       {% endif %}
 
-      <div class="app-consignment-add-address-page__usage{% if data.errors and data.errors.addressUses %} govuk-form-group--error{% endif %}">
-        <fieldset class="govuk-fieldset">
+      <div class="app-consignment-add-address-page__usage{% if data.errors and data.errors.addressUses %} govuk-form-group--error{% endif %}{% if showAddressLookup and not showManualAddress %} app-address-book-lookup-page__manual--hidden{% endif %}">
+        <fieldset class="govuk-fieldset"{% if not isAddressBookAdd and defaultAddressUseLabel %} aria-describedby="address-uses-hint"{% endif %}>
           <legend class="govuk-fieldset__legend govuk-fieldset__legend--m app-consignment-add-address-page__usage-heading">
-            {% if showAddressLookup %}Address type{% else %}What can this address be used for?{% endif %}
+            {% if isAddressBookAdd %}
+              {% if showAddressLookup %}Address type{% else %}What can this address be used for?{% endif %}
+            {% else %}
+              What else should this address be used for?
+            {% endif %}
           </legend>
-          <p class="govuk-hint app-consignment-add-address-page__usage-hint">
-            Select where this address can be used
+          <p id="address-uses-hint" class="govuk-hint app-consignment-add-address-page__usage-hint">
+            {% if isAddressBookAdd %}
+              Select where this address can be used
+            {% else %}
+              This address is being added as {{ defaultAddressUseArticle or "a" }} {{ defaultAddressUseLabel }} address. Select any other roles or addresses this address should be used for.
+            {% endif %}
           </p>
 
           {% if data.errors and data.errors.addressUses %}

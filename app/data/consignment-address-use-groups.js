@@ -24,8 +24,20 @@ const consignmentSectionUseGroupMap = {
   'place-of-destination': 'destination-and-receiver'
 }
 
+const consignmentSectionAddressTypeMap = {
+  'place-of-origin': 'place-of-origin',
+  'consignor-or-exporter': 'consignor',
+  consignee: 'consignee',
+  importer: 'importer',
+  'place-of-destination': 'place-of-destination'
+}
+
 function getConsignmentAddressUseGroupIdForSection (sectionId) {
   return consignmentSectionUseGroupMap[sectionId] || null
+}
+
+function getConsignmentSectionAddressType (sectionId) {
+  return consignmentSectionAddressTypeMap[sectionId] || null
 }
 
 function getConsignmentAddressUseGroupsForSection (sectionId) {
@@ -37,7 +49,17 @@ function getConsignmentAddressUseGroupsForSection (sectionId) {
 
   const group = consignmentAddressUseGroups.find((item) => item.id === groupId)
 
-  return group ? [group] : []
+  if (!group) {
+    return []
+  }
+
+  // Current role is implied by the journey — only offer other uses
+  const currentAddressType = getConsignmentSectionAddressType(sectionId)
+
+  return [{
+    ...group,
+    options: group.options.filter((option) => option.value !== currentAddressType)
+  }]
 }
 
 function getConsignmentAddressUseOptions () {
@@ -62,6 +84,7 @@ function consignmentAddAddressUsesLookup (sectionId) {
 
 module.exports = consignmentAddressUseGroups
 module.exports.getConsignmentAddressUseGroupIdForSection = getConsignmentAddressUseGroupIdForSection
+module.exports.getConsignmentSectionAddressType = getConsignmentSectionAddressType
 module.exports.getConsignmentAddressUseGroupsForSection = getConsignmentAddressUseGroupsForSection
 module.exports.getConsignmentAddressUseOptions = getConsignmentAddressUseOptions
 module.exports.getConsignmentAddressUseOptionsForSection = getConsignmentAddressUseOptionsForSection

@@ -72,7 +72,7 @@
     </section>
 
     <section class="app-notification-hub__tasklist" aria-labelledby="notification-hub-tasklist-heading">
-      <h2 class="app-notification-hub__tasklist-heading" id="notification-hub-tasklist-heading">Notification tasklist</h2>
+      <h2 class="app-notification-hub__tasklist-heading" id="notification-hub-tasklist-heading">{{ tasklistHeading }}</h2>
 
       <div class="app-notification-hub__tasklist-sections">
         {% for section in sections %}
@@ -102,13 +102,13 @@
 
     <div class="app-notification-hub-actions">
       {{ govukButton({
-        text: "Review and submit",
-        href: "/design-release-2.1/review-notification"
+        text: primaryAction.text,
+        href: primaryAction.href
       }) }}
 
       {{ govukButton({
-        text: "Return to dashboard",
-        href: "/design-release-2.1",
+        text: secondaryAction.text,
+        href: secondaryAction.href,
         classes: "govuk-button--secondary"
       }) }}
     </div>

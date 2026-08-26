@@ -46,6 +46,10 @@
 
     <form method="post" action="/design-release-2.1/what-are-you-importing" novalidate class="app-what-importing-form">
 
+      {% if fromHub %}
+        <input type="hidden" name="from" value="hub">
+      {% endif %}
+
       <div class="govuk-form-group{% if data.errors and data.errors.commoditySearch %} govuk-form-group--error{% endif %}">
         <label class="govuk-label app-eu-heading-m" for="commodity-search">
           Search for a commodity

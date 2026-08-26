@@ -66,8 +66,13 @@
 {% macro dr2ReviewCommodityCard(card, showActions) %}
   <div class="app-dr2-review-card-wrapper{% if card.hasError %} app-dr2-review-card-wrapper--error{% endif %}">
     <section class="app-dr2-review-commodity-card" aria-labelledby="{{ card.id }}">
-      <div class="app-dr2-review-card__header">
+      <div class="app-dr2-review-card__header{% if showActions and (card.headerAction or card.changeHref) %} app-dr2-review-card__header--with-action{% endif %}">
         <h3 class="app-dr2-review-card__title" id="{{ card.id }}">{{ card.title }}</h3>
+        {% if showActions and card.headerAction %}
+          <a class="app-dr2-review-card__header-link" href="{{ card.headerAction.href }}">Change</a>
+        {% elif showActions and card.changeHref %}
+          <a class="app-dr2-review-card__header-link" href="{{ card.changeHref }}">Change</a>
+        {% endif %}
       </div>
 
       {% for speciesBlock in card.speciesBlocks %}
