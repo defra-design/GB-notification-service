@@ -2,7 +2,7 @@ const notifications = [
   {
     reference: 'GBN-AG-26-7K8M2P',
     commodities: '010410, 010420',
-    commodityLabel: 'Goats & Sheep',
+    commodityLabel: 'Goats and Sheep',
     categoryLabel: 'Live animals',
     statusText: 'Submitted action required',
     statusTagClass: 'govuk-tag--orange',
@@ -195,7 +195,7 @@ const notifications = [
   {
     reference: 'GBN-AG-26-7K8M3A',
     commodities: '010410, 010420',
-    commodityLabel: 'Goats & Sheep',
+    commodityLabel: 'Goats and Sheep',
     categoryLabel: 'Live animals',
     statusText: 'Completed',
     statusTagClass: 'govuk-tag--green',

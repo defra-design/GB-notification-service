@@ -6598,7 +6598,7 @@ function enrichDesignRelease2Notification (notification, index, sessionData = {}
     'Valea Mare Farm'
   ]
   const commodityMap = {
-    '010410, 010420': 'Goats & Sheep',
+    '010410, 010420': 'Goats and Sheep',
     '0102': 'Cattle',
     '0101': 'Horses',
     '0103': 'Pigs',
