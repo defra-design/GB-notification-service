@@ -45,14 +45,16 @@
         <input type="hidden" name="from" value="hub">
       {% endif %}
 
-      {% include "partials/arrival-date-picker.html" %}
+      {% if not data.isCreatingTemplate %}
+        {% include "partials/arrival-date-picker.html" %}
+      {% endif %}
 
       <div class="govuk-form-group{% if data.errors and data.errors.portOfEntry %} govuk-form-group--error{% endif %} app-arrival-details-page__port">
         <label class="govuk-label app-eu-heading-m app-arrival-details-page__field-label" for="port-of-entry">
           Port of entry
         </label>
         <div id="port-of-entry-hint" class="govuk-hint app-arrival-details-page__field-hint">
-          Choose where the transporter will enter with the consignment. Start typing to search by port or airport name or code.
+          Select where the transporter will enter with the consignment. Start typing to search by port or airport name or code.
         </div>
         {% if data.errors and data.errors.portOfEntry %}
           <p id="port-of-entry-error" class="govuk-error-message">
@@ -125,7 +127,7 @@
           classes: "app-eu-heading-m app-arrival-details-page__field-label"
         },
         hint: {
-          html: '<p class="govuk-hint app-arrival-details-page__field-hint govuk-!-margin-bottom-2">To identify the means of transport, enter (one of the following):</p><ul class="govuk-list govuk-list--bullet govuk-hint app-arrival-details-page__hint-list"><li>flight number</li><li>train number</li><li>road vehicle registration number</li><li>vessel name (for ferries, also the road vehicle registration number)</li></ul>'
+          html: '<p class="govuk-hint app-arrival-details-page__field-hint govuk-!-margin-bottom-2">Enter one of the following:</p><ul class="govuk-list govuk-list--bullet govuk-hint app-arrival-details-page__hint-list"><li>flight number</li><li>train number</li><li>road vehicle registration number</li><li>vessel name (for ferries, also the road vehicle registration number)</li></ul>'
         },
         id: "transport-identification",
         name: "transportIdentification",

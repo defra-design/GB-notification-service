@@ -72,27 +72,35 @@
 
       <h2 class="app-transporter-page__results-heading">Select a transporter</h2>
 
-      <div class="app-transporter-page__search" data-module="app-transporter-search">
-        <label class="govuk-label app-transporter-page__search-label" for="transporter-search">
-          Search
-        </label>
-        <div id="transporter-search-hint" class="govuk-hint app-transporter-page__search-hint">
-          Name, address or approval number
+      <div class="app-transporter-page__search-row">
+        <div class="app-transporter-page__search" data-module="app-transporter-search">
+          <label class="govuk-label app-transporter-page__search-label" for="transporter-search">
+            Search
+          </label>
+          <div id="transporter-search-hint" class="govuk-hint app-transporter-page__search-hint">
+            Name, address or approval number
+          </div>
+          <div class="app-transporter-page__search-field">
+            <input
+              class="govuk-input app-transporter-page__search-input"
+              id="transporter-search"
+              name="search"
+              type="search"
+              autocomplete="off"
+              value="{{ searchQuery or '' }}"
+              aria-describedby="transporter-search-hint"
+            >
+            <button class="app-transporter-page__search-button" type="button" aria-label="Search">
+              <span class="app-transporter-page__search-button-icon" aria-hidden="true"></span>
+            </button>
+          </div>
         </div>
-        <div class="app-transporter-page__search-field">
-          <input
-            class="govuk-input app-transporter-page__search-input"
-            id="transporter-search"
-            name="search"
-            type="search"
-            autocomplete="off"
-            value="{{ searchQuery or '' }}"
-            aria-describedby="transporter-search-hint"
-          >
-          <button class="app-transporter-page__search-button" type="button" aria-label="Search">
-            <span class="app-transporter-page__search-button-icon" aria-hidden="true"></span>
-          </button>
-        </div>
+
+        {{ govukButton({
+          text: "Add a transporter",
+          href: "/design-release-2.1/transporter/add",
+          classes: "govuk-button--secondary app-transporter-page__add-button"
+        }) }}
       </div>
 
       <div class="app-transporter-page__table-panel">
@@ -157,12 +165,6 @@
           </table>
         </fieldset>
       </div>
-
-      {{ govukButton({
-        text: "Add a transporter",
-        href: "/design-release-2.1/transporter/add",
-        classes: "govuk-button--secondary app-transporter-page__add-button"
-      }) }}
 
       {% set journeyFormActionOptions = {
         wrapperClass: "app-transporter-page__actions",

@@ -15,16 +15,6 @@ const {
   versionFlag: '_isDesignRelease21Version',
   viewFolder: 'design-release-2.1',
   otherVersionBases: ['/design-release-2', '/testing'],
-  setupSession (nest) {
-    const designReleaseReference = 'GBN-AG-26-7K8M2P'
-    const hasDesignReleaseReference = /^GBN-[A-Z]{2}-\d{2}-[A-Z0-9]+$/i.test(
-      String(nest.notificationReference || '').trim()
-    )
-
-    if (!hasDesignReleaseReference) {
-      nest.notificationReference = designReleaseReference
-    }
-  },
   setupLocals () {
     return {
       journeyBasePath: DESIGN_RELEASE_21_BASE,

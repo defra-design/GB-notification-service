@@ -68,6 +68,10 @@
       </section>
     {% endif %}
 
+    {% set isCreatingTemplate = data.isCreatingTemplate %}
+    {% set partiesSectionNumber = 4 if isCreatingTemplate else 5 %}
+    {% set contactSectionNumber = 5 if isCreatingTemplate else 6 %}
+
     <section class="app-review-notification-page__section" aria-labelledby="review-section-about">
       <h2 class="app-review-notification-page__section-heading" id="review-section-about">1. About the consignment</h2>
 
@@ -104,6 +108,7 @@
       {{ dr2ReviewCard(dr2Review.movement.transportDetailsCard, showActions, false) }}
     </section>
 
+    {% if dr2Review.documents %}
     <section class="app-review-notification-page__section" aria-labelledby="review-section-documents">
       <h2 class="app-review-notification-page__section-heading" id="review-section-documents">4. Documents</h2>
 
@@ -120,16 +125,17 @@
         {% endfor %}
       {% endif %}
     </section>
+    {% endif %}
 
     <section class="app-review-notification-page__section" aria-labelledby="review-section-addresses">
-      <h2 class="app-review-notification-page__section-heading" id="review-section-addresses">5. Consignment parties</h2>
+      <h2 class="app-review-notification-page__section-heading" id="review-section-addresses">{{ partiesSectionNumber }}. Consignment parties</h2>
 
       <h3 class="app-review-notification-page__subsection-heading">Roles and addresses</h3>
       {{ dr2ReviewCard(dr2Review.addresses.rolesCard, showActions) }}
     </section>
 
     <section class="app-review-notification-page__section" aria-labelledby="review-section-contact-address">
-      <h2 class="app-review-notification-page__section-heading" id="review-section-contact-address">6. Contact address</h2>
+      <h2 class="app-review-notification-page__section-heading" id="review-section-contact-address">{{ contactSectionNumber }}. Contact address</h2>
 
       <h3 class="app-review-notification-page__subsection-heading">Contact address for this consignment</h3>
       {{ dr2ReviewCard(dr2Review.contactAddress.contactAddressCard, showActions) }}
@@ -138,7 +144,7 @@
     {% if reviewVariant == 'journey' or reviewVariant == 'draft' %}
     <form method="post" action="/design-release-2.1/review-notification" novalidate class="app-review-notification-page__form{% if data.notificationStatus == 'Amend' %} app-review-notification-page__form--amend{% endif %}">
       {{ govukButton({
-        text: "Continue"
+        text: "Save template" if isCreatingTemplate else "Continue"
       }) }}
       {% if data.notificationStatus == 'Amend' %}
         <button class="govuk-button govuk-button--secondary" type="button" data-modal-open="cancel-amend-modal">

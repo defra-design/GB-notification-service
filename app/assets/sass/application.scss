@@ -1010,19 +1010,22 @@ button.govuk-link.app-govuk-body-link--small {
     font-weight: 300;
   }
 
-  &__summary-animals {
+  &__summary-animals,
+  &__summary-species {
     flex: 1 1 auto;
     min-width: 0;
     font-weight: 300;
   }
 
   &__summary-row--header &__summary-value,
-  &__summary-row--header &__summary-animals {
+  &__summary-row--header &__summary-animals,
+  &__summary-row--header &__summary-species {
     font-weight: 700;
   }
 
   &__summary-row:not(&__summary-row--header) &__summary-value,
-  &__summary-row:not(&__summary-row--header) &__summary-animals {
+  &__summary-row:not(&__summary-row--header) &__summary-animals,
+  &__summary-row:not(&__summary-row--header) &__summary-species {
     font-weight: 300;
   }
 
@@ -1209,12 +1212,29 @@ button.govuk-link.app-govuk-body-link--small {
     }
 
     > .app-consignment-details-page__selected-commodities-heading + .app-consignment-details-page__summary {
-      margin-top: 60px;
+      margin-top: 40px;
     }
 
     > .app-consignment-details-page__summary + .app-consignment-details-page__add-commodity {
       margin-top: 30px;
     }
+  }
+
+  .app-consignment-details-page__summary-row {
+    display: grid;
+    grid-template-columns: 180px minmax(0, 1fr) minmax(0, 1fr) 120px;
+    gap: 20px;
+    align-items: start;
+  }
+
+  .app-consignment-details-page__summary-key,
+  .app-consignment-details-page__summary-value,
+  .app-consignment-details-page__summary-species,
+  .app-consignment-details-page__summary-action {
+    flex: none;
+    max-width: none;
+    min-width: 0;
+    margin-left: 0;
   }
 
   .app-consignment-details-page__details {
@@ -2131,19 +2151,22 @@ button.govuk-link.app-govuk-body-link--small {
     font-weight: 300;
   }
 
-  &__summary-animals {
+  &__summary-animals,
+  &__summary-species {
     flex: 1 1 auto;
     min-width: 0;
     font-weight: 300;
   }
 
   &__summary-row--header &__summary-value,
-  &__summary-row--header &__summary-animals {
+  &__summary-row--header &__summary-animals,
+  &__summary-row--header &__summary-species {
     font-weight: 700;
   }
 
   &__summary-row:not(&__summary-row--header) &__summary-value,
-  &__summary-row:not(&__summary-row--header) &__summary-animals {
+  &__summary-row:not(&__summary-row--header) &__summary-animals,
+  &__summary-row:not(&__summary-row--header) &__summary-species {
     font-weight: 300;
   }
 
@@ -2168,6 +2191,25 @@ button.govuk-link.app-govuk-body-link--small {
 
   &__form-actions {
     max-width: 630px;
+  }
+}
+
+.app-animal-identification-page--dr21 {
+  .app-animal-identification-page__summary-row {
+    display: grid;
+    grid-template-columns: 180px minmax(0, 1fr) minmax(0, 1fr) 180px 120px;
+    gap: 20px;
+    align-items: start;
+  }
+
+  .app-animal-identification-page__summary-key,
+  .app-animal-identification-page__summary-value,
+  .app-animal-identification-page__summary-species,
+  .app-animal-identification-page__summary-animals,
+  .app-animal-identification-page__summary-action {
+    flex: none;
+    max-width: none;
+    min-width: 0;
   }
 }
 
@@ -2659,6 +2701,15 @@ button.govuk-link.app-govuk-body-link--small {
     font-size: 36px;
     font-weight: 700;
     line-height: 40px;
+    color: #0b0c0c;
+  }
+
+  &__intro {
+    margin: 20px 0 0;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 24px;
     color: #0b0c0c;
   }
 
@@ -3991,6 +4042,25 @@ button.govuk-link.app-govuk-body-link--small {
   &__add-button.govuk-button {
     flex-shrink: 0;
     margin: 0 0 45px;
+  }
+
+  &__search-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    width: 100%;
+    max-width: 960px;
+  }
+
+  &__search-row &__search {
+    flex: 1 1 auto;
+    max-width: 473px;
+  }
+
+  &__search-row &__add-button.govuk-button {
+    margin: 0 0 0 auto;
   }
 
   &__guidance {
@@ -7907,6 +7977,14 @@ button.govuk-link.app-govuk-body-link--small {
     font-weight: 700;
     line-height: 40px;
     color: #0b0c0c;
+  }
+
+  &__title--with-description {
+    margin-bottom: 20px;
+  }
+
+  &__description {
+    margin: 0 0 40px;
   }
 
   &__actions {

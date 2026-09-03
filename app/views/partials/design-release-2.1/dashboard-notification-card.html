@@ -6,14 +6,13 @@
 
   <div class="app-dr2-dashboard-notification-card__header">
     <div class="app-dr2-dashboard-notification-card__heading">
-      <p class="app-dr2-dashboard-notification-card__category">{{ notification.categoryLabel }}</p>
       <h3 class="app-dr2-dashboard-notification-card__reference">{{ notification.reference }}</h3>
     </div>
     <div class="app-dr2-dashboard-notification-card__actions">
       {% if notification.copyHref %}
         <a class="govuk-link app-dr2-dashboard-notification-card__action-link" href="{{ notification.copyHref }}">Copy as new</a>
       {% endif %}
-      <a class="govuk-link app-dr2-dashboard-notification-card__action-link" href="{{ notification.viewHref }}">View notification</a>
+      <a class="govuk-link app-dr2-dashboard-notification-card__action-link" href="{{ notification.viewHref }}">View</a>
     </div>
   </div>
 

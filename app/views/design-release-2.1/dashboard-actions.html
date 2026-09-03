@@ -4,7 +4,6 @@
 {% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/pagination/macro.njk" import govukPagination %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
-{% from "govuk/components/radios/macro.njk" import govukRadios %}
 {% from "govuk/components/select/macro.njk" import govukSelect %}
 {% from "partials/design-release-2.1/dashboard-notification-card.html" import dr2DashboardNotificationCard %}
 
@@ -58,7 +57,7 @@
                 classes: "app-dr2-dashboard-search__label"
               },
               hint: {
-                text: "Keyword, notification number, commodity or consignee/importer"
+                text: "Keyword, notification number, commodity, consignee or consignor"
               },
               classes: "app-dr2-dashboard-search__input"
             }) }}
@@ -79,25 +78,6 @@
               },
               classes: "app-dr2-dashboard-search__sort-select",
               items: sortItems
-            }) }}
-          </div>
-        </div>
-
-        <div class="app-dr2-dashboard-filter-radios app-dr2-dashboard-filter-radios--standalone">
-          <div class="app-dr2-dashboard-filter-radios__group app-dr2-dashboard-filter-radios__group--delay">
-            <p class="app-dr2-dashboard-filter-radios__group-heading" id="dashboard-actions-delay-heading">Needs action to avoid delays</p>
-            {{ govukRadios({
-              idPrefix: "dashboard-actions-delay",
-              name: "delayFilter",
-              classes: "govuk-radios--small govuk-radios--inline app-dr2-dashboard-filter-radios__control",
-              fieldset: {
-                describedBy: "dashboard-actions-delay-heading",
-                legend: {
-                  text: "Needs action to avoid delays",
-                  classes: "govuk-visually-hidden"
-                }
-              },
-              items: delayFilterItems
             }) }}
           </div>
         </div>

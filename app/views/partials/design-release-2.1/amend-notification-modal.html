@@ -5,6 +5,7 @@
     role="dialog"
     aria-modal="true"
     aria-labelledby="amend-notification-modal-title"
+    aria-describedby="amend-notification-modal-description"
     tabindex="-1"
   >
     <div class="app-dr2-amend-modal__header">
@@ -18,13 +19,16 @@
       </button>
     </div>
     <div class="app-dr2-amend-modal__body">
-      <h2 class="app-dr2-amend-modal__title" id="amend-notification-modal-title">
-        Are you sure you want to amend this consignment?
-      </h2>
+      <h1 class="app-dr2-amend-modal__title app-dr2-amend-modal__title--with-description" id="amend-notification-modal-title">
+        Amend notification
+      </h1>
+      <p class="govuk-body app-dr2-amend-modal__description" id="amend-notification-modal-description">
+        Are you sure you want to change this notification?
+      </p>
       <div class="app-dr2-amend-modal__actions">
-        <a class="govuk-button" href="{{ pageHeader.amendHref or ((journeyBasePath + '/notifications/amend') if journeyBasePath else '/notifications/amend') }}">Yes, amend consignment</a>
+        <a class="govuk-button" href="{{ pageHeader.amendHref or ((journeyBasePath + '/notifications/amend') if journeyBasePath else '/notifications/amend') }}">Yes, continue</a>
         <button class="govuk-link app-dr2-amend-modal__back-link" type="button" data-amend-modal-dismiss>
-          Go back
+          No, go back
         </button>
       </div>
     </div>

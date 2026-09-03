@@ -29,7 +29,7 @@
 <div class="govuk-grid-row">
   <div class="govuk-grid-column-full">
     <div class="app-animal-identification-shell">
-      <div class="app-animal-identification-page">
+      <div class="app-animal-identification-page app-animal-identification-page--dr21">
 
         {% include "partials/notification-status.html" %}
 
@@ -62,6 +62,7 @@
                 <div class="app-animal-identification-page__summary-row app-animal-identification-page__summary-row--header">
                   <div class="app-animal-identification-page__summary-key">Commodity code</div>
                   <div class="app-animal-identification-page__summary-value">Common name</div>
+                  <div class="app-animal-identification-page__summary-species">Species</div>
                   <div class="app-animal-identification-page__summary-animals">{{ quantityColumnLabel or "Number of animals" }}</div>
                   <div class="app-animal-identification-page__summary-action"></div>
                 </div>
@@ -70,6 +71,11 @@
                   <div class="app-animal-identification-page__summary-row">
                     <div class="app-animal-identification-page__summary-key">{{ row.code }}</div>
                     <div class="app-animal-identification-page__summary-value">{{ row.name }}</div>
+                    <div class="app-animal-identification-page__summary-species">
+                      {% for speciesName in row.species %}
+                        {{ speciesName }}{% if not loop.last %},<br>{% endif %}
+                      {% endfor %}
+                    </div>
                     <div class="app-animal-identification-page__summary-animals">{{ row.numberOfAnimals }}</div>
                     <div class="app-animal-identification-page__summary-action">
                       <a class="govuk-link" href="/design-release-2.1/what-are-you-importing?resetSearch=1">Change</a>

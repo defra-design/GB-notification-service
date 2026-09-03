@@ -59,12 +59,19 @@
                 <div class="app-consignment-details-page__summary-row app-consignment-details-page__summary-row--header">
                   <div class="app-consignment-details-page__summary-key">Commodity code</div>
                   <div class="app-consignment-details-page__summary-value">Common name</div>
+                  <div class="app-consignment-details-page__summary-species">Species</div>
+                  <div class="app-consignment-details-page__summary-action"></div>
                 </div>
 
                 {% for row in selectedCommodityRows %}
                   <div class="app-consignment-details-page__summary-row">
                     <div class="app-consignment-details-page__summary-key">{{ row.code }}</div>
                     <div class="app-consignment-details-page__summary-value">{{ row.name }}</div>
+                    <div class="app-consignment-details-page__summary-species">
+                      {% for speciesName in row.species %}
+                        {{ speciesName }}{% if not loop.last %},<br>{% endif %}
+                      {% endfor %}
+                    </div>
                     <div class="app-consignment-details-page__summary-action">
                       <button
                         class="app-consignment-details-page__summary-remove"

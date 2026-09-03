@@ -46,16 +46,16 @@
     <section class="app-dr2-dashboard-intro" aria-labelledby="dashboard-page-heading">
       <div class="app-dr2-dashboard-intro__header">
         <p class="app-dr2-dashboard-intro__caption">Dashboard</p>
-        <h1 class="app-dr2-dashboard-intro__heading" id="dashboard-page-heading">Live animals &amp; germinal products</h1>
+        <h1 class="app-dr2-dashboard-intro__heading" id="dashboard-page-heading">Live animals and germinal products</h1>
       </div>
 
       <div class="app-dr2-dashboard-intro__actions">
         {{ govukButton({
-          text: "Create new notification",
+          text: "Create new",
           href: "/design-release-2.1/create-notification"
         }) }}
         {{ govukButton({
-          text: "Use notification template",
+          text: "Use template",
           href: "/design-release-2.1/templates",
           classes: "govuk-button--secondary"
         }) }}
@@ -63,7 +63,7 @@
     </section>
 
     <section class="app-dr2-dashboard-glance" aria-labelledby="dashboard-glance-heading">
-      <h2 class="app-dr2-dashboard-glance__heading" id="dashboard-glance-heading">At a glance</h2>
+      <h2 class="app-dr2-dashboard-glance__heading" id="dashboard-glance-heading">Summary</h2>
 
       <div class="app-dr2-dashboard-glance__cards">
         <article class="app-dr2-dashboard-glance-card app-dr2-dashboard-glance-card--action">
@@ -74,7 +74,7 @@
         </article>
 
         <article class="app-dr2-dashboard-glance-card">
-          <h3 class="app-dr2-dashboard-glance-card__title">Status updates</h3>
+          <h3 class="app-dr2-dashboard-glance-card__title">Status updated</h3>
           <p class="app-dr2-dashboard-glance-card__description">Changes in the past 24 hours</p>
           <p class="app-dr2-dashboard-glance-card__count app-dr2-dashboard-glance-card__count--blue">{{ glanceCounts.statusChange }}</p>
           <a class="govuk-link app-dr2-dashboard-glance-card__link" href="/design-release-2.1/changes">View updates</a>
@@ -83,7 +83,7 @@
     </section>
 
     <section class="app-dr2-dashboard-notifications" aria-labelledby="dashboard-notifications-heading">
-      <h2 class="app-dr2-dashboard-notifications__heading" id="dashboard-notifications-heading">My notifications</h2>
+      <h2 class="app-dr2-dashboard-notifications__heading" id="dashboard-notifications-heading">Notifications</h2>
 
       <form method="get" action="/design-release-2.1" class="app-dr2-dashboard-search">
         {% if activeTab and activeTab != "in-progress" %}
@@ -103,7 +103,7 @@
                 classes: "app-dr2-dashboard-search__label"
               },
               hint: {
-                text: "Keyword, notification number, commodity or consignee/importer"
+                text: "Keyword, notification number, commodity, consignee or consignor"
               },
               value: search,
               classes: "app-dr2-dashboard-search__input"
@@ -137,7 +137,7 @@
 
           <div class="app-dr2-dashboard-filters__panel">
             <div class="app-dr2-dashboard-filters__column app-dr2-dashboard-filters__column--date">
-              <p class="app-dr2-dashboard-filters__column-heading" id="dashboard-by-date-heading">By date</p>
+              <p class="app-dr2-dashboard-filters__column-heading" id="dashboard-by-date-heading">By arrival date</p>
               {{ govukRadios({
                 idPrefix: "dashboard-date-range",
                 name: "dateRange",
@@ -145,7 +145,7 @@
                 fieldset: {
                   describedBy: "dashboard-by-date-heading",
                   legend: {
-                    text: "By date",
+                    text: "By arrival date",
                     classes: "govuk-visually-hidden"
                   }
                 },
@@ -155,7 +155,7 @@
 
             <div class="app-dr2-dashboard-filters__column app-dr2-dashboard-filters__column--range">
               <div class="app-dr2-dashboard-filters__date-range-intro">
-                <p class="app-dr2-dashboard-filters__column-heading">Select date range</p>
+                <p class="app-dr2-dashboard-filters__column-heading">By date range</p>
                 <p class="app-dr2-dashboard-filters__hint">For example, 27/3/2026</p>
               </div>
 
