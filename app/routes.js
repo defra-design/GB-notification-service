@@ -4724,7 +4724,7 @@ function getReviewNotificationViewModel (sessionData) {
   ]
   const commoditySections = buildReviewCommoditySections(sessionData)
   const importReasonRows = [{
-    key: 'Reason for import',
+    key: 'Main import reason',
     value: formatReviewValueOrNa(sessionData.importReason)
   }]
 
@@ -4884,10 +4884,10 @@ function getReviewNotificationViewModel (sessionData) {
       },
       importReasonCard: {
         id: 'review-import-reason',
-        title: 'Main reason for import',
+        title: 'Main import reason',
         changeHref: '/reason-for-import',
         rows: importReasonRows,
-        ...reviewCardErrorState(hasImportReasonComplete(sessionData), 'Main reason for import')
+        ...reviewCardErrorState(hasImportReasonComplete(sessionData), 'Main import reason')
       }
     },
     descriptionOfGoods: {
@@ -5235,7 +5235,7 @@ function buildDesignRelease2ReviewPresentation (viewModel, sessionData, readOnly
   const hideDocuments = isDesignRelease21TemplateCreate(sessionData)
   const importReasonCard = withDr2HeaderChange({
     ...viewModel.aboutConsignment.importReasonCard,
-    title: 'Main reason for import'
+    title: 'Main import reason'
   }, readOnly)
   const additionalAnimalDetailsCard = withDr2HeaderChange({
     ...viewModel.descriptionOfGoods.additionalAnimalDetailsCard,
@@ -5910,7 +5910,6 @@ function getNotificationHubViewModel (sessionData) {
   const totalNetWeight = getTotalNetWeight(sessionData)
   const showGerminalSummary = hasGerminalProductsOnly(sessionData)
   const isCreatingTemplate = isCreatingTemplateJourney(sessionData)
-  const isDr21 = isDesignRelease21SessionData(sessionData)
   const skipShipmentFields = isDesignRelease21TemplateCreate(sessionData)
 
   return {
@@ -5960,7 +5959,7 @@ function getNotificationHubViewModel (sessionData) {
             status: hasCommoditySelection(sessionData) ? statusComplete : statusTodo
           },
           {
-            text: isDr21 ? 'Main import reason' : 'Main reason for import',
+            text: 'Main import reason',
             href: '/reason-for-import?from=hub',
             status: hasImportReasonComplete(sessionData) ? statusComplete : statusTodo
           }
@@ -7549,7 +7548,7 @@ function buildTemplateReviewViewModel (template, basePath = '/design-release-2',
       id: 'template-import-reason',
       title: 'Additional animal details',
       rows: [
-        { key: 'Reason for import', value: formatReviewValueOrNa(review.reasonForImport) },
+        { key: 'Main import reason', value: formatReviewValueOrNa(review.reasonForImport) },
         { key: 'Purpose in the market', value: formatReviewValueOrNa(review.purposeInTheMarket) }
       ]
     }, getTemplateReviewChangeHref(templateId, 'reason-for-import')),
