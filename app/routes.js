@@ -4870,17 +4870,17 @@ function getReviewNotificationViewModel (sessionData) {
     aboutConsignment: {
       importDetailsCard: {
         id: 'review-import-details',
-        title: 'Import details',
+        title: 'Origin of import',
         changeHref: '/origin-of-the-import',
         rows: importDetailsRows,
-        ...reviewCardErrorState(hasOriginDetails(sessionData), 'Import details')
+        ...reviewCardErrorState(hasOriginDetails(sessionData), 'Origin of import')
       },
       animalDetailsCard: {
         id: 'review-animal-details',
-        title: 'Animal details',
+        title: 'What are you importing?',
         changeHref: '/what-are-you-importing',
         rows: animalDetailsRows,
-        ...reviewCardErrorState(hasCommoditySelection(sessionData), 'Animal details')
+        ...reviewCardErrorState(hasCommoditySelection(sessionData), 'What are you importing?')
       },
       importReasonCard: {
         id: 'review-import-reason',
@@ -7528,7 +7528,7 @@ function buildTemplateReviewViewModel (template, basePath = '/design-release-2',
   return {
     importDetailsCard: withTemplateReviewChangeAction({
       id: 'template-import-details',
-      title: 'Import details',
+      title: 'Origin of import',
       rows: [
         { key: 'Country of origin', value: formatReviewValueOrNa(review.countryOfOrigin) },
         { key: 'Region of origin code', value: formatReviewValueOrNa(review.regionOfOriginCode) },
@@ -7537,7 +7537,7 @@ function buildTemplateReviewViewModel (template, basePath = '/design-release-2',
     }, getTemplateReviewChangeHref(templateId, 'origin-of-the-import')),
     animalDetailsCard: withTemplateReviewChangeAction({
       id: 'template-animal-details',
-      title: 'Animal details',
+      title: 'What are you importing?',
       rows: [
         { key: 'Commodity code', value: formatReviewValueOrNa(review.commodityCode) },
         { key: 'Common name', value: formatReviewValueOrNa(review.commonName) },
