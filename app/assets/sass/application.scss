@@ -5388,9 +5388,22 @@ button.govuk-link.app-govuk-body-link--small {
 
   &__panel {
     margin-bottom: 30px;
-    padding: 40px;
-    box-sizing: border-box;
-    text-align: center;
+
+    &--started,
+    &--submitted {
+      padding: 40px;
+      box-sizing: border-box;
+      text-align: center;
+
+      .govuk-panel__title {
+        margin-top: 0;
+        margin-bottom: 20px;
+      }
+
+      .govuk-panel__body {
+        margin-bottom: 30px;
+      }
+    }
 
     &--started {
       background-color: #003078;
@@ -5400,15 +5413,6 @@ button.govuk-link.app-govuk-body-link--small {
     &--submitted {
       background-color: #00703c;
       color: #ffffff;
-    }
-
-    .govuk-panel__title {
-      margin-top: 0;
-      margin-bottom: 20px;
-    }
-
-    .govuk-panel__body {
-      margin-bottom: 30px;
     }
   }
 

@@ -5877,12 +5877,14 @@ function renderDeclarationPage (req, res, locals = {}) {
 
 function renderNotificationSubmittedPage (req, res) {
   const sessionData = req.session.data
-  const hasItahcAttached = hasAttachedItahc(sessionData)
+  const beforeImportItems = Array.isArray(sessionData.conditionalSubmissionItems)
+    ? sessionData.conditionalSubmissionItems
+    : getConditionalSubmissionItems(sessionData)
 
   return res.render('notification-submitted', {
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
-    hasItahcAttached,
-    isIncompleteSubmission: !hasItahcAttached
+    beforeImportItems,
+    isIncompleteSubmission: beforeImportItems.length > 0
   })
 }
 
