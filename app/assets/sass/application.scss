@@ -1182,10 +1182,6 @@ button.govuk-link.app-govuk-body-link--small {
   }
 }
 
-.app-consignment-details-page__package-type {
-  max-width: 191px;
-}
-
 .app-consignment-details-page--dr21 {
   .app-notification-status {
     margin-bottom: 40px;
@@ -1267,14 +1263,6 @@ button.govuk-link.app-govuk-body-link--small {
       margin-bottom: 5px;
     }
 
-    .app-consignment-details-page__field--package-type {
-      .govuk-select,
-      .app-consignment-details-page__package-type {
-        width: 191px;
-        max-width: 100%;
-      }
-    }
-
     .app-consignment-details-page__field--net-weight {
       .govuk-input__wrapper {
         display: inline-flex;
@@ -1302,6 +1290,21 @@ button.govuk-link.app-govuk-body-link--small {
 
     .app-origin-form-actions {
       margin-top: 40px;
+    }
+
+    .app-consignment-details-page__temperature {
+      .govuk-form-group {
+        margin-bottom: 0;
+      }
+
+      .govuk-fieldset__legend {
+        margin-bottom: 5px;
+        font-family: "GDS Transport", arial, sans-serif;
+        font-size: 19px;
+        font-weight: 700;
+        line-height: 25px;
+        color: #0b0c0c;
+      }
     }
   }
 }
@@ -8245,6 +8248,14 @@ body.app-dr2-amend-modal-open {
     margin-top: 20px;
   }
 
+  &__identification-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 15px;
+  }
+
   &__identification-heading {
     margin: 0 0 15px;
     font-family: "GDS Transport", arial, sans-serif;
@@ -8252,6 +8263,10 @@ body.app-dr2-amend-modal-open {
     font-weight: 700;
     line-height: 25px;
     color: #0b0c0c;
+  }
+
+  &__identification-header &__identification-heading {
+    margin: 0;
   }
 
   .app-dr2-review-card__rows {

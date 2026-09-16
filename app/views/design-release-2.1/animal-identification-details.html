@@ -118,7 +118,7 @@
                           {% set fieldId = "identifier-" + panel.speciesId + "-" + field.id %}
                           {% set fieldValue = panel.activeAnimal.identifierValues[field.id] or "" %}
 
-                          {% if field.type == "date" or field.id == "collection-date" %}
+                          {% if field.type == "date" %}
                             <div class="app-animal-identification-page__date-field">
                               {{ mojDatePicker({
                                 id: fieldId,

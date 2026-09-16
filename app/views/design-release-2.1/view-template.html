@@ -88,8 +88,10 @@
         {{ dr2ReviewCommodityCard(commodityCard, true) }}
       {% endfor %}
 
-      <h3 class="app-review-notification-page__subsection-heading">Additional details</h3>
-      {{ dr2ReviewCard(templateReview.additionalAnimalDetailsCard, true) }}
+      {% if templateReview.additionalAnimalDetailsCard %}
+        <h3 class="app-review-notification-page__subsection-heading">Additional details</h3>
+        {{ dr2ReviewCard(templateReview.additionalAnimalDetailsCard, true) }}
+      {% endif %}
     </section>
 
     <section class="app-review-notification-page__section" aria-labelledby="template-section-movement">

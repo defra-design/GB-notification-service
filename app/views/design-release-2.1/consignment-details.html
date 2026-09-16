@@ -6,7 +6,7 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
-{% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
 
 {% block beforeContent %}
   {{ govukPhaseBanner({
@@ -118,12 +118,11 @@
 
                 {% if species.isGerminalProduct %}
                   {% set netWeightError = data.errors["netWeight-" + species.speciesId] if data.errors and data.errors["netWeight-" + species.speciesId] %}
-                  {% set packageTypeError = data.errors["packageType-" + species.speciesId] if data.errors and data.errors["packageType-" + species.speciesId] %}
                   {% set numberOfPackagesError = data.errors["numberOfPackages-" + species.speciesId] if data.errors and data.errors["numberOfPackages-" + species.speciesId] %}
 
                   {{ govukInput({
                     label: {
-                      text: "Net weight"
+                      text: "Total gross weight"
                     },
                     id: "net-weight-" + species.speciesId,
                     name: "netWeight[" + species.speciesId + "]",
@@ -136,20 +135,6 @@
                       text: "kg"
                     },
                     errorMessage: netWeightError
-                  }) }}
-
-                  {{ govukSelect({
-                    id: "package-type-" + species.speciesId,
-                    name: "packageType[" + species.speciesId + "]",
-                    label: {
-                      text: "Type of package"
-                    },
-                    items: species.packageTypeItems,
-                    classes: "app-consignment-details-page__package-type",
-                    formGroup: {
-                      classes: "app-consignment-details-page__field app-consignment-details-page__field--package-type"
-                    },
-                    errorMessage: packageTypeError
                   }) }}
 
                   {{ govukInput({
@@ -199,6 +184,30 @@
                 {% endif %}
               {% endfor %}
             {% endfor %}
+
+            {% if showTemperatureQuestion %}
+              <div class="app-consignment-details-page__temperature">
+                {{ govukRadios({
+                  idPrefix: "storage-temperature",
+                  name: "storageTemperature",
+                  fieldset: {
+                    legend: {
+                      text: "Temperature",
+                      classes: "govuk-label"
+                    }
+                  },
+                  hint: {
+                    text: "How will the products be stored"
+                  },
+                  errorMessage: data.errors.storageTemperature if data.errors and data.errors.storageTemperature,
+                  classes: "app-origin-radios",
+                  formGroup: {
+                    classes: "app-origin-radios-block app-consignment-details-page__temperature-group"
+                  },
+                  items: temperatureItems
+                }) }}
+              </div>
+            {% endif %}
 
             {% set journeyFormActionOptions = {} %}
             {% include "partials/design-release-2.1/journey-form-actions.html" %}

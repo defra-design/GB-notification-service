@@ -4,7 +4,8 @@ module.exports = [
   {
     value: 'Internal market',
     text: 'Internal market',
-    hint: 'For imports of animals intended for sale or use in Great Britain (England, Scotland or Wales).'
+    hint: 'For imports of animals intended for sale or use in Great Britain (England, Scotland or Wales).',
+    forGerminalProducts: true
   },
   {
     value: 'Transhipment or onward travel',
@@ -14,7 +15,8 @@ module.exports = [
   {
     value: 'Transit',
     text: 'Transit',
-    hint: 'For animals moving through Great Britain for direct travel to a third country, that will enter Great Britain at one port or airport and leave from a different one within England, Scotland or Wales.'
+    hint: 'For animals moving through Great Britain for direct travel to a third country, that will enter Great Britain at one port or airport and leave from a different one within England, Scotland or Wales.',
+    forGerminalProducts: true
   },
   {
     value: 'Re-entry',

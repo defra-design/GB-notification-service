@@ -4,7 +4,8 @@ module.exports = [
   {
     value: 'Transfer of ownership - Sale/gift',
     text: 'Transfer of ownership - Sale/gift',
-    hint: 'Any movement of an animal that has as its aim the sale of or the transfer of ownership of the animal from one person or entity to another. For example, animals that have been sold and are being moved to a new owner or will be sold once in Great Britain, purchases from a breeder/shop overseas and where an animal is being moved to a new owner with no sale involved (for example a gift).'
+    hint: 'Any movement of an animal that has as its aim the sale of or the transfer of ownership of the animal from one person or entity to another. For example, animals that have been sold and are being moved to a new owner or will be sold once in Great Britain, purchases from a breeder/shop overseas and where an animal is being moved to a new owner with no sale involved (for example a gift).',
+    forGerminalProducts: true
   },
   {
     value: 'Transfer of ownership - Rescue',
@@ -14,12 +15,14 @@ module.exports = [
   {
     value: 'Breeding',
     text: 'Breeding',
-    hint: 'Animals for reproduction. This includes animals intended to contribute to the genetic pool of a breeding program, improve livestock quality, or produce offspring.'
+    hint: 'Animals for reproduction. This includes animals intended to contribute to the genetic pool of a breeding program, improve livestock quality, or produce offspring.',
+    forGerminalProducts: true
   },
   {
     value: 'Research',
     text: 'Research',
-    hint: 'Animals for use in scientific or medical research.'
+    hint: 'Animals for use in scientific or medical research.',
+    forGerminalProducts: true
   },
   {
     value: 'Racing, competition, show or training',
@@ -39,7 +42,8 @@ module.exports = [
   {
     value: 'Production',
     text: 'Production',
-    hint: 'Animals that are farmed for the production of meat, milk, eggs, wool or any other animal product or by-product.'
+    hint: 'Animals that are farmed for the production of meat, milk, eggs, wool or any other animal product or by-product.',
+    forGerminalProducts: true
   },
   {
     value: 'Slaughter',

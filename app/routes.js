@@ -10,7 +10,6 @@ const countryLabels = countryOptions.labels
 const countryRegionPrefixes = require('./data/country-region-prefixes')
 const commodities = require('./data/commodities')
 const germinalProductCommodities = require('./data/commodities-germinal-products')
-const packageTypes = require('./data/package-types')
 const { getIdentifiersForCommodityCode } = require('./data/commodity-identifiers')
 const certificationPurposeOptions = require('./data/certification-purposes')
 const importReasons = require('./data/import-reasons')
@@ -48,8 +47,6 @@ const { getCommoditySearchData } = require('./utils/commodity-search-data')
 
 const TRANSIT_MEANS_OF_TRANSPORT = ['Railway', 'Road Vehicle']
 
-const importReasonValues = importReasons.map((reason) => reason.value)
-const internalMarketPurposeValues = internalMarketPurposes.map((purpose) => purpose.value)
 const germinalTemperatureOptions = ['Ambient', 'Chilled', 'Frozen']
 
 const DESIGN_RELEASE_NOTIFICATION_REFERENCE = 'GBN-AG-26-7K8M2P'
@@ -656,21 +653,6 @@ function isGerminalProductCommodity (commodity) {
   return Boolean(commodity && commodity.isGerminalProduct)
 }
 
-function buildPackageTypeItems (selectedValue) {
-  return [
-    {
-      value: '',
-      text: 'Select one',
-      selected: !selectedValue
-    },
-    ...packageTypes.map((option) => ({
-      value: option,
-      text: option,
-      selected: selectedValue === option
-    }))
-  ]
-}
-
 function commodityRequiresPackaging (commodity) {
   return getPackagingFields(commodity).length > 0
 }
@@ -768,10 +750,8 @@ function buildSpeciesConsignmentEntry (sessionData, speciesId, match) {
   const numberOfAnimals = sessionData.numberOfAnimals || {}
   const numberOfPackages = sessionData.numberOfPackages || {}
   const netWeight = sessionData.netWeight || {}
-  const packageType = sessionData.packageType || {}
   const packagingFields = getPackagingFields(commodity)
   const isGerminalProduct = isGerminalProductCommodity(commodity)
-  const selectedPackageType = packageType[speciesId] != null ? String(packageType[speciesId]) : ''
 
   return {
     speciesId,
@@ -784,8 +764,6 @@ function buildSpeciesConsignmentEntry (sessionData, speciesId, match) {
     isGerminalProduct,
     numberOfAnimals: numberOfAnimals[speciesId] != null ? String(numberOfAnimals[speciesId]) : '',
     netWeight: netWeight[speciesId] != null ? String(netWeight[speciesId]) : '',
-    packageType: selectedPackageType,
-    packageTypeItems: buildPackageTypeItems(selectedPackageType),
     numberOfPackages: numberOfPackages[speciesId] != null ? String(numberOfPackages[speciesId]) : '',
     showPackaging: !isGerminalProduct && packagingFields.length > 0,
     packagingFields: packagingFields.map((field) => ({
@@ -960,22 +938,6 @@ function parseNetWeight (body, speciesIds) {
   return values
 }
 
-function parsePackageType (body, speciesIds) {
-  const rawValues = body.packageType && typeof body.packageType === 'object'
-    ? body.packageType
-    : {}
-  const values = {}
-
-  speciesIds.forEach((speciesId) => {
-    const fieldName = `packageType[${speciesId}]`
-    const value = rawValues[speciesId] != null ? rawValues[speciesId] : body[fieldName]
-
-    values[speciesId] = value != null ? String(value).trim() : ''
-  })
-
-  return values
-}
-
 function validateNumberOfPackages (values, speciesIds) {
   const errors = {}
   const errorList = []
@@ -1026,9 +988,9 @@ function validateNetWeight (values, speciesIds) {
     const errorId = `net-weight-${speciesId}`
 
     if (!value) {
-      errors[`netWeight-${speciesId}`] = { text: 'Enter the net weight' }
+      errors[`netWeight-${speciesId}`] = { text: 'Enter the total gross weight' }
       errorList.push({
-        text: 'Enter the net weight',
+        text: 'Enter the total gross weight',
         href: `#${errorId}`
       })
       return
@@ -1046,28 +1008,21 @@ function validateNetWeight (values, speciesIds) {
   return { errors, errorList }
 }
 
-function validatePackageType (values, speciesIds) {
+function validateStorageTemperature (value, sessionData) {
   const errors = {}
   const errorList = []
 
-  speciesIds.forEach((speciesId) => {
-    const match = getSpeciesMatch(speciesId)
+  if (!showsGerminalTemperatureQuestion(sessionData)) {
+    return { errors, errorList }
+  }
 
-    if (!match || !isGerminalProductCommodity(match.commodity)) {
-      return
-    }
-
-    const value = values[speciesId]
-    const errorId = `package-type-${speciesId}`
-
-    if (!value || !packageTypes.includes(value)) {
-      errors[`packageType-${speciesId}`] = { text: 'Select a type of package' }
-      errorList.push({
-        text: 'Select a type of package',
-        href: `#${errorId}`
-      })
-    }
-  })
+  if (!germinalTemperatureOptions.includes(value)) {
+    errors.storageTemperature = { text: 'Select a temperature' }
+    errorList.push({
+      text: 'Select a temperature',
+      href: '#storage-temperature'
+    })
+  }
 
   return { errors, errorList }
 }
@@ -1265,31 +1220,62 @@ function getUnweanedOptions (sessionData) {
 
 function getAdditionalAnimalDetailsConfig (sessionData) {
   const unweanedOptions = getUnweanedOptions(sessionData)
-  const showTemperatureQuestion = hasGerminalProductsOnly(sessionData)
+  const isGerminalOnly = hasGerminalProductsOnly(sessionData)
 
   return {
-    showCertificationPurposeQuestion: !showTemperatureQuestion,
-    showTemperatureQuestion,
+    showCertificationPurposeQuestion: !isGerminalOnly,
     showUnweanedQuestion: unweanedOptions.length > 0,
     certificationPurposeOptions,
-    temperatureOptions: germinalTemperatureOptions,
     unweanedOptions
   }
 }
 
+function requiresAdditionalAnimalDetailsPage (sessionData) {
+  const config = getAdditionalAnimalDetailsConfig(sessionData)
+
+  return config.showCertificationPurposeQuestion || config.showUnweanedQuestion
+}
+
+function showsGerminalTemperatureQuestion (sessionData) {
+  return hasGerminalProductsOnly(sessionData)
+}
+
 function hasConsignmentDetails (sessionData) {
   const speciesIds = normalizeSelectedSpecies(sessionData.selectedSpecies)
-  const numberOfAnimals = sessionData.numberOfAnimals || {}
 
   if (!speciesIds.length) {
     return false
   }
 
-  return speciesIds.every((speciesId) => {
-    const animalCount = numberOfAnimals[speciesId]
+  const speciesComplete = speciesIds.every((speciesId) => {
+    const match = getSpeciesMatch(speciesId)
+
+    if (!match) {
+      return false
+    }
+
+    if (isGerminalProductCommodity(match.commodity)) {
+      const netWeight = String((sessionData.netWeight || {})[speciesId] || '').trim()
+      const numberOfPackages = String((sessionData.numberOfPackages || {})[speciesId] || '').trim()
+
+      return /^\d+(\.\d+)?$/.test(netWeight) && Number(netWeight) > 0 &&
+        /^\d+$/.test(numberOfPackages) && Number(numberOfPackages) >= 1
+    }
+
+    const animalCount = (sessionData.numberOfAnimals || {})[speciesId]
 
     return animalCount && /^\d+$/.test(String(animalCount)) && Number(animalCount) >= 1
   })
+
+  if (!speciesComplete) {
+    return false
+  }
+
+  if (showsGerminalTemperatureQuestion(sessionData)) {
+    return germinalTemperatureOptions.includes(sessionData.storageTemperature)
+  }
+
+  return true
 }
 
 function redirectIfNoConsignmentDetails (req, res) {
@@ -1297,20 +1283,14 @@ function redirectIfNoConsignmentDetails (req, res) {
 }
 
 function hasAdditionalAnimalDetailsComplete (sessionData) {
-  const config = getAdditionalAnimalDetailsConfig(sessionData)
-
-  if (!config.showCertificationPurposeQuestion && !config.showTemperatureQuestion && !config.showUnweanedQuestion) {
+  if (!requiresAdditionalAnimalDetailsPage(sessionData)) {
     return true
   }
 
+  const config = getAdditionalAnimalDetailsConfig(sessionData)
+
   if (config.showCertificationPurposeQuestion) {
     if (!certificationPurposeOptions.includes(sessionData.certificationPurpose)) {
-      return false
-    }
-  }
-
-  if (config.showTemperatureQuestion) {
-    if (!config.temperatureOptions.includes(sessionData.storageTemperature)) {
       return false
     }
   }
@@ -1344,7 +1324,10 @@ function getJourneySteps (sessionData) {
     steps.push('/animal-identification-details')
   }
 
-  steps.push('/additional-animal-details')
+  if (requiresAdditionalAnimalDetailsPage(sessionData)) {
+    steps.push('/additional-animal-details')
+  }
+
   steps.push('/arrival-details')
 
   if (requiresTransitCountries(sessionData)) {
@@ -1450,13 +1433,44 @@ function getAdditionalAnimalDetailsBackLink (sessionData) {
   return '/consignment-details'
 }
 
+function usesGerminalImportOptions (sessionData) {
+  return isDesignRelease21SessionData(sessionData) && hasGerminalProductsOnly(sessionData)
+}
+
+function getImportReasonsForSession (sessionData) {
+  if (!usesGerminalImportOptions(sessionData)) {
+    return importReasons
+  }
+
+  return importReasons.filter((reason) => reason.forGerminalProducts)
+}
+
+function getInternalMarketPurposesForSession (sessionData) {
+  if (!usesGerminalImportOptions(sessionData)) {
+    return internalMarketPurposes
+  }
+
+  return internalMarketPurposes.filter((purpose) => purpose.forGerminalProducts)
+}
+
+function getImportReasonValuesForSession (sessionData) {
+  return getImportReasonsForSession(sessionData).map((reason) => reason.value)
+}
+
+function getInternalMarketPurposeValuesForSession (sessionData) {
+  return getInternalMarketPurposesForSession(sessionData).map((purpose) => purpose.value)
+}
+
 function hasImportReasonComplete (sessionData) {
-  if (!importReasonValues.includes(sessionData.importReason)) {
+  const allowedImportReasonValues = getImportReasonValuesForSession(sessionData)
+  const allowedInternalMarketPurposeValues = getInternalMarketPurposeValuesForSession(sessionData)
+
+  if (!allowedImportReasonValues.includes(sessionData.importReason)) {
     return false
   }
 
   if (sessionData.importReason === 'Internal market') {
-    return internalMarketPurposeValues.includes(sessionData.internalMarketPurpose)
+    return allowedInternalMarketPurposeValues.includes(sessionData.internalMarketPurpose)
   }
 
   if (sessionData.importReason === 'Transhipment or onward travel') {
@@ -1477,6 +1491,7 @@ function hasImportReasonComplete (sessionData) {
 }
 
 function validateImportReasonProceed ({
+  sessionData,
   importReason,
   internalMarketPurpose,
   transhipmentDestinationCountry,
@@ -1487,15 +1502,17 @@ function validateImportReasonProceed ({
 }) {
   const errors = {}
   const errorList = []
+  const allowedImportReasonValues = getImportReasonValuesForSession(sessionData)
+  const allowedInternalMarketPurposeValues = getInternalMarketPurposeValuesForSession(sessionData)
 
   // Soft validation: a main reason is optional to proceed, but once selected
   // any further information required for that reason must be completed.
-  if (!importReasonValues.includes(importReason)) {
+  if (!allowedImportReasonValues.includes(importReason)) {
     return { errors, errorList }
   }
 
   if (importReason === 'Internal market' &&
-    !internalMarketPurposeValues.includes(internalMarketPurpose)) {
+    !allowedInternalMarketPurposeValues.includes(internalMarketPurpose)) {
     errors.internalMarketPurpose = { text: 'Select a purpose in the internal market' }
     errorList.push({
       text: 'Select a purpose in the internal market',
@@ -4447,6 +4464,24 @@ function getSelectedSpeciesLabelsForReview (sessionData) {
     .join(', ')
 }
 
+function buildGerminalReviewIdentification (sessionData, speciesId, readOnly) {
+  const fields = getIdentifierFieldsForSpecies(speciesId)
+
+  if (!fields.length) {
+    return null
+  }
+
+  const saved = (getAnimalIdentifiers(sessionData)[speciesId] || [])[0] || {}
+
+  return {
+    details: fields.map((field) => ({
+      key: field.label,
+      value: formatReviewValueOrNa(saved[field.id])
+    })),
+    changeHref: readOnly ? null : '/animal-identification-details'
+  }
+}
+
 function buildReviewSpeciesSections (sessionData) {
   return normalizeSelectedSpecies(sessionData.selectedSpecies)
     .filter((speciesId) => getIdentifierFieldsForSpecies(speciesId).length > 0)
@@ -4501,12 +4536,8 @@ function buildReviewCommoditySections (sessionData) {
       if (entry.isGerminalProduct) {
         rows.push(
           {
-            key: 'Net weight',
+            key: 'Total gross weight',
             value: entry.netWeight ? `${entry.netWeight} kg` : formatReviewValueOrNa(entry.netWeight)
-          },
-          {
-            key: 'Type of package',
-            value: formatReviewValueOrNa(entry.packageType)
           },
           {
             key: 'Number of packages',
@@ -4638,7 +4669,7 @@ function hasAdditionalAnimalDetailsReviewComplete (sessionData) {
 
 function buildReviewErrorList (cards) {
   return cards
-    .filter((card) => card.hasError)
+    .filter((card) => card && card.hasError)
     .map((card) => ({
       text: card.errorMessage,
       href: `#${card.id}`
@@ -4730,17 +4761,12 @@ function getReviewNotificationViewModel (sessionData) {
 
   const additionalAnimalRows = []
 
-  if (additionalConfig.showCertificationPurposeQuestion) {
+  if (additionalConfig.showCertificationPurposeQuestion || hasGerminalProductsOnly(sessionData)) {
     additionalAnimalRows.push({
       key: 'Certified for',
-      value: formatReviewValueOrNa(sessionData.certificationPurpose)
-    })
-  }
-
-  if (additionalConfig.showTemperatureQuestion) {
-    additionalAnimalRows.push({
-      key: 'Temperature',
-      value: formatReviewValueOrNa(sessionData.storageTemperature)
+      value: hasGerminalProductsOnly(sessionData)
+        ? 'Germinal products'
+        : formatReviewValueOrNa(sessionData.certificationPurpose)
     })
   }
 
@@ -4898,13 +4924,17 @@ function getReviewNotificationViewModel (sessionData) {
         sections: commoditySections,
         ...reviewCardErrorState(hasConsignmentDetails(sessionData), 'Commodity details')
       },
-      additionalAnimalDetailsCard: {
-        id: 'review-additional-animal-details',
-        title: 'Additional details',
-        changeHref: '/additional-animal-details',
-        rows: additionalAnimalRows,
-        ...reviewCardErrorState(hasAdditionalAnimalDetailsComplete(sessionData), 'Additional details')
-      },
+      additionalAnimalDetailsCard: additionalAnimalRows.length
+        ? {
+          id: 'review-additional-animal-details',
+          title: 'Additional details',
+          changeHref: requiresAdditionalAnimalDetailsPage(sessionData)
+            ? '/additional-animal-details'
+            : null,
+          rows: additionalAnimalRows,
+          ...reviewCardErrorState(hasAdditionalAnimalDetailsComplete(sessionData), 'Additional details')
+        }
+        : null,
       speciesSections: buildReviewSpeciesSections(sessionData)
     },
     movement: {
@@ -5120,12 +5150,8 @@ function buildDesignRelease2CommodityCards (sessionData, speciesSections, readOn
     const rows = entry.isGerminalProduct
       ? [
         {
-          key: 'Net weight',
+          key: 'Total gross weight',
           value: entry.netWeight ? `${entry.netWeight} kg` : formatReviewValueOrNa(entry.netWeight)
-        },
-        {
-          key: 'Type of package',
-          value: formatReviewValueOrNa(entry.packageType)
         },
         {
           key: 'Number of packages',
@@ -5160,24 +5186,43 @@ function buildDesignRelease2CommodityCards (sessionData, speciesSections, readOn
       }
       : null
 
+    const identification = identificationError
+      ? null
+      : (entry.isGerminalProduct
+        ? buildGerminalReviewIdentification(sessionData, entry.speciesId, readOnly)
+        : (speciesSection && speciesSection.animalTable
+          ? {
+            headers: speciesSection.animalTable.headers,
+            rows: speciesSection.animalTable.rows,
+            changeHref: readOnly ? null : '/animal-identification-details'
+          }
+          : null))
+
     grouped.get(cardKey).speciesBlocks.push({
       speciesLabel,
       rows: rows.map((row, index) => ({
         ...row,
         showChange: !readOnly && index === 0
       })),
-      identification: speciesSection && speciesSection.animalTable && !identificationError
-        ? {
-          headers: speciesSection.animalTable.headers,
-          rows: speciesSection.animalTable.rows,
-          changeHref: readOnly ? null : '/animal-identification-details'
-        }
-        : null,
+      identification,
       identificationError
     })
   })
 
-  return Array.from(grouped.values())
+  const cards = Array.from(grouped.values())
+
+  if (showsGerminalTemperatureQuestion(sessionData) && cards.length) {
+    const firstSpeciesBlock = cards[0].speciesBlocks[0]
+
+    if (firstSpeciesBlock && Array.isArray(firstSpeciesBlock.rows)) {
+      firstSpeciesBlock.rows.push({
+        key: 'Temperature',
+        value: formatReviewValueOrNa(sessionData.storageTemperature)
+      })
+    }
+  }
+
+  return cards
 }
 
 function buildDesignRelease2DocumentCards (uploadedDocumentsCard, readOnly) {
@@ -5237,10 +5282,12 @@ function buildDesignRelease2ReviewPresentation (viewModel, sessionData, readOnly
     ...viewModel.aboutConsignment.importReasonCard,
     title: 'Main import reason'
   }, readOnly)
-  const additionalAnimalDetailsCard = withDr2HeaderChange({
-    ...viewModel.descriptionOfGoods.additionalAnimalDetailsCard,
-    title: 'Additional details'
-  }, readOnly)
+  const additionalAnimalDetailsCard = viewModel.descriptionOfGoods.additionalAnimalDetailsCard
+    ? withDr2HeaderChange({
+      ...viewModel.descriptionOfGoods.additionalAnimalDetailsCard,
+      title: 'Additional details'
+    }, readOnly)
+    : null
   const rolesCard = withDr2HeaderChange({
     ...viewModel.addresses.rolesCard,
     title: 'Addresses'
@@ -5510,6 +5557,7 @@ function applyCarriedOverNotificationFields (sessionData, source = {}) {
     // 2. Additional animal details
     'certificationPurpose',
     'unweanedAnimals',
+    'storageTemperature',
     // 3. Roles and addresses
     'placeOfOriginAddress',
     'placeOfOriginAddressId',
@@ -5978,11 +6026,11 @@ function getNotificationHubViewModel (sessionData) {
             href: '/animal-identification-details?from=hub',
             status: hasAnimalIdentifiersComplete(sessionData) ? statusComplete : statusTodo
           }] : []),
-          {
+          ...(requiresAdditionalAnimalDetailsPage(sessionData) ? [{
             text: 'Additional details',
             href: '/additional-animal-details?from=hub',
             status: hasAdditionalAnimalDetailsComplete(sessionData) ? statusComplete : statusTodo
-          }
+          }] : [])
         ]
       },
       {
@@ -7051,6 +7099,7 @@ function buildTemplateFromSession (sessionData) {
       purposeInTheMarket: sessionData.internalMarketPurpose || null,
       certifiedFor: sessionData.certificationPurpose || null,
       unweanedAnimals: sessionData.unweanedAnimals || null,
+      storageTemperature: sessionData.storageTemperature || null,
       numberOfAnimals: totalAnimals > 0 ? String(totalAnimals) : null,
       numberOfPackages: totalPackages > 0 ? String(totalPackages) : null,
       selectedSpecies,
@@ -7335,6 +7384,9 @@ function seedNotificationSessionFromTemplate (sessionData, template) {
     ? (review.purposeInTheMarket || null)
     : null
   sessionData.certificationPurpose = mapTemplateCertificationPurpose(review.certifiedFor)
+  sessionData.storageTemperature = germinalTemperatureOptions.includes(review.storageTemperature)
+    ? review.storageTemperature
+    : null
 
   if (getUnweanedOptions(sessionData).length) {
     const unweanedAnimals = String(review.unweanedAnimals || '').trim()
@@ -7388,7 +7440,8 @@ function buildTemplateSessionFromReview (review = {}) {
     numberOfPackages: review.numberOfPackagesBySpecies || {},
     netWeight: review.netWeight || {},
     packageType: review.packageType || {},
-    animalIdentifiers: review.animalIdentifiers || {}
+    animalIdentifiers: review.animalIdentifiers || {},
+    storageTemperature: review.storageTemperature || null
   }
 
   if (!Object.keys(sessionLike.numberOfAnimals).length && review.numberOfAnimals && speciesIds.length === 1) {
@@ -7553,13 +7606,21 @@ function buildTemplateReviewViewModel (template, basePath = '/design-release-2',
       ]
     }, getTemplateReviewChangeHref(templateId, 'reason-for-import')),
     commodityCards,
-    additionalAnimalDetailsCard: withTemplateReviewChangeAction({
-      id: 'template-additional-animal-details',
-      title: 'Additional animal details',
-      rows: [
-        { key: 'Certified for', value: formatReviewValueOrNa(review.certifiedFor) }
-      ]
-    }, getTemplateReviewChangeHref(templateId, 'additional-animal-details')),
+    additionalAnimalDetailsCard: hasGerminalProductsOnly(buildTemplateSessionFromReview(review))
+      ? withTemplateReviewChangeAction({
+        id: 'template-additional-animal-details',
+        title: 'Additional details',
+        rows: [
+          { key: 'Certified for', value: 'Germinal products' }
+        ]
+      }, null)
+      : withTemplateReviewChangeAction({
+        id: 'template-additional-animal-details',
+        title: 'Additional animal details',
+        rows: [
+          { key: 'Certified for', value: formatReviewValueOrNa(review.certifiedFor) }
+        ]
+      }, getTemplateReviewChangeHref(templateId, 'additional-animal-details')),
     arrivalDetailsCard: withTemplateReviewChangeAction({
       id: 'template-arrival-details',
       title: 'Arrival details',
@@ -9370,8 +9431,8 @@ function buildInternalMarketPurposeSelectItems (selectedValue) {
   }))
 }
 
-function buildInternalMarketPurposeItems (selectedValue) {
-  return internalMarketPurposes.map((purpose) => ({
+function buildInternalMarketPurposeItems (purposes, selectedValue) {
+  return purposes.map((purpose) => ({
       value: purpose.value,
       text: purpose.text,
       hint: purpose.hint
@@ -9527,13 +9588,14 @@ function buildExitBorderControlPostItems (selectedValue) {
 }
 
 function buildImportReasonItems (
+  reasons,
   selectedValue,
   internalMarketConditionalHtml,
   transhipmentConditionalHtml,
   transitConditionalHtml,
   temporaryAdmissionHorsesConditionalHtml
 ) {
-  return importReasons.map((reason) => {
+  return reasons.map((reason) => {
     const item = {
       value: reason.value,
       text: reason.text,
@@ -9618,6 +9680,10 @@ function renderConsignmentDetailsPage (req, res, locals = {}) {
   const sessionData = req.session.data
   const fromHub = isFromHub(req)
   const fromTemplateReview = isFromTemplateReview(req) || isEditingTemplateFromReview(sessionData)
+  const showTemperatureQuestion = showsGerminalTemperatureQuestion(sessionData)
+  const selectedStorageTemperature = Object.prototype.hasOwnProperty.call(locals, 'selectedStorageTemperature')
+    ? locals.selectedStorageTemperature
+    : sessionData.storageTemperature
 
   return res.render('consignment-details', {
     backLink: getJourneyBackLink(req, '/what-are-you-importing'),
@@ -9626,6 +9692,10 @@ function renderConsignmentDetailsPage (req, res, locals = {}) {
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     selectedCommodityRows: getSelectedCommodityRows(sessionData),
     commodityGroups: getConsignmentCommodityGroups(sessionData),
+    showTemperatureQuestion,
+    temperatureItems: showTemperatureQuestion
+      ? buildRadioItems(germinalTemperatureOptions, selectedStorageTemperature)
+      : [],
     data: sessionData,
     ...locals
   })
@@ -9643,15 +9713,10 @@ function renderAdditionalAnimalDetailsPage (req, res, locals = {}) {
     fromTemplateReview,
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     showCertificationPurposeQuestion: config.showCertificationPurposeQuestion,
-    showTemperatureQuestion: config.showTemperatureQuestion,
     showUnweanedQuestion: config.showUnweanedQuestion,
     certificationPurposeItems: buildRadioItems(
       config.certificationPurposeOptions,
       sessionData.certificationPurpose
-    ),
-    temperatureItems: buildRadioItems(
-      config.temperatureOptions,
-      sessionData.storageTemperature
     ),
     unweanedItems: buildRadioItems(
       config.unweanedOptions,
@@ -9666,7 +9731,7 @@ function renderAnimalIdentificationDetailsPage (req, res, locals = {}) {
   const sessionData = req.session.data
 
   if (!hasAnimalIdentifiersRequired(sessionData)) {
-    return res.redirect('/additional-animal-details')
+    return res.redirect(getNextJourneyPath('/consignment-details', sessionData))
   }
 
   const commodityGroups = buildAnimalIdentificationCommodityGroups(sessionData, locals)
@@ -9718,7 +9783,10 @@ function renderReasonForImportPage (req, res, locals = {}) {
 
   return res.app.render('partials/internal-market-purpose-select', {
     data: sessionData,
-    internalMarketPurposeItems: buildInternalMarketPurposeItems(selectedInternalMarketPurpose)
+    internalMarketPurposeItems: buildInternalMarketPurposeItems(
+      getInternalMarketPurposesForSession(sessionData),
+      selectedInternalMarketPurpose
+    )
   }, (err, internalMarketConditionalHtml) => {
     if (err) {
       throw err
@@ -9760,6 +9828,7 @@ function renderReasonForImportPage (req, res, locals = {}) {
             notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
             data: sessionData,
             importReasonItems: buildImportReasonItems(
+              getImportReasonsForSession(sessionData),
               selectedImportReason,
               internalMarketConditionalHtml,
               transhipmentConditionalHtml,
@@ -10230,24 +10299,23 @@ router.post('/consignment-details', (req, res) => {
   const numberOfAnimals = parseNumberOfAnimals(req.body, speciesIds)
   const numberOfPackages = parseNumberOfPackages(req.body, speciesIds)
   const netWeight = parseNetWeight(req.body, speciesIds)
-  const packageType = parsePackageType(req.body, speciesIds)
-  const action = (req.body.action || '').trim()
+  const storageTemperature = (req.body.storageTemperature || '').trim()
 
   const animalValidation = validateNumberOfAnimals(numberOfAnimals, speciesIds)
   const packagingValidation = validateNumberOfPackages(numberOfPackages, speciesIds)
   const netWeightValidation = validateNetWeight(netWeight, speciesIds)
-  const packageTypeValidation = validatePackageType(packageType, speciesIds)
+  const temperatureValidation = validateStorageTemperature(storageTemperature, req.session.data)
   const errors = {
     ...animalValidation.errors,
     ...packagingValidation.errors,
     ...netWeightValidation.errors,
-    ...packageTypeValidation.errors
+    ...temperatureValidation.errors
   }
   const errorList = [
     ...animalValidation.errorList,
     ...netWeightValidation.errorList,
-    ...packageTypeValidation.errorList,
-    ...packagingValidation.errorList
+    ...packagingValidation.errorList,
+    ...temperatureValidation.errorList
   ]
 
   if (errorList.length > 0) {
@@ -10256,9 +10324,14 @@ router.post('/consignment-details', (req, res) => {
     req.session.data.numberOfAnimals = numberOfAnimals
     req.session.data.numberOfPackages = numberOfPackages
     req.session.data.netWeight = netWeight
-    req.session.data.packageType = packageType
+    req.session.data.packageType = {}
+    req.session.data.storageTemperature = showsGerminalTemperatureQuestion(req.session.data)
+      ? (storageTemperature || null)
+      : null
 
-    return renderConsignmentDetailsPage(req, res)
+    return renderConsignmentDetailsPage(req, res, {
+      selectedStorageTemperature: storageTemperature
+    })
   }
 
   req.session.data.errorList = null
@@ -10266,7 +10339,10 @@ router.post('/consignment-details', (req, res) => {
   req.session.data.numberOfAnimals = numberOfAnimals
   req.session.data.numberOfPackages = numberOfPackages
   req.session.data.netWeight = netWeight
-  req.session.data.packageType = packageType
+  req.session.data.packageType = {}
+  req.session.data.storageTemperature = showsGerminalTemperatureQuestion(req.session.data)
+    ? storageTemperature
+    : null
 
   if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
     return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
@@ -10298,6 +10374,15 @@ router.get('/additional-animal-details', (req, res) => {
     return
   }
 
+  if (!requiresAdditionalAnimalDetailsPage(req.session.data)) {
+    return res.redirect(getNextJourneyPath(
+      hasAnimalIdentifiersRequired(req.session.data)
+        ? '/animal-identification-details'
+        : '/consignment-details',
+      req.session.data
+    ))
+  }
+
   return renderAdditionalAnimalDetailsPage(req, res)
 })
 
@@ -10324,18 +10409,22 @@ router.post('/additional-animal-details', (req, res) => {
     return
   }
 
+  if (!requiresAdditionalAnimalDetailsPage(req.session.data)) {
+    return res.redirect(getNextJourneyPath(
+      hasAnimalIdentifiersRequired(req.session.data)
+        ? '/animal-identification-details'
+        : '/consignment-details',
+      req.session.data
+    ))
+  }
+
   const config = getAdditionalAnimalDetailsConfig(req.session.data)
   const certificationPurpose = (req.body.certificationPurpose || '').trim()
-  const storageTemperature = (req.body.storageTemperature || '').trim()
   const unweanedAnimals = (req.body.unweanedAnimals || '').trim()
 
   if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
     if (config.showCertificationPurposeQuestion && certificationPurposeOptions.includes(certificationPurpose)) {
       req.session.data.certificationPurpose = certificationPurpose
-    }
-
-    if (config.showTemperatureQuestion && config.temperatureOptions.includes(storageTemperature)) {
-      req.session.data.storageTemperature = storageTemperature
     }
 
     if (config.showUnweanedQuestion && config.unweanedOptions.includes(unweanedAnimals)) {
@@ -10349,9 +10438,6 @@ router.post('/additional-animal-details', (req, res) => {
   req.session.data.errors = null
   req.session.data.certificationPurpose = config.showCertificationPurposeQuestion
     ? (certificationPurpose || null)
-    : null
-  req.session.data.storageTemperature = config.showTemperatureQuestion
-    ? (storageTemperature || null)
     : null
   req.session.data.unweanedAnimals = config.showUnweanedQuestion
     ? (unweanedAnimals || null)
@@ -11095,12 +11181,14 @@ router.post('/reason-for-import', (req, res) => {
   const transitDestinationCountry = (req.body.transitDestinationCountry || '').trim()
   const temporaryAdmissionExitDate = (req.body.temporaryAdmissionExitDate || '').trim()
   const temporaryAdmissionPortOfExit = (req.body.temporaryAdmissionPortOfExit || '').trim()
+  const allowedImportReasonValues = getImportReasonValuesForSession(req.session.data)
+  const allowedInternalMarketPurposeValues = getInternalMarketPurposeValuesForSession(req.session.data)
 
   if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
-    if (importReasonValues.includes(importReason)) {
+    if (allowedImportReasonValues.includes(importReason)) {
       req.session.data.importReason = importReason
       req.session.data.internalMarketPurpose = importReason === 'Internal market' &&
-        internalMarketPurposeValues.includes(internalMarketPurpose)
+        allowedInternalMarketPurposeValues.includes(internalMarketPurpose)
         ? internalMarketPurpose
         : null
       req.session.data.transhipmentDestinationCountry = importReason === 'Transhipment or onward travel' &&
@@ -11128,23 +11216,28 @@ router.post('/reason-for-import', (req, res) => {
     return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
   }
 
-  req.session.data.importReason = importReason || null
-  req.session.data.internalMarketPurpose = importReason === 'Internal market'
+  const selectedImportReason = allowedImportReasonValues.includes(importReason)
+    ? importReason
+    : null
+  const selectedInternalMarketPurpose = selectedImportReason === 'Internal market'
     ? (internalMarketPurpose || null)
     : null
-  req.session.data.transhipmentDestinationCountry = importReason === 'Transhipment or onward travel'
+
+  req.session.data.importReason = selectedImportReason
+  req.session.data.internalMarketPurpose = selectedInternalMarketPurpose
+  req.session.data.transhipmentDestinationCountry = selectedImportReason === 'Transhipment or onward travel'
     ? (transhipmentDestinationCountry || null)
     : null
-  req.session.data.transitExitBorderControlPost = importReason === 'Transit'
+  req.session.data.transitExitBorderControlPost = selectedImportReason === 'Transit'
     ? (transitExitBorderControlPost || null)
     : null
-  req.session.data.transitDestinationCountry = importReason === 'Transit'
+  req.session.data.transitDestinationCountry = selectedImportReason === 'Transit'
     ? (transitDestinationCountry || null)
     : null
-  req.session.data.temporaryAdmissionExitDate = importReason === 'Temporary admission horses'
+  req.session.data.temporaryAdmissionExitDate = selectedImportReason === 'Temporary admission horses'
     ? (temporaryAdmissionExitDate || null)
     : null
-  req.session.data.temporaryAdmissionPortOfExit = importReason === 'Temporary admission horses'
+  req.session.data.temporaryAdmissionPortOfExit = selectedImportReason === 'Temporary admission horses'
     ? (temporaryAdmissionPortOfExit || null)
     : null
 
@@ -11155,6 +11248,7 @@ router.post('/reason-for-import', (req, res) => {
   }
 
   const validation = validateImportReasonProceed({
+    sessionData: req.session.data,
     importReason,
     internalMarketPurpose,
     transhipmentDestinationCountry,

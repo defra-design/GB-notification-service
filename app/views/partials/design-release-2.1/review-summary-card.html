@@ -89,27 +89,41 @@
 
           {% if speciesBlock.identification %}
             <div class="app-dr2-review-commodity-card__identification">
-              <h5 class="app-dr2-review-commodity-card__identification-heading">Identification details</h5>
-              <dl class="app-dr2-review-identification-table">
-                <div class="app-dr2-review-identification-table__header{% if showActions and speciesBlock.identification.changeHref %} app-dr2-review-identification-table__header--with-action{% endif %}">
-                  {% for header in speciesBlock.identification.headers %}
-                    <dt class="app-dr2-review-identification-table__key">{{ header }}</dt>
-                  {% endfor %}
+              {% if speciesBlock.identification.details %}
+                <div class="app-dr2-review-commodity-card__identification-header">
+                  <h5 class="app-dr2-review-commodity-card__identification-heading">Identification details</h5>
                   {% if showActions and speciesBlock.identification.changeHref %}
-                    <dd class="app-dr2-review-identification-table__action">
-                      <a class="app-dr2-review-row__change-link" href="{{ speciesBlock.identification.changeHref }}">Change</a>
-                    </dd>
+                    <a class="app-dr2-review-row__change-link" href="{{ speciesBlock.identification.changeHref }}">Change</a>
                   {% endif %}
                 </div>
-                {% for animal in speciesBlock.identification.rows %}
-                  <div class="app-dr2-review-identification-table__row">
-                    <dd class="app-dr2-review-identification-table__animal">{{ animal.label }}</dd>
-                    {% for value in animal.values %}
-                      <dd class="app-dr2-review-identification-table__value">{{ value }}</dd>
+                <dl class="app-dr2-review-card__rows">
+                  {% for row in speciesBlock.identification.details %}
+                    {{ dr2ReviewRow(row, speciesBlock.identification.changeHref, false) }}
+                  {% endfor %}
+                </dl>
+              {% else %}
+                <h5 class="app-dr2-review-commodity-card__identification-heading">Identification details</h5>
+                <dl class="app-dr2-review-identification-table">
+                  <div class="app-dr2-review-identification-table__header{% if showActions and speciesBlock.identification.changeHref %} app-dr2-review-identification-table__header--with-action{% endif %}">
+                    {% for header in speciesBlock.identification.headers %}
+                      <dt class="app-dr2-review-identification-table__key">{{ header }}</dt>
                     {% endfor %}
+                    {% if showActions and speciesBlock.identification.changeHref %}
+                      <dd class="app-dr2-review-identification-table__action">
+                        <a class="app-dr2-review-row__change-link" href="{{ speciesBlock.identification.changeHref }}">Change</a>
+                      </dd>
+                    {% endif %}
                   </div>
-                {% endfor %}
-              </dl>
+                  {% for animal in speciesBlock.identification.rows %}
+                    <div class="app-dr2-review-identification-table__row">
+                      <dd class="app-dr2-review-identification-table__animal">{{ animal.label }}</dd>
+                      {% for value in animal.values %}
+                        <dd class="app-dr2-review-identification-table__value">{{ value }}</dd>
+                      {% endfor %}
+                    </div>
+                  {% endfor %}
+                </dl>
+              {% endif %}
             </div>
           {% elif speciesBlock.identificationError and speciesBlock.identificationError.hasError %}
             <div class="app-dr2-review-commodity-card__identification app-dr2-review-commodity-card__identification--error">

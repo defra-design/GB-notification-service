@@ -87,7 +87,9 @@
         {{ dr2ReviewCommodityCard(commodityCard, showActions) }}
       {% endfor %}
 
-      {{ dr2ReviewCard(dr2Review.descriptionOfGoods.additionalAnimalDetailsCard, showActions) }}
+      {% if dr2Review.descriptionOfGoods.additionalAnimalDetailsCard %}
+        {{ dr2ReviewCard(dr2Review.descriptionOfGoods.additionalAnimalDetailsCard, showActions) }}
+      {% endif %}
     </section>
 
     <section class="app-review-notification-page__section" aria-labelledby="review-section-movement">

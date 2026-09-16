@@ -66,28 +66,6 @@
         }) }}
       {% endif %}
 
-      {% if showTemperatureQuestion %}
-        {{ govukRadios({
-          idPrefix: "storage-temperature",
-          name: "storageTemperature",
-          fieldset: {
-            legend: {
-              text: "Temperature",
-              classes: "govuk-fieldset__legend--m app-eu-heading-m"
-            }
-          },
-          hint: {
-            text: "How will the products be stored"
-          },
-          errorMessage: data.errors.storageTemperature if data.errors and data.errors.storageTemperature,
-          classes: "app-origin-radios",
-          formGroup: {
-            classes: "app-origin-radios-block app-additional-animal-details-page__question"
-          },
-          items: temperatureItems
-        }) }}
-      {% endif %}
-
       {% if showUnweanedQuestion %}
         {{ govukRadios({
           idPrefix: "unweaned-animals",
