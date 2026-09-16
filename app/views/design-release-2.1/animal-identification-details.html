@@ -137,6 +137,10 @@
                               }) }}
                             </div>
                           {% else %}
+                            {% set fieldAttributes = {} %}
+                            {% if field.maxLength %}
+                              {% set fieldAttributes = { maxlength: field.maxLength } %}
+                            {% endif %}
                             {{ govukInput({
                               label: {
                                 text: field.label
@@ -145,7 +149,8 @@
                               name: fieldName,
                               value: fieldValue,
                               classes: "govuk-input--width-20 app-animal-identification-page__input",
-                              errorMessage: fieldError
+                              errorMessage: fieldError,
+                              attributes: fieldAttributes
                             }) }}
                           {% endif %}
                         {% endfor %}

@@ -1623,11 +1623,28 @@ function hasMultipleSpeciesSelected (sessionData) {
   return normalizeSelectedSpecies(sessionData.selectedSpecies).length > 1
 }
 
+function isGerminalIdentifierSpecies (speciesId) {
+  const match = getSpeciesMatch(speciesId)
+
+  return Boolean(match && isGerminalProductCommodity(match.commodity))
+}
+
+function hasSavedGerminalIdentifierEntry (sessionData, speciesId) {
+  const total = getIdentificationEntryCount(sessionData, speciesId)
+  const animals = getAnimalIdentifiers(sessionData)[speciesId] || []
+
+  return total >= 1 && animals.length >= total
+}
+
 function hasAtLeastOneAnimalIdentifierForSpecies (sessionData, speciesId) {
   const fields = getIdentifierFieldsForSpecies(speciesId)
 
   if (!fields.length) {
     return true
+  }
+
+  if (isGerminalIdentifierSpecies(speciesId)) {
+    return hasSavedGerminalIdentifierEntry(sessionData, speciesId)
   }
 
   const animals = getAnimalIdentifiers(sessionData)[speciesId] || []
@@ -1674,19 +1691,17 @@ function hasAnimalIdentifiersComplete (sessionData) {
       return false
     }
 
+    if (isGerminalIdentifierSpecies(speciesId)) {
+      return hasSavedGerminalIdentifierEntry(sessionData, speciesId)
+    }
+
     const speciesSaved = saved[speciesId] || []
 
     if (speciesSaved.length < total) {
       return false
     }
 
-    return speciesSaved.every((animal) =>
-      fields.every((field) => {
-        const value = animal[field.id]
-
-        return value != null && String(value).trim() !== ''
-      })
-    )
+    return speciesSaved.every((animal) => isAnimalIdentifierEntryComplete(animal, fields))
   })
 }
 
@@ -1857,6 +1872,10 @@ function buildAnimalIdentificationSpeciesPanels (sessionData, locals = {}) {
 function saveActiveAnimalIdentifiersFromBody (sessionData, body, options = {}) {
   const onlySingleAnimalSpecies = Boolean(options.onlySingleAnimalSpecies)
   const speciesIds = normalizeSelectedSpecies(sessionData.selectedSpecies)
+  const errors = {}
+  const errorList = []
+  let firstErrorSpeciesId = null
+  let firstErrorValues = null
 
   speciesIds.forEach((speciesId) => {
     const panel = getSpeciesIdentificationState(sessionData, speciesId)
@@ -1875,11 +1894,20 @@ function saveActiveAnimalIdentifiersFromBody (sessionData, body, options = {}) {
       typeof body.identifiers[speciesId] === 'object'
       ? body.identifiers[speciesId]
       : {}
-    const { values } = validateAnimalIdentifiers(
+    const validation = validateAnimalIdentifiers(
       panel.identifierFields,
       rawIdentifiers,
       speciesId
     )
+    const values = validation.values
+
+    Object.assign(errors, validation.errors)
+    errorList.push(...validation.errorList)
+
+    if (!firstErrorSpeciesId && validation.errorList.length) {
+      firstErrorSpeciesId = speciesId
+      firstErrorValues = values
+    }
 
     if (!sessionData.animalIdentifiers || typeof sessionData.animalIdentifiers !== 'object') {
       sessionData.animalIdentifiers = {}
@@ -1898,18 +1926,52 @@ function saveActiveAnimalIdentifiersFromBody (sessionData, body, options = {}) {
       speciesSaved[saveIndex] = values
     }
   })
+
+  return { errors, errorList, firstErrorSpeciesId, firstErrorValues }
 }
 
 function validateAnimalIdentifiers (identifierFields, rawIdentifiers, speciesId = '') {
+  const errors = {}
+  const errorList = []
   const values = {}
 
   identifierFields.forEach((field) => {
-    values[field.id] = rawIdentifiers && rawIdentifiers[field.id] != null
+    const value = rawIdentifiers && rawIdentifiers[field.id] != null
       ? String(rawIdentifiers[field.id]).trim()
       : ''
+
+    values[field.id] = value
+
+    if (!value) {
+      return
+    }
+
+    const errorId = `identifier-${speciesId}-${field.id}`
+    const errorKey = `identifier-${speciesId}-${field.id}`
+
+    if (field.maxLength && value.length > field.maxLength) {
+      const text = `${field.label} must be ${field.maxLength} characters or less`
+
+      errors[errorKey] = { text }
+      errorList.push({
+        text,
+        href: `#${errorId}`
+      })
+      return
+    }
+
+    if (field.type === 'date' && !parseArrivalDisplayDate(value)) {
+      const text = `${field.label} must be a real date`
+
+      errors[errorKey] = { text }
+      errorList.push({
+        text,
+        href: `#${errorId}`
+      })
+    }
   })
 
-  return { errors: {}, errorList: [], values }
+  return { errors, errorList, values }
 }
 
 function getSavedAnimalsForSpecies (sessionData, context) {
@@ -4648,6 +4710,10 @@ function isSpeciesIdentifiersComplete (sessionData, speciesId) {
 
   if (!total) {
     return false
+  }
+
+  if (isGerminalIdentifierSpecies(speciesId)) {
+    return hasSavedGerminalIdentifierEntry(sessionData, speciesId)
   }
 
   const speciesSaved = getAnimalIdentifiers(sessionData)[speciesId] || []
@@ -11390,9 +11456,20 @@ router.post('/animal-identification-details', (req, res) => {
   }
 
   if (action === 'continue') {
-    saveActiveAnimalIdentifiersFromBody(req.session.data, req.body, {
+    const identifierSave = saveActiveAnimalIdentifiersFromBody(req.session.data, req.body, {
       onlySingleAnimalSpecies: true
     })
+
+    if (identifierSave.errorList.length) {
+      req.session.data.errorList = identifierSave.errorList
+      req.session.data.errors = identifierSave.errors
+
+      return renderAnimalIdentificationDetailsPage(req, res, {
+        errorSpeciesId: identifierSave.firstErrorSpeciesId,
+        identifierValues: identifierSave.firstErrorValues
+      })
+    }
+
     req.session.data.errorList = null
     req.session.data.errors = null
 
