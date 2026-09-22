@@ -43,6 +43,9 @@
       <h2 class="govuk-visually-hidden" id="dashboard-actions-notifications-heading">Notifications needing action</h2>
 
       <form method="get" action="/design-release-2.1/actions" class="app-dr2-dashboard-search">
+        {% if dashboardCategory %}
+          <input type="hidden" name="category" value="{{ dashboardCategory }}">
+        {% endif %}
         {% if currentPage > 1 %}
           <input type="hidden" name="page" value="{{ currentPage }}">
         {% endif %}

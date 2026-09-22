@@ -46,13 +46,13 @@
     <section class="app-dr2-dashboard-intro" aria-labelledby="dashboard-page-heading">
       <div class="app-dr2-dashboard-intro__header">
         <p class="app-dr2-dashboard-intro__caption">Dashboard</p>
-        <h1 class="app-dr2-dashboard-intro__heading" id="dashboard-page-heading">Live animals and germinal products</h1>
+        <h1 class="app-dr2-dashboard-intro__heading" id="dashboard-page-heading">{{ dashboardPageHeading }}</h1>
       </div>
 
       <div class="app-dr2-dashboard-intro__actions">
         {{ govukButton({
           text: "Create new",
-          href: "/design-release-2.1/create-notification"
+          href: createNotificationHref
         }) }}
         {{ govukButton({
           text: "Use template",
@@ -70,14 +70,14 @@
           <h3 class="app-dr2-dashboard-glance-card__title">Action needed</h3>
           <p class="app-dr2-dashboard-glance-card__description">Tasks requiring your attention</p>
           <p class="app-dr2-dashboard-glance-card__count">{{ glanceCounts.actionNeeded }}</p>
-          <a class="govuk-link app-dr2-dashboard-glance-card__link" href="/design-release-2.1/actions">View tasks</a>
+          <a class="govuk-link app-dr2-dashboard-glance-card__link" href="{{ actionsHref }}">View tasks</a>
         </article>
 
         <article class="app-dr2-dashboard-glance-card">
           <h3 class="app-dr2-dashboard-glance-card__title">Status updated</h3>
           <p class="app-dr2-dashboard-glance-card__description">Changes in the past 24 hours</p>
           <p class="app-dr2-dashboard-glance-card__count app-dr2-dashboard-glance-card__count--blue">{{ glanceCounts.statusChange }}</p>
-          <a class="govuk-link app-dr2-dashboard-glance-card__link" href="/design-release-2.1/changes">View updates</a>
+          <a class="govuk-link app-dr2-dashboard-glance-card__link" href="{{ changesHref }}">View updates</a>
         </article>
       </div>
     </section>
@@ -85,7 +85,7 @@
     <section class="app-dr2-dashboard-notifications" aria-labelledby="dashboard-notifications-heading">
       <h2 class="app-dr2-dashboard-notifications__heading" id="dashboard-notifications-heading">Notifications</h2>
 
-      <form method="get" action="/design-release-2.1" class="app-dr2-dashboard-search">
+      <form method="get" action="{{ dashboardListPath }}" class="app-dr2-dashboard-search">
         {% if activeTab and activeTab != "in-progress" %}
           <input type="hidden" name="tab" value="{{ activeTab }}">
         {% endif %}
@@ -185,16 +185,18 @@
             </div>
 
             <div class="app-dr2-dashboard-filters__column app-dr2-dashboard-filters__column--selects">
-              {{ govukSelect({
-                id: "dashboard-filter-type",
-                name: "type",
-                label: {
-                  text: "By type",
-                  classes: "app-dr2-dashboard-filters__select-label"
-                },
-                classes: "app-dr2-dashboard-filters__select",
-                items: typeFilterItems
-              }) }}
+              {% if typeFilterItems %}
+                {{ govukSelect({
+                  id: "dashboard-filter-type",
+                  name: "type",
+                  label: {
+                    text: "By type",
+                    classes: "app-dr2-dashboard-filters__select-label"
+                  },
+                  classes: "app-dr2-dashboard-filters__select",
+                  items: typeFilterItems
+                }) }}
+              {% endif %}
 
               {{ govukSelect({
                 id: "dashboard-filter-status",

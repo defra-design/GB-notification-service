@@ -1,0 +1,57 @@
+{% extends "layouts/journey.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+
+{% set pageName = "What are you importing?" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block journeyContent %}
+
+    {% if data.errorList %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: data.errorList
+      }) }}
+    {% endif %}
+
+    <form method="post" action="/design-release-2.1/notification-type" novalidate>
+
+      {{ govukRadios({
+        idPrefix: "notificationType",
+        name: "notificationType",
+        fieldset: {
+          legend: {
+            html: '<span class="govuk-caption-l">About the consignment</span> What are you importing?',
+            isPageHeading: true,
+            classes: "govuk-fieldset__legend--l"
+          }
+        },
+        errorMessage: data.errors.notificationType if data.errors else false,
+        items: notificationTypeItems
+      }) }}
+
+      {% set journeyFormActionOptions = {
+        continueText: "Continue",
+        showHub: false,
+        showCancel: false
+      } %}
+      {% include "partials/design-release-2.1/journey-form-actions.html" %}
+
+    </form>
+
+{% endblock %}

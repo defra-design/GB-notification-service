@@ -68,37 +68,67 @@ https://prototype-kit.service.gov.uk/docs/how-to-use-layouts
 
     {% if useServiceNavigation %}
       {% if isDesignRelease2Version %}
-        {{
-          govukServiceNavigation({
-            serviceName: serviceName,
-            serviceUrl: navServiceHref,
-            navigation: [
-              {
-                href: navDashboardHref,
-                text: "Dashboard",
-                active: serviceNavActive == "dashboard"
-              },
-              {
-                href: navTemplatesHref,
-                text: "Templates",
-                active: serviceNavActive == "templates"
-              },
-              {
-                href: navAddressBookHref,
-                text: "Address book",
-                active: serviceNavActive == "address-book"
-              },
-              {
-                href: navManageAccountHref,
-                text: "Manage account"
-              },
-              {
-                href: navLogOutHref,
-                text: "Log out"
-              }
-            ]
-          })
-        }}
+        {% if isDesignRelease21Version %}
+          {{
+            govukServiceNavigation({
+              serviceName: serviceName,
+              serviceUrl: navServiceHref,
+              navigation: [
+                {
+                  href: navDashboardHref,
+                  text: "Dashboard",
+                  active: serviceNavActive == "dashboard"
+                },
+                {
+                  href: navTemplatesHref,
+                  text: "Templates",
+                  active: serviceNavActive == "templates"
+                },
+                {
+                  href: navAddressBookHref,
+                  text: "Address book",
+                  active: serviceNavActive == "address-book"
+                },
+                {
+                  href: navManageAccountHref,
+                  text: "Manage account"
+                }
+              ]
+            })
+          }}
+        {% else %}
+          {{
+            govukServiceNavigation({
+              serviceName: serviceName,
+              serviceUrl: navServiceHref,
+              navigation: [
+                {
+                  href: navDashboardHref,
+                  text: "Dashboard",
+                  active: serviceNavActive == "dashboard"
+                },
+                {
+                  href: navTemplatesHref,
+                  text: "Templates",
+                  active: serviceNavActive == "templates"
+                },
+                {
+                  href: navAddressBookHref,
+                  text: "Address book",
+                  active: serviceNavActive == "address-book"
+                },
+                {
+                  href: navManageAccountHref,
+                  text: "Manage account"
+                },
+                {
+                  href: navLogOutHref,
+                  text: "Log out"
+                }
+              ]
+            })
+          }}
+        {% endif %}
       {% else %}
         {{
           govukServiceNavigation({

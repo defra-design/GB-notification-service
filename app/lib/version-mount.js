@@ -10,6 +10,7 @@ const SHARED_SESSION_KEYS = [
 
 const JOURNEY_PATH_PREFIXES = [
   '/create-notification',
+  '/notification-type',
   '/origin-of-the-import',
   '/what-are-you-importing',
   '/reason-for-import',
@@ -35,6 +36,8 @@ const JOURNEY_PATH_PREFIXES = [
   '/notification-hub',
   '/notifications',
   '/dashboard',
+  '/live-animals',
+  '/germinal-products',
   '/templates',
   '/actions',
   '/changes',

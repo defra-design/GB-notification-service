@@ -59,14 +59,154 @@ function isDesignRelease21SessionData (sessionData) {
   return Boolean(sessionData && sessionData._isDesignRelease21Version)
 }
 
+function normaliseNotificationType (value) {
+  const type = String(value || '').trim()
+
+  if (
+    type === 'live-animals' ||
+    type === 'germinal-products' ||
+    type === 'products-of-animal-origin' ||
+    type === 'high-risk-food' ||
+    type === 'plants'
+  ) {
+    return type
+  }
+
+  const label = type.toLowerCase()
+
+  if (label === 'live animals') {
+    return 'live-animals'
+  }
+
+  if (label === 'germinal products') {
+    return 'germinal-products'
+  }
+
+  if (label === 'products of animal origin or animal by-products') {
+    return 'products-of-animal-origin'
+  }
+
+  if (label === 'high-risk food or feed of non-animal origin') {
+    return 'high-risk-food'
+  }
+
+  if (label === 'plants, plant products or other objects') {
+    return 'plants'
+  }
+
+  return ''
+}
+
+const NOTIFICATION_TYPE_OPTIONS = [
+  { value: 'live-animals', text: 'Live animals' },
+  { value: 'germinal-products', text: 'Germinal products' },
+  { value: 'products-of-animal-origin', text: 'Products of animal origin or animal by-products' },
+  { value: 'high-risk-food', text: 'High-risk food or feed of non-animal origin' },
+  { value: 'plants', text: 'Plants, plant products or other objects' }
+]
+
+function buildNotificationTypeItems (selectedValue = '') {
+  return NOTIFICATION_TYPE_OPTIONS.map((option) => ({
+    ...option,
+    checked: selectedValue === option.value
+  }))
+}
+
+function validateNotificationType (value) {
+  const notificationType = normaliseNotificationType(value)
+
+  if (notificationType) {
+    return {
+      notificationType,
+      errors: {},
+      errorList: []
+    }
+  }
+
+  return {
+    notificationType: '',
+    errors: {
+      notificationType: { text: 'Select what you are importing' }
+    },
+    errorList: [{
+      text: 'Select what you are importing',
+      href: '#notificationType'
+    }]
+  }
+}
+
+function commodityMatchesNotificationType (commodity, type) {
+  if (!type) {
+    return true
+  }
+
+  const isGerminal = isGerminalProductCommodity(commodity)
+
+  if (type === 'germinal-products') {
+    return isGerminal
+  }
+
+  if (type === 'live-animals') {
+    return !isGerminal
+  }
+
+  return true
+}
+
+function speciesMatchesNotificationType (speciesId, type) {
+  if (!type) {
+    return true
+  }
+
+  const match = getSpeciesMatch(speciesId)
+
+  return Boolean(match && commodityMatchesNotificationType(match.commodity, type))
+}
+
+function filterSpeciesIdsForNotificationType (speciesIds, type) {
+  return (speciesIds || []).filter((speciesId) => speciesMatchesNotificationType(speciesId, type))
+}
+
+function getNotificationType (sessionData = {}) {
+  const stored = normaliseNotificationType(sessionData.notificationType)
+
+  if (stored) {
+    return stored
+  }
+
+  if (hasGerminalProductsOnly(sessionData)) {
+    return 'germinal-products'
+  }
+
+  const speciesIds = normalizeSelectedSpecies(sessionData.selectedSpecies)
+
+  if (speciesIds.length && speciesIds.every((speciesId) => speciesMatchesNotificationType(speciesId, 'live-animals'))) {
+    return 'live-animals'
+  }
+
+  return ''
+}
+
+function sortCommoditiesByName (list) {
+  return list.slice().sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }))
+}
+
 function getSearchCommodities (sessionData) {
   if (!isDesignRelease21SessionData(sessionData)) {
     return commodities
   }
 
-  return allCommodities
-    .slice()
-    .sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }))
+  const type = getNotificationType(sessionData)
+
+  if (type === 'germinal-products') {
+    return sortCommoditiesByName(germinalProductCommodities)
+  }
+
+  if (type === 'live-animals') {
+    return sortCommoditiesByName(commodities)
+  }
+
+  return []
 }
 
 function getCommodityById (commodityId) {
@@ -385,10 +525,13 @@ function parseCommoditySelections (rawValue) {
 }
 
 function getInitialCommoditySelections (sessionData) {
+  const type = getNotificationType(sessionData)
+  let values = []
+
   const selections = sessionData.commoditySelections
 
   if (Array.isArray(selections) && selections.length > 0) {
-    return selections.map((selection) => {
+    values = selections.map((selection) => {
       if (selection.type === 'species' && selection.speciesId) {
         return `species:${selection.speciesId}`
       }
@@ -399,19 +542,31 @@ function getInitialCommoditySelections (sessionData) {
 
       return null
     }).filter(Boolean)
+  } else {
+    const speciesIds = normalizeSelectedSpecies(sessionData.selectedSpecies)
+
+    if (speciesIds.length > 0) {
+      values = speciesIds.map((speciesId) => `species:${speciesId}`)
+    } else if (sessionData.commodityId) {
+      values = [`commodity:${sessionData.commodityId}`]
+    }
   }
 
-  const speciesIds = normalizeSelectedSpecies(sessionData.selectedSpecies)
-
-  if (speciesIds.length > 0) {
-    return speciesIds.map((speciesId) => `species:${speciesId}`)
+  if (!type) {
+    return values
   }
 
-  if (sessionData.commodityId) {
-    return [`commodity:${sessionData.commodityId}`]
-  }
+  return values.filter((value) => {
+    if (value.startsWith('species:')) {
+      return speciesMatchesNotificationType(value.slice('species:'.length), type)
+    }
 
-  return []
+    if (value.startsWith('commodity:')) {
+      return commodityMatchesNotificationType(getCommodityById(value.slice('commodity:'.length)), type)
+    }
+
+    return false
+  })
 }
 
 function syncCommoditySession (sessionData, commodity) {
@@ -5612,6 +5767,7 @@ function applyCarriedOverNotificationFields (sessionData, source = {}) {
     'commodityId',
     'commodityCode',
     'commodityName',
+    'notificationType',
     // Main reason for import
     'importReason',
     'internalMarketPurpose',
@@ -5663,6 +5819,9 @@ function copyNotificationAsNewIntoSession (sessionData, sourceSnapshot) {
 
   resetNotificationJourneySession(sessionData)
   applyCarriedOverNotificationFields(sessionData, source)
+  if (!sessionData.notificationType) {
+    sessionData.notificationType = getNotificationType(sessionData)
+  }
   sessionData.notificationReference = generateDesignReleaseNotificationReference(sessionData)
   sessionData.notificationStatus = 'Draft'
   sessionData.errorList = null
@@ -6165,7 +6324,7 @@ function renderNotificationHubPage (req, res) {
   })
 }
 
-function buildDashboardPageHref (page, sort, tab) {
+function buildDashboardPageHref (page, sort, tab, dashboardPath = '/') {
   const params = new URLSearchParams()
 
   if (tab && tab !== 'in-progress') {
@@ -6182,10 +6341,10 @@ function buildDashboardPageHref (page, sort, tab) {
 
   const queryString = params.toString()
 
-  return queryString ? `/?${queryString}` : '/'
+  return queryString ? `${dashboardPath}?${queryString}` : dashboardPath
 }
 
-function buildDashboardActionsPageHref (page, sort, delayFilter) {
+function buildDashboardActionsPageHref (page, sort, delayFilter, category) {
   const params = new URLSearchParams()
 
   if (sort) {
@@ -6194,6 +6353,10 @@ function buildDashboardActionsPageHref (page, sort, delayFilter) {
 
   if (delayFilter) {
     params.set('delayFilter', delayFilter)
+  }
+
+  if (category) {
+    params.set('category', category)
   }
 
   if (page > 1) {
@@ -6205,7 +6368,7 @@ function buildDashboardActionsPageHref (page, sort, delayFilter) {
   return queryString ? `/actions?${queryString}` : '/actions'
 }
 
-function buildDashboardActionsPagination (currentPage, totalPages, sort, delayFilter) {
+function buildDashboardActionsPagination (currentPage, totalPages, sort, delayFilter, category) {
   if (totalPages <= 1) {
     return {
       items: null,
@@ -6219,7 +6382,7 @@ function buildDashboardActionsPagination (currentPage, totalPages, sort, delayFi
   for (let page = 1; page <= totalPages; page++) {
     items.push({
       number: String(page),
-      href: buildDashboardActionsPageHref(page, sort, delayFilter),
+      href: buildDashboardActionsPageHref(page, sort, delayFilter, category),
       current: page === currentPage
     })
   }
@@ -6228,17 +6391,72 @@ function buildDashboardActionsPagination (currentPage, totalPages, sort, delayFi
     items,
     next: currentPage < totalPages
       ? {
-          href: buildDashboardActionsPageHref(currentPage + 1, sort, delayFilter),
+          href: buildDashboardActionsPageHref(currentPage + 1, sort, delayFilter, category),
           text: 'Next'
         }
       : null,
     previous: currentPage > 1
       ? {
-          href: buildDashboardActionsPageHref(currentPage - 1, sort, delayFilter),
+          href: buildDashboardActionsPageHref(currentPage - 1, sort, delayFilter, category),
           text: 'Previous'
         }
       : null
   }
+}
+
+const DASHBOARD_CATEGORIES = {
+  'live-animals': {
+    heading: 'Live animals',
+    path: '/live-animals'
+  },
+  'germinal-products': {
+    heading: 'Germinal products',
+    path: '/germinal-products'
+  }
+}
+
+function getDashboardCategoryFromRequest (req) {
+  const path = String(req.path || '').replace(/\/$/, '')
+
+  if (path === '/live-animals' || path.endsWith('/live-animals')) {
+    return 'live-animals'
+  }
+
+  if (path === '/germinal-products' || path.endsWith('/germinal-products')) {
+    return 'germinal-products'
+  }
+
+  return String(req.query.category || '').trim()
+}
+
+function notificationMatchesDashboardCategory (notification, category) {
+  if (!category) {
+    return true
+  }
+
+  const label = String(notification.categoryLabel || '').trim().toLowerCase()
+
+  if (category === 'live-animals') {
+    return label === 'live animals'
+  }
+
+  if (category === 'germinal-products') {
+    return label === 'germinal products'
+  }
+
+  return true
+}
+
+function getDashboardListPath (sessionData = {}, category = '') {
+  if (DASHBOARD_CATEGORIES[category]) {
+    return DASHBOARD_CATEGORIES[category].path
+  }
+
+  if (isDesignRelease21SessionData(sessionData)) {
+    return '/live-animals'
+  }
+
+  return '/'
 }
 
 function getDashboardActionNotifications (sessionData = {}) {
@@ -6311,8 +6529,9 @@ const DASHBOARD_CHANGES_SECTIONS = [
   { id: 'delayed', heading: 'Delayed' }
 ]
 
-function getDashboardChangesSections (sessionData = {}) {
+function getDashboardChangesSections (sessionData = {}, category = '') {
   const statusChangeNotifications = getDashboardStatusChangeNotifications(sessionData)
+    .filter((notification) => notificationMatchesDashboardCategory(notification, category))
 
   return DASHBOARD_CHANGES_SECTIONS
     .map((section) => ({
@@ -6342,7 +6561,7 @@ function buildDashboardActionsDelayFilterItems (actionNotifications, selectedFil
   }))
 }
 
-function buildDashboardPagination (currentPage, totalPages, sort, tab) {
+function buildDashboardPagination (currentPage, totalPages, sort, tab, dashboardPath = '/') {
   if (totalPages <= 1) {
     return {
       items: null,
@@ -6356,7 +6575,7 @@ function buildDashboardPagination (currentPage, totalPages, sort, tab) {
   for (let page = 1; page <= totalPages; page++) {
     items.push({
       number: String(page),
-      href: buildDashboardPageHref(page, sort, tab),
+      href: buildDashboardPageHref(page, sort, tab, dashboardPath),
       current: page === currentPage
     })
   }
@@ -6365,13 +6584,13 @@ function buildDashboardPagination (currentPage, totalPages, sort, tab) {
     items,
     next: currentPage < totalPages
       ? {
-          href: buildDashboardPageHref(currentPage + 1, sort, tab),
+          href: buildDashboardPageHref(currentPage + 1, sort, tab, dashboardPath),
           text: 'Next'
         }
       : null,
     previous: currentPage > 1
       ? {
-          href: buildDashboardPageHref(currentPage - 1, sort, tab),
+          href: buildDashboardPageHref(currentPage - 1, sort, tab, dashboardPath),
           text: 'Previous'
         }
       : null
@@ -7420,6 +7639,7 @@ function seedNotificationSessionFromTemplate (sessionData, template) {
     : internalReference
 
   applySpeciesSelectionToSession(sessionData, speciesIds)
+  sessionData.notificationType = normaliseNotificationType(template.categoryLabel) || getNotificationType(sessionData)
 
   if (Array.isArray(review.commoditySelections) && review.commoditySelections.length) {
     sessionData.commoditySelections = review.commoditySelections
@@ -7962,10 +8182,21 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
   }
   const requestedPage = Math.max(1, Number(query.page) || 1)
   const pageSize = dashboardData.pageSize
+  const category = (query.category || '').trim()
   const allNotifications = getDashboardNotificationList(sessionData)
-  const actionNotifications = isDr2 ? getDashboardActionNotifications(sessionData) : []
-  const statusChangeNotifications = isDr2 ? getDashboardStatusChangeNotifications(sessionData) : []
-  const inspectionNotifications = isDr2 ? getDashboardInspectionNotifications(sessionData) : []
+    .filter((notification) => notificationMatchesDashboardCategory(notification, category))
+  const actionNotifications = isDr2
+    ? getDashboardActionNotifications(sessionData)
+      .filter((notification) => notificationMatchesDashboardCategory(notification, category))
+    : []
+  const statusChangeNotifications = isDr2
+    ? getDashboardStatusChangeNotifications(sessionData)
+      .filter((notification) => notificationMatchesDashboardCategory(notification, category))
+    : []
+  const inspectionNotifications = isDr2
+    ? getDashboardInspectionNotifications(sessionData)
+      .filter((notification) => notificationMatchesDashboardCategory(notification, category))
+    : []
   const validTabs = new Set(['in-progress', 'drafts', 'completed'])
   const activeTab = validTabs.has(tab) ? tab : 'in-progress'
   const inProgressNotifications = allNotifications.filter((notification) =>
@@ -7984,6 +8215,11 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
   const startIndex = (currentPage - 1) * pageSize
   const endIndex = Math.min(startIndex + pageSize, totalCount)
   const notifications = visibleNotifications.slice(startIndex, endIndex)
+  const dashboardListPath = getDashboardListPath(sessionData, category)
+  const dashboardPageHeading = (DASHBOARD_CATEGORIES[category] && DASHBOARD_CATEGORIES[category].heading) ||
+    'Live animals and germinal products'
+  const actionsHref = category ? `/actions?category=${encodeURIComponent(category)}` : '/actions'
+  const changesHref = category ? `/changes?category=${encodeURIComponent(category)}` : '/changes'
 
   return {
     activeTab,
@@ -7992,19 +8228,19 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
         id: 'in-progress',
         text: 'In progress',
         count: inProgressNotifications.length,
-        href: '/design-release-2.1?tab=in-progress'
+        href: dashboardListPath
       },
       {
         id: 'drafts',
         text: isDr21 ? 'Draft' : 'Drafts',
         count: draftNotifications.length,
-        href: '/design-release-2.1?tab=drafts'
+        href: `${dashboardListPath}?tab=drafts`
       },
       {
         id: 'completed',
         text: 'Completed',
         count: completedNotifications.length,
-        href: '/design-release-2.1?tab=completed'
+        href: `${dashboardListPath}?tab=completed`
       }
     ],
     notificationSectionHeading: activeTab === 'drafts'
@@ -8055,7 +8291,9 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
     startDate,
     endDate,
     typeFilter,
-    typeFilterItems: isDr2 ? buildDashboardTypeFilterItems(typeFilter, { hidePlants: isDr21 }) : null,
+    typeFilterItems: isDr2 && !category
+      ? buildDashboardTypeFilterItems(typeFilter, { hidePlants: isDr21 })
+      : null,
     statusFilter,
     statusFilterItems: isDr2 ? buildDashboardStatusFilterItems(statusFilter, { hideDraft: isDr21 }) : null,
     additionalFiltersOpen: isDr2 && Boolean(dateRange || startDate || endDate || typeFilter || statusFilter),
@@ -8064,15 +8302,63 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
     sortItems: buildDashboardSortItems(sort, { testing: isTesting }),
     search: (query.search || '').trim(),
     resultsText: buildDashboardResultsText(startIndex + 1, endIndex, totalCount, { testing: isTesting }),
-    pagination: buildDashboardPagination(currentPage, totalPages, sort, activeTab),
-    currentPage
+    pagination: buildDashboardPagination(currentPage, totalPages, sort, activeTab, dashboardListPath),
+    currentPage,
+    dashboardListPath,
+    dashboardPageHeading,
+    dashboardCategory: category,
+    actionsHref,
+    changesHref,
+    createNotificationHref: category
+      ? `/create-notification?category=${encodeURIComponent(category)}`
+      : '/create-notification'
   }
+}
+
+function renderOverallDashboardPage (req, res) {
+  if (!isDesignRelease21SessionData(req.session.data)) {
+    return renderDashboardPage(req, res)
+  }
+
+  return res.render('dashboard-home', {
+    serviceNavActive: 'dashboard',
+    messagesHref: '#',
+    messageCount: 12,
+    createNotificationHref: '/create-notification',
+    templatesHref: '/templates',
+    liveAnimals: {
+      dashboardHref: '/live-animals',
+      tasksHref: '/actions?category=live-animals',
+      updatesHref: '/changes?category=live-animals',
+      actionNeeded: 4,
+      statusChange: 8
+    },
+    germinal: {
+      dashboardHref: '/germinal-products',
+      tasksHref: '/actions?category=germinal-products',
+      updatesHref: '/changes?category=germinal-products',
+      actionNeeded: 2,
+      statusChange: 1
+    },
+    plants: {
+      dashboardHref: '#',
+      tasksHref: '#',
+      updatesHref: '#',
+      inspectionHref: '#',
+      actionNeeded: 4,
+      statusChange: 4,
+      inspectionRequired: 6
+    }
+  })
 }
 
 function renderDashboardPage (req, res) {
   const successMessage = req.session.data.dashboardSuccessMessage || null
   const journeyBasePath = res.locals.journeyBasePath || ''
-  const backLink = journeyBasePath ? `${journeyBasePath}/index` : '/index'
+  const category = getDashboardCategoryFromRequest(req)
+  const backLink = isDesignRelease21SessionData(req.session.data)
+    ? '/'
+    : (journeyBasePath ? `${journeyBasePath}/index` : '/index')
 
   if (successMessage) {
     delete req.session.data.dashboardSuccessMessage
@@ -8082,7 +8368,7 @@ function renderDashboardPage (req, res) {
     serviceNavActive: 'dashboard',
     backLink,
     successMessage,
-    ...getDashboardViewModel(req.session.data, req.query)
+    ...getDashboardViewModel(req.session.data, { ...req.query, category })
   })
 }
 
@@ -8170,9 +8456,11 @@ function getDashboardActionsViewModel (sessionData = {}, query = {}) {
   const sort = (query.sort || '').trim()
   const skipDelayFilter = isDesignRelease21SessionData(sessionData)
   const delayFilter = skipDelayFilter ? '' : (query.delayFilter || '').trim()
+  const category = (query.category || '').trim()
   const requestedPage = Math.max(1, Number(query.page) || 1)
   const pageSize = dashboardData.pageSize
   const actionNotifications = getDashboardActionNotifications(sessionData)
+    .filter((notification) => notificationMatchesDashboardCategory(notification, category))
   const filteredNotifications = delayFilter
     ? actionNotifications.filter((notification) => notification.delayCategory === delayFilter)
     : actionNotifications
@@ -8184,7 +8472,9 @@ function getDashboardActionsViewModel (sessionData = {}, query = {}) {
   const notifications = filteredNotifications.slice(startIndex, endIndex)
 
   return {
-    backLink: getDashboardBackLink(sessionData),
+    backLink: category
+      ? getDashboardListPath(sessionData, category)
+      : getDashboardBackLink(sessionData),
     delayFilterItems: skipDelayFilter
       ? null
       : buildDashboardActionsDelayFilterItems(actionNotifications, delayFilter),
@@ -8192,9 +8482,10 @@ function getDashboardActionsViewModel (sessionData = {}, query = {}) {
     sort,
     sortItems: buildDashboardSortItems(sort),
     resultsText: buildDashboardResultsText(startIndex + 1, endIndex, totalCount),
-    pagination: buildDashboardActionsPagination(currentPage, totalPages, sort, delayFilter),
+    pagination: buildDashboardActionsPagination(currentPage, totalPages, sort, delayFilter, category),
     currentPage,
-    delayFilter
+    delayFilter,
+    dashboardCategory: category
   }
 }
 
@@ -8209,10 +8500,14 @@ function renderDashboardActionsPage (req, res) {
   })
 }
 
-function getDashboardChangesViewModel (sessionData = {}) {
+function getDashboardChangesViewModel (sessionData = {}, query = {}) {
+  const category = (query.category || '').trim()
+
   return {
-    backLink: getDashboardBackLink(sessionData),
-    sections: getDashboardChangesSections(sessionData)
+    backLink: category
+      ? getDashboardListPath(sessionData, category)
+      : getDashboardBackLink(sessionData),
+    sections: getDashboardChangesSections(sessionData, category)
   }
 }
 
@@ -8223,7 +8518,7 @@ function renderDashboardChangesPage (req, res) {
 
   return res.render('dashboard-changes', {
     serviceNavActive: 'dashboard',
-    ...getDashboardChangesViewModel(req.session.data)
+    ...getDashboardChangesViewModel(req.session.data, req.query)
   })
 }
 
@@ -9699,6 +9994,45 @@ function buildImportReasonItems (
   })
 }
 
+function getOriginBackLink (sessionData = {}) {
+  if (isCreatingTemplateJourney(sessionData)) {
+    return '/templates/create'
+  }
+
+  if (isDesignRelease21SessionData(sessionData) && sessionData.startedFromCategoryDashboard) {
+    return getDashboardListPath(sessionData, getNotificationType(sessionData))
+  }
+
+  if (isDesignRelease21SessionData(sessionData)) {
+    return '/notification-type'
+  }
+
+  return '/'
+}
+
+function renderNotificationTypePage (req, res, locals = {}) {
+  const sessionData = req.session.data
+
+  return res.render('notification-type', {
+    backLink: '/',
+    notificationTypeItems: buildNotificationTypeItems(getNotificationType(sessionData)),
+    data: sessionData,
+    ...locals
+  })
+}
+
+function startNotificationJourney (sessionData, notificationType) {
+  sessionData.notificationType = notificationType
+  sessionData.notificationStatus = 'Draft'
+  delete sessionData.isCreatingTemplate
+
+  if (isDesignRelease2SessionData(sessionData)) {
+    sessionData.notificationReference = generateDesignReleaseNotificationReference(sessionData)
+  }
+
+  persistDraftNotification(sessionData)
+}
+
 function renderOriginPage (req, res, locals = {}) {
   const sessionData = req.session.data
   const internalReference = sessionData.internalReference
@@ -9708,10 +10042,7 @@ function renderOriginPage (req, res, locals = {}) {
   const fromTemplateReview = isFromTemplateReview(req) || isEditingTemplateFromReview(sessionData)
 
   return res.render('origin-of-the-import', {
-    backLink: getJourneyBackLink(
-      req,
-      isCreatingTemplateJourney(sessionData) ? '/templates/create' : '/'
-    ),
+    backLink: getJourneyBackLink(req, getOriginBackLink(sessionData)),
     fromHub,
     fromTemplateReview,
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
@@ -10172,15 +10503,64 @@ function renderUploadDocumentsPage (req, res, locals = {}) {
 }
 
 router.get('/create-notification', (req, res) => {
+  const isDr21 = isDesignRelease21SessionData(req.session.data)
+  const category = normaliseNotificationType(req.query.category)
+
   resetNotificationJourneySession(req.session.data)
-  req.session.data.notificationStatus = 'Draft'
   delete req.session.data.isCreatingTemplate
 
-  if (isDesignRelease2SessionData(req.session.data)) {
-    req.session.data.notificationReference = generateDesignReleaseNotificationReference(req.session.data)
+  if (isDr21 && !category) {
+    return res.redirect('/notification-type')
   }
 
-  persistDraftNotification(req.session.data)
+  req.session.data.startedFromCategoryDashboard = Boolean(category)
+  startNotificationJourney(req.session.data, category || null)
+
+  return res.redirect('/origin-of-the-import')
+})
+
+router.get('/notification-type', (req, res) => {
+  if (!isDesignRelease21SessionData(req.session.data)) {
+    return res.redirect('/create-notification')
+  }
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+
+  return renderNotificationTypePage(req, res)
+})
+
+router.post('/notification-type', (req, res) => {
+  if (!isDesignRelease21SessionData(req.session.data)) {
+    return res.redirect('/create-notification')
+  }
+
+  const validation = validateNotificationType(req.body.notificationType)
+
+  if (validation.errorList.length) {
+    req.session.data.errorList = validation.errorList
+    req.session.data.errors = validation.errors
+
+    return renderNotificationTypePage(req, res)
+  }
+
+  const previousType = getNotificationType(req.session.data)
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+  req.session.data.startedFromCategoryDashboard = false
+
+  if (previousType && previousType !== validation.notificationType) {
+    applySpeciesSelectionToSession(req.session.data, [])
+  }
+
+  if (!req.session.data.notificationReference) {
+    startNotificationJourney(req.session.data, validation.notificationType)
+  } else {
+    req.session.data.notificationType = validation.notificationType
+    persistDraftNotification(req.session.data)
+  }
+
   return res.redirect('/origin-of-the-import')
 })
 
@@ -10258,8 +10638,27 @@ router.post('/what-are-you-importing', (req, res) => {
     return
   }
 
+  const notificationType = getNotificationType(req.session.data)
+  const selectedSpecies = filterSpeciesIdsForNotificationType(
+    normalizeSelectedSpecies(req.body.selectedSpecies),
+    notificationType
+  )
   const commoditySelections = parseCommoditySelections(req.body.commoditySelections)
-  const selectedSpecies = normalizeSelectedSpecies(req.body.selectedSpecies)
+    .filter((selection) => {
+      if (!notificationType) {
+        return true
+      }
+
+      if (selection && selection.speciesId) {
+        return speciesMatchesNotificationType(selection.speciesId, notificationType)
+      }
+
+      if (selection && selection.commodityId) {
+        return commodityMatchesNotificationType(getCommodityById(selection.commodityId), notificationType)
+      }
+
+      return false
+    })
 
   if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
     delete req.session.data.commoditySearch
@@ -10532,6 +10931,18 @@ router.get('/reason-for-import', (req, res) => {
 })
 
 router.get('/', (req, res) => {
+  if (isDesignRelease21SessionData(req.session.data)) {
+    return renderOverallDashboardPage(req, res)
+  }
+
+  return renderDashboardPage(req, res)
+})
+
+router.get('/live-animals', (req, res) => {
+  return renderDashboardPage(req, res)
+})
+
+router.get('/germinal-products', (req, res) => {
   return renderDashboardPage(req, res)
 })
 
@@ -10694,6 +11105,14 @@ router.get('/index', (req, res) => {
 
 router.get('/dashboard', (req, res) => {
   const queryString = new URLSearchParams(req.query).toString()
+
+  if (isDesignRelease21SessionData(req.session.data)) {
+    if (queryString) {
+      return res.redirect(`/live-animals?${queryString}`)
+    }
+
+    return res.redirect('/')
+  }
 
   return res.redirect(queryString ? `/?${queryString}` : '/')
 })

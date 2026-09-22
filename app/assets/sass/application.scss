@@ -8531,6 +8531,151 @@ body.app-dr2-amend-modal-open {
   }
 }
 
+.app-overall-dashboard {
+  .app-dr2-dashboard-intro__caption,
+  .app-dr2-dashboard-intro__heading,
+  .app-overall-dashboard-section__heading,
+  .app-overall-dashboard-section__dashboard-link,
+  .app-overall-dashboard__messages,
+  .app-dr2-dashboard-glance-card__title,
+  .app-dr2-dashboard-glance-card__description,
+  .app-dr2-dashboard-glance-card__link {
+    font-weight: 400;
+  }
+
+  .app-dr2-dashboard-intro__heading,
+  .app-overall-dashboard-section__heading,
+  .app-dr2-dashboard-glance-card__title,
+  .app-dr2-dashboard-glance-card__count,
+  .app-overall-dashboard__message-count {
+    font-weight: 700;
+  }
+}
+
+.app-overall-dashboard__intro.app-dr2-dashboard-intro {
+  gap: 20px;
+  margin-bottom: 50px;
+
+  .app-dr2-dashboard-intro__header {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .app-dr2-dashboard-intro__caption,
+  .app-dr2-dashboard-intro__heading {
+    margin: 0;
+  }
+
+  .app-dr2-dashboard-intro__actions {
+    margin-top: 20px;
+    gap: 23px;
+  }
+}
+
+.app-overall-dashboard__messages {
+  display: flex;
+  align-items: flex-end;
+  gap: 15px;
+  line-height: 24px;
+}
+
+.app-overall-dashboard__messages .govuk-link {
+  line-height: 24px;
+}
+
+.app-overall-dashboard__message-count {
+  display: inline-block;
+  box-sizing: border-box;
+  flex: 0 0 35px;
+  width: 35px;
+  height: 25px;
+  margin: 0;
+  padding: 0;
+  border-radius: 100px;
+  background: #d4351c;
+  color: #ffffff;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 25px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.app-overall-dashboard-section {
+  margin: 0;
+  padding-top: 30px;
+  padding-bottom: 45px;
+  border-top: 5px solid #1d70b8;
+
+  &--muted {
+    padding-bottom: 40px;
+    border-top: 1px solid #b1b4b6;
+    border-bottom: 1px solid #b1b4b6;
+  }
+
+  &--plants {
+    padding-top: 40px;
+    padding-bottom: 40px;
+    border-top: none;
+    border-bottom: 1px solid #b1b4b6;
+  }
+
+  &__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+
+  &__heading {
+    max-width: 760px;
+  }
+
+  &__dashboard-link {
+    margin-top: 8px;
+  }
+
+  &__cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 30px;
+  }
+
+  .app-dr2-dashboard-glance-card {
+    gap: 0;
+  }
+
+  .app-dr2-dashboard-glance-card__title {
+    color: #0b0c0c;
+  }
+
+  .app-dr2-dashboard-glance-card--action .app-dr2-dashboard-glance-card__title {
+    color: #d4351c;
+  }
+
+  .app-dr2-dashboard-glance-card__description {
+    margin-top: 5px;
+  }
+
+  .app-dr2-dashboard-glance-card__count {
+    margin: 30px 0 0;
+    font-size: 64px;
+    line-height: 64px;
+    color: #d4351c;
+
+    &--blue {
+      color: #1d70b8;
+    }
+  }
+
+  .app-dr2-dashboard-glance-card__link {
+    margin-top: 20px;
+  }
+}
+
 .app-dr2-dashboard-notifications {
   width: 100%;
 
