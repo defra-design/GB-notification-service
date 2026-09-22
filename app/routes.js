@@ -8403,6 +8403,14 @@ function renderCreateTemplatePage (req, res) {
     return res.redirect('/')
   }
 
+  const isDr21 = isDesignRelease21SessionData(req.session.data)
+
+  if (isDr21 && String(req.query.new || '') === '1') {
+    resetNotificationJourneySession(req.session.data)
+    req.session.data.isCreatingTemplate = true
+    return res.redirect('/notification-type')
+  }
+
   // Only keep the name when the user is mid-create and navigates back to this page.
   // After a template is saved, starting create again must show an empty name field.
   const isContinuingCreate = isCreatingTemplateJourney(req.session.data)
@@ -8417,7 +8425,7 @@ function renderCreateTemplatePage (req, res) {
   return res.render('create-template', {
     serviceNavActive: 'templates',
     templateName,
-    backLink: '/templates'
+    backLink: isDr21 && getNotificationType(req.session.data) ? '/notification-type' : '/templates'
   })
 }
 
@@ -8427,11 +8435,16 @@ function handleCreateTemplatePage (req, res) {
   }
 
   const templateName = String(req.body.templateName || '').trim()
+  const notificationType = getNotificationType(req.session.data)
 
   resetNotificationJourneySession(req.session.data)
   req.session.data.templateName = templateName
   req.session.data.isCreatingTemplate = true
   req.session.data.notificationStatus = 'Draft'
+
+  if (notificationType) {
+    req.session.data.notificationType = notificationType
+  }
 
   return res.redirect('/origin-of-the-import')
 }
@@ -10012,9 +10025,11 @@ function getOriginBackLink (sessionData = {}) {
 
 function renderNotificationTypePage (req, res, locals = {}) {
   const sessionData = req.session.data
+  const isCreatingTemplate = isCreatingTemplateJourney(sessionData)
 
   return res.render('notification-type', {
-    backLink: '/',
+    backLink: isCreatingTemplate ? '/templates' : '/',
+    serviceNavActive: isCreatingTemplate ? 'templates' : 'dashboard',
     notificationTypeItems: buildNotificationTypeItems(getNotificationType(sessionData)),
     data: sessionData,
     ...locals
@@ -10056,6 +10071,14 @@ function renderOriginPage (req, res, locals = {}) {
   })
 }
 
+function getCommoditySearchHint (sessionData) {
+  if (isDesignRelease21SessionData(sessionData) && getNotificationType(sessionData) === 'germinal-products') {
+    return 'You can search for semen, ova or embryos, or by common name (for example, cattle), Latin name (Bos taurus) or commodity code (05119985).'
+  }
+
+  return 'You can search by common name (for example, cattle), commodity code (0102), or Latin name (Bos taurus).'
+}
+
 function renderWhatAreYouImportingPage (req, res, locals = {}) {
   const sessionData = req.session.data
   const fromHub = isFromHub(req)
@@ -10068,6 +10091,7 @@ function renderWhatAreYouImportingPage (req, res, locals = {}) {
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     commoditiesSearchJson: JSON.stringify(getCommoditySearchData(getSearchCommodities(sessionData))),
     commoditySelectionsJson: JSON.stringify(getInitialCommoditySelections(sessionData)),
+    commoditySearchHint: getCommoditySearchHint(sessionData),
     data: sessionData,
     ...locals
   })
@@ -10552,6 +10576,12 @@ router.post('/notification-type', (req, res) => {
 
   if (previousType && previousType !== validation.notificationType) {
     applySpeciesSelectionToSession(req.session.data, [])
+  }
+
+  if (isCreatingTemplateJourney(req.session.data)) {
+    req.session.data.notificationType = validation.notificationType
+    req.session.data.notificationStatus = 'Draft'
+    return res.redirect('/templates/create')
   }
 
   if (!req.session.data.notificationReference) {
