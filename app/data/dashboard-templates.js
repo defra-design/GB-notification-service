@@ -42,7 +42,7 @@ module.exports = [
       certifiedFor: 'Registered equine animal',
       arrivalDateAtPort: '21/06/2026',
       portOfEntry: 'Liverpool - GBLIV',
-      meansOfTransport: 'Vessel',
+      meansOfTransport: 'Sea',
       transportIdentification: 'AB12 CDE',
       transportDocumentReference: 'N/A',
       transporter: {

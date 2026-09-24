@@ -1,0 +1,61 @@
+{% from "partials/design-release-2.1/review-summary-card.html" import dr2ReviewCard, dr2ReviewCommodityCard %}
+
+{% set hideDocuments = not dr2Review.documents %}
+{% set partiesSectionNumber = 4 if hideDocuments else 5 %}
+{% set contactSectionNumber = 5 if hideDocuments else 6 %}
+
+<section class="app-review-notification-page__section" aria-labelledby="review-section-about">
+  <h2 class="app-review-notification-page__section-heading" id="review-section-about">1. About the consignment</h2>
+
+  {{ dr2ReviewCard(dr2Review.aboutConsignment.importDetailsCard, showActions) }}
+  {{ dr2ReviewCard(dr2Review.aboutConsignment.animalDetailsCard, showActions) }}
+  {{ dr2ReviewCard(dr2Review.aboutConsignment.importReasonCard, showActions) }}
+</section>
+
+<section class="app-review-notification-page__section" aria-labelledby="review-section-goods">
+  <h2 class="app-review-notification-page__section-heading" id="review-section-goods">2. Description of the goods</h2>
+
+  {% for commodityCard in dr2Review.descriptionOfGoods.commodityCards %}
+    {{ dr2ReviewCommodityCard(commodityCard, showActions) }}
+  {% endfor %}
+
+  {% if dr2Review.descriptionOfGoods.additionalAnimalDetailsCard %}
+    {{ dr2ReviewCard(dr2Review.descriptionOfGoods.additionalAnimalDetailsCard, showActions) }}
+  {% endif %}
+</section>
+
+<section class="app-review-notification-page__section" aria-labelledby="review-section-movement">
+  <h2 class="app-review-notification-page__section-heading" id="review-section-movement">3. Transport and arrival</h2>
+
+  {{ dr2ReviewCard(dr2Review.movement.arrivalDetailsCard, showActions, true) }}
+  {{ dr2ReviewCard(dr2Review.movement.transportDetailsCard, showActions, false) }}
+</section>
+
+{% if dr2Review.documents %}
+<section class="app-review-notification-page__section" aria-labelledby="review-section-documents">
+  <h2 class="app-review-notification-page__section-heading" id="review-section-documents">4. Uploaded documents</h2>
+
+  {% if dr2Review.documents.sectionError %}
+    <div class="app-dr2-review-section-error">
+      <span class="app-dr2-review-section-error__marker" aria-hidden="true"></span>
+      <p class="app-dr2-review-section-error__message">{{ dr2Review.documents.sectionError }}</p>
+    </div>
+  {% else %}
+    {% for documentCard in dr2Review.documents.documentCards %}
+      {{ dr2ReviewCard(documentCard, showActions, false) }}
+    {% endfor %}
+  {% endif %}
+</section>
+{% endif %}
+
+<section class="app-review-notification-page__section" aria-labelledby="review-section-addresses">
+  <h2 class="app-review-notification-page__section-heading" id="review-section-addresses">{{ partiesSectionNumber }}. Consignment addresses</h2>
+
+  {{ dr2ReviewCard(dr2Review.addresses.rolesCard, showActions) }}
+</section>
+
+<section class="app-review-notification-page__section" aria-labelledby="review-section-contact-address">
+  <h2 class="app-review-notification-page__section-heading" id="review-section-contact-address">{{ contactSectionNumber }}. Contact address</h2>
+
+  {{ dr2ReviewCard(dr2Review.contactAddress.contactAddressCard, showActions) }}
+</section>

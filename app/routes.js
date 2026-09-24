@@ -45,7 +45,17 @@ const dashboardTemplates = require('./data/dashboard-templates')
 const { buildDashboardNotificationSnapshot } = require('./data/dashboard-notification-snapshots')
 const { getCommoditySearchData } = require('./utils/commodity-search-data')
 
-const TRANSIT_MEANS_OF_TRANSPORT = ['Railway', 'Road Vehicle']
+const TRANSIT_MEANS_OF_TRANSPORT = ['Rail', 'Road']
+const MEANS_OF_TRANSPORT_ALIASES = {
+  airplane: 'Air',
+  air: 'Air',
+  railway: 'Rail',
+  rail: 'Rail',
+  'road vehicle': 'Road',
+  road: 'Road',
+  vessel: 'Sea',
+  sea: 'Sea'
+}
 
 const germinalTemperatureOptions = ['Ambient', 'Chilled', 'Frozen']
 
@@ -65,6 +75,9 @@ function normaliseNotificationType (value) {
   if (
     type === 'live-animals' ||
     type === 'germinal-products' ||
+    type === 'plants-for-planting' ||
+    type === 'potatoes' ||
+    type === 'wood-products' ||
     type === 'products-of-animal-origin' ||
     type === 'high-risk-food' ||
     type === 'plants'
@@ -80,6 +93,18 @@ function normaliseNotificationType (value) {
 
   if (label === 'germinal products') {
     return 'germinal-products'
+  }
+
+  if (label === 'plants for planting') {
+    return 'plants-for-planting'
+  }
+
+  if (label === 'potatoes (seed and ware)' || label === 'potatoes') {
+    return 'potatoes'
+  }
+
+  if (label === 'wood products') {
+    return 'wood-products'
   }
 
   if (label === 'products of animal origin or animal by-products') {
@@ -99,10 +124,10 @@ function normaliseNotificationType (value) {
 
 const NOTIFICATION_TYPE_OPTIONS = [
   { value: 'live-animals', text: 'Live animals' },
-  { value: 'germinal-products', text: 'Germinal products' },
-  { value: 'products-of-animal-origin', text: 'Products of animal origin or animal by-products' },
-  { value: 'high-risk-food', text: 'High-risk food or feed of non-animal origin' },
-  { value: 'plants', text: 'Plants, plant products or other objects' }
+  { value: 'germinal-products', text: 'Germinal products (semen, ova, embryos)' },
+  { value: 'plants-for-planting', text: 'Plants for planting' },
+  { value: 'potatoes', text: 'Potatoes (seed and ware)' },
+  { value: 'wood-products', text: 'Wood products' }
 ]
 
 function buildNotificationTypeItems (selectedValue = '') {
@@ -2198,17 +2223,33 @@ function isValidExitBorderControlPost (exitBorderControlPost) {
   return exitBorderControlPosts.some((option) => option.toLowerCase() === normalised)
 }
 
+function normaliseMeansOfTransport (value) {
+  const trimmed = String(value || '').trim()
+
+  if (!trimmed) {
+    return ''
+  }
+
+  if (meansOfTransportOptions.includes(trimmed)) {
+    return trimmed
+  }
+
+  return MEANS_OF_TRANSPORT_ALIASES[trimmed.toLowerCase()] || ''
+}
+
 function buildMeansOfTransportItems (selectedValue) {
+  const normalisedValue = normaliseMeansOfTransport(selectedValue)
+
   return [
     {
       value: '',
       text: 'Select one',
-      selected: !selectedValue
+      selected: !normalisedValue
     },
     ...meansOfTransportOptions.map((option) => ({
       value: option,
       text: option,
-      selected: selectedValue === option
+      selected: normalisedValue === option
     }))
   ]
 }
@@ -2226,7 +2267,7 @@ function hasArrivalDetailsComplete (sessionData) {
     sessionData.portOfEntry.trim() &&
     isValidPortOfEntry(sessionData.portOfEntry) &&
     sessionData.meansOfTransport &&
-    meansOfTransportOptions.includes(sessionData.meansOfTransport) &&
+    Boolean(normaliseMeansOfTransport(sessionData.meansOfTransport)) &&
     sessionData.transportIdentification &&
     sessionData.transportIdentification.trim() &&
     sessionData.transportDocumentReference &&
@@ -2239,7 +2280,7 @@ function saveArrivalDetailsToSession (sessionData, values) {
     ? null
     : (values.arrivalDateAtPort || null)
   sessionData.portOfEntry = values.portOfEntry || null
-  sessionData.meansOfTransport = values.meansOfTransport || null
+  sessionData.meansOfTransport = normaliseMeansOfTransport(values.meansOfTransport) || null
   sessionData.transportIdentification = values.transportIdentification || null
   sessionData.transportDocumentReference = values.transportDocumentReference || null
 
@@ -2253,7 +2294,7 @@ function requiresTransitCountries (sessionData) {
     ? sessionData
     : sessionData.meansOfTransport
 
-  return TRANSIT_MEANS_OF_TRANSPORT.includes(meansOfTransport)
+  return TRANSIT_MEANS_OF_TRANSPORT.includes(normaliseMeansOfTransport(meansOfTransport))
 }
 
 function normalizeTransitCountries (value) {
@@ -4319,7 +4360,7 @@ function validateArrivalDetails (values) {
 
   // Soft validation: other arrival fields are optional to proceed, but means of
   // transport is required (it also drives whether transit countries are shown).
-  if (!values.meansOfTransport || !meansOfTransportOptions.includes(values.meansOfTransport)) {
+  if (!normaliseMeansOfTransport(values.meansOfTransport)) {
     errors.meansOfTransport = { text: 'Select a means of transport to the port of entry' }
     errorList.push({
       text: 'Select a means of transport to the port of entry',
@@ -4334,7 +4375,7 @@ function parseArrivalDetailsBody (body) {
   return {
     arrivalDateAtPort: (body.arrivalDateAtPort || '').trim(),
     portOfEntry: (body.portOfEntry || '').trim(),
-    meansOfTransport: (body.meansOfTransport || '').trim(),
+    meansOfTransport: normaliseMeansOfTransport(body.meansOfTransport),
     transportIdentification: (body.transportIdentification || '').trim(),
     transportDocumentReference: (body.transportDocumentReference || '').trim()
   }
@@ -5050,7 +5091,7 @@ function getReviewNotificationViewModel (sessionData) {
 
   arrivalDetailsRows.push({
     key: 'Means of transport to the port of entry',
-    value: formatReviewValueOrNa(sessionData.meansOfTransport)
+    value: formatReviewValueOrNa(normaliseMeansOfTransport(sessionData.meansOfTransport) || sessionData.meansOfTransport)
   })
 
   arrivalDetailsRows.push(
@@ -5989,6 +6030,13 @@ function renderReviewNotificationPage (req, res, options = {}) {
     cancelAmendHref: isAmending
       ? '/notifications/cancel-amend'
       : null,
+    deleteHref: reviewVariant === 'journey'
+      ? (isTemplateCreate
+        ? ((sessionData.editingTemplateId || sessionData.templateId)
+          ? `/templates/${sessionData.editingTemplateId || sessionData.templateId}/delete`
+          : '/templates/discard')
+        : `/notifications/delete?reference=${encodeURIComponent(sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE)}`)
+      : null,
     ...viewModel,
     data: {
       ...sessionData,
@@ -6010,6 +6058,213 @@ function renderReviewNotificationPage (req, res, options = {}) {
   return res.render('review-notification', renderOptions)
 }
 
+function formatDeleteSummaryValue (value) {
+  return formatReviewValueOrNa(value)
+}
+
+function formatDeleteCommodityLabel (sessionData) {
+  const grouped = []
+  const indexByCommonName = new Map()
+
+  normalizeSelectedSpecies(sessionData && sessionData.selectedSpecies).forEach((speciesId) => {
+    const match = getSpeciesMatch(speciesId)
+
+    if (!match) {
+      return
+    }
+
+    const commonName = isOtherLiveMammalsCommodityCode(match.commodity)
+      ? getSpeciesCommonName(match)
+      : match.commodity.name
+    const latinName = toTitleCaseLabel(match.species.label || match.species.commonName || '')
+    const groupName = commonName || latinName
+
+    if (!groupName) {
+      return
+    }
+
+    const groupKey = groupName.toLowerCase()
+
+    if (!indexByCommonName.has(groupKey)) {
+      indexByCommonName.set(groupKey, grouped.length)
+      grouped.push({
+        commonName: groupName,
+        latinNames: []
+      })
+    }
+
+    if (latinName && latinName.toLowerCase() !== groupName.toLowerCase()) {
+      const group = grouped[indexByCommonName.get(groupKey)]
+
+      if (!group.latinNames.includes(latinName)) {
+        group.latinNames.push(latinName)
+      }
+    }
+  })
+
+  if (!grouped.length) {
+    return ''
+  }
+
+  return grouped.map((group) => {
+    if (!group.latinNames.length) {
+      return group.commonName
+    }
+
+    return `${group.commonName} (${group.latinNames.join(', ')})`
+  }).join(', ')
+}
+
+function getDeleteQuantityValue (sessionData) {
+  const source = sessionData || {}
+
+  if (hasGerminalProductsOnly(source)) {
+    const packages = getTotalPackageCount(source)
+
+    if (packages > 0) {
+      return String(packages)
+    }
+  }
+
+  const animals = getTotalAnimalCount(source)
+
+  if (animals > 0) {
+    return String(animals)
+  }
+
+  if (typeof source.numberOfAnimals === 'string') {
+    return source.numberOfAnimals.trim()
+  }
+
+  return ''
+}
+
+function getDeleteOriginValue (sessionData) {
+  return String(sessionData?.countryOfOrigin || '').trim()
+}
+
+function buildDeleteSummaryRow (key, value, options = {}) {
+  if (options.html) {
+    return {
+      key: { text: key },
+      value: { html: value }
+    }
+  }
+
+  return {
+    key: { text: key },
+    value: { text: formatDeleteSummaryValue(value) }
+  }
+}
+
+function buildDeleteNotificationSummaryRows (sessionData, options = {}) {
+  const metadata = options.metadata || {}
+
+  return [
+    buildDeleteSummaryRow('Reference number', options.reference || metadata.reference),
+    buildDeleteSummaryRow(
+      'Commodity',
+      formatDeleteCommodityLabel(sessionData) || metadata.commodityLabel
+    ),
+    buildDeleteSummaryRow(
+      'Number',
+      getDeleteQuantityValue(sessionData) || metadata.numberOfAnimals || metadata.quantityValue
+    ),
+    buildDeleteSummaryRow(
+      'Origin',
+      getDeleteOriginValue(sessionData) || metadata.origin
+    )
+  ]
+}
+
+function buildDeleteTemplateSummaryRows (templateName) {
+  return [
+    buildDeleteSummaryRow('Name', templateName)
+  ]
+}
+
+function escapeHtml (value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+function formatDeleteAddressHtml (entry) {
+  const lines = []
+  const name = String(entry.name || '').trim()
+
+  if (name) {
+    lines.push(name)
+  }
+
+  const addressLines = Array.isArray(entry.addressLines) && entry.addressLines.length
+    ? entry.addressLines
+    : String(entry.address || '').split('\n')
+
+  addressLines.forEach((line) => {
+    const text = String(line || '').trim()
+
+    if (text && !lines.some((existing) => existing.toLowerCase() === text.toLowerCase())) {
+      lines.push(text)
+    }
+  })
+
+  const country = String(entry.country || '').trim()
+
+  if (country && !lines.some((existing) => existing.toLowerCase() === country.toLowerCase())) {
+    lines.push(country)
+  }
+
+  if (!lines.length) {
+    const details = resolveAddressBookDetails(entry)
+    ;[
+      details.nameOrOrganisation,
+      details.addressLine1,
+      details.addressLine2,
+      details.townOrCity,
+      details.county,
+      details.postcode,
+      details.country
+    ].forEach((line) => {
+      const text = String(line || '').trim()
+
+      if (text) {
+        lines.push(text)
+      }
+    })
+  }
+
+  if (!lines.length) {
+    return escapeHtml('Not applicable')
+  }
+
+  return lines.map(escapeHtml).join('<br>')
+}
+
+function buildDeleteAddressSummaryRows (entry) {
+  return [
+    buildDeleteSummaryRow('Address', formatDeleteAddressHtml(entry), { html: true })
+  ]
+}
+
+function buildDeleteNotificationViewLocals (options = {}) {
+  const reference = options.reference
+
+  return {
+    pageName: 'Delete this notification?',
+    confirmText: 'Confirm that you want to delete this notification.',
+    summaryRows: buildDeleteNotificationSummaryRows(options.sessionData, {
+      reference,
+      metadata: options.metadata || {}
+    }),
+    backLink: options.backLink,
+    notificationReference: reference,
+    deleteAction: options.deleteAction
+  }
+}
+
 function renderDeleteNotificationPage (req, res) {
   const submittedId = (req.query.submitted || '').trim()
   const reference = (req.query.reference || '').trim()
@@ -6022,6 +6277,17 @@ function renderDeleteNotificationPage (req, res) {
   const reviewOptions = resolveDesignRelease2ReviewPageOptions(req, { submittedId, reference })
 
   if (reviewOptions.redirectTo) {
+    const sessionReference = String(req.session.data.notificationReference || '').trim()
+
+    if (reference && sessionReference === reference) {
+      return res.render('delete-notification', buildDeleteNotificationViewLocals({
+        sessionData: req.session.data,
+        backLink: '/review-notification',
+        reference,
+        deleteAction: buildDashboardNotificationDeleteHref({ reference })
+      }))
+    }
+
     return res.redirect(reviewOptions.redirectTo)
   }
 
@@ -6029,11 +6295,13 @@ function renderDeleteNotificationPage (req, res) {
     ? reviewOptions.pageHeader.reference
     : PROTOTYPE_NOTIFICATION_REFERENCE
 
-  return res.render('delete-notification', {
+  return res.render('delete-notification', buildDeleteNotificationViewLocals({
+    sessionData: reviewOptions.sessionData || req.session.data,
     backLink: buildDashboardNotificationViewHref(req.session.data, submittedId ? { submittedId } : { reference }),
-    notificationReference,
+    reference: notificationReference,
+    metadata: getDashboardNotificationMetadata(req.session.data, notificationReference) || {},
     deleteAction: buildDashboardNotificationDeleteHref(submittedId ? { submittedId } : { reference })
-  })
+  }))
 }
 
 function formatDeclarationDate (date = new Date()) {
@@ -7703,6 +7971,39 @@ function seedNotificationSessionFromTemplate (sessionData, template) {
   }
 
   sessionData.cphNumber = review.cphNumber || null
+  sessionData.portOfEntry = review.portOfEntry || null
+  sessionData.meansOfTransport = review.meansOfTransport || null
+  sessionData.transportIdentification = review.transportIdentification || null
+  sessionData.transportDocumentReference = review.transportDocumentReference || null
+  sessionData.arrivalDateAtPort = review.arrivalDateAtPort || null
+  sessionData.transitCountries = Array.isArray(review.transitCountries) ? review.transitCountries : []
+
+  if (review.transporter) {
+    const transporterAddress = review.transporter.address
+    sessionData.transporter = {
+      name: review.transporter.name || null,
+      address: Array.isArray(transporterAddress)
+        ? transporterAddress.join(', ')
+        : (transporterAddress || null),
+      approvalNumber: review.transporter.approvalNumber || null,
+      type: review.transporter.type || null
+    }
+  }
+
+  const contactPlace = review.contactAddress || review.placeOfOrigin
+  const contact = buildSessionAddressFromTemplatePlace(contactPlace)
+
+  if (contact) {
+    const contactAddress = {
+      id: `template-${template.id}-contact`,
+      name: contact.name,
+      addressLines: contact.addressLines,
+      country: contact.country
+    }
+    sessionData.contactAddedAddresses = [contactAddress]
+    syncContactAddressSession(sessionData, contactAddress)
+  }
+
   sessionData.errorList = null
   sessionData.errors = null
 }
@@ -7806,6 +8107,79 @@ function getTemplateReviewChangeHref (templateId, section) {
   }
 
   return `/templates/${templateId}/change/${section}`
+}
+
+const TEMPLATE_REVIEW_CHANGE_SECTIONS = {
+  '/origin-of-the-import': 'origin-of-the-import',
+  '/what-are-you-importing': 'what-are-you-importing',
+  '/reason-for-import': 'reason-for-import',
+  '/consignment-details': 'consignment-details',
+  '/animal-identification-details': 'animal-identification-details',
+  '/additional-animal-details': 'additional-animal-details',
+  '/arrival-details': 'arrival-details',
+  '/transit-countries': 'transit-countries',
+  '/transporter': 'transporter',
+  '/roles-and-addresses': 'roles-and-addresses',
+  '/contact-address-for-consignment': 'contact-address-for-consignment'
+}
+
+function remapReviewHrefForTemplate (href, templateId) {
+  if (!href || !templateId) {
+    return href
+  }
+
+  const path = String(href).split('?')[0]
+  const section = TEMPLATE_REVIEW_CHANGE_SECTIONS[path]
+
+  return section ? getTemplateReviewChangeHref(templateId, section) : href
+}
+
+function remapTemplateReviewPresentation (value, templateId) {
+  if (Array.isArray(value)) {
+    return value.map((item) => remapTemplateReviewPresentation(item, templateId))
+  }
+
+  if (!value || typeof value !== 'object') {
+    return value
+  }
+
+  const next = {}
+
+  Object.keys(value).forEach((key) => {
+    const nested = value[key]
+
+    if ((key === 'href' || key === 'changeHref') && typeof nested === 'string') {
+      next[key] = remapReviewHrefForTemplate(nested, templateId)
+      return
+    }
+
+    next[key] = remapTemplateReviewPresentation(nested, templateId)
+  })
+
+  return next
+}
+
+function buildTemplateReviewSessionData (template, requestSession = {}) {
+  const sessionLike = {
+    _isDesignRelease21Version: requestSession._isDesignRelease21Version,
+    _isDesignRelease2Version: requestSession._isDesignRelease2Version,
+    isCreatingTemplate: true
+  }
+
+  seedNotificationSessionFromTemplate(sessionLike, template)
+  sessionLike.isCreatingTemplate = true
+
+  return sessionLike
+}
+
+function buildTemplateCheckAnswersPresentation (template, requestSession = {}) {
+  const sessionLike = buildTemplateReviewSessionData(template, requestSession)
+  const viewModel = clearReviewViewModelErrors(getReviewNotificationViewModel(sessionLike))
+
+  return remapTemplateReviewPresentation(
+    buildDesignRelease2ReviewPresentation(viewModel, sessionLike, false, 'journey'),
+    template.id
+  )
 }
 
 function buildTemplateReviewViewModel (template, basePath = '/design-release-2', options = {}) {
@@ -7995,12 +8369,18 @@ function renderViewTemplatePage (req, res) {
 
   clearTemplateReviewEditState(req.session.data)
 
+  const isDr21 = isDesignRelease21SessionData(req.session.data)
+
   return res.render('view-template', {
     serviceNavActive: 'templates',
     pageName: template.title,
     template,
+    showActions: true,
+    dr2Review: isDr21
+      ? buildTemplateCheckAnswersPresentation(template, req.session.data)
+      : null,
     templateReview: buildTemplateReviewViewModel(template, basePath, {
-      hideArrivalDate: isDesignRelease21SessionData(req.session.data)
+      hideArrivalDate: isDr21
     }),
     dateCreated: template.dateCreated || '15 April 2026',
     useHref: `${basePath}/templates/${template.id}/use`,
@@ -8030,6 +8410,7 @@ function handleChangeTemplateSectionPage (req, res) {
     'animal-identification-details',
     'additional-animal-details',
     'arrival-details',
+    'transit-countries',
     'transporter',
     'roles-and-addresses',
     'contact-address-for-consignment'
@@ -8072,6 +8453,62 @@ function handleEditTemplatePage (req, res) {
   return res.redirect('/notification-hub')
 }
 
+function renderDiscardTemplatePage (req, res) {
+  if (!isDesignRelease2SessionData(req.session.data) || !isCreatingTemplateJourney(req.session.data)) {
+    return res.redirect('/templates')
+  }
+
+  const title = String(req.session.data.templateName || '').trim() || 'this template'
+
+  return res.render('delete-template', {
+    serviceNavActive: 'templates',
+    pageName: 'Delete this template?',
+    confirmText: 'Confirm that you want to delete this template.',
+    template: { title },
+    summaryRows: buildDeleteTemplateSummaryRows(title),
+    backLink: '/review-notification',
+    deleteAction: '/templates/discard'
+  })
+}
+
+function handleDiscardTemplatePage (req, res) {
+  if (!isDesignRelease2SessionData(req.session.data)) {
+    return res.redirect('/templates')
+  }
+
+  const title = String(req.session.data.templateName || '').trim() || 'Template'
+
+  resetNotificationJourneySession(req.session.data)
+  req.session.data.templatesSuccessMessage = `${title} has been deleted`
+
+  return res.redirect('/templates')
+}
+
+function renderDeleteTemplatePage (req, res) {
+  if (!isDesignRelease2SessionData(req.session.data)) {
+    return res.redirect('/')
+  }
+
+  const templateId = String(req.params.templateId || '').trim()
+  const template = getDashboardTemplateById(templateId, req.session.data)
+
+  if (!template) {
+    return res.redirect('/templates')
+  }
+
+  const basePath = getDesignReleaseBasePath(req.session.data) || '/design-release-2'
+
+  return res.render('delete-template', {
+    serviceNavActive: 'templates',
+    pageName: 'Delete this template?',
+    confirmText: 'Confirm that you want to delete this template.',
+    template,
+    summaryRows: buildDeleteTemplateSummaryRows(template.title),
+    backLink: `/templates/${template.id}`,
+    deleteAction: `${basePath}/templates/${template.id}/delete`
+  })
+}
+
 function handleDeleteTemplatePage (req, res) {
   if (!isDesignRelease2SessionData(req.session.data)) {
     return res.redirect('/')
@@ -8099,7 +8536,7 @@ function handleDeleteTemplatePage (req, res) {
     }
   }
 
-  req.session.data.templatesSuccessMessage = `${template.title} deleted`
+  req.session.data.templatesSuccessMessage = `${template.title} has been deleted`
 
   return res.redirect('/templates')
 }
@@ -8957,7 +9394,7 @@ function getAddressBookEntryViewModel (addressId, sessionData = {}, options = {}
     summaryRows: buildAddressBookViewSummaryRows(details),
     canManage: Boolean(addressBookEntry),
     editHref: addressBookEntry ? `${addressBookBasePath}/${encodedAddressId}/edit${returnQuery}` : null,
-    deleteAction: addressBookEntry ? `${addressBookBasePath}/${encodedAddressId}/delete${returnQuery}` : null
+    deleteHref: addressBookEntry ? `${addressBookBasePath}/${encodedAddressId}/delete${returnQuery}` : null
   }
 }
 
@@ -8975,6 +9412,30 @@ function renderAddressBookViewPage (req, res) {
   }
 
   return res.render('address-book-view', viewModel)
+}
+
+function renderDeleteAddressPage (req, res) {
+  const addressId = (req.params.addressId || '').trim()
+  const addressBookBasePath = getAddressBookBasePath(res)
+  const returnPath = getSafeReturnPath(req.query.return, addressBookBasePath)
+  const entry = findAddressBookEntry(addressId, req.session.data)
+
+  if (!entry) {
+    return res.redirect(returnPath)
+  }
+
+  const encodedAddressId = encodeURIComponent(addressId)
+  const returnQuery = buildAddressBookReturnQuery(returnPath, addressBookBasePath)
+
+  return res.render('delete-address', {
+    serviceNavActive: 'address-book',
+    pageName: 'Delete this address?',
+    confirmText: 'Confirm that you want to delete this address.',
+    addressName: entry.name,
+    summaryRows: buildDeleteAddressSummaryRows(entry),
+    backLink: `${addressBookBasePath}/${encodedAddressId}${returnQuery}`,
+    deleteAction: `${addressBookBasePath}/${encodedAddressId}/delete${returnQuery}`
+  })
 }
 
 function updateAddressBookEntry (sessionData, addressId, manualAddress, addressType) {
@@ -10992,6 +11453,14 @@ router.get('/templates/save', (req, res) => {
   return handleSaveTemplateFromHub(req, res)
 })
 
+router.get('/templates/discard', (req, res) => {
+  return renderDiscardTemplatePage(req, res)
+})
+
+router.post('/templates/discard', (req, res) => {
+  return handleDiscardTemplatePage(req, res)
+})
+
 router.get('/templates/:templateId', (req, res) => {
   return renderViewTemplatePage(req, res)
 })
@@ -11027,6 +11496,10 @@ router.get('/templates/:templateId/edit', (req, res) => {
 })
 
 router.get('/templates/:templateId/delete', (req, res) => {
+  return renderDeleteTemplatePage(req, res)
+})
+
+router.post('/templates/:templateId/delete', (req, res) => {
   return handleDeleteTemplatePage(req, res)
 })
 
@@ -11433,6 +11906,10 @@ router.post('/address-book/:addressId/edit', (req, res) => {
   return res.redirect(addressBookBasePath)
 })
 
+router.get('/address-book/:addressId/delete', (req, res) => {
+  return renderDeleteAddressPage(req, res)
+})
+
 router.post('/address-book/:addressId/delete', (req, res) => {
   const addressId = (req.params.addressId || '').trim()
   const addressBookBasePath = getAddressBookBasePath(res)
@@ -11501,11 +11978,20 @@ router.post('/notifications/delete', (req, res) => {
   const notificationReference = reviewOptions.pageHeader && reviewOptions.pageHeader.reference
     ? reviewOptions.pageHeader.reference
     : reference
+  const currentReference = String(req.session.data.notificationReference || '').trim()
+  const deletingCurrentJourney = Boolean(
+    notificationReference && currentReference && notificationReference === currentReference
+  )
 
   deleteNotification(req.session.data, {
     submittedId,
     reference: reference || notificationReference
   })
+
+  if (deletingCurrentJourney) {
+    resetNotificationJourneySession(req.session.data)
+  }
+
   req.session.data.dashboardSuccessMessage = notificationReference
     ? `${notificationReference} has been deleted`
     : 'Notification has been deleted'

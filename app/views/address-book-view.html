@@ -40,12 +40,11 @@
           classes: "govuk-button--secondary app-address-book-view-page__edit-button"
         }) }}
 
-        <form method="post" action="{{ deleteAction }}" class="app-address-book-view-page__delete-form">
-          {{ govukButton({
-            text: "Delete",
-            classes: "govuk-button--warning app-address-book-view-page__delete-button"
-          }) }}
-        </form>
+        {{ govukButton({
+          text: "Delete",
+          href: deleteHref,
+          classes: "govuk-button--warning app-address-book-view-page__delete-button"
+        }) }}
       </div>
     {% endif %}
 

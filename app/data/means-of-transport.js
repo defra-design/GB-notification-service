@@ -1,6 +1,6 @@
 module.exports = [
-  'Airplane',
-  'Railway',
-  'Road Vehicle',
-  'Vessel'
+  'Air',
+  'Rail',
+  'Road',
+  'Sea'
 ]

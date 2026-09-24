@@ -4,7 +4,6 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
-{% from "partials/design-release-2.1/review-summary-card.html" import dr2ReviewCard, dr2ReviewCommodityCard %}
 
 {% set pageName = template.title %}
 
@@ -67,56 +66,7 @@
       </div>
     </div>
 
-    <section class="app-review-notification-page__section" aria-labelledby="template-section-about">
-      <h2 class="app-review-notification-page__section-heading" id="template-section-about">1. About the consignment</h2>
-
-      <h3 class="app-review-notification-page__subsection-heading">Origin of import</h3>
-      {{ dr2ReviewCard(templateReview.importDetailsCard, true) }}
-
-      <h3 class="app-review-notification-page__subsection-heading">What are you importing?</h3>
-      {{ dr2ReviewCard(templateReview.animalDetailsCard, true) }}
-
-      <h3 class="app-review-notification-page__subsection-heading">Main import reason</h3>
-      {{ dr2ReviewCard(templateReview.importReasonCard, true) }}
-    </section>
-
-    <section class="app-review-notification-page__section" aria-labelledby="template-section-goods">
-      <h2 class="app-review-notification-page__section-heading" id="template-section-goods">2. Description of the goods</h2>
-
-      <h3 class="app-review-notification-page__subsection-heading">Commodity details</h3>
-      {% for commodityCard in templateReview.commodityCards %}
-        {{ dr2ReviewCommodityCard(commodityCard, true) }}
-      {% endfor %}
-
-      {% if templateReview.additionalAnimalDetailsCard %}
-        <h3 class="app-review-notification-page__subsection-heading">Additional details</h3>
-        {{ dr2ReviewCard(templateReview.additionalAnimalDetailsCard, true) }}
-      {% endif %}
-    </section>
-
-    <section class="app-review-notification-page__section" aria-labelledby="template-section-movement">
-      <h2 class="app-review-notification-page__section-heading" id="template-section-movement">3. Transport and arrival</h2>
-
-      <h3 class="app-review-notification-page__subsection-heading">Arrival details</h3>
-      {{ dr2ReviewCard(templateReview.arrivalDetailsCard, true) }}
-
-      <h3 class="app-review-notification-page__subsection-heading">Transport details</h3>
-      {{ dr2ReviewCard(templateReview.transportDetailsCard, true) }}
-    </section>
-
-    <section class="app-review-notification-page__section" aria-labelledby="template-section-parties">
-      <h2 class="app-review-notification-page__section-heading" id="template-section-parties">4. Consignment parties</h2>
-
-      <h3 class="app-review-notification-page__subsection-heading">Roles and addresses</h3>
-      {{ dr2ReviewCard(templateReview.addressesCard, true) }}
-    </section>
-
-    <section class="app-review-notification-page__section" aria-labelledby="template-section-contact">
-      <h2 class="app-review-notification-page__section-heading" id="template-section-contact">5. Contact address</h2>
-
-      <h3 class="app-review-notification-page__subsection-heading">Contact address for this consignment</h3>
-      {{ dr2ReviewCard(templateReview.contactAddressCard, true) }}
-    </section>
+    {% include "partials/design-release-2.1/review-sections.html" %}
     </div>
 
   </div>

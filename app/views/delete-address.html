@@ -1,0 +1,43 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+
+{% set pageName = "Confirm you want to delete " + addressName %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds app-dr2-delete-notification">
+    <h1 class="govuk-heading-xl">Confirm you want to delete {{ addressName }}</h1>
+
+    <p class="govuk-body">You will not be able to undo this action.</p>
+    <p class="govuk-body">It will take up to 1 minute for the action to take effect. Refresh your address book page to see the change to this address.</p>
+
+    <form method="post" action="{{ deleteAction }}" class="app-dr2-delete-notification__actions">
+      <div class="govuk-button-group app-dr2-delete-notification__button-group">
+        {{ govukButton({
+          text: "Yes, delete address",
+          classes: "govuk-button--warning"
+        }) }}
+
+        <a class="govuk-link" href="{{ backLink }}">Go back</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
