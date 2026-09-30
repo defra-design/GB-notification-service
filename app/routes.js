@@ -6964,6 +6964,12 @@ function saveDraftNotification (sessionData, sourceSnapshot = sessionData) {
   sessionData.draftNotifications.unshift({
     reference,
     commodities: getReviewAnimalDetailsCommodityCodes(snapshot),
+    commodityLabel: getReviewAnimalDetailsCommonNames(snapshot),
+    categoryLabel: hasGerminalProductsOnly(snapshot) ? 'Germinal products' : 'Live animals',
+    quantityLabel: hasGerminalProductsOnly(snapshot) ? 'Number of packages' : 'Number of animals',
+    quantityValue: hasGerminalProductsOnly(snapshot)
+      ? (getTotalPackageCount(snapshot) > 0 ? String(getTotalPackageCount(snapshot)) : null)
+      : (getTotalAnimalCount(snapshot) > 0 ? String(getTotalAnimalCount(snapshot)) : null),
     origin: snapshot.countryOfOrigin || 'Not applicable',
     arrivalDate: formatDateForDashboard(snapshot.arrivalDateAtPort),
     statusText: 'Draft',
@@ -6993,6 +6999,12 @@ function saveSubmittedNotification (sessionData) {
     id: existingNotification ? existingNotification.id : `submitted-${Date.now()}`,
     reference: snapshot.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     commodities: getReviewAnimalDetailsCommodityCodes(snapshot),
+    commodityLabel: getReviewAnimalDetailsCommonNames(snapshot),
+    categoryLabel: hasGerminalProductsOnly(snapshot) ? 'Germinal products' : 'Live animals',
+    quantityLabel: hasGerminalProductsOnly(snapshot) ? 'Number of packages' : 'Number of animals',
+    quantityValue: hasGerminalProductsOnly(snapshot)
+      ? (getTotalPackageCount(snapshot) > 0 ? String(getTotalPackageCount(snapshot)) : null)
+      : (getTotalAnimalCount(snapshot) > 0 ? String(getTotalAnimalCount(snapshot)) : null),
     origin: snapshot.countryOfOrigin || 'Not applicable',
     arrivalDate: formatDateForDashboard(snapshot.arrivalDateAtPort),
     statusText: getConditionalSubmissionItems(snapshot).length
@@ -7184,6 +7196,78 @@ function formatDashboardArrivalDate (value) {
   return `${day}/${month}/${date.getFullYear()}`
 }
 
+function isDashboardGerminalNotification (notification) {
+  const categoryLabel = String(notification.categoryLabel || '').trim().toLowerCase()
+
+  if (categoryLabel.includes('germinal')) {
+    return true
+  }
+
+  if (notification.snapshot && hasGerminalProductsOnly(notification.snapshot)) {
+    return true
+  }
+
+  return false
+}
+
+function isCommodityCodeLabel (value) {
+  return /^\d[\d\s,]*$/.test(String(value || '').trim())
+}
+
+function getDashboardNotificationCommodityLabel (notification, commodityMap = {}) {
+  const existing = String(notification.commodityLabel || '').trim()
+
+  if (existing && !isCommodityCodeLabel(existing)) {
+    return existing
+  }
+
+  if (notification.snapshot) {
+    const names = getReviewAnimalDetailsCommonNames(notification.snapshot)
+
+    if (names) {
+      return names
+    }
+  }
+
+  const mapped = commodityMap[notification.commodities]
+
+  if (mapped) {
+    return mapped
+  }
+
+  return existing && !isCommodityCodeLabel(existing) ? existing : 'Not applicable'
+}
+
+function getDashboardNotificationQuantity (notification, index = 0) {
+  if (isDashboardGerminalNotification(notification)) {
+    const snapshot = notification.snapshot
+    const packagesFromSnapshot = snapshot ? getTotalPackageCount(snapshot) : 0
+    let packageValue = String(notification.numberOfPackages || '').trim()
+
+    if (!packageValue && notification.quantityLabel === 'Number of packages') {
+      packageValue = String(notification.quantityValue || '').trim()
+    }
+
+    if (!packageValue && packagesFromSnapshot > 0) {
+      packageValue = String(packagesFromSnapshot)
+    }
+
+    return {
+      quantityLabel: 'Number of packages',
+      quantityValue: packageValue || 'Not applicable',
+      numberOfAnimals: null
+    }
+  }
+
+  const numberOfAnimals = notification.numberOfAnimals || String(8 + (index % 5))
+
+  return {
+    quantityLabel: notification.quantityLabel || 'Number of animals',
+    quantityValue: notification.quantityValue || numberOfAnimals,
+    numberOfAnimals
+  }
+}
+
 function enrichDesignRelease2Notification (notification, index, sessionData = {}) {
   const consignees = [
     'Glen Keen Farm',
@@ -7212,9 +7296,9 @@ function enrichDesignRelease2Notification (notification, index, sessionData = {}
 
   const reviewVariant = notification.reviewVariant || mapStatusTextToReviewVariant(notification.statusText)
   const notificationHasCategoryLabel = Boolean(notification.categoryLabel)
-  const notificationHasCommodityLabel = Boolean(notification.commodityLabel)
+  const snapshot = notification.snapshot
   let categoryLabel = notification.categoryLabel || (
-    isDesignRelease21SessionData(sessionData) && hasGerminalProductsOnly(sessionData)
+    snapshot && hasGerminalProductsOnly(snapshot)
       ? 'Germinal products'
       : 'Live animals'
   )
@@ -7357,15 +7441,19 @@ function enrichDesignRelease2Notification (notification, index, sessionData = {}
     resolvedReviewVariant = 'draft'
   }
 
+  const notificationForDisplay = {
+    ...notification,
+    categoryLabel
+  }
+  const quantity = getDashboardNotificationQuantity(notificationForDisplay, index)
+
   return {
     ...notification,
     consignee: notification.consignee || consignees[index % consignees.length],
     consignor: notification.consignor || consignors[index % consignors.length],
     categoryLabel,
-    commodityLabel: notification.commodityLabel || commodityMap[notification.commodities] || notification.commodities,
-    numberOfAnimals: notification.numberOfAnimals || String(8 + (index % 5)),
-    quantityLabel: notification.quantityLabel || 'Number of animals',
-    quantityValue: notification.quantityValue || notification.numberOfAnimals || String(8 + (index % 5)),
+    commodityLabel: getDashboardNotificationCommodityLabel(notificationForDisplay, commodityMap),
+    ...quantity,
     arrivalDateDisplay: formatDashboardArrivalDate(notification.arrivalDate),
     cardVariant: finalCardVariant,
     statusDisplay: finalStatusDisplay,
@@ -7420,20 +7508,27 @@ function getDashboardNotificationList (sessionData = {}) {
   }
 
   const drafts = (sessionData.draftNotifications || []).map((notification, index) => {
+    const snapshot = notification.snapshot || {}
     const mapped = {
       reference: notification.reference,
       commodities: notification.commodities,
+      commodityLabel: notification.commodityLabel,
+      categoryLabel: notification.categoryLabel,
+      quantityLabel: notification.quantityLabel,
+      quantityValue: notification.quantityValue,
+      numberOfPackages: notification.numberOfPackages,
+      snapshot,
       statusText: 'Draft',
       statusTagClass: 'app-ipaffs-tag--draft',
       statusModifier: 'draft',
       reviewVariant: 'draft',
       origin: notification.origin,
       arrivalDate: notification.arrivalDate,
-      consignee: notification.snapshot && notification.snapshot.consigneeAddress
-        ? notification.snapshot.consigneeAddress.name
+      consignee: snapshot.consigneeAddress
+        ? snapshot.consigneeAddress.name
         : null,
-      consignor: notification.snapshot && notification.snapshot.consignorAddress
-        ? notification.snapshot.consignorAddress.name
+      consignor: snapshot.consignorAddress
+        ? snapshot.consignorAddress.name
         : null,
       viewHref: isDesignRelease2SessionData(sessionData)
         ? buildDashboardNotificationViewHref(sessionData, { reference: notification.reference })
@@ -7460,6 +7555,11 @@ function getDashboardNotificationList (sessionData = {}) {
     const mapped = {
       reference: notification.reference,
       commodities: notification.commodities,
+      commodityLabel: notification.commodityLabel,
+      categoryLabel: notification.categoryLabel,
+      quantityLabel: notification.quantityLabel,
+      quantityValue: notification.quantityValue,
+      numberOfPackages: notification.numberOfPackages,
       statusText: notification.statusText,
       statusTagClass: notification.statusTagClass,
       statusModifier: reviewVariant,
