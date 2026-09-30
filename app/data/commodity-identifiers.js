@@ -20,14 +20,14 @@ const commodityIdentifiersByCode = {
   ],
   '05119985': [
     { id: 'donor-id', label: 'Donor name/ID', type: 'text', maxLength: 58 },
-    { id: 'collection-date', label: 'Collection date', type: 'date', hint: 'For example, 27/3/2026' },
-    { id: 'production-date', label: 'Production date', type: 'date', hint: 'For example, 27/3/2026' },
+    { id: 'collection-date', label: 'Collection date', type: 'date', hint: 'For example, 27/03/2026' },
+    { id: 'production-date', label: 'Production date', type: 'date', hint: 'For example, 27/03/2026' },
     { id: 'identification-number', label: 'Identification number/mark', type: 'text', maxLength: 58 }
   ],
   '05111000': [
     { id: 'donor-id', label: 'Donor name/ID', type: 'text', maxLength: 58 },
-    { id: 'collection-date', label: 'Collection date', type: 'date', hint: 'For example, 27/3/2026' },
-    { id: 'production-date', label: 'Production date', type: 'date', hint: 'For example, 27/3/2026' },
+    { id: 'collection-date', label: 'Collection date', type: 'date', hint: 'For example, 27/03/2026' },
+    { id: 'production-date', label: 'Production date', type: 'date', hint: 'For example, 27/03/2026' },
     { id: 'identification-number', label: 'Identification number/mark', type: 'text', maxLength: 58 }
   ]
 }

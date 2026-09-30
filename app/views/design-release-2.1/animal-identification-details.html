@@ -128,7 +128,7 @@
                                   text: field.label
                                 },
                                 hint: {
-                                  text: field.hint or "For example, 27/3/2026"
+                                  text: field.hint or "For example, 27/03/2026"
                                 },
                                 errorMessage: fieldError,
                                 formGroup: {
@@ -137,10 +137,6 @@
                               }) }}
                             </div>
                           {% else %}
-                            {% set fieldAttributes = {} %}
-                            {% if field.maxLength %}
-                              {% set fieldAttributes = { maxlength: field.maxLength } %}
-                            {% endif %}
                             {{ govukInput({
                               label: {
                                 text: field.label
@@ -149,8 +145,7 @@
                               name: fieldName,
                               value: fieldValue,
                               classes: "govuk-input--width-20 app-animal-identification-page__input",
-                              errorMessage: fieldError,
-                              attributes: fieldAttributes
+                              errorMessage: fieldError
                             }) }}
                           {% endif %}
                         {% endfor %}

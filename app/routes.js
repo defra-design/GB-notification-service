@@ -2110,6 +2110,30 @@ function saveActiveAnimalIdentifiersFromBody (sessionData, body, options = {}) {
   return { errors, errorList, firstErrorSpeciesId, firstErrorValues }
 }
 
+function looksLikeDdMmYyyyDate (value) {
+  return /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(String(value || '').trim())
+}
+
+function getIdentifierFieldError (field, value) {
+  if (field.maxLength && value.length > field.maxLength) {
+    return `${field.label} must be ${field.maxLength} characters or less`
+  }
+
+  if (field.type !== 'date') {
+    return null
+  }
+
+  if (!looksLikeDdMmYyyyDate(value)) {
+    return `Enter a ${field.label.toLowerCase()} in the format DD/MM/YYYY`
+  }
+
+  if (!parseArrivalDisplayDate(value)) {
+    return `${field.label} must be a real date`
+  }
+
+  return null
+}
+
 function validateAnimalIdentifiers (identifierFields, rawIdentifiers, speciesId = '') {
   const errors = {}
   const errorList = []
@@ -2126,29 +2150,20 @@ function validateAnimalIdentifiers (identifierFields, rawIdentifiers, speciesId 
       return
     }
 
-    const errorId = `identifier-${speciesId}-${field.id}`
-    const errorKey = `identifier-${speciesId}-${field.id}`
+    const text = getIdentifierFieldError(field, value)
 
-    if (field.maxLength && value.length > field.maxLength) {
-      const text = `${field.label} must be ${field.maxLength} characters or less`
-
-      errors[errorKey] = { text }
-      errorList.push({
-        text,
-        href: `#${errorId}`
-      })
+    if (!text) {
       return
     }
 
-    if (field.type === 'date' && !parseArrivalDisplayDate(value)) {
-      const text = `${field.label} must be a real date`
+    const errorId = `identifier-${speciesId}-${field.id}`
+    const errorKey = `identifier-${speciesId}-${field.id}`
 
-      errors[errorKey] = { text }
-      errorList.push({
-        text,
-        href: `#${errorId}`
-      })
-    }
+    errors[errorKey] = { text }
+    errorList.push({
+      text,
+      href: `#${errorId}`
+    })
   })
 
   return { errors, errorList, values }
@@ -12480,17 +12495,7 @@ router.post('/animal-identification-details', (req, res) => {
     return res.redirect('/animal-identification-details')
   }
 
-  if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
-    saveActiveAnimalIdentifiersFromBody(req.session.data, req.body, {
-      onlySingleAnimalSpecies: true
-    })
-    req.session.data.errorList = null
-    req.session.data.errors = null
-
-    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
-  }
-
-  if (action === 'continue') {
+  if (isJourneySoftSaveAction(getJourneyFormAction(req)) || action === 'continue') {
     const identifierSave = saveActiveAnimalIdentifiersFromBody(req.session.data, req.body, {
       onlySingleAnimalSpecies: true
     })
@@ -12507,6 +12512,10 @@ router.post('/animal-identification-details', (req, res) => {
 
     req.session.data.errorList = null
     req.session.data.errors = null
+
+    if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
+      return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
+    }
 
     return res.redirect(getSectionContinueRedirect(
       req,
