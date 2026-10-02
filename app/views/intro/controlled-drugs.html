@@ -1,0 +1,98 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+
+{% set title = "Controlled drugs: import and export licences" %}
+
+{% block beforeContent %}
+  {{ govukBreadcrumbs({
+    items: [
+      { text: "Home", href: "https://www.gov.uk/" },
+      { text: "Import goods into the UK: step by step", href: "/intro/import-goods-into-uk" }
+    ]
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 class="govuk-heading-l">Controlled drugs: import and export licences</h1>
+    <p class="govuk-body">Information for companies on the import and export of controlled drugs to and from the UK.</p>
+
+    <h2 class="govuk-heading-m">Before you apply</h2>
+    <p class="govuk-body">You need a National Drugs Control System (NDS) account to apply for an import or export licence. Account requests are normally processed in 5 working days.</p>
+    <p class="govuk-body">You must have a valid domestic licence before you apply for an NDS account &ndash; your account request will be cancelled if you do not have one.</p>
+    <p class="govuk-body">Once your account is approved, you must register your overseas trading partners and your controlled drug preparation details. Trading partner and preparation requests are normally processed in 5 working days, so long as the process in the user guide is followed.</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>Read the <a class="govuk-link" href="https://www.gov.uk/government/publications/national-drugs-control-system-user-guide">National Drugs Control System user guide</a> for detailed instructions</li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Apply for an import or export licence</h2>
+    <p class="govuk-body">You must submit your application electronically. Valid applications are normally processed in 10 working days.</p>
+    <p class="govuk-body">Licences are valid for:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>import licences &ndash; 3 months</li>
+      <li>export licences &ndash; 2 months, or until the importing country&rsquo;s permit expires, whichever is sooner</li>
+    </ul>
+    <p class="govuk-body">Individual shipment licences can only be used once. You can ship less than the amount authorised on your licence, but you cannot exceed the licensed quantity or ship a different product. Licences cannot be post-dated or issued retrospectively.</p>
+    <p class="govuk-body">Applications for internationally controlled substances take into account estimates from the International Narcotics Control Board (INCB). UK export licences require a copy of the import permit.</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>Apply using the <a class="govuk-link" href="https://dflu.homeoffice.gov.uk/#/home">NDS web portal</a></li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Channel Islands</h2>
+    <p class="govuk-body">Jersey and Guernsey have their own, independent licensing requirements. Companies may be able to apply for a frequent exporter licence if they meet certain conditions.</p>
+
+    <h3 class="govuk-heading-s">Frequent exporters</h3>
+    <p class="govuk-body">To be eligible you must make 24 or more shipments a year. This licence is only available for the export of medicines in finished dose form, from the UK to the Channel Islands, listed in schedules 2 to 4 inclusive of the Misuse of Drugs Regulations 2001 &ndash; it does not cover Cannabis-Based Products for Medicinal Use in Humans or Schedule 1 materials.</p>
+    <p class="govuk-body">The maximum validity of a frequent exporter licence is one year. To renew your licence you must:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>apply at least one month before your current licence expires</li>
+      <li>go through a new assessment &ndash; renewal is not automatic</li>
+      <li>send monthly returns detailing the drugs you&rsquo;ve shipped to <a class="govuk-link" href="mailto:dflu.ie@homeoffice.gov.uk">dflu.ie@homeoffice.gov.uk</a></li>
+      <li>provide documentation for any month with zero shipments, to prevent your licence being suspended</li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Export restrictions on specific drug substances</h2>
+    <p class="govuk-body">EU-wide controls on drugs that could be used for execution took effect on 21 December 2011, amending Council Regulation (EC) 1236/2005. These restrict the export of &lsquo;short and intermediate acting barbiturate anaesthetic agents&rsquo;.</p>
+    <p class="govuk-body">The restricted substances are:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>amobarbital (CAS RN 57-43-2)</li>
+      <li>amobarbital sodium salt (CAS RN 64-43-7)</li>
+      <li>pentobarbital (CAS RN 76-74-4)</li>
+      <li>pentobarbital sodium salt (CAS 57-33-0)</li>
+      <li>secobarbital (CAS RN 76-73-3)</li>
+      <li>secobarbital sodium salt (CAS RN 309-43-3)</li>
+      <li>thiopental (CAS RN 76-75-5)</li>
+      <li>thiopental sodium salt (CAS RN 71-73-8), also known as thiopentone sodium</li>
+    </ul>
+    <p class="govuk-body">If you want to export any of these substances to a destination outside the EU, you must seek permission from the relevant national export control authority. You should also read the <a class="govuk-link" href="https://www.gov.uk/guidance/controls-on-torture-goods">guide on torture goods</a>. Country-specific regulations may further restrict exports during conflicts.</p>
+
+    <h2 class="govuk-heading-m">Annual statistical returns</h2>
+    <p class="govuk-body">Wholesalers, manufacturers, producers and suppliers must submit annual returns to <a class="govuk-link" href="mailto:annualdrugreturns@homeoffice.gov.uk">annualdrugreturns@homeoffice.gov.uk</a> using the <a class="govuk-link" href="https://www.gov.uk/government/publications/controlled-drugs-annual-returns-form">annual returns form</a>.</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>Read the guidance on <a class="govuk-link" href="https://www.gov.uk/government/publications/controlled-drugs-annual-statistical-returns-guidance">annual statistical returns</a></li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Endorsements</h2>
+    <p class="govuk-body">The conditions of import and export licences require you to endorse them online on the NDS web portal immediately after shipment. Licences that are unused, or only partially used, must be endorsed before you apply for new licences.</p>
+    <p class="govuk-body">If you do not regularly submit timely endorsements, your NDS account may be suspended.</p>
+
+    <h3 class="govuk-heading-s">Fees</h3>
+    <p class="govuk-body">Each licence costs &pound;24, regardless of whether it is used or whether there was an error in the application. Your NDS account may be suspended if you do not pay.</p>
+
+    <h2 class="govuk-heading-m">Contact details</h2>
+    <p class="govuk-body">Import and export licensing:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>Email: <a class="govuk-link" href="mailto:dflu.ie@homeoffice.gov.uk">dflu.ie@homeoffice.gov.uk</a></li>
+      <li>Telephone: 0300 105 0248</li>
+    </ul>
+    <p class="govuk-body">This team handles queries about the import and export of controlled substances into and out of the UK, including licences, applications, endorsements and general enquiries.</p>
+    <p class="govuk-body">Customer complaints:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>Email: <a class="govuk-link" href="mailto:dflu.complaints@homeoffice.gov.uk">dflu.complaints@homeoffice.gov.uk</a></li>
+    </ul>
+    <p class="govuk-body">This address is for complaints about the import or export, or domestic licensing, of controlled drugs, precursor chemicals or industrial hemp. You should try to resolve your query with the relevant team above first.</p>
+
+  </div>
+</div>
+{% endblock %}

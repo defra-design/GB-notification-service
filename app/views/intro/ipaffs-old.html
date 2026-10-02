@@ -1,0 +1,82 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+
+{% set title = "Import of products, animals, food and feed system (IPAFFS)" %}
+
+{% block beforeContent %}
+  {{ govukBreadcrumbs({
+    items: [
+      { text: "Home", href: "#" },
+      { text: "Import goods into the UK: step by step", href: "/intro/import-goods-into-uk" }
+    ]
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    {% call govukNotificationBanner() %}
+      <p class="govuk-notification-banner__heading">
+        Import rules have changed. This service will close in July 2027. 
+       Use the <a class="govuk-notification-banner__link" href="/intro/import-notification-start">Import Notification Service</a>.
+      </p>
+    {% endcall %}
+
+    <h1 class="govuk-heading-l">Import of products, animals, food and feed system (IPAFFS)</h1>
+    <p class="govuk-body">Importers and import agents need to use IPAFFS to notify authorities about imports to Great Britain.</p>
+
+    <h2 class="govuk-heading-m">Register for IPAFFS</h2>
+    <p class="govuk-body">Users must sign in to access the service. Those already using other Defra services can register for IPAFFS by selecting &lsquo;register for more services&rsquo;. Import agents acting on behalf of importers must register using their own business details and should not select &lsquo;intermediaries&rsquo; on the &lsquo;Manage account&rsquo; screen.</p>
+    <p class="govuk-body">When you raise a notification in IPAFFS, you are responsible for the consignment from when it enters Great Britain until the authorities complete their checks.</p>
+
+    <h2 class="govuk-heading-m">Create an import notification</h2>
+    <p class="govuk-body">Import documents must be in electronic format (for example PDF). Great Britain accepts verifiable PDF GB health certificates from the EU, Iceland, Liechtenstein and Norway for live animals and animal products.</p>
+    <p class="govuk-body">Documents must be uploaded to the import notification before submission.</p>
+    {{ govukButton({
+      text: "Start now",
+      href: "https://import-products-animals-food-feed.service.gov.uk/notification/prd/protected/notifications",
+      isStartButton: true
+    }) }}
+
+    <h2 class="govuk-heading-m">Import rules</h2>
+    <p class="govuk-body">Guidance links for specific product categories:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/importing-or-moving-live-animals-animal-products-and-high-risk-food-and-feed-not-of-animal-origin">live animals and germinal products from the EU</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/import-animal-by-products-from-the-eu-to-great-britain">animal by-products from the EU</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/import-high-risk-food-and-feed-not-of-animal-origin-from-the-eu-to-great-britain">high-risk food and feed of non-animal origin from the EU</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/import-or-move-food-and-drink-from-the-eu-and-northern-ireland-to-great-britain">products of animal origin from the EU</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/import-or-move-composite-products-from-the-eu-and-northern-ireland-to-great-britain">composite products from the EU</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/import-compound-products-from-the-eu-to-great-britain">compound products from the EU to Great Britain</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/import-plants-and-plant-products-from-the-eu-to-great-britain">plants and plant products from the EU</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/import-or-export-live-fish-and-shellfish">fish to the UK</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/importing-live-animals-or-animal-products-from-non-eu-countries">live animals, animal products and high risk food and feed not of animal origin from non-EU countries</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/import-plants-and-plant-products-from-non-eu-countries-to-great-britain">plants and plant products from non-EU countries</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/import-live-animals-and-germinal-products-to-great-britain-under-balai-rules">live animals and germinal products to Great Britain under Balai rules</a></li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Get help</h2>
+
+    <h3 class="govuk-heading-s">Technical support</h3>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>call the APHA helpline: 0330 041 6999</li>
+      <li>email <a class="govuk-link" href="mailto:APHAServiceDesk@apha.gov.uk">APHAServiceDesk@apha.gov.uk</a></li>
+    </ul>
+
+    <h3 class="govuk-heading-s">Import notification assistance</h3>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>live animals: <a class="govuk-link" href="mailto:importsriskmanagement@apha.gov.uk">importsriskmanagement@apha.gov.uk</a></li>
+      <li>high risk food and feed of non-animal origin: <a class="govuk-link" href="mailto:imported.food@food.gov.uk">imported.food@food.gov.uk</a></li>
+      <li>plants and plant products: <a class="govuk-link" href="https://planthealthportal.defra.gov.uk/trade/imports/imports-from-the-eu/import-it-systems/ipaffs/ipaffs-for-plants-guidance/">IPAFFS for plants guidance</a> or <a class="govuk-link" href="mailto:phsi-importers@apha.gov.uk">phsi-importers@apha.gov.uk</a></li>
+      <li>animal products: <a class="govuk-link" href="https://www.gov.uk/government/publications/uk-border-control-posts-animal-and-animal-product-imports">contact the port health authority at your border control post</a></li>
+    </ul>
+
+    <h3 class="govuk-heading-s">Customs declarations</h3>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/government/organisations/hm-revenue-customs/contact/customs-international-trade-and-excise-enquiries">Contact HMRC</a></li>
+    </ul>
+
+  </div>
+</div>
+{% endblock %}

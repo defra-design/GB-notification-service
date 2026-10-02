@@ -1,0 +1,68 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+
+{% set title = "Import of products, animals, food and feed system (IPAFFS)" %}
+
+{% block beforeContent %}
+  {{ govukBreadcrumbs({
+    items: [
+      { text: "Home", href: "#" },
+      { text: "Import goods into the UK: step by step", href: "/intro/import-goods-into-uk" }
+    ]
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+
+    <form action="/intro/import-notification-start" method="post" novalidate>
+
+    {# {% call govukNotificationBanner() %}
+      <p class="govuk-notification-banner__heading">
+        Import rules have changed. This service will close in July 2027. 
+       Use the <a class="govuk-notification-banner__link" href="/intro/import-notification-start">Import Notification Service</a>.
+      </p>
+    {% endcall %} #}
+
+<div class="govuk-panel govuk-panel--confirmation govuk-panel-card">
+
+          <h1 class="govuk-heading-l">IPAFFS closed in July 2027</h1>
+            {# <p class="govuk-body">What you need to know:</p> #}
+            <h2 class="govuk-heading-m">What you need to know:</h2>
+            <ul class="govuk-list govuk-list--bullet">
+              <li>the <a href="https://www.gov.uk/government/news/uk-eu-sps-agreement-information-for-businesses" target="_blank" rel="noreferrer nofollow">UK-EU SPS Agreement</a> came into effect in July 2027, making imports smoother, easier and more predictable</li>
+              <li>the Import Notification Service replaces IPAFFS under this agreement. You should use this instead.</li>
+              <li>what happened to their data, whether it was passed on to the Import Notification Service and the rights they have under your organisation's data protection policy</li>
+            </ul>
+            
+            {# <p class="govuk-body">Read the <a href="https://grants-ui.dev.cdp-int.defra.cloud/farm-payments/fptt-information#sec-10-get-all-necessary-regulatory-consents-permissions-and-licences-in-place" rel="noreferrer nofollow" target="_blank">guidance on EU/UK reset</a> to see how this affects you.</p> #}
+            {# <p>Start using the Import Notification Service now.</p> #}
+            <h2 class="govuk-heading-m">What you need to do next:</h2>
+                       
+            <p>Start using the Import Notification Service now.</p>
+            {# <p>Start using the <a href="/intro/import-notification-start">Import Notification Service</a> now.</p> #}
+
+            {# {{ govukButton({
+              text: "Start now",
+              href: "/intro/import-notification-start",
+              isStartButton: true
+            }) }} #}
+
+              {# {{ govukButton({
+              text: "Continue",
+              href: "/intro/import-notification-start"
+            }) }} #}
+
+            <button type="submit" class="govuk-button" data-module="govuk-button">
+              Continue
+           </button>
+
+           </form>
+
+        </div>
+  </div>
+</div>
+{% endblock %}

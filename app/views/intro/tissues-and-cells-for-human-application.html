@@ -1,0 +1,43 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+
+{% set title = "HTA guidance on the coding and import of tissues and cells for human application" %}
+
+{% block beforeContent %}
+  {{ govukBreadcrumbs({
+    items: [
+      { text: "Home", href: "https://www.gov.uk/" },
+      { text: "Import goods into the UK: step by step", href: "/intro/import-goods-into-uk" }
+    ]
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 class="govuk-heading-l">HTA guidance on the coding and import of tissues and cells for human application</h1>
+    <p class="govuk-body">Information on the HTA&rsquo;s guidance on the coding and import Directives.</p>
+
+    <p class="govuk-body">The HTA has developed <a class="govuk-link" href="https://www.hta.gov.uk/sites/default/files/HTA%20guidance%20on%20Coding%20and%20Import%20of%20tissues%20and%20cells%20for%20HA%20-%20December%202017.pdf">guidance</a> which all establishments in the human application sector should read, on The Human Tissue (Quality and Safety for Human Application) (Amendment) Regulations 2018. This guidance was updated following feedback from <a class="govuk-link" href="https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/667417/Import_and_Coding_Consultation_Government_Response.pdf">Department of Health&rsquo;s consultation</a> on the draft Regulations.</p>
+
+    <h2 class="govuk-heading-m">Who the guidance affects</h2>
+    <p class="govuk-body">The guidance contains key information on how the Directives will affect particular groups of establishments, such as:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>private tissue banks/establishments that store tissues and cells for potential future use</li>
+      <li>commercial importers and distributors</li>
+      <li>haematopoietic stem cell (HSC) registries and transplant centres</li>
+      <li>tissue banks</li>
+      <li>establishments that procure starting material for the manufacture of Advanced Therapy (Investigational) Medicinal Products (AT(I)MPs)</li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Download the guidance</h2>
+    <p class="govuk-body">You can download the full guidance document as a PDF.</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.hta.gov.uk/sites/default/files/HTA%20guidance%20on%20Coding%20and%20Import%20of%20tissues%20and%20cells%20for%20HA%20-%20December%202017_5.pdf">Download PDF: HTA guidance on Coding and Import of tissues and cells for human application (December 2017)</a></li>
+    </ul>
+
+    <p class="govuk-body">Last updated on: 27 December 2017.</p>
+
+  </div>
+</div>
+{% endblock %}

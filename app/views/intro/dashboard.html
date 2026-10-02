@@ -1,0 +1,282 @@
+
+{% extends "layouts/v1-baseline.html" %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/pagination/macro.njk" import govukPagination %}
+
+{% set navCurrent = "dashboard" %}
+{% set title = "Import notification service" %}
+{% set pageTitleOnly = "Dashboard" %}
+
+{% block content %}
+
+{% set dp = dashboardBasePath or basePath or '/v1-baseline' %}
+
+{% from "includes/page-header.njk" import pageHeader %}
+{% call pageHeader(title, null, "full") %}
+    {{ govukButton({
+      text: "Create an import notification",
+      href: (journeyBasePath or dashboardBasePath or basePath or '/v1-baseline') + "/create/new",
+      classes: "govuk-!-margin-top-0 govuk-!-margin-bottom-6"
+    }) }}
+{% endcall %}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-one-third filter-panel">
+    <h2 class="govuk-heading-m">Filter notifications</h2>
+    <form method="get" novalidate id="filter-form" class="filter-labels-16">
+      <input type="hidden" name="filterPeriod" value="{{ data.filterPeriod or '' }}">
+      {{ govukSelect({
+        id: "filterNotificationType",
+        name: "filterNotificationType",
+        label: { text: "Notification type", classes: "govuk-!-font-size-16" },
+        value: data.filterNotificationType or "",
+        items: notificationTypeItems
+      }) }}
+      {{ govukInput({
+        label: { text: "Keyword or reference", classes: "govuk-!-font-size-16" },
+        id: "filterKeyword",
+        name: "filterKeyword",
+        value: data.filterKeyword or ""
+      }) }}
+      {{ govukInput({
+        label: { text: "Commodity code or name", classes: "govuk-!-font-size-16" },
+        id: "filterCommodity",
+        name: "filterCommodity",
+        value: data.filterCommodity or ""
+      }) }}
+      <div class="govuk-form-group">
+        <label class="govuk-label govuk-!-font-size-16" for="filterOrigin">Country of origin</label>
+        <div class="autocomplete-wrapper autocomplete-wrapper--full">
+          <select class="govuk-select" id="filterOrigin" name="filterOrigin">
+            <option value="">Type country name</option>
+            {% for country in (originCountries or []) %}
+              <option value="{{ country }}" {% if data.filterOrigin == country %}selected{% endif %}>{{ country }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      {{ govukInput({
+        label: { text: "Consignee / Consignor", classes: "govuk-!-font-size-16" },
+        id: "filterConsignee",
+        name: "filterConsignee",
+        value: data.filterConsignee or ""
+      }) }}
+      {{ govukInput({
+        label: { text: "Place of destination", classes: "govuk-!-font-size-16" },
+        id: "filterDestination",
+        name: "filterDestination",
+        value: data.filterDestination or ""
+      }) }}
+      {{ govukSelect({
+        id: "filterStatus",
+        name: "filterStatus",
+        label: { text: "Status", classes: "govuk-!-font-size-16" },
+        value: data.filterStatus or "",
+        items: [
+          { value: "", text: "Show all" },
+          { value: "draft", text: "Draft" },
+          { value: "submitted", text: "Submitted" }
+        ]
+      }) }}
+      <div class="govuk-form-group">
+        <label class="govuk-label govuk-!-font-size-16" id="filter-date-range-label" for="filterStartDate">Arrival date</label>
+        <div class="govuk-!-margin-top-2">
+          {{ govukInput({
+            label: { text: "Start date", classes: "govuk-!-font-size-16" },
+            id: "filterStartDate",
+            name: "filterStartDate",
+            type: "date",
+            classes: "govuk-input--width-10",
+            value: data.filterStartDate or ""
+          }) }}
+          {{ govukInput({
+            label: { text: "End date", classes: "govuk-!-font-size-16" },
+            id: "filterEndDate",
+            name: "filterEndDate",
+            type: "date",
+            classes: "govuk-input--width-10",
+            value: data.filterEndDate or ""
+          }) }}
+        </div>
+      </div>
+      {{ govukButton({
+        text: "Search filters",
+        classes: "govuk-!-margin-bottom-2"
+      }) }}
+      <p class="govuk-body govuk-!-margin-top-4 govuk-!-margin-bottom-0">
+        <a href="{{ dashboardBasePath or basePath or '/v1-baseline' }}/clear-filters" class="govuk-link govuk-link--no-visited-state">Clear filters</a>
+      </p>
+    </form>
+    <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible govuk-!-margin-top-6 govuk-!-margin-bottom-4">
+    <section class="govuk-!-margin-bottom-0" aria-labelledby="notification-created-filters-label">
+      <h3 class="govuk-heading-s" id="notification-created-filters-label">Date created</h3>
+      <p id="notification-created-presets-label" class="govuk-body-s govuk-!-margin-bottom-1 govuk-!-margin-top-1">Quick presets</p>
+      <nav class="govuk-!-margin-top-1" aria-labelledby="notification-created-filters-label notification-created-presets-label">
+        <ul class="govuk-list govuk-list--spaced dashboard-filter-list">
+          {% set dp = dashboardBasePath or basePath or '/v1-baseline' %}
+          <li><a href="{{ dp }}/dashboard?filterPeriod=last-1-hour{% if filterQueryBase %}&{{ filterQueryBase }}{% endif %}" class="govuk-link govuk-link--no-visited-state govuk-!-font-size-16{% if data.filterPeriod == 'last-1-hour' %} govuk-!-font-weight-bold{% endif %}"{% if data.filterPeriod == 'last-1-hour' %} aria-current="true"{% endif %}>Last 1 hour</a></li>
+          <li><a href="{{ dp }}/dashboard?filterPeriod=last-24-hours{% if filterQueryBase %}&{{ filterQueryBase }}{% endif %}" class="govuk-link govuk-link--no-visited-state govuk-!-font-size-16{% if data.filterPeriod == 'last-24-hours' %} govuk-!-font-weight-bold{% endif %}"{% if data.filterPeriod == 'last-24-hours' %} aria-current="true"{% endif %}>Last 24 hours</a></li>
+          <li><a href="{{ dp }}/dashboard?filterPeriod=last-7-days{% if filterQueryBase %}&{{ filterQueryBase }}{% endif %}" class="govuk-link govuk-link--no-visited-state govuk-!-font-size-16{% if data.filterPeriod == 'last-7-days' %} govuk-!-font-weight-bold{% endif %}"{% if data.filterPeriod == 'last-7-days' %} aria-current="true"{% endif %}>Last 7 days</a></li>
+          <li><a href="{{ dp }}/dashboard?filterPeriod=last-30-days{% if filterQueryBase %}&{{ filterQueryBase }}{% endif %}" class="govuk-link govuk-link--no-visited-state govuk-!-font-size-16{% if data.filterPeriod == 'last-30-days' or not data.filterPeriod %} govuk-!-font-weight-bold{% endif %}"{% if data.filterPeriod == 'last-30-days' or not data.filterPeriod %} aria-current="true"{% endif %}>Last 30 days</a></li>
+        </ul>
+      </nav>
+    </section>
+  </div>
+
+  <div class="govuk-grid-column-two-thirds">
+    {% if activeFilters and (activeFilters|length) > 0 %}
+    <div class="govuk-!-margin-bottom-4">
+      <p class="govuk-body govuk-!-margin-bottom-0">
+        <strong>{{ activeFilters|length }} filter{% if (activeFilters|length) != 1 %}s{% endif %} applied</strong>. <a href="{{ dashboardBasePath or basePath or '/v1-baseline' }}/clear-filters" class="govuk-link govuk-link--no-visited-state">Clear filters</a>
+      </p>
+    </div>
+    {% endif %}
+    <div class="govuk-!-margin-bottom-4 dashboard-results-bar">
+      <p class="govuk-body govuk-!-margin-bottom-0 dashboard-results-count"><strong>{{ data.resultsCount or 3 }} results</strong></p>
+      <form method="get" action="{{ dashboardBasePath or basePath or '/v1-baseline' }}/dashboard" class="govuk-form-group govuk-!-margin-0 dashboard-sort-form" id="sort-form">
+        {% for key in ['filterKeyword', 'filterCommodity', 'filterOrigin', 'filterNotificationType', 'filterConsignee', 'filterDestination', 'filterStatus', 'filterPeriod', 'filterStartDate', 'filterEndDate'] %}
+        <input type="hidden" name="{{ key }}" value="{{ data[key] or '' }}">
+        {% endfor %}
+        <div class="govuk-form-group govuk-!-margin-bottom-0 dashboard-sort-controls">
+          <label for="sort" class="govuk-label govuk-!-margin-bottom-0 govuk-!-margin-right-0">Sort by:</label>
+          {{ govukSelect({
+            name: "sort",
+            id: "sort",
+            value: data.sort or "arrival-desc",
+            classes: "govuk-!-width-auto govuk-!-margin-bottom-0",
+            items: [
+              { value: "arrival-desc", text: "Arrival (newest to oldest)" },
+              { value: "arrival-asc", text: "Arrival (oldest to newest)" },
+              { value: "created-desc", text: "Date created (newest to oldest)" },
+              { value: "created-asc", text: "Date created (oldest to newest)" }
+            ]
+          }) }}
+        </div>
+      </form>
+    </div>
+    <div class="govuk-body">
+      {% for n in notifications %}
+      <div class="govuk-summary-card govuk-!-margin-bottom-4">
+        <div class="govuk-summary-card__title-wrapper">
+          <h3 class="govuk-summary-card__title dashboard-card-title">{{ n.reference }}</h3>
+          <ul class="govuk-summary-card__actions dashboard-card-actions">
+            <li>
+              {% if n.isSessionDraft or n.status != "submitted" %}
+              <a class="govuk-link govuk-!-font-weight-regular" href="{{ n.viewHref }}">View</a>
+              {% else %}
+              <a class="govuk-link govuk-!-font-weight-regular" href="#">Copy as new</a> <span class="dashboard-card-separator" aria-hidden="true">|</span> <a class="govuk-link govuk-!-font-weight-regular" href="{{ n.viewHref }}">View</a>
+              {% endif %}
+            </li>
+          </ul>
+        </div>
+        <div class="govuk-summary-card__content dashboard-card-content">
+          <div class="govuk-grid-row govuk-!-margin-bottom-0">
+            <div class="govuk-grid-column-one-third govuk-!-margin-bottom-4">
+              <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Notification type</p>
+              <p class="govuk-body govuk-!-margin-0">{{ n.type or "Not provided" }}</p>
+            </div>
+            <div class="govuk-grid-column-one-third govuk-!-margin-bottom-4">
+              <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Commodity</p>
+              <p class="govuk-body govuk-!-margin-0">{{ n.commodity }}</p>
+            </div>
+            <div class="govuk-grid-column-one-third govuk-!-margin-bottom-4">
+              <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Origin</p>
+              <p class="govuk-body govuk-!-margin-0">{{ n.origin }}</p>
+            </div>
+          </div>
+          <div class="govuk-grid-row">
+            <div class="govuk-grid-column-one-third govuk-!-margin-bottom-0">
+              <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Arrival at destination</p>
+              <p class="govuk-body govuk-!-margin-0">{{ n.arrival }}</p>
+            </div>
+            <div class="govuk-grid-column-one-third govuk-!-margin-bottom-0">
+              <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Consignee</p>
+              <p class="govuk-body govuk-!-margin-0">{{ n.consignee }}</p>
+            </div>
+            <div class="govuk-grid-column-one-third govuk-!-margin-bottom-0">
+              <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Consignor</p>
+              <p class="govuk-body govuk-!-margin-0">{{ n.consignor }}</p>
+            </div>
+          </div>
+          <div class="govuk-grid-row">
+            <div class="govuk-grid-column-one-third govuk-!-margin-bottom-0">
+              <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Status</p>
+              <p class="govuk-body govuk-!-margin-0">
+                {% if n.status == "submitted" %}
+                <span class="govuk-tag govuk-tag--blue">SUBMITTED</span>
+                {% else %}
+                <span class="govuk-tag govuk-tag--grey">DRAFT</span>
+                {% endif %}
+              </p>
+            </div>
+          </div>
+          {% if n.dateCreated %}
+          <p class="govuk-body govuk-!-margin-top-4 govuk-!-margin-bottom-0">Date created: {{ n.dateCreated }}</p>
+          {% endif %}
+        </div>
+      </div>
+      {% else %}
+      <p class="govuk-body">No notifications match your filters.</p>
+      {% endfor %}
+    </div>
+
+    {% if dashboardTotalPages > 1 %}
+    <div class="govuk-!-margin-top-6">
+      {% set baseUrl = (dashboardBasePath or basePath or '/v1-baseline') + "/dashboard" %}
+      {% set sep = dashboardQueryParams and "&" or "" %}
+      {% set prevHref = baseUrl + "?page=" + (dashboardPage - 1) + (sep + (dashboardQueryParams or '')) %}
+      {% set nextHref = baseUrl + "?page=" + (dashboardPage + 1) + (sep + (dashboardQueryParams or '')) %}
+      {{ govukPagination({
+        landmarkLabel: "Results pagination",
+        classes: "govuk-pagination--block govuk-!-margin-top-0",
+        previous: dashboardPage > 1 and {
+          href: prevHref,
+          text: "Previous page",
+          labelText: (dashboardPage - 1) + " of " + dashboardTotalPages
+        } or null,
+        next: dashboardPage < dashboardTotalPages and {
+          href: nextHref,
+          text: "Next page",
+          labelText: (dashboardPage + 1) + " of " + dashboardTotalPages
+        } or null
+      }) }}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block pageScripts %}
+  <script src="https://cdn.jsdelivr.net/npm/accessible-autocomplete@2.0.4/dist/accessible-autocomplete.min.js"></script>
+  <script>
+    (function () {
+      var sortForm = document.getElementById('sort-form')
+      if (sortForm && sortForm.querySelector('#sort')) {
+        sortForm.querySelector('#sort').addEventListener('change', function () {
+          sortForm.submit()
+        })
+      }
+      var originSelect = document.querySelector('#filterOrigin')
+      if (originSelect && typeof accessibleAutocomplete !== 'undefined') {
+        accessibleAutocomplete.enhanceSelectElement({
+          autoselect: true,
+          defaultValue: originSelect.options[originSelect.selectedIndex] ? originSelect.options[originSelect.selectedIndex].text : '',
+          minLength: 2,
+          selectElement: originSelect
+        })
+      }
+      var filterPeriodHidden = document.querySelector('#filter-form input[name="filterPeriod"]')
+      ;['#filterStartDate', '#filterEndDate'].forEach(function (sel) {
+        var el = document.querySelector(sel)
+        if (el && filterPeriodHidden) {
+          el.addEventListener('input', function () {
+            filterPeriodHidden.value = ''
+          })
+        }
+      })
+    })()
+  </script>
+{% endblock %}

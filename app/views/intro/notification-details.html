@@ -1,0 +1,339 @@
+
+{% extends "layouts/v1-baseline.html" %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+
+{#
+  Read-only "Notification details" view for the intro dashboard, forked from
+  v1-baseline/create/check-your-answers.html (2026-07-20) so this journey's notification
+  details screens can evolve independently of v1-baseline's create-flow check-your-answers
+  page, which also doubles as v1-baseline's own read-only notification view. This copy
+  drops everything that only applies in edit mode there (Change links, the "Confirm and
+  submit" form, quick-fill) since this template is only ever rendered read-only.
+#}
+
+{% set navCurrent = "dashboard" %}
+{% set readOnlyPrimaryLabel = readOnlyPrimaryButtonText or "Continue" %}
+{% set title = readOnlyPageTitle or "Notification details" %}
+{% set backLinkHref = viewBackLinkHref or "/intro/dashboard" %}
+
+{% block content %}
+
+{% if showDeletionSuccessBanner %}
+{{ govukNotificationBanner({
+  type: "success",
+  titleText: "Notification deleted",
+  html: '<p class="govuk-notification-banner__heading">The notification has been removed from your list.</p><p class="govuk-body govuk-!-margin-bottom-0"><a class="govuk-notification-banner__link" href="/intro/dashboard">Back to dashboard</a></p>',
+  classes: "govuk-!-margin-bottom-6"
+}) }}
+{% endif %}
+
+{% from "includes/page-header.njk" import pageHeader %}
+{% macro roSummaryList(cardTitle, rows) %}
+{{ govukSummaryList({
+  card: { title: { text: cardTitle } },
+  rows: rows
+}) }}
+{% endmacro %}
+
+{% call pageHeader(title, viewPageCaption, "full") %}
+    {% if not readOnlyHideActions %}
+    <div class="notification-view-options govuk-!-margin-bottom-6" role="region" aria-label="Actions for this notification">
+      <div class="govuk-button-group govuk-!-margin-bottom-0">
+        {{ govukButton({
+          text: readOnlyPrimaryLabel,
+          href: amendHref,
+          classes: "govuk-button--secondary"
+        }) }}
+        {% if readOnlyShowCopyAsNew %}
+        {{ govukButton({
+          text: "Copy as new",
+          href: copyAsNewHref or "#",
+          classes: "govuk-button--secondary"
+        }) }}
+        {% endif %}
+        <button type="button" class="govuk-button govuk-button--warning" id="cya-view-delete-open" data-module="govuk-button">Delete</button>
+      </div>
+    </div>
+
+    <dialog class="ns-dialog" id="cya-view-delete-dialog" aria-labelledby="cya-view-delete-title" aria-describedby="cya-view-delete-body">
+      <div class="govuk-!-padding-4">
+        <h2 class="govuk-heading-m" id="cya-view-delete-title">Delete this notification?</h2>
+        <p class="govuk-body" id="cya-view-delete-body">This will remove the notification from your dashboard. You cannot undo this action.</p>
+        <form class="govuk-!-margin-top-6 govuk-!-margin-bottom-0" method="post" action="{{ notificationDeleteHref }}">
+          <div class="govuk-button-group govuk-!-margin-bottom-0 ns-dialog__button-group">
+            <button type="submit" class="govuk-button govuk-button--warning" id="cya-view-delete-confirm" data-module="govuk-button">Yes, delete</button>
+            <button type="button" class="govuk-button govuk-button--secondary" id="cya-view-delete-cancel" data-module="govuk-button">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+    {% endif %}
+    {% if notificationDateCreatedDisplay %}
+    <p class="govuk-body govuk-!-margin-bottom-4" id="notification-date-created"><span class="govuk-!-font-weight-bold">Date created:</span> {{ notificationDateCreatedDisplay }}</p>
+    {% endif %}
+    {% if readOnlyIntro %}
+    <p class="govuk-body govuk-!-margin-bottom-6">{{ readOnlyIntro }}</p>
+    {% endif %}
+    {# Country of origin - from origin page #}
+    <div id="origin">{{ roSummaryList("Where is this consignment coming from?", originRows) }}</div>
+
+    <div class="check-answers-spacer"></div>
+
+    {% if isPlantDeclaration %}
+    {% if plantCommodityCards and plantCommodityCards.length %}
+    <div id="commodities" class="commodities-section-header govuk-!-margin-bottom-4">
+      <h2 class="govuk-heading-m govuk-!-margin-0">Your commodities</h2>
+    </div>
+    {% for card in plantCommodityCards %}
+    <div class="govuk-summary-card govuk-!-margin-bottom-6">
+      <div class="govuk-summary-card__title-wrapper">
+        <h3 class="govuk-summary-card__title govuk-heading-m">{{ card.commonName }} ({{ card.eppoCode }})</h3>
+      </div>
+      <div class="govuk-summary-card__content">
+        {{ govukSummaryList({ rows: card.quantitySummaryRows }) }}
+      </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div id="commodities" class="govuk-summary-card govuk-!-margin-bottom-6">
+      <div class="govuk-summary-card__title-wrapper">
+        <h2 class="govuk-summary-card__title">Your commodities</h2>
+      </div>
+      <div class="govuk-summary-card__content">
+        <p class="govuk-body govuk-!-margin-bottom-0">Not yet provided</p>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if wpmRows and wpmRows.length %}
+    <div class="check-answers-spacer"></div>
+    <div id="wpm" class="govuk-summary-card govuk-!-margin-bottom-6">
+      <div class="govuk-summary-card__title-wrapper">
+        <h2 class="govuk-summary-card__title">Wood packaging material</h2>
+      </div>
+      <div class="govuk-summary-card__content">
+        {{ govukTable({
+          classes: "commodity-details-table",
+          head: [
+            { text: "Description" },
+            { text: "EPPO code" },
+            { text: "Count" },
+            { text: "Country of origin" },
+            { text: "ISPM 15 marked" }
+          ],
+          rows: wpmRows
+        }) }}
+      </div>
+    </div>
+    {% endif %}
+    {% else %}
+    {% if commodityIdCards and commodityIdCards.length %}
+    <div id="commodities" class="commodities-section-header govuk-!-margin-bottom-4">
+      <h2 class="govuk-heading-m govuk-!-margin-0">Your commodities</h2>
+    </div>
+    {% for card in commodityIdCards %}
+    <div class="govuk-summary-card govuk-!-margin-bottom-6">
+      <div class="govuk-summary-card__title-wrapper">
+        <h3 class="govuk-summary-card__title govuk-heading-m">{{ card.commonName }} ({{ card.commodityCode }})</h3>
+      </div>
+      <div class="govuk-summary-card__content">
+        {% for species in card.species %}
+        <div class="species-summary-block govuk-!-margin-bottom-3">
+          <h4 class="govuk-heading-s govuk-!-margin-top-0 govuk-!-margin-bottom-1">{{ species.speciesAndType }}</h4>
+          <p class="govuk-body govuk-!-margin-0 govuk-!-font-size-16">{{ species.animalCount }} {{ 'animal' if species.animalCount == 1 else 'animals' }}{% if species.packageCount %}, {{ species.packageCount }} {{ 'package' if species.packageCount == 1 else 'packages' }}{% endif %}</p>
+        </div>
+        {% if species.idTableRows and species.idTableRows.length %}
+        {% if species.isEarTagOnly %}
+        {{ govukTable({
+          classes: "commodity-details-table",
+          head: [
+            { text: "Animal" },
+            { text: "Ear tag" }
+          ],
+          rows: species.idTableRows
+        }) }}
+        {% elif species.isHorseIdentification or species.isSmallMammalIdentification %}
+        {{ govukTable({
+          classes: "commodity-details-table",
+          head: [
+            { text: "Animal" },
+            { text: "Microchip" },
+            { text: "Passport" }
+          ],
+          rows: species.idTableRows
+        }) }}
+        {% elif species.isMicrochipEarTagIdentification %}
+        {{ govukTable({
+          classes: "commodity-details-table",
+          head: [
+            { text: "Animal" },
+            { text: "Microchip" },
+            { text: "Ear tag" }
+          ],
+          rows: species.idTableRows
+        }) }}
+        {% elif species.isGameBirdIdentification %}
+        {{ govukTable({
+          classes: "commodity-details-table",
+          head: [
+            { text: "Animal" },
+            { text: "Flock id" },
+            { text: "Hatching date" }
+          ],
+          rows: species.idTableRows
+        }) }}
+        {% elif species.isHatchingEggIdentification %}
+        {{ govukTable({
+          classes: "commodity-details-table",
+          head: [
+            { text: "Animal" },
+            { text: "Egg mark" },
+            { text: "Collection date" }
+          ],
+          rows: species.idTableRows
+        }) }}
+        {% elif species.isPoultryIdentification %}
+        {{ govukTable({
+          classes: "commodity-details-table",
+          head: [
+            { text: "Animal" },
+            { text: "Holding or house ID" },
+            { text: "Flock or batch number" }
+          ],
+          rows: species.idTableRows
+        }) }}
+        {% elif species.isBeeIdentification %}
+        {{ govukTable({
+          classes: "commodity-details-table",
+          head: [
+            { text: "Animal" },
+            { text: "Apiary registration" },
+            { text: "Colony or hive identifier" }
+          ],
+          rows: species.idTableRows
+        }) }}
+        {% elif species.isPetIdentification %}
+        {{ govukTable({
+          classes: "commodity-details-table",
+          head: [
+            { text: "Animal" },
+            { text: "Microchip" },
+            { text: "Passport" },
+            { text: "Tattoo" }
+          ],
+          rows: species.idTableRows
+        }) }}
+        {% else %}
+        {{ govukTable({
+          classes: "commodity-details-table",
+          head: [
+            { text: "Animal" },
+            { text: "Ear tag" },
+            { text: "Passport" }
+          ],
+          rows: species.idTableRows
+        }) }}
+        {% endif %}
+        {% else %}
+        <p class="govuk-body govuk-!-margin-0">Not yet provided</p>
+        {% endif %}
+        {% if not loop.last %}
+        <div class="check-answers-spacer check-answers-spacer--s"></div>
+        {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div id="commodities" class="govuk-summary-card govuk-!-margin-bottom-6">
+      <div class="govuk-summary-card__title-wrapper">
+        <h2 class="govuk-summary-card__title">Your commodities</h2>
+      </div>
+      <div class="govuk-summary-card__content">
+        <p class="govuk-body govuk-!-margin-bottom-0">Not yet provided</p>
+      </div>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    <div class="check-answers-spacer"></div>
+
+    {% if not isPlantDeclaration %}
+    {# Additional information details #}
+    <div id="additional-details">{{ roSummaryList("Additional information details", additionalAnimalRows) }}</div>
+
+    <div class="check-answers-spacer"></div>
+
+    {# Import reasons - from import-reason page #}
+    <div id="import-reasons">{{ roSummaryList("Main reason for importing the animals", importReasonRows) }}</div>
+
+    <div class="check-answers-spacer"></div>
+    {% endif %}
+
+    {# Addresses #}
+    <div id="addresses">{{ roSummaryList("Addresses", addressRows) }}</div>
+
+    <div class="check-answers-spacer"></div>
+
+    {% if isLivestockConsignment %}
+    {# County Parish Holding number (CPH) – livestock only #}
+    <div id="cph">{{ roSummaryList("County Parish Holding number (CPH)", cphRows) }}</div>
+
+    <div class="check-answers-spacer"></div>
+    {% endif %}
+
+    {% if isPetConsignment %}
+    {# Permanent addresses for these animals – pets only #}
+    <div id="permanent-addresses">{{ roSummaryList("Permanent addresses for these animals", permanentAddressRows) }}</div>
+
+    <div class="check-answers-spacer"></div>
+    {% endif %}
+
+    {# Transport and arrival #}
+    <div id="transport-and-arrival">{{ roSummaryList("Transport details", transportAndArrivalRows) }}</div>
+
+    <div class="check-answers-spacer"></div>
+
+    <div id="accompanying-documents" class="govuk-summary-card govuk-!-margin-bottom-0">
+      <div class="govuk-summary-card__title-wrapper">
+        <h2 class="govuk-summary-card__title">Accompanying documents</h2>
+      </div>
+      <div class="govuk-summary-card__content">
+        {{ govukTable({
+          classes: "commodity-details-table",
+          head: [
+            { text: "Document type" },
+            { text: "Document reference" },
+            { text: "Valid until" },
+            { text: "Attachments" }
+          ],
+          rows: documentsTableRows
+        }) }}
+      </div>
+    </div>
+
+{% endcall %}
+
+{% endblock %}
+
+{% block pageScripts %}
+{% if not readOnlyHideActions %}
+<script>
+  (function () {
+    var dialog = document.getElementById('cya-view-delete-dialog')
+    var openBtn = document.getElementById('cya-view-delete-open')
+    var cancelBtn = document.getElementById('cya-view-delete-cancel')
+    if (!dialog || !openBtn || !cancelBtn || typeof dialog.showModal !== 'function') return
+    openBtn.addEventListener('click', function () {
+      dialog.showModal()
+      cancelBtn.focus()
+    })
+    cancelBtn.addEventListener('click', function () { dialog.close() })
+    dialog.addEventListener('close', function () { openBtn.focus() })
+  })()
+</script>
+{% endif %}
+{% endblock %}

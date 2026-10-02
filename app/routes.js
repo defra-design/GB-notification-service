@@ -13100,6 +13100,10 @@ router.post('/contact-address-for-consignment', (req, res) => {
   return res.redirect(getNextJourneyPath('/contact-address-for-consignment', req.session.data))
 })
 
+router.post('/intro/sign-in', function (req, res) {
+  return res.redirect('/design-release-2.1')
+})
+
 const { mountTestingVersion } = require('./lib/testing-version')
 const { mountDesignRelease2Version } = require('./lib/design-release-2-version')
 const { mountDesignRelease21Version } = require('./lib/design-release-2.1-version')

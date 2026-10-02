@@ -1,0 +1,34 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+
+{% set title = "Export and import of hazardous chemicals - Prior Informed Consent (PIC)" %}
+
+{% block beforeContent %}
+  {{ govukBreadcrumbs({
+    items: [
+      { text: "Home", href: "https://www.gov.uk/" },
+      { text: "Import goods into the UK: step by step", href: "/intro/import-goods-into-uk" }
+    ]
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 class="govuk-heading-l">Export and import of hazardous chemicals - Prior Informed Consent (PIC)</h1>
+    <p class="govuk-body">If you are exporting or importing PIC-listed chemicals from or to Great Britain (GB) you must comply with the GB PIC Regulation.</p>
+
+    <h2 class="govuk-heading-m">Related guidance</h2>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.hse.gov.uk/chemical-safety/pic/introduction.htm">Introduction to Prior Informed Consent (PIC) for chemicals</a></li>
+      <li><a class="govuk-link" href="https://www.hse.gov.uk/chemical-safety/pic/pic-regulations.htm">The GB Prior Informed Consent (PIC) Regulation</a></li>
+      <li><a class="govuk-link" href="https://www.hse.gov.uk/chemical-safety/pic/pic-list.htm">GB PIC list of chemicals</a></li>
+      <li><a class="govuk-link" href="https://www.hse.gov.uk/chemical-safety/pic/exporting/index.htm">Exporting GB PIC-listed chemicals</a></li>
+      <li><a class="govuk-link" href="https://www.hse.gov.uk/chemical-safety/pic/importing.htm">Importing GB PIC-listed chemicals</a></li>
+      <li><a class="govuk-link" href="https://www.hse.gov.uk/chemical-safety/pic/annual-reporting.htm">GB PIC annual reporting</a></li>
+      <li><a class="govuk-link" href="https://www.hse.gov.uk/chemical-safety/pic/contactus.htm">Contact HSE about PIC</a></li>
+    </ul>
+
+  </div>
+</div>
+{% endblock %}

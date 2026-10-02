@@ -1,0 +1,25 @@
+{% extends "layouts/journey.html" %}
+
+{% set showDashboard = false %}
+
+{% block content %}
+<div class="govuk-width-container">
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Product introduction</h1>
+      <p class="govuk-body">This will help other teams understand the Product we're building, based on <a href="https://app.mural.co/t/coredefra2548/m/coredefra2548/1782373113881/f4ce3a07ed4d669577863ecebb8fa5646366bb77?wid=0-1784037667646" target="_blank">this Mural board</a>.</p>
+      <p>This journey includes guidance pages, start page, dashboard and routing into different notification types.</p>
+      <a href="/intro/import-goods-into-uk" class="govuk-button" data-module="govuk-button">Start journey</a>
+
+      <h2 class="govuk-heading-m index-section-header">Key pages (all works in progress)</h2>
+      <ul class="govuk-list govuk-list--bullet">
+        <li><a href="/intro/import-goods-into-uk">Import goods into the UK - step by step guidance</a></li>
+        <li><a href="/intro/import-notification-start">Import Notification Service start page</a></li>
+        <li><a href="/intro/dashboard">Old dashboard, extended for multiple notification types</a></li>
+        <li><a href="/intro/dashboard-two">New dashboard - at a glance summary, search and status/inspection tags.</a> Based on work by Live Animals team from
+        Kainos '<a href="https://app.mural.co/t/coredefra2548/m/defra5166/1728454199737/f3cb4582a51c20acf32b0118732638addce5ffb9" target="_blank">Top 7 priorities</a>' Mural board.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% set title = "Sign in - Defra ID" %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+
+    {# <span class="govuk-caption-l">Defra ID</span> #}
+    <h1 class="govuk-heading-l">Sign in</h1>
+
+    <form method="post" novalidate>
+      {{ govukInput({
+        label: { text: "Email address" },
+        id: "email",
+        name: "email",
+        type: "email",
+        spellcheck: false,
+        autocomplete: "email",
+        value: data.email
+      }) }}
+
+      {{ govukInput({
+        label: { text: "Password" },
+        id: "password",
+        name: "password",
+        type: "password",
+        spellcheck: false,
+        autocomplete: "current-password"
+      }) }}
+
+      {{ govukButton({
+        text: "Sign in"
+      }) }}
+    </form>
+
+    <p class="govuk-body">
+      <a class="govuk-link" href="#">I have forgotten my password</a>
+    </p>
+    <p class="govuk-body">
+      <a class="govuk-link" href="#">Create an account</a>
+    </p>
+
+  </div>
+</div>
+{% endblock %}

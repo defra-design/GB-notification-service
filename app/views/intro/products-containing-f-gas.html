@@ -1,0 +1,50 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+
+{% set title = "Labelling F gas equipment you produce, import or install" %}
+
+{% block beforeContent %}
+  {{ govukBreadcrumbs({
+    items: [
+      { text: "Home", href: "https://www.gov.uk/" },
+      { text: "Import goods into the UK: step by step", href: "/intro/import-goods-into-uk" }
+    ]
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 class="govuk-heading-l">Labelling F gas equipment you produce, import or install</h1>
+    <p class="govuk-body">How you must label fluorinated gas (F gas) products you produce, import, or install.</p>
+
+    <p class="govuk-body">You must label all products you produce, import or install that contain regulated F gas. The label must include the:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>industry name for the F gas</li>
+      <li>mass of F gas in the equipment (kg)</li>
+      <li>weight of the F gas in equivalent tonnes of carbon dioxide</li>
+      <li>global warming potential of the F gas</li>
+    </ul>
+
+    <p class="govuk-body">Label the product as containing &lsquo;hermetically sealed F gas&rsquo; if the:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>part of the product containing F gas is permanently sealed, for example welded or brazed shut, even if it has capped valves or service ports</li>
+      <li>product has a tested leak rate of less than 3g per year</li>
+    </ul>
+
+    <h2 class="govuk-heading-m">This page is part of</h2>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/get-uk-customs-clearance-when-importing-goods-into-the-uk-step-by-step">Get UK customs clearance when importing goods into the UK: step by step</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/import-goods-into-uk">Import goods into the UK: step by step</a></li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Related content</h2>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/government/collections/fluorinated-gas-f-gas-guidance-for-users-producers-and-traders">Fluorinated gas (F gas): guidance for users, producers and traders</a></li>
+    </ul>
+
+    <p class="govuk-body govuk-body-s">From: Environment Agency and Department for Environment, Food &amp; Rural Affairs<br>
+    Published 21 August 2019</p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+
+{% set title = "Import a human medicine" %}
+
+{% block beforeContent %}
+  {{ govukBreadcrumbs({
+    items: [
+      { text: "Home", href: "https://www.gov.uk/" },
+      { text: "Import goods into the UK: step by step", href: "/intro/import-goods-into-uk" }
+    ]
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 class="govuk-heading-l">Import a human medicine</h1>
+    <p class="govuk-body">Guidance for UK wholesalers and manufacturers on how to import human medicines, including unlicensed medicines, how to apply for a licence and how much it costs.</p>
+
+    <nav aria-label="Contents">
+      <p class="govuk-body"><strong>Contents</strong></p>
+      <ul class="govuk-list govuk-list--bullet">
+        <li><a class="govuk-link" href="#import-a-licensed-medicine">Import a licensed medicine</a></li>
+        <li><a class="govuk-link" href="#import-an-unlicensed-medicine">Import an unlicensed medicine</a></li>
+        <li><a class="govuk-link" href="#import-an-introduced-product">Import an introduced product</a></li>
+        <li><a class="govuk-link" href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+
+    <h2 class="govuk-heading-m" id="import-a-licensed-medicine">Import a licensed medicine</h2>
+    <p class="govuk-body">To import a licensed medicine, applicants must obtain one or more of the following licences:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>a wholesale distribution licence (WDA(H))</li>
+      <li>a manufacturer&rsquo;s licence</li>
+      <li>a marketing authorisation, also known as a product licence (MA)</li>
+    </ul>
+    <p class="govuk-body"><strong>If the medicine contains controlled substances, you must contact the Home Office.</strong></p>
+
+    <h3 class="govuk-heading-s">Apply for a wholesaler licence (WDA(H))</h3>
+    <p class="govuk-body">A wholesaler licence is needed when you&rsquo;re importing medicine from:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>an approved country for import list (or the EEA if you&rsquo;re in Northern Ireland), and then supplying it to another country, including the UK</li>
+      <li>a non-approved country and exporting it to non-approved or non-EEA destinations</li>
+    </ul>
+    <p class="govuk-body">Costs vary depending on the type of application, the number of sites and your licensed human medicines turnover. Companies based in Great Britain may also need to appoint a Responsible Person for Import.</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/apply-for-manufacturer-or-wholesaler-of-medicines-licences">Apply for a wholesaler licence</a></li>
+    </ul>
+
+    <h3 class="govuk-heading-s">Apply for a manufacturer licence</h3>
+    <p class="govuk-body">A manufacturer&rsquo;s licence is needed when you&rsquo;re importing from a non-approved country for use in the UK, or for supply to an approved country list. Applicants in Northern Ireland need this licence for imports from outside the EEA.</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/apply-for-manufacturer-or-wholesaler-of-medicines-licences">Apply for a manufacturer licence</a></li>
+    </ul>
+
+    <h3 class="govuk-heading-s">Apply for a marketing authorisation (MA) licence</h3>
+    <p class="govuk-body">You must have a marketing authorisation (MA) licence before you can sell any human medicine. A Qualified Person must certify that the product complies with the MA and with good manufacturing practice before it&rsquo;s released to the market.</p>
+    <p class="govuk-body">The MHRA inspects manufacturing sites as part of MA applications. Manufacturers who comply with good manufacturing practice are listed on MHRA-GMDP.</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/apply-for-a-licence-to-market-a-medicine-in-the-uk#types-of-application-legal-basis">Apply for an MA licence</a></li>
+    </ul>
+
+    <h2 class="govuk-heading-m" id="import-an-unlicensed-medicine">Import an unlicensed medicine</h2>
+    <p class="govuk-body">To import an unlicensed medicine, you&rsquo;ll need:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>a Manufacturer&rsquo;s &lsquo;Specials&rsquo; Licence (MSL) if you&rsquo;re importing from a non-approved country (or from outside the EEA if you&rsquo;re in Northern Ireland)</li>
+      <li>a Wholesale Dealer&rsquo;s Licence (WDA(H)) if you&rsquo;re importing from an approved country</li>
+    </ul>
+    <p class="govuk-body">Before you import an unlicensed medicine you will need to notify the MHRA of your intent to import an unlicensed medicine before you import it. You can only proceed with the import if the MHRA does not object to it.</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/government/publications/supply-unlicensed-medicinal-products-specials">Supply unlicensed medicinal products (specials)</a></li>
+    </ul>
+
+    <h2 class="govuk-heading-m" id="import-an-introduced-product">Import an introduced product</h2>
+    <p class="govuk-body">Licensed wholesale dealers can only import introduced products from authorised persons in non-approved or non-EEA countries (for Northern Ireland). Introduced products do not have a UK or approved country marketing authorisation licence.</p>
+
+    <h2 class="govuk-heading-m" id="contact">Contact</h2>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/contact-mhra">Contact the MHRA</a></li>
+    </ul>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% set title = "Checker - questions" %}
+
+{% block beforeContent %}
+  {{ govukBreadcrumbs({
+    items: [
+      { text: "Home", href: "#" },
+      { text: "Import goods into the UK: step by step", href: "/intro/import-goods-into-uk" }
+    ]
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 class="govuk-heading-l">Checker service</h1>
+
+    <p class="govuk-body">The checker will ask you some questions to determine the correct guidance and service for you.</p>
+    <p class="govuk-body">This instance could be configured for import-only scenarios.</p> 
+
+    {# <ul class="govuk-list govuk-list--bullet">
+      <li>What are you importing?</li>
+      <li>Where is it coming from?</li>
+      <li>What is the purpose of the import?</li>
+      <li>Are there any special requirements for your import?</li>
+    </ul> #}
+
+    {{ govukButton({
+      text: "Continue",
+      href: "/intro/checker-answers2"
+    }) }}
+  </div>
+</div>
+{% endblock %}

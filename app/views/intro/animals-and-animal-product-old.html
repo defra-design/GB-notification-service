@@ -1,0 +1,114 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+
+{% set title = "Guidance on importing live animals or animal products" %}
+
+{% block beforeContent %}
+  {{ govukBreadcrumbs({
+    items: [
+      { text: "Home", href: "https://www.gov.uk/" },
+      { text: "Import goods into the UK: step by step", href: "/intro/import-goods-into-uk" }
+    ]
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    {% call govukNotificationBanner() %}
+         <p class="govuk-notification-banner__heading">
+          UK import rules have changed. You need to understand how this affects you.
+          <a class="govuk-notification-banner__link" href="checker-questions">Check which service to use and read guidance</a>.
+        </p>
+    {% endcall %}
+
+    <h1 class="govuk-heading-l">Guidance on importing live animals or animal products</h1>
+    <p class="govuk-body">Comprehensive rules and guidance for importing animals and animal products to Great Britain, published by the Department for Environment, Food &amp; Rural Affairs and the Animal and Plant Health Agency.</p>
+
+    <h2 class="govuk-heading-m">Live animals and animal by-products</h2>
+    <p class="govuk-body">Guidance on importing live animals, germinal products, and animal by-products:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/import-live-animals-and-germinal-products-from-the-eu-to-great-britain">Import live animals and germinal products from the EU to Great Britain</a> &ndash; updated 18 February 2026</li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/importing-live-animals-or-animal-products-from-non-eu-countries">Importing live animals, animal products and high risk food and feed of non-animal origin from non-EU countries to Great Britain</a> &ndash; updated 28 January 2025</li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/import-live-animals-and-germinal-products-to-great-britain-under-balai-rules">Import live animals and germinal products to Great Britain under Balai rules</a> &ndash; updated 14 October 2025</li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/importing-or-moving-live-fish-and-shellfish">Importing or moving live fish and shellfish</a> &ndash; updated 27 April 2026</li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/import-animal-by-products-from-the-eu-to-great-britain">Import animal by-products from the EU to Great Britain</a> &ndash; updated 29 April 2025</li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Importing food products</h2>
+    <p class="govuk-body">Guidance on importing products of animal origin, and composite and compound products:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/import-or-move-food-and-drink-from-the-eu-and-northern-ireland-to-great-britain">Import animal products for human consumption to Great Britain</a> &ndash; updated 22 April 2025</li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/import-or-move-composite-products-from-the-eu-and-northern-ireland-to-great-britain">Import composite products to Great Britain</a> &ndash; updated 16 April 2025</li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/import-compound-products-from-the-eu-to-great-britain">Import compound products to Great Britain</a> &ndash; updated 19 September 2025</li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/import-eggs-to-great-britain">Import eggs to Great Britain</a> &ndash; updated 30 April 2024</li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/importing-or-moving-fish-to-the-uk">Importing or moving fish to the UK</a> &ndash; updated 15 August 2024</li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Import Information Notes</h2>
+    <p class="govuk-body">Technical documents with specific commodity import requirements:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/government/collections/import-information-notes">Import Information Notes</a> &ndash; updated 2 December 2024</li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Import restrictions</h2>
+    <p class="govuk-body">Current restrictions due to animal disease outbreaks:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/imports-exports-and-eu-trade-of-animals-and-animal-products-topical-issues">Imports, exports and EU trade of animals and animal products: topical issues</a> &ndash; updated 8 July 2026</li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Risk categories</h2>
+    <p class="govuk-body">You must find the risk category for the commodity you&rsquo;re importing and follow the sanitary and phytosanitary (SPS) rules for that category.</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/government/publications/risk-categories-for-animal-and-animal-product-imports-to-great-britain">Check risk categories for animals and animal products imported from the EU to Great Britain</a> &ndash; updated 26 March 2025</li>
+      <li><a class="govuk-link" href="https://www.gov.uk/government/publications/risk-categories-for-animal-and-animal-product-imports-from-non-eu-countries-to-great-britain">Check import risk categories, inspection rates and related rules for animals and animal products imported from non-EU countries to Great Britain</a> &ndash; updated 1 April 2025</li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Licences</h2>
+    <p class="govuk-body">You may need a licence to import animals or animal products to Great Britain.</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/importing-live-animals-or-animal-products-from-non-eu-countries-general-licences-and-authorisations">General licences and authorisations to import live animals or animal products</a> &ndash; updated 14 May 2026</li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/importing-non-native-animals">Importing non-native animals</a> &ndash; updated 31 December 2020</li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/bringing-non-specified-animal-pathogens-or-carriers-into-the-uk">Import animal pathogens or carriers to Great Britain</a> &ndash; updated 26 March 2021</li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Import notifications on IPAFFS</h2>
+    <p class="govuk-body">You must use IPAFFS to notify authorities in Great Britain before your goods arrive.</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="/intro/ipaffs">Import of products, animals, food and feed system (IPAFFS)</a> &ndash; updated 30 April 2024</li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Border control posts (BCPs)</h2>
+    <p class="govuk-body">Most consignments must enter Great Britain through a point of entry that has a relevant border control post.</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/government/publications/animals-animal-products-and-hrfnao-imports-authorised-border-control-posts-in-the-uk">Animals, animal products and HRFNAO imports: authorised border control posts in the UK</a> &ndash; updated 1 May 2026</li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/sanitary-and-phytosanitary-sps-checks-at-border-control-posts-bcps">Sanitary and phytosanitary (SPS) checks at border control posts (BCPs)</a> &ndash; updated 30 April 2024</li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Welfare of animals in transport</h2>
+    <p class="govuk-body">You must make sure you meet animal welfare standards when transporting live animals.</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/animal-welfare-in-transport">Animal welfare in transport</a> &ndash; updated 14 October 2024</li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Endangered species</h2>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/cites-imports-and-exports">Check if you need a CITES permit to import or export endangered species</a> &ndash; updated 23 June 2026</li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Identifying imported livestock</h2>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/tag-record-and-report-imported-sheep-and-goats">Tag, record and report imported sheep and goats</a> &ndash; updated 1 June 2014</li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/register-imported-cattle">Register cattle imported or moved into England or Wales</a> &ndash; updated 28 June 2023</li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/pig-keepers-identify-animals-before-moving-them">Tag, tattoo or slap mark pigs</a> &ndash; updated 10 October 2023</li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Exporting</h2>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/government/collections/guidance-on-exporting-live-animals-or-animal-products">Guidance on exporting live animals or animal products</a> &ndash; updated 16 February 2023</li>
+    </ul>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,184 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+
+{% set title = "Import controls" %}
+
+{% block beforeContent %}
+  {{ govukBreadcrumbs({
+    items: [
+      { text: "Home", href: "https://www.gov.uk/" },
+      { text: "Import goods into the UK: step by step", href: "/intro/import-goods-into-uk" }
+    ]
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 class="govuk-heading-l">Import controls</h1>
+    <p class="govuk-body">How to import goods under national or UN-level import controls. This includes weapons, sanctioned goods, or goods that could be used for torture.</p>
+
+    <h2 class="govuk-heading-m">Legislation</h2>
+    <p class="govuk-body">When importing goods into the UK, businesses must understand applicable restrictions and controls. The UK enforces import controls through statutory instruments or the <a class="govuk-link" href="https://www.gov.uk/government/publications/open-general-import-licence-ogil">Open General Import Licence (OGIL)</a>, which operates under the authority of the Import, Export and Customs Powers (Defence) Act 1939 and the Import of Goods (Control) Order 1954.</p>
+
+    <h2 class="govuk-heading-m">Goods that need a licence</h2>
+    <p class="govuk-body">The OGIL permits UK imports without licensing for most goods. However, certain items require import licences due to national or UN-level controls. The Department for Business and Trade issues licences for:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>firearms and ammunition (under UK licensing controls)</li>
+      <li>anti-personnel mines (for detection, clearance or destruction techniques)</li>
+      <li>torture equipment (for museum display purposes)</li>
+      <li>certain sanctioned goods</li>
+      <li>relevant nuclear materials</li>
+    </ul>
+    <p class="govuk-body">Applicants must use the <a class="govuk-link" href="https://apply-for-an-import-licence.service.gov.uk/login-start/">apply for an import licence</a> service.</p>
+
+    <h2 class="govuk-heading-m">Firearms and ammunition</h2>
+    <p class="govuk-body">There are 3 types of import licence:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><strong>Specific Individual Import Licence (SIIL)</strong> &ndash; for firearms under sections 1, 2 or 5 of the Firearms Act 1969, and section 58(2) exempt firearms (for example obsolete calibre firearms)</li>
+      <li><strong>Open Individual Import Licence (OIIL)</strong> &ndash; open licences for firearms, component parts and ammunition under sections 1 or 2 of the Firearms Act 1968 from non-sanctioned countries</li>
+      <li><strong>Deactivated Firearms Import Licence</strong> &ndash; for firearms meeting current UK deactivation standards</li>
+    </ul>
+    <p class="govuk-body">See further guidance on <a class="govuk-link" href="https://www.gov.uk/guidance/firearms-licensing-police-guidance">firearms licensing</a> and firearms law best practices.</p>
+
+    <h2 class="govuk-heading-m">Nuclear materials</h2>
+    <p class="govuk-body">As part of the UK&rsquo;s obligations under the Convention on the Physical Protection of Nuclear Material, the Department for Business and Trade administers licensing for relevant nuclear materials via the <a class="govuk-link" href="https://apply-for-an-import-licence.service.gov.uk/login-start/">apply for an import licence</a> service.</p>
+    <p class="govuk-body">Individual licences are required for goods matching these commodity codes:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>tariff heading 26 12: uranium ore and concentrates</li>
+      <li>tariff heading 28 44: plutonium, uranium 233, uranium enriched in isotopes 233 or 235, natural uranium, and mixtures, compounds or alloys of these; includes spent or irradiated nuclear reactor fuel elements</li>
+    </ul>
+
+    <h3 class="govuk-heading-s">Nuclear Materials Import Licence (NMIL)</h3>
+    <p class="govuk-body">The NMIL validity period is 3 months from the date of issue for single import shipments (Single Import Licence), or one year from the date of issue for multiple shipments within that period (Open Import Licence). Total import quantities cannot exceed the licensed amounts.</p>
+    <p class="govuk-body">See the <a class="govuk-link" href="https://www.gov.uk/government/publications/notice-to-importers-2955-nuclear-materials-import-licensing-arrangements">nuclear materials import licensing (NMIL) notice to importers</a> for more information.</p>
+
+    <h2 class="govuk-heading-m">Previously issued licences</h2>
+    <p class="govuk-body">Amendments cannot be made to licences that have already been issued. Applicants must submit a new application if material details or dates change.</p>
+
+    <h2 class="govuk-heading-m">When to apply for an import licence</h2>
+    <p class="govuk-body">Applicants must <a class="govuk-link" href="https://apply-for-an-import-licence.service.gov.uk/login-start/">apply for an import licence</a> before the goods are transported to the UK.</p>
+
+    <h2 class="govuk-heading-m">Trade sanctions</h2>
+    <p class="govuk-body">The Department for Business and Trade implements trade sanctions. Traders may apply for a licence to import otherwise prohibited goods through the <a class="govuk-link" href="https://apply-for-an-import-licence.service.gov.uk/login-start/">apply for an import licence</a> service, via the sanctions and ad hoc licence route. Importing sanctioned goods without the proper licensing is a criminal offence.</p>
+    <p class="govuk-body">Traders must apply for an <a class="govuk-link" href="https://apply-for-an-import-licence.service.gov.uk/login-start/">import licence</a> before the goods reach the UK. Licences cannot be granted for applications submitted at the border, or for goods already held in UK storage before a customs declaration is made.</p>
+    <p class="govuk-body">The Department reviews each case individually. The Secretary of State for Business and Trade holds ultimate decision-making authority on whether to grant or refuse sanctions licences.</p>
+    <p class="govuk-body">For unclear regulatory aspects or trade sanctions licences, independent legal advice is recommended.</p>
+    <p class="govuk-body">UK sanctions regimes operate under the <a class="govuk-link" href="https://www.legislation.gov.uk/ukpga/2018/13/contents">Sanctions and Anti-Money Laundering Act 2018</a>. See the <a class="govuk-link" href="https://www.gov.uk/guidance/current-arms-embargoes-and-other-restrictions">guidance on UK sanctions regimes and on trade sanctions, arms embargoes and other trade restrictions</a> for more information.</p>
+    <p class="govuk-body">For queries, contact <a class="govuk-link" href="mailto:importsanctions@businessandtrade.gov.uk">importsanctions@businessandtrade.gov.uk</a>.</p>
+
+    <h2 class="govuk-heading-m">Tiered-priced medical products</h2>
+    <p class="govuk-body">Re-importing certain tiered-priced products is illegal throughout the United Kingdom. The retained domestic version of Regulation (EU) 2016/793, as amended by <a class="govuk-link" href="https://www.legislation.gov.uk/ukdsi/2020/9780348211399/contents">The Prevention of Trade Diversion (Key Medicines) (EU Exit) Regulations 2020</a>, controls the import of certain medicines into Great Britain.</p>
+    <p class="govuk-body">Tiered-priced products are those destined for developing nations and sold at substantially reduced prices, in order to prevent trade diversion.</p>
+    <p class="govuk-body">See <a class="govuk-link" href="https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/945736/Notice_to_importers_2937_-_key_medicine.pdf">notice to importers 2937 &ndash; import of tiered-priced medicines</a> for more information.</p>
+
+    <h2 class="govuk-heading-m">Contact details and help</h2>
+    <p class="govuk-body">For advice on Department for Business and Trade import controls that do not involve sanctions, contact <a class="govuk-link" href="mailto:enquiries.ilb@businessandtrade.gov.uk">enquiries.ilb@businessandtrade.gov.uk</a>.</p>
+    <p class="govuk-body">See also the <a class="govuk-link" href="https://www.gov.uk/starting-to-import/import-licences-and-certificates">import goods into the UK: step by step guide</a>, which explains bringing goods into the UK from any country.</p>
+
+    <h2 class="govuk-heading-m">Notices to importers</h2>
+    <p class="govuk-body">The Department for Business and Trade&rsquo;s Import Licensing Branch publishes Notices to Importers containing important information about:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>current import prohibitions and restrictions</li>
+      <li>import controls</li>
+      <li>legislation and sanctions updates</li>
+      <li>import licence amendments</li>
+    </ul>
+    <p class="govuk-body">The Department distributes notices to importers by mailshot through their import licensing system when published. Notices are updated as required, in line with relevant changes to legislation &ndash; for example, when additional import sanctions apply to a particular country.</p>
+
+    <table class="govuk-table">
+      <caption class="govuk-table__caption govuk-table__caption--m">Notices to importers</caption>
+      <thead class="govuk-table__head">
+        <tr class="govuk-table__row">
+          <th scope="col" class="govuk-table__header">NTI number</th>
+          <th scope="col" class="govuk-table__header">Title</th>
+          <th scope="col" class="govuk-table__header">Date</th>
+        </tr>
+      </thead>
+      <tbody class="govuk-table__body">
+        <tr class="govuk-table__row">
+          <td class="govuk-table__cell">Not applicable</td>
+          <td class="govuk-table__cell"><a class="govuk-link" href="https://www.gov.uk/government/publications/open-general-import-licence-ogil">Open general import licence (OGIL)</a></td>
+          <td class="govuk-table__cell">21 October 2022</td>
+        </tr>
+        <tr class="govuk-table__row">
+          <td class="govuk-table__cell">2956</td>
+          <td class="govuk-table__cell"><a class="govuk-link" href="https://www.gov.uk/government/publications/notice-to-importers-2956-import-of-equipment-that-could-be-used-for-torture">Import of equipment that could be used for torture</a></td>
+          <td class="govuk-table__cell">2 March 2026</td>
+        </tr>
+        <tr class="govuk-table__row">
+          <td class="govuk-table__cell">2955</td>
+          <td class="govuk-table__cell"><a class="govuk-link" href="https://www.gov.uk/government/publications/notice-to-importers-2955-nuclear-materials-import-licensing-arrangements">Nuclear materials import licensing (NMIL)</a></td>
+          <td class="govuk-table__cell">8 April 2025</td>
+        </tr>
+        <tr class="govuk-table__row">
+          <td class="govuk-table__cell">2954</td>
+          <td class="govuk-table__cell"><a class="govuk-link" href="https://www.gov.uk/government/publications/notice-to-importers-2954-open-general-import-licence-2022">UK open general import licence 2022 and guidance on its use</a></td>
+          <td class="govuk-table__cell">21 October 2022</td>
+        </tr>
+        <tr class="govuk-table__row">
+          <td class="govuk-table__cell">2953</td>
+          <td class="govuk-table__cell"><a class="govuk-link" href="https://www.gov.uk/government/publications/notice-to-importers-2953-russia-import-sanctions">Russia import sanctions</a></td>
+          <td class="govuk-table__cell">20 March 2022</td>
+        </tr>
+        <tr class="govuk-table__row">
+          <td class="govuk-table__cell">2952</td>
+          <td class="govuk-table__cell"><a class="govuk-link" href="https://www.gov.uk/government/publications/notice-to-importers-2952-belarus-import-sanctions">Belarus import sanctions</a></td>
+          <td class="govuk-table__cell">9 August 2021</td>
+        </tr>
+        <tr class="govuk-table__row">
+          <td class="govuk-table__cell">2951</td>
+          <td class="govuk-table__cell"><a class="govuk-link" href="https://www.gov.uk/government/publications/notice-to-importers-2951-syria-import-sanctions">Syria import sanctions</a></td>
+          <td class="govuk-table__cell">17 June 2021</td>
+        </tr>
+        <tr class="govuk-table__row">
+          <td class="govuk-table__cell">2950</td>
+          <td class="govuk-table__cell"><a class="govuk-link" href="https://www.gov.uk/government/publications/notice-to-importers-2950-somalia-import-sanctions">Somalia import sanctions</a></td>
+          <td class="govuk-table__cell">17 June 2021</td>
+        </tr>
+        <tr class="govuk-table__row">
+          <td class="govuk-table__cell">2948</td>
+          <td class="govuk-table__cell"><a class="govuk-link" href="https://www.gov.uk/government/publications/notice-to-importers-2948-libya-import-sanctions">Libya import sanctions</a></td>
+          <td class="govuk-table__cell">17 June 2021</td>
+        </tr>
+        <tr class="govuk-table__row">
+          <td class="govuk-table__cell">2946</td>
+          <td class="govuk-table__cell"><a class="govuk-link" href="https://www.gov.uk/government/publications/notice-to-importers-2946-iran-nuclear-weapons-import-sanctions">Iran (nuclear weapons) import sanctions</a></td>
+          <td class="govuk-table__cell">17 June 2021</td>
+        </tr>
+        <tr class="govuk-table__row">
+          <td class="govuk-table__cell">2945</td>
+          <td class="govuk-table__cell"><a class="govuk-link" href="https://www.gov.uk/government/publications/notice-to-importers-2945-north-korea-import-sanctions">North Korea import sanctions</a></td>
+          <td class="govuk-table__cell">17 June 2021</td>
+        </tr>
+        <tr class="govuk-table__row">
+          <td class="govuk-table__cell">2944</td>
+          <td class="govuk-table__cell"><a class="govuk-link" href="https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/983345/Notice_to_importers_2944_-_firearms_and_ammunition.pdf">Import firearms and ammunition</a> (PDF, 264KB)</td>
+          <td class="govuk-table__cell">1 April 2021</td>
+        </tr>
+        <tr class="govuk-table__row">
+          <td class="govuk-table__cell">2941</td>
+          <td class="govuk-table__cell"><a class="govuk-link" href="https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/945740/Notice_to_importers_2941_-_anti_personnel_mines.pdf">Import of anti-personnel mines</a> (PDF, 172KB)</td>
+          <td class="govuk-table__cell">31 December 2020</td>
+        </tr>
+        <tr class="govuk-table__row">
+          <td class="govuk-table__cell">2937</td>
+          <td class="govuk-table__cell"><a class="govuk-link" href="https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/945736/Notice_to_importers_2937_-_key_medicine.pdf">Import of tiered-priced medicines</a> (PDF, 143KB)</td>
+          <td class="govuk-table__cell">31 December 2020</td>
+        </tr>
+        <tr class="govuk-table__row">
+          <td class="govuk-table__cell">2936</td>
+          <td class="govuk-table__cell"><a class="govuk-link" href="https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/945734/Notice_to_importers_2936_-_cat_and_dog_fur.pdf">Import and export of cat and dog fur</a> (PDF, 143KB)</td>
+          <td class="govuk-table__cell">31 December 2020</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 class="govuk-heading-m">Further information</h2>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/check-how-to-import-export">Check how to import or export goods</a></li>
+    </ul>
+
+  </div>
+</div>
+{% endblock %}

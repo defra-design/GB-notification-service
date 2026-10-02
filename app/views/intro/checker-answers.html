@@ -1,0 +1,44 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% set title = "Checker - guidance and signposting" %}
+
+{% block beforeContent %}
+  {{ govukBreadcrumbs({
+    items: [
+      { text: "Home", href: "#" },
+      { text: "Import goods into the UK: step by step", href: "/intro/import-goods-into-uk" }
+    ]
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <form action="/intro/import-notification-start" method="post" novalidate>
+    <h1 class="govuk-heading-l">Checker - guidance and signposting</h1>
+
+      <p class="govuk-body">We'll provide you guidance and service information, based your answers.</p>
+
+      {# <h2 class="govuk-heading-m">Guidance</h2>
+      <p class="govuk-body">The guidance is based on the trader's answers to the questions and provides information on what they need to do next.</p>
+
+      <h2 class="govuk-heading-m">Services</h2>
+      <p class="govuk-body">The services recommended are based on the trader's answers.</p> #}
+
+      {# <ul class="govuk-list govuk-list--bullet">
+        <li>Use the <a class="govuk-link" href="/intro/import-notification-start">Import of products, animals, food and feed system (IPAFFS)</a> service for imports of live animals, animal by-products, food, feed, and plants</li>
+        <li>Use the <a class="govuk-link" href="#">other</a> service for other things</li>
+        <li>Use the <a class="govuk-link" href="#">other</a> service for other things</li>
+        <li>Use the <a class="govuk-link" href="#">other</a> service for other things</li>
+      </ul> #}
+
+      <button type="submit" class="govuk-button" data-module="govuk-button">
+        Continue
+      </button>
+
+    </form>
+  </div>
+</div>
+{% endblock %}

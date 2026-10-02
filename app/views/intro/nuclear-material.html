@@ -1,0 +1,39 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+
+{% set title = "Import licensing" %}
+
+{% block beforeContent %}
+  {{ govukBreadcrumbs({
+    items: [
+      { text: "Home", href: "https://www.gov.uk/" },
+      { text: "Import goods into the UK: step by step", href: "/intro/import-goods-into-uk" }
+    ]
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 class="govuk-heading-l">Import licensing</h1>
+    <p class="govuk-body">Applications for Nuclear Materials Import Licences (NMIL) are now handled and issued by the Department for Business and Trade (DBT) through their <a class="govuk-link" href="https://apply-for-an-import-licence.service.gov.uk/login-start/">Apply for an import licence</a> service. The nuclear materials <a class="govuk-link" href="https://www.gov.uk/guidance/import-controls">Notice to Importers</a>, published on DBT&rsquo;s <a class="govuk-link" href="https://www.gov.uk/guidance/import-controls#notices-to-importers">import controls webpage</a>, outlines details about the new application process.</p>
+    <p class="govuk-body">From 8 April, the service passed from ONR to DBT, who are the sole point of contact.</p>
+    <p class="govuk-body">You will no longer fill out a paper form downloaded through the Office for Nuclear Regulation (ONR) website.</p>
+    <p class="govuk-body">You can access the <a class="govuk-link" href="https://apply-for-an-import-licence.service.gov.uk/login-start/">Apply for an import licence</a> service through the link above &ndash; please remember to save the relevant URL as a bookmark.</p>
+    <p class="govuk-body">You will need a GOV.UK One Login account to access the system. If you need any additional help with GOV.UK One Login, contact the <a class="govuk-link" href="https://home.account.gov.uk/contact-gov-uk-one-login">GOV.UK One Login team</a>.</p>
+    <p class="govuk-body">Importers must apply to DBT for a licence to import the relevant nuclear materials with at least 30 days&rsquo; notice.</p>
+
+    <h2 class="govuk-heading-m">Contact details and help</h2>
+    <p class="govuk-body">If you need advice on nuclear materials import licensing or other import controls, contact <a class="govuk-link" href="mailto:enquiries.ilb@businessandtrade.gov.uk">enquiries.ilb@businessandtrade.gov.uk</a>.</p>
+
+    <h2 class="govuk-heading-m">Import licences for other goods</h2>
+    <p class="govuk-body">If you have any queries about import licensing for other goods, refer to the <a class="govuk-link" href="https://www.gov.uk/import-goods-into-uk">importing goods into the UK: step by step</a> guidance.</p>
+
+    <h2 class="govuk-heading-m">Resources</h2>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.onr.org.uk/media/m55evy0u/onr-cns-gd-003-guide-for-smaller-dutyholders-to-the-application-of-the-security-assessment-principles-syaps.docx">Guide for smaller dutyholders to the application of the Security Assessment Principles (SyAPs) &ndash; ONR-CNS-GD-003 (DOCX)</a></li>
+    </ul>
+
+  </div>
+</div>
+{% endblock %}
