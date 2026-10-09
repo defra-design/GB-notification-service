@@ -58,6 +58,7 @@ const MEANS_OF_TRANSPORT_ALIASES = {
 }
 
 const germinalTemperatureOptions = ['Ambient', 'Chilled', 'Frozen']
+const GERMINAL_QUANTITY_LABEL = 'Quantity (unit/pieces)'
 
 const DESIGN_RELEASE_NOTIFICATION_REFERENCE = 'GBN-AG-26-7K8M2P'
 const TESTING_NOTIFICATION_REFERENCE = 'GB.2026.7963913 - CHEDA'
@@ -897,7 +898,7 @@ function getSelectedCommodityRows (sessionData) {
         name: commodity.name,
         species: speciesLabels,
         numberOfAnimals: totalPackages > 0 ? String(totalPackages) : '',
-        quantityLabel: 'Number of packages',
+        quantityLabel: GERMINAL_QUANTITY_LABEL,
         isGerminalProduct: true,
         removeBy: 'commodity'
       })
@@ -1130,12 +1131,12 @@ function validateNumberOfPackages (values, speciesIds) {
     }
 
     const value = values[speciesId]
-    const errorId = `number-of-packages-${speciesId}`
+    const errorId = `quantity-${speciesId}`
 
     if (!value) {
-      errors[`numberOfPackages-${speciesId}`] = { text: 'Enter the number of packages' }
+      errors[`numberOfPackages-${speciesId}`] = { text: 'Enter the quantity' }
       errorList.push({
-        text: 'Enter the number of packages',
+        text: 'Enter the quantity',
         href: `#${errorId}`
       })
       return
@@ -1153,37 +1154,69 @@ function validateNumberOfPackages (values, speciesIds) {
   return { errors, errorList }
 }
 
-function validateNetWeight (values, speciesIds) {
+function getGrossWeightValue (sessionData) {
+  const direct = String(sessionData && sessionData.grossWeight != null ? sessionData.grossWeight : '').trim()
+
+  if (direct) {
+    return direct
+  }
+
+  const netWeight = sessionData && sessionData.netWeight
+
+  if (typeof netWeight === 'string') {
+    return netWeight.trim()
+  }
+
+  if (netWeight && typeof netWeight === 'object') {
+    const values = Object.values(netWeight)
+      .map((value) => String(value || '').trim())
+      .filter(Boolean)
+
+    if (values.length) {
+      return values[0]
+    }
+  }
+
+  return ''
+}
+
+function isValidGrossWeight (value) {
+  return /^\d+(\.\d+)?$/.test(value) && Number(value) > 0
+}
+
+function parseGrossWeight (body) {
+  return body && body.grossWeight != null ? String(body.grossWeight).trim() : ''
+}
+
+function showsGerminalGrossWeightField (sessionData) {
+  return hasGerminalProductsOnly(sessionData)
+}
+
+function validateGrossWeight (value, sessionData) {
   const errors = {}
   const errorList = []
 
-  speciesIds.forEach((speciesId) => {
-    const match = getSpeciesMatch(speciesId)
+  if (!showsGerminalGrossWeightField(sessionData)) {
+    return { errors, errorList }
+  }
 
-    if (!match || !isGerminalProductCommodity(match.commodity)) {
-      return
-    }
+  if (!value) {
+    errors.grossWeight = { text: 'Enter the total gross weight' }
+    errorList.push({
+      text: 'Enter the total gross weight',
+      href: '#gross-weight'
+    })
 
-    const value = values[speciesId]
-    const errorId = `net-weight-${speciesId}`
+    return { errors, errorList }
+  }
 
-    if (!value) {
-      errors[`netWeight-${speciesId}`] = { text: 'Enter the total gross weight' }
-      errorList.push({
-        text: 'Enter the total gross weight',
-        href: `#${errorId}`
-      })
-      return
-    }
-
-    if (!/^\d+(\.\d+)?$/.test(value) || Number(value) <= 0) {
-      errors[`netWeight-${speciesId}`] = { text: 'Enter a number greater than 0' }
-      errorList.push({
-        text: 'Enter a number greater than 0',
-        href: `#${errorId}`
-      })
-    }
-  })
+  if (!isValidGrossWeight(value)) {
+    errors.grossWeight = { text: 'Enter a number greater than 0' }
+    errorList.push({
+      text: 'Enter a number greater than 0',
+      href: '#gross-weight'
+    })
+  }
 
   return { errors, errorList }
 }
@@ -1435,11 +1468,9 @@ function hasConsignmentDetails (sessionData) {
     }
 
     if (isGerminalProductCommodity(match.commodity)) {
-      const netWeight = String((sessionData.netWeight || {})[speciesId] || '').trim()
       const numberOfPackages = String((sessionData.numberOfPackages || {})[speciesId] || '').trim()
 
-      return /^\d+(\.\d+)?$/.test(netWeight) && Number(netWeight) > 0 &&
-        /^\d+$/.test(numberOfPackages) && Number(numberOfPackages) >= 1
+      return /^\d+$/.test(numberOfPackages) && Number(numberOfPackages) >= 1
     }
 
     const animalCount = (sessionData.numberOfAnimals || {})[speciesId]
@@ -1456,6 +1487,14 @@ function hasConsignmentDetails (sessionData) {
   }
 
   return true
+}
+
+function hasGrossWeightComplete (sessionData) {
+  if (!showsGerminalGrossWeightField(sessionData)) {
+    return true
+  }
+
+  return isValidGrossWeight(getGrossWeightValue(sessionData))
 }
 
 function redirectIfNoConsignmentDetails (req, res) {
@@ -1499,6 +1538,10 @@ function getJourneySteps (sessionData) {
     '/reason-for-import',
     '/consignment-details'
   ]
+
+  if (showsGerminalGrossWeightField(sessionData)) {
+    steps.push('/consignment-gross-weight')
+  }
 
   if (hasAnimalIdentifiersRequired(sessionData)) {
     steps.push('/animal-identification-details')
@@ -1605,9 +1648,25 @@ function getPostConsignmentDetailsPath (sessionData) {
   return getNextJourneyPath('/consignment-details', sessionData)
 }
 
+function getGrossWeightPageBackLink () {
+  return '/consignment-details'
+}
+
+function getAnimalIdentificationBackLink (sessionData) {
+  if (showsGerminalGrossWeightField(sessionData)) {
+    return '/consignment-gross-weight'
+  }
+
+  return '/consignment-details'
+}
+
 function getAdditionalAnimalDetailsBackLink (sessionData) {
   if (hasAnimalIdentifiersRequired(sessionData)) {
     return '/animal-identification-details'
+  }
+
+  if (showsGerminalGrossWeightField(sessionData)) {
+    return '/consignment-gross-weight'
   }
 
   return '/consignment-details'
@@ -1622,7 +1681,12 @@ function getImportReasonsForSession (sessionData) {
     return importReasons
   }
 
-  return importReasons.filter((reason) => reason.forGerminalProducts)
+  return importReasons
+    .filter((reason) => reason.forGerminalProducts)
+    .map((reason) => ({
+      ...reason,
+      hint: reason.germinalHint || reason.hint
+    }))
 }
 
 function getInternalMarketPurposesForSession (sessionData) {
@@ -1630,7 +1694,12 @@ function getInternalMarketPurposesForSession (sessionData) {
     return internalMarketPurposes
   }
 
-  return internalMarketPurposes.filter((purpose) => purpose.forGerminalProducts)
+  return internalMarketPurposes
+    .filter((purpose) => purpose.forGerminalProducts)
+    .map((purpose) => ({
+      ...purpose,
+      hint: purpose.germinalHint || purpose.hint
+    }))
 }
 
 function getImportReasonValuesForSession (sessionData) {
@@ -1953,7 +2022,7 @@ function getSpeciesIdentificationState (sessionData, speciesId) {
     totalAnimals: total,
     isGerminalProduct,
     panelHeaderText: speciesLabel,
-    changeCountLabel: 'Change number of animals',
+    changeCountLabel: isGerminalProduct ? 'Change number of commodities' : 'Change number of animals',
     isComplete: isGerminalProduct ? false : !activeAnimal,
     activeAnimal,
     savedAnimals: completeSavedAnimals,
@@ -2443,7 +2512,18 @@ function getSessionConsignmentAddressSections (sessionData) {
     sections = sections.filter((section) => section.id !== 'permanent-address')
   }
 
-  return sections
+  return sections.map((section) => ({
+    ...section,
+    hint: getConsignmentAddressSectionHint(section, sessionData)
+  }))
+}
+
+function getConsignmentAddressSectionHint (section, sessionData) {
+  if (hasGerminalProductsOnly(sessionData) && section.germinalHint) {
+    return section.germinalHint
+  }
+
+  return section.hint
 }
 
 function isConsignmentAddressSectionActive (sessionData, sectionId) {
@@ -3993,7 +4073,7 @@ function renderConsignmentAddressSelectPage (section, req, res, locals = {}) {
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     sectionId: section.id,
     heading: section.heading,
-    intro: section.hint,
+    intro: getConsignmentAddressSectionHint(section, sessionData),
     introList: section.hintList || null,
     formAction: section.path,
     formFieldName: section.formFieldName,
@@ -4431,18 +4511,9 @@ function getTotalAnimalCount (sessionData) {
 }
 
 function getTotalNetWeight (sessionData) {
-  const netWeight = sessionData.netWeight || {}
-  const speciesIds = normalizeSelectedSpecies(sessionData.selectedSpecies)
+  const value = Number(getGrossWeightValue(sessionData))
 
-  return speciesIds.reduce((total, speciesId) => {
-    const value = Number(netWeight[speciesId])
-
-    if (!Number.isFinite(value) || value <= 0) {
-      return total
-    }
-
-    return total + value
-  }, 0)
+  return Number.isFinite(value) && value > 0 ? value : 0
 }
 
 function hasGerminalProductsOnly (sessionData) {
@@ -4807,16 +4878,10 @@ function buildReviewCommoditySections (sessionData) {
       ]
 
       if (entry.isGerminalProduct) {
-        rows.push(
-          {
-            key: 'Total gross weight',
-            value: entry.netWeight ? `${entry.netWeight} kg` : formatReviewValueOrNa(entry.netWeight)
-          },
-          {
-            key: 'Number of packages',
-            value: formatReviewValueOrNa(entry.numberOfPackages)
-          }
-        )
+        rows.push({
+          key: GERMINAL_QUANTITY_LABEL,
+          value: formatReviewValueOrNa(entry.numberOfPackages)
+        })
       } else {
         rows.push({
           key: 'Number of animals',
@@ -4851,7 +4916,7 @@ function getSpeciesReviewCardErrorMessage (sessionData, speciesId, speciesLabel)
 
   if (!isSpeciesConsignmentComplete(sessionData, speciesId)) {
     return isGerminalProduct
-      ? `Enter the number of packages for ${speciesName}`
+      ? `Enter the quantity for ${speciesName}`
       : `Enter the number of animals for ${speciesName}`
   }
 
@@ -4869,7 +4934,7 @@ function getSpeciesMinimumIdentifierReviewErrorMessage (sessionData, speciesId, 
 
   if (!isSpeciesConsignmentComplete(sessionData, speciesId)) {
     return isGerminalProduct
-      ? `Enter the number of packages for ${speciesName}`
+      ? `Enter the quantity for ${speciesName}`
       : `Enter the number of animals for ${speciesName}`
   }
 
@@ -4963,6 +5028,10 @@ function hasReviewNotificationComplete (sessionData) {
   }
 
   if (!hasConsignmentDetails(sessionData)) {
+    return false
+  }
+
+  if (!hasGrossWeightComplete(sessionData)) {
     return false
   }
 
@@ -5425,16 +5494,10 @@ function buildDesignRelease2CommodityCards (sessionData, speciesSections, readOn
     }
 
     const rows = entry.isGerminalProduct
-      ? [
-        {
-          key: 'Total gross weight',
-          value: entry.netWeight ? `${entry.netWeight} kg` : formatReviewValueOrNa(entry.netWeight)
-        },
-        {
-          key: 'Number of packages',
-          value: formatReviewValueOrNa(entry.numberOfPackages)
-        }
-      ]
+      ? [{
+        key: GERMINAL_QUANTITY_LABEL,
+        value: formatReviewValueOrNa(entry.numberOfPackages)
+      }]
       : [{
         key: 'Number of animals',
         value: formatReviewValueOrNa(entry.numberOfAnimals)
@@ -5486,20 +5549,45 @@ function buildDesignRelease2CommodityCards (sessionData, speciesSections, readOn
     })
   })
 
-  const cards = Array.from(grouped.values())
+  return Array.from(grouped.values())
+}
 
-  if (showsGerminalTemperatureQuestion(sessionData) && cards.length) {
-    const firstSpeciesBlock = cards[0].speciesBlocks[0]
+function buildGoodsWeightAndTemperatureCard (sessionData, readOnly) {
+  const rows = []
 
-    if (firstSpeciesBlock && Array.isArray(firstSpeciesBlock.rows)) {
-      firstSpeciesBlock.rows.push({
-        key: 'Temperature',
-        value: formatReviewValueOrNa(sessionData.storageTemperature)
-      })
-    }
+  if (showsGerminalGrossWeightField(sessionData)) {
+    const grossWeight = getGrossWeightValue(sessionData)
+
+    rows.push({
+      key: 'Total gross weight',
+      value: grossWeight ? `${grossWeight} kg` : formatReviewValueOrNa(grossWeight),
+      changeHref: readOnly ? null : '/consignment-gross-weight',
+      showChange: !readOnly
+    })
   }
 
-  return cards
+  if (showsGerminalTemperatureQuestion(sessionData)) {
+    rows.push({
+      key: 'Temperature',
+      value: formatReviewValueOrNa(sessionData.storageTemperature),
+      changeHref: readOnly ? null : '/consignment-details',
+      showChange: !readOnly
+    })
+  }
+
+  if (!rows.length) {
+    return null
+  }
+
+  return {
+    id: 'review-weight-and-temperature',
+    title: 'Commodity details',
+    changeHref: null,
+    headerAction: null,
+    rows,
+    hasError: false,
+    errorMessage: null
+  }
 }
 
 function buildDesignRelease2DocumentCards (uploadedDocumentsCard, readOnly) {
@@ -5604,6 +5692,7 @@ function buildDesignRelease2ReviewPresentation (viewModel, sessionData, readOnly
         readOnly,
         reviewVariant
       ),
+      goodsWeightAndTemperatureCard: buildGoodsWeightAndTemperatureCard(sessionData, readOnly),
       additionalAnimalDetailsCard
     },
     movement: {
@@ -6529,6 +6618,11 @@ function getNotificationHubViewModel (sessionData) {
             href: '/consignment-details?from=hub',
             status: hasConsignmentDetails(sessionData) ? statusComplete : statusTodo
           },
+          ...(showsGerminalGrossWeightField(sessionData) ? [{
+            text: 'Total gross weight',
+            href: '/consignment-gross-weight?from=hub',
+            status: hasGrossWeightComplete(sessionData) ? statusComplete : statusTodo
+          }] : []),
           ...(hasAnimalIdentifiersRequired(sessionData) ? [{
             text: 'Identification details',
             href: '/animal-identification-details?from=hub',
@@ -6981,7 +7075,7 @@ function saveDraftNotification (sessionData, sourceSnapshot = sessionData) {
     commodities: getReviewAnimalDetailsCommodityCodes(snapshot),
     commodityLabel: getReviewAnimalDetailsCommonNames(snapshot),
     categoryLabel: hasGerminalProductsOnly(snapshot) ? 'Germinal products' : 'Live animals',
-    quantityLabel: hasGerminalProductsOnly(snapshot) ? 'Number of packages' : 'Number of animals',
+    quantityLabel: hasGerminalProductsOnly(snapshot) ? GERMINAL_QUANTITY_LABEL : 'Number of animals',
     quantityValue: hasGerminalProductsOnly(snapshot)
       ? (getTotalPackageCount(snapshot) > 0 ? String(getTotalPackageCount(snapshot)) : null)
       : (getTotalAnimalCount(snapshot) > 0 ? String(getTotalAnimalCount(snapshot)) : null),
@@ -7016,7 +7110,7 @@ function saveSubmittedNotification (sessionData) {
     commodities: getReviewAnimalDetailsCommodityCodes(snapshot),
     commodityLabel: getReviewAnimalDetailsCommonNames(snapshot),
     categoryLabel: hasGerminalProductsOnly(snapshot) ? 'Germinal products' : 'Live animals',
-    quantityLabel: hasGerminalProductsOnly(snapshot) ? 'Number of packages' : 'Number of animals',
+    quantityLabel: hasGerminalProductsOnly(snapshot) ? GERMINAL_QUANTITY_LABEL : 'Number of animals',
     quantityValue: hasGerminalProductsOnly(snapshot)
       ? (getTotalPackageCount(snapshot) > 0 ? String(getTotalPackageCount(snapshot)) : null)
       : (getTotalAnimalCount(snapshot) > 0 ? String(getTotalAnimalCount(snapshot)) : null),
@@ -7259,7 +7353,7 @@ function getDashboardNotificationQuantity (notification, index = 0) {
     const packagesFromSnapshot = snapshot ? getTotalPackageCount(snapshot) : 0
     let packageValue = String(notification.numberOfPackages || '').trim()
 
-    if (!packageValue && notification.quantityLabel === 'Number of packages') {
+    if (!packageValue && (notification.quantityLabel === 'Number of packages' || notification.quantityLabel === GERMINAL_QUANTITY_LABEL)) {
       packageValue = String(notification.quantityValue || '').trim()
     }
 
@@ -7268,7 +7362,7 @@ function getDashboardNotificationQuantity (notification, index = 0) {
     }
 
     return {
-      quantityLabel: 'Number of packages',
+      quantityLabel: GERMINAL_QUANTITY_LABEL,
       quantityValue: packageValue || 'Not applicable',
       numberOfAnimals: null
     }
@@ -7770,6 +7864,7 @@ function buildTemplateFromSession (sessionData) {
       storageTemperature: sessionData.storageTemperature || null,
       numberOfAnimals: totalAnimals > 0 ? String(totalAnimals) : null,
       numberOfPackages: totalPackages > 0 ? String(totalPackages) : null,
+      grossWeight: getGrossWeightValue(sessionData) || null,
       selectedSpecies,
       commoditySelections: Array.isArray(sessionData.commoditySelections)
         ? sessionData.commoditySelections
@@ -8040,6 +8135,8 @@ function seedNotificationSessionFromTemplate (sessionData, template) {
     sessionData.netWeight = { ...review.netWeight }
   }
 
+  sessionData.grossWeight = String(review.grossWeight || '').trim() || getGrossWeightValue(sessionData)
+
   if (review.packageType && typeof review.packageType === 'object') {
     sessionData.packageType = { ...review.packageType }
   }
@@ -8181,7 +8278,7 @@ function buildTemplateCommodityCards (review = {}) {
         speciesLabel: formatReviewValueOrNa(review.species || review.commonName),
         rows: [
           { key: 'Number of animals', value: formatReviewValueOrNa(review.numberOfAnimals) },
-          { key: 'Number of packages', value: formatReviewValueOrNa(review.numberOfPackages) }
+          { key: GERMINAL_QUANTITY_LABEL, value: formatReviewValueOrNa(review.numberOfPackages) }
         ],
         identification: null,
         identificationError: null
@@ -8229,6 +8326,7 @@ const TEMPLATE_REVIEW_CHANGE_SECTIONS = {
   '/what-are-you-importing': 'what-are-you-importing',
   '/reason-for-import': 'reason-for-import',
   '/consignment-details': 'consignment-details',
+  '/consignment-gross-weight': 'consignment-gross-weight',
   '/animal-identification-details': 'animal-identification-details',
   '/additional-animal-details': 'additional-animal-details',
   '/arrival-details': 'arrival-details',
@@ -8522,6 +8620,7 @@ function handleChangeTemplateSectionPage (req, res) {
     'what-are-you-importing',
     'reason-for-import',
     'consignment-details',
+    'consignment-gross-weight',
     'animal-identification-details',
     'additional-animal-details',
     'arrival-details',
@@ -10698,6 +10797,27 @@ function renderConsignmentDetailsPage (req, res, locals = {}) {
   })
 }
 
+function renderConsignmentGrossWeightPage (req, res, locals = {}) {
+  const sessionData = req.session.data
+  const fromHub = isFromHub(req)
+  const fromReview = isFromReview(req)
+  const fromTemplateReview = isFromTemplateReview(req) || isEditingTemplateFromReview(sessionData)
+  const grossWeight = Object.prototype.hasOwnProperty.call(locals, 'grossWeight')
+    ? locals.grossWeight
+    : getGrossWeightValue(sessionData)
+
+  return res.render('consignment-gross-weight', {
+    backLink: getJourneyBackLink(req, getGrossWeightPageBackLink()),
+    fromHub,
+    fromReview,
+    fromTemplateReview,
+    notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
+    grossWeight,
+    data: sessionData,
+    ...locals
+  })
+}
+
 function renderAdditionalAnimalDetailsPage (req, res, locals = {}) {
   const sessionData = req.session.data
   const config = getAdditionalAnimalDetailsConfig(sessionData)
@@ -10735,19 +10855,22 @@ function renderAnimalIdentificationDetailsPage (req, res, locals = {}) {
   const selectedCommodityRows = getSelectedCommodityRows(sessionData)
   const hasGerminalProducts = selectedCommodityRows.some((row) => row.isGerminalProduct)
   const hasLiveAnimals = selectedCommodityRows.some((row) => !row.isGerminalProduct)
-  const quantityColumnLabel = hasGerminalProducts && !hasLiveAnimals
-    ? 'Number of packages'
+  const isGerminalIdentification = hasGerminalProducts && !hasLiveAnimals
+  const quantityColumnLabel = isGerminalIdentification
+    ? GERMINAL_QUANTITY_LABEL
     : 'Number of animals'
   const fromHub = isFromHub(req)
   const fromTemplateReview = isFromTemplateReview(req) || isEditingTemplateFromReview(sessionData)
 
   return res.render('animal-identification-details', {
-    backLink: getJourneyBackLink(req, '/consignment-details'),
+    backLink: getJourneyBackLink(req, getAnimalIdentificationBackLink(sessionData)),
     fromHub,
     fromTemplateReview,
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     selectedCommodityRows,
     quantityColumnLabel,
+    pageCaption: isGerminalIdentification ? 'Description of the goods' : 'About the consignment',
+    identificationInsetText: 'You must add all identification details before the consignment arrives at the port of entry.',
     commodityGroups,
     data: sessionData,
     ...locals
@@ -11369,22 +11492,18 @@ router.post('/consignment-details', (req, res) => {
   const speciesIds = normalizeSelectedSpecies(req.session.data.selectedSpecies)
   const numberOfAnimals = parseNumberOfAnimals(req.body, speciesIds)
   const numberOfPackages = parseNumberOfPackages(req.body, speciesIds)
-  const netWeight = parseNetWeight(req.body, speciesIds)
   const storageTemperature = (req.body.storageTemperature || '').trim()
 
   const animalValidation = validateNumberOfAnimals(numberOfAnimals, speciesIds)
   const packagingValidation = validateNumberOfPackages(numberOfPackages, speciesIds)
-  const netWeightValidation = validateNetWeight(netWeight, speciesIds)
   const temperatureValidation = validateStorageTemperature(storageTemperature, req.session.data)
   const errors = {
     ...animalValidation.errors,
     ...packagingValidation.errors,
-    ...netWeightValidation.errors,
     ...temperatureValidation.errors
   }
   const errorList = [
     ...animalValidation.errorList,
-    ...netWeightValidation.errorList,
     ...packagingValidation.errorList,
     ...temperatureValidation.errorList
   ]
@@ -11394,7 +11513,6 @@ router.post('/consignment-details', (req, res) => {
     req.session.data.errors = errors
     req.session.data.numberOfAnimals = numberOfAnimals
     req.session.data.numberOfPackages = numberOfPackages
-    req.session.data.netWeight = netWeight
     req.session.data.packageType = {}
     req.session.data.storageTemperature = showsGerminalTemperatureQuestion(req.session.data)
       ? (storageTemperature || null)
@@ -11409,7 +11527,6 @@ router.post('/consignment-details', (req, res) => {
   req.session.data.errors = null
   req.session.data.numberOfAnimals = numberOfAnimals
   req.session.data.numberOfPackages = numberOfPackages
-  req.session.data.netWeight = netWeight
   req.session.data.packageType = {}
   req.session.data.storageTemperature = showsGerminalTemperatureQuestion(req.session.data)
     ? storageTemperature
@@ -11420,6 +11537,52 @@ router.post('/consignment-details', (req, res) => {
   }
 
   return res.redirect(getSectionContinueRedirect(req, getPostConsignmentDetailsPath(req.session.data)))
+})
+
+router.get('/consignment-gross-weight', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (!showsGerminalGrossWeightField(req.session.data)) {
+    return res.redirect(getNextJourneyPath('/consignment-details', req.session.data))
+  }
+
+  return renderConsignmentGrossWeightPage(req, res)
+})
+
+router.post('/consignment-gross-weight', (req, res) => {
+  ensurePrototypeNotificationReference(req.session.data)
+
+  if (!showsGerminalGrossWeightField(req.session.data)) {
+    return res.redirect(getNextJourneyPath('/consignment-details', req.session.data))
+  }
+
+  const grossWeight = parseGrossWeight(req.body)
+
+  if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
+    req.session.data.grossWeight = grossWeight
+    req.session.data.errorList = null
+    req.session.data.errors = null
+
+    return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
+  }
+
+  const validation = validateGrossWeight(grossWeight, req.session.data)
+
+  if (validation.errorList.length) {
+    req.session.data.errorList = validation.errorList
+    req.session.data.errors = validation.errors
+
+    return renderConsignmentGrossWeightPage(req, res, { grossWeight })
+  }
+
+  req.session.data.grossWeight = grossWeight
+  req.session.data.errorList = null
+  req.session.data.errors = null
+
+  return res.redirect(getSectionContinueRedirect(
+    req,
+    getNextJourneyPath('/consignment-gross-weight', req.session.data)
+  ))
 })
 
 router.get('/additional-animal-details', (req, res) => {

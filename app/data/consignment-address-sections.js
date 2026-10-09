@@ -3,6 +3,7 @@ const consignmentAddressSections = [
     id: 'place-of-origin',
     heading: 'Place of origin',
     hint: 'The address where the animals begin their journey to Great Britain',
+    germinalHint: 'The address where the consignment begins its journey to Great Britain',
     linkText: 'Add a place of origin',
     path: '/place-of-origin',
     sessionAddressKey: 'placeOfOriginAddress',

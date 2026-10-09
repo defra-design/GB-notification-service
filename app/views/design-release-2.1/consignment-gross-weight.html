@@ -1,0 +1,71 @@
+{% extends "layouts/journey.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+
+{% set pageName = "What is the total gross weight of the consignment?" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block journeyContent %}
+  {% include "partials/notification-status.html" %}
+
+  {% if data.errorList %}
+    {{ govukErrorSummary({
+      titleText: "There is a problem",
+      errorList: data.errorList
+    }) }}
+  {% endif %}
+
+  <span class="govuk-caption-l">Description of the goods</span>
+
+  <form method="post" action="{{ (journeyBasePath + '/consignment-gross-weight') if journeyBasePath else '/consignment-gross-weight' }}" novalidate>
+    {% if fromHub %}
+      <input type="hidden" name="from" value="hub">
+    {% endif %}
+    {% if fromReview %}
+      <input type="hidden" name="from" value="review">
+    {% endif %}
+    {% if fromTemplateReview %}
+      <input type="hidden" name="from" value="template-review">
+    {% endif %}
+
+    {{ govukInput({
+      label: {
+        text: "What is the total gross weight of the consignment?",
+        classes: "govuk-label--l",
+        isPageHeading: true
+      },
+      hint: {
+        text: "This includes the weight of all the commodities in the consignment and their packaging."
+      },
+      id: "gross-weight",
+      name: "grossWeight",
+      value: grossWeight,
+      classes: "govuk-input--width-5",
+      formGroup: {
+        classes: "app-gross-weight-field"
+      },
+      suffix: {
+        text: "kg"
+      },
+      errorMessage: data.errors.grossWeight if data.errors and data.errors.grossWeight
+    }) }}
+
+    {% include "partials/design-release-2.1/journey-form-actions.html" %}
+  </form>
+{% endblock %}

@@ -44,12 +44,12 @@
 
           <div class="app-animal-identification-page__intro">
             <div class="app-animal-identification-page__header">
-              <p class="app-animal-identification-page__caption">About the consignment</p>
+              <p class="app-animal-identification-page__caption">{{ pageCaption or "About the consignment" }}</p>
               <h1 class="app-animal-identification-page__heading">Identification details</h1>
             </div>
 
             {{ govukInsetText({
-              text: "You must add all animal identification details before the consignment arrives at the port of entry.",
+              text: identificationInsetText or "You must add all identification details before the consignment arrives at the port of entry.",
               classes: "app-animal-identification-page__inset"
             }) }}
 

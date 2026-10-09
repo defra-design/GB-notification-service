@@ -117,31 +117,13 @@
                 </div>
 
                 {% if species.isGerminalProduct %}
-                  {% set netWeightError = data.errors["netWeight-" + species.speciesId] if data.errors and data.errors["netWeight-" + species.speciesId] %}
                   {% set numberOfPackagesError = data.errors["numberOfPackages-" + species.speciesId] if data.errors and data.errors["numberOfPackages-" + species.speciesId] %}
 
                   {{ govukInput({
                     label: {
-                      text: "Total gross weight"
+                      text: "Quantity (unit/pieces)"
                     },
-                    id: "net-weight-" + species.speciesId,
-                    name: "netWeight[" + species.speciesId + "]",
-                    value: species.netWeight,
-                    classes: "govuk-input--width-5",
-                    formGroup: {
-                      classes: "app-consignment-details-page__field app-consignment-details-page__field--net-weight"
-                    },
-                    suffix: {
-                      text: "kg"
-                    },
-                    errorMessage: netWeightError
-                  }) }}
-
-                  {{ govukInput({
-                    label: {
-                      text: "Number of packages"
-                    },
-                    id: "number-of-packages-" + species.speciesId,
+                    id: "quantity-" + species.speciesId,
                     name: "numberOfPackages[" + species.speciesId + "]",
                     value: species.numberOfPackages,
                     classes: "govuk-input--width-10 app-consignment-details-page__input",
@@ -186,6 +168,8 @@
             {% endfor %}
 
             {% if showTemperatureQuestion %}
+              <hr class="app-consignment-details-page__section-break">
+
               <div class="app-consignment-details-page__temperature">
                 {{ govukRadios({
                   idPrefix: "storage-temperature",
@@ -197,7 +181,7 @@
                     }
                   },
                   hint: {
-                    text: "How will the products be stored"
+                    text: "How the products will be stored."
                   },
                   errorMessage: data.errors.storageTemperature if data.errors and data.errors.storageTemperature,
                   classes: "app-origin-radios",

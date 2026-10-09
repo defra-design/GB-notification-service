@@ -15,6 +15,10 @@
 <section class="app-review-notification-page__section" aria-labelledby="review-section-goods">
   <h2 class="app-review-notification-page__section-heading" id="review-section-goods">2. Description of the goods</h2>
 
+  {% if dr2Review.descriptionOfGoods.goodsWeightAndTemperatureCard %}
+    {{ dr2ReviewCard(dr2Review.descriptionOfGoods.goodsWeightAndTemperatureCard, showActions, true) }}
+  {% endif %}
+
   {% for commodityCard in dr2Review.descriptionOfGoods.commodityCards %}
     {{ dr2ReviewCommodityCard(commodityCard, showActions) }}
   {% endfor %}

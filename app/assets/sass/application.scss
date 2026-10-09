@@ -1263,31 +1263,6 @@ button.govuk-link.app-govuk-body-link--small {
       margin-bottom: 5px;
     }
 
-    .app-consignment-details-page__field--net-weight {
-      .govuk-input__wrapper {
-        display: inline-flex;
-        align-items: stretch;
-        width: auto;
-        max-width: 100%;
-      }
-
-      .govuk-input {
-        width: 105px;
-        max-width: 105px;
-      }
-
-      .govuk-input__suffix {
-        min-height: 40px;
-        padding: 8px 10px 7px 8px;
-        background-color: #f3f2f1;
-        font-family: "GDS Transport", arial, sans-serif;
-        font-size: 19px;
-        font-weight: 300;
-        line-height: 25px;
-        color: #0b0c0c;
-      }
-    }
-
     .app-origin-form-actions {
       margin-top: 40px;
     }
@@ -1306,6 +1281,31 @@ button.govuk-link.app-govuk-body-link--small {
         color: #0b0c0c;
       }
     }
+  }
+}
+
+.app-gross-weight-field {
+  .govuk-input__wrapper {
+    display: inline-flex;
+    align-items: stretch;
+    width: auto;
+    max-width: 100%;
+  }
+
+  .govuk-input {
+    width: 105px;
+    max-width: 105px;
+  }
+
+  .govuk-input__suffix {
+    min-height: 40px;
+    padding: 8px 10px 7px 8px;
+    background-color: #f3f2f1;
+    font-family: "GDS Transport", arial, sans-serif;
+    font-size: 19px;
+    font-weight: 300;
+    line-height: 25px;
+    color: #0b0c0c;
   }
 }
 

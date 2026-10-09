@@ -136,6 +136,14 @@
           {% endif %}
         </div>
       {% endfor %}
+
+      {% if card.consignmentRows and card.consignmentRows.length %}
+        <dl class="app-dr2-review-card__rows">
+          {% for row in card.consignmentRows %}
+            {{ dr2ReviewRow(row, card.changeHref, showActions) }}
+          {% endfor %}
+        </dl>
+      {% endif %}
     </section>
   </div>
 {% endmacro %}

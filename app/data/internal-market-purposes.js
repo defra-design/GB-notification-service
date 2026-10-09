@@ -16,12 +16,14 @@ module.exports = [
     value: 'Breeding',
     text: 'Breeding',
     hint: 'Animals for reproduction. This includes animals intended to contribute to the genetic pool of a breeding program, improve livestock quality, or produce offspring.',
+    germinalHint: 'Consignments for reproduction. This includes animals and germinal products intended to contribute to the genetic pool of a breeding program, improve livestock quality, or produce offspring.',
     forGerminalProducts: true
   },
   {
     value: 'Research',
     text: 'Research',
     hint: 'Animals for use in scientific or medical research.',
+    germinalHint: 'Animals and germinal products for use in scientific or medical research.',
     forGerminalProducts: true
   },
   {

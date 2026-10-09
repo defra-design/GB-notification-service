@@ -15,6 +15,7 @@ const JOURNEY_PATH_PREFIXES = [
   '/what-are-you-importing',
   '/reason-for-import',
   '/consignment-details',
+  '/consignment-gross-weight',
   '/animal-identification-details',
   '/additional-animal-details',
   '/arrival-details',
