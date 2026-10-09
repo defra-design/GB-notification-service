@@ -4079,7 +4079,6 @@ function renderConsignmentAddressSelectPage (section, req, res, locals = {}) {
     formFieldName: section.formFieldName,
     inputIdPrefix: section.inputIdPrefix,
     searchInputId: section.searchInputId,
-    countriesJson: JSON.stringify(countryOptions),
     addressResults: buildConsignmentAddressResults(searchQuery, section.id, sessionData, section.path),
     selectedAddressId: locals.selectedAddressId != null
       ? locals.selectedAddressId
