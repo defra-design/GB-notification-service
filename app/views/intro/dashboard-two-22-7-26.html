@@ -1,0 +1,321 @@
+
+{% extends "layouts/v1-baseline.html" %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/pagination/macro.njk" import govukPagination %}
+
+{% set navCurrent = "dashboard" %}
+{% set title = "Import notification service" %}
+{% set pageTitleOnly = "Dashboard" %}
+
+{% block content %}
+
+{% from "includes/page-header.njk" import pageHeader %}
+{% call pageHeader(title, "Dashboard", "full") %}
+    <p class="govuk-body">Track and manage the import notifications for your organisation.</p>
+    <div class="govuk-button-group">
+      {{ govukButton({
+        text: "Create a new notification",
+        href: createHref
+      }) }}
+      {{ govukButton({
+        text: "Create from template",
+        classes: "govuk-button--secondary",
+        href: "#"
+      }) }}
+    </div>
+{% endcall %}
+
+<hr class="govuk-section-break govuk-section-break--visible dashboard-two-divider">
+
+<h2 class="govuk-heading-l dashboard-two-glance-heading">At a glance</h2>
+<div class="govuk-grid-row dashboard-two-glance">
+  <div class="govuk-grid-column-one-third">
+    <h3 class="govuk-heading-s govuk-!-margin-bottom-1 dashboard-two-glance__title dashboard-two-glance__title--error">Action needed</h3>
+    <p class="govuk-body-s govuk-!-margin-bottom-2">Notifications need urgent action</p>
+    <p class="dashboard-two-glance__figure dashboard-two-glance__figure--error">{{ glance.actionNeeded }}</p>
+    <p class="govuk-body"><a class="govuk-link" href="{{ basePath or '/intro' }}/dashboard-two?filterActionNeeded=today">View actions</a></p>
+  </div>
+  <div class="govuk-grid-column-one-third">
+    <h3 class="govuk-heading-s govuk-!-margin-bottom-1 dashboard-two-glance__title">Status change</h3>
+    <p class="govuk-body-s govuk-!-margin-bottom-2">Notifications have been updated</p>
+    <p class="dashboard-two-glance__figure">{{ glance.statusChange }}</p>
+    <p class="govuk-body"><a class="govuk-link" href="{{ basePath or '/intro' }}/dashboard-two?filterStatusChange=last-3-days">View changes</a></p>
+  </div>
+  <div class="govuk-grid-column-one-third">
+    <h3 class="govuk-heading-s govuk-!-margin-bottom-1 dashboard-two-glance__title">Chosen for inspection</h3>
+    <p class="govuk-body-s govuk-!-margin-bottom-2">Sent to BCP for inspection</p>
+    <p class="dashboard-two-glance__figure">{{ glance.inspection }}</p>
+    <p class="govuk-body"><a class="govuk-link" href="{{ basePath or '/intro' }}/dashboard-two">View notifications</a></p>
+  </div>
+</div>
+
+<hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-2 govuk-!-margin-bottom-6">
+
+<h2 class="govuk-heading-l">My notifications</h2>
+
+<form method="get" novalidate>
+  <div class="govuk-grid-row dashboard-two-search-sort-row">
+    <div class="govuk-grid-column-two-thirds">
+      <div class="govuk-form-group govuk-!-margin-bottom-0">
+        <label class="govuk-label govuk-label--s" for="filterKeyword">Search by</label>
+        <div class="govuk-hint" id="filterKeyword-hint">Keyword, notification number, commodity or consignee/importer</div>
+        <div class="chedd-search-field">
+          <input class="govuk-input chedd-search-field__input" id="filterKeyword" name="filterKeyword" type="text" aria-describedby="filterKeyword-hint" value="{{ filterKeyword or '' }}">
+          <button class="chedd-search-field__button" type="submit">
+            <svg class="chedd-search-field__icon" width="20" height="20" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+              <circle cx="12.0161" cy="11.0161" r="8.51613" stroke="currentColor" stroke-width="3"></circle>
+              <line x1="17.8394" y1="17.3457" x2="26.4194" y2="25.9256" stroke="currentColor" stroke-width="3"></line>
+            </svg>
+            <span class="govuk-visually-hidden">Search</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="govuk-grid-column-one-third">
+      <div class="govuk-form-group govuk-!-margin-bottom-0 dashboard-sort-controls">
+        <label for="sort" class="govuk-label govuk-!-margin-bottom-0 govuk-!-margin-right-0">Sort by:</label>
+        {{ govukSelect({
+          id: "sort",
+          name: "sort",
+          classes: "govuk-!-width-auto govuk-!-margin-bottom-0",
+          value: sort,
+          items: [
+            { value: "arrival-desc", text: "Arrival (newest to oldest)" },
+            { value: "arrival-asc", text: "Arrival (oldest to newest)" }
+          ]
+        }) }}
+      </div>
+    </div>
+  </div>
+
+
+  <div class="govuk-accordion govuk-!-margin-top-4" data-module="govuk-accordion" id="dashboard-two-additional-filters-accordion">
+    <div class="govuk-accordion__section">
+      <div class="govuk-accordion__section-header">
+        <h2 class="govuk-accordion__section-heading">
+          <span class="govuk-accordion__section-button" id="dashboard-two-additional-filters-accordion-heading-1" aria-controls="dashboard-two-additional-filters-accordion-content-1">
+            <span class="app-accordion-arrow" aria-hidden="true"></span>
+            Additional filters
+          </span>
+        </h2>
+      </div>
+      <div id="dashboard-two-additional-filters-accordion-content-1" class="govuk-accordion__section-content" aria-labelledby="dashboard-two-additional-filters-accordion-heading-1">
+        <div class="govuk-grid-row">
+          <div class="govuk-grid-column-one-third">
+            <div class="govuk-form-group">
+              <label class="govuk-label govuk-label--s" for="filterOrigin">Country of origin</label>
+              <div class="autocomplete-wrapper autocomplete-wrapper--full">
+                <select class="govuk-select" id="filterOrigin" name="filterOrigin">
+                  <option value="">Type country name</option>
+                  {% for country in (originCountries or []) %}
+                    <option value="{{ country }}" {% if filterOrigin == country %}selected{% endif %}>{{ country }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="govuk-grid-column-one-third">
+            {{ govukSelect({
+              id: "filterStatus",
+              name: "filterStatus",
+              label: { text: "Status", classes: "govuk-label--s" },
+              classes: "govuk-!-width-full",
+              value: filterStatus,
+              items: [
+                { value: "", text: "All" },
+                { value: "draft", text: "Draft" },
+                { value: "submitted", text: "Submitted" }
+              ]
+            }) }}
+          </div>
+          <div class="govuk-grid-column-one-third">
+            {{ govukSelect({
+              id: "filterNotificationType",
+              name: "filterNotificationType",
+              label: { text: "Notification type", classes: "govuk-label--s" },
+              value: filterNotificationType,
+              items: notificationTypeItems
+            }) }}
+          </div>
+        </div>
+        <div class="govuk-grid-row">
+          <div class="govuk-grid-column-one-third">
+            {{ govukInput({
+              label: { text: "Place of destination", classes: "govuk-label--s" },
+              id: "filterDestination",
+              name: "filterDestination",
+              value: filterDestination
+            }) }}
+          </div>
+          <div class="govuk-grid-column-one-third">
+            {{ govukSelect({
+              id: "filterPeriod",
+              name: "filterPeriod",
+              label: { text: "Arrival date", classes: "govuk-label--s" },
+              classes: "govuk-!-width-full",
+              value: filterPeriod,
+              items: [
+                { value: "", text: "All" },
+                { value: "last-1-hour", text: "Last 1 hour" },
+                { value: "last-24-hours", text: "Last 24 hours" },
+                { value: "last-7-days", text: "Last 7 days" },
+                { value: "last-30-days", text: "Last 30 days" }
+              ]
+            }) }}
+          </div>
+          <div class="govuk-grid-column-one-third">
+            {{ govukInput({
+              label: { text: "Start date", classes: "govuk-label--s" },
+              id: "filterStartDate",
+              name: "filterStartDate",
+              type: "date",
+              value: filterStartDate
+            }) }}
+          </div>
+        </div>
+        <div class="govuk-grid-row">
+          <div class="govuk-grid-column-one-third">
+            {{ govukInput({
+              label: { text: "End date", classes: "govuk-label--s" },
+              id: "filterEndDate",
+              name: "filterEndDate",
+              type: "date",
+              value: filterEndDate
+            }) }}
+          </div>
+        </div>
+        <div class="dashboard-two-filter-radios">
+          <div class="dashboard-two-filter-radios__group">
+            {{ govukRadios({
+              classes: "govuk-radios--inline govuk-radios--small",
+              idPrefix: "filterActionNeeded",
+              name: "filterActionNeeded",
+              fieldset: { legend: { text: "Needs action to avoid delays", classes: "govuk-fieldset__legend--s" } },
+              value: filterActionNeeded,
+              items: [
+                { value: "today", text: "Today (" + filterCounts.today + ")" },
+                { value: "next-3-days", text: "Next 3 days (" + filterCounts.next3Days + ")" },
+                { value: "already-delayed", text: "Already delayed (" + filterCounts.alreadyDelayed + ")" }
+              ]
+            }) }}
+          </div>
+          <div class="dashboard-two-filter-radios__group">
+            {{ govukRadios({
+              classes: "govuk-radios--inline govuk-radios--small",
+              idPrefix: "filterStatusChange",
+              name: "filterStatusChange",
+              fieldset: { legend: { text: "Status changes", classes: "govuk-fieldset__legend--s" } },
+              value: filterStatusChange,
+              items: [
+                { value: "last-24-hours", text: "Last 24 hours (" + filterCounts.last24Hours + ")" },
+                { value: "last-3-days", text: "Last 3 days (" + filterCounts.last3Days + ")" }
+              ]
+            }) }}
+          </div>
+        </div>
+        {{ govukButton({
+          text: "Apply filters",
+          classes: "govuk-!-margin-bottom-0"
+        }) }}
+      </div>
+    </div>
+  </div>
+
+</form>
+
+<p class="govuk-body govuk-!-font-weight-bold">
+  {% if totalResults > 0 %}Show {{ rangeStart }}-{{ rangeEnd }} of {{ totalResults }} results{% else %}No notifications match your filters{% endif %}
+</p>
+
+{% for n in notifications %}
+<div class="govuk-summary-card govuk-!-margin-bottom-4 dashboard-two-card {% if n.hasError %}dashboard-two-card--error{% endif %}">
+  <div class="govuk-summary-card__title-wrapper">
+    <div>
+      <p class="govuk-body-s govuk-!-margin-bottom-1 govuk-!-margin-top-0 dashboard-two-card__type">{{ n.typeLabel }}</p>
+      <h3 class="govuk-summary-card__title dashboard-card-title">{{ n.reference }}</h3>
+    </div>
+    <ul class="govuk-summary-card__actions dashboard-card-actions">
+      <li><a class="govuk-link govuk-!-font-weight-regular" href="{{ n.viewHref }}">View notification</a></li>
+    </ul>
+  </div>
+  <div class="govuk-summary-card__content dashboard-card-content">
+    {% if n.hasError %}
+    <p class="dashboard-two-card__error">Error message</p>
+    {% endif %}
+    <div class="govuk-grid-row govuk-!-margin-bottom-0">
+      <div class="govuk-grid-column-one-quarter govuk-!-margin-bottom-4">
+        <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Commodity</p>
+        <p class="govuk-body govuk-!-margin-0">{{ n.commodity }}</p>
+      </div>
+      <div class="govuk-grid-column-one-quarter govuk-!-margin-bottom-4">
+        <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Arrival date</p>
+        <p class="govuk-body govuk-!-margin-0">{{ n.arrival }}</p>
+      </div>
+      <div class="govuk-grid-column-one-quarter govuk-!-margin-bottom-4">
+        <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Consignee</p>
+        <p class="govuk-body govuk-!-margin-0">{{ n.consignee }}</p>
+      </div>
+      <div class="govuk-grid-column-one-quarter govuk-!-margin-bottom-4">
+        <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Notification status</p>
+        <p class="govuk-body govuk-!-margin-0">
+          {% if n.statusText == "Completed" %}
+          <span class="dashboard-two-status dashboard-two-status--completed">Completed</span>
+          {% elif n.statusText == "Action required" %}
+          <span class="govuk-tag govuk-tag--red">Action required</span>
+          {% else %}
+          <span class="dashboard-two-status">Submitted</span>
+          {% endif %}
+        </p>
+      </div>
+    </div>
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-one-quarter">
+        <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">{{ "Number of animals" if n.numberOfAnimals != null else "Quantity" }}</p>
+        <p class="govuk-body govuk-!-margin-0">{{ n.numberOfAnimals if n.numberOfAnimals != null else "Not provided" }}</p>
+      </div>
+      <div class="govuk-grid-column-one-quarter">
+        <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Origin</p>
+        <p class="govuk-body govuk-!-margin-0">{{ n.origin }}</p>
+      </div>
+      <div class="govuk-grid-column-one-quarter">
+        <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Consignor</p>
+        <p class="govuk-body govuk-!-margin-0">{{ n.consignor }}</p>
+      </div>
+      <div class="govuk-grid-column-one-quarter">
+        {% if n.inspectionRequired %}
+        <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Inspection</p>
+        <p class="govuk-body govuk-!-margin-0"><span class="govuk-tag govuk-tag--yellow">Required</span></p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{% if pagination %}
+<div class="govuk-!-margin-top-6">
+  {{ govukPagination(pagination) }}
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block pageScripts %}
+  <script src="https://cdn.jsdelivr.net/npm/accessible-autocomplete@2.0.4/dist/accessible-autocomplete.min.js"></script>
+  <script>
+    (function () {
+      var originSelect = document.querySelector('#filterOrigin')
+      if (originSelect && typeof accessibleAutocomplete !== 'undefined') {
+        accessibleAutocomplete.enhanceSelectElement({
+          autoselect: true,
+          defaultValue: originSelect.options[originSelect.selectedIndex] ? originSelect.options[originSelect.selectedIndex].text : '',
+          minLength: 2,
+          selectElement: originSelect
+        })
+      }
+    })()
+  </script>
+{% endblock %}

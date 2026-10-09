@@ -1,0 +1,138 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+
+{% set title = "Waste: export and import" %}
+
+{% block beforeContent %}
+  {{ govukBreadcrumbs({
+    items: [
+      { text: "Home", href: "https://www.gov.uk/" },
+      { text: "Import goods into the UK: step by step", href: "/intro/import-goods-into-uk" }
+    ]
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 class="govuk-heading-l">Waste: export and import</h1>
+    <p class="govuk-body">The controls that apply if you transport waste out of or into England.</p>
+    <p class="govuk-body">This guidance is from the Environment Agency and applies to England. There is separate guidance for <a class="govuk-link" href="https://www.daera-ni.gov.uk/">Northern Ireland (DAERA)</a>, <a class="govuk-link" href="https://www.sepa.org.uk/">Scotland (SEPA)</a> and <a class="govuk-link" href="https://naturalresources.wales/">Wales (Natural Resources Wales)</a>.</p>
+
+    <h2 class="govuk-heading-m">What a waste shipment is</h2>
+    <p class="govuk-body">A waste shipment means transporting waste between England and another country (this does not include Scotland, Wales or Northern Ireland) by road, rail, air or sea. Shipments like this must follow waste shipment controls.</p>
+    <p class="govuk-body">If you do not follow the relevant legal requirements, you may be committing a criminal offence and risk prosecution, financial penalties and imprisonment.</p>
+
+    <h2 class="govuk-heading-m">Check if your material is classed as waste</h2>
+    <p class="govuk-body">Waste shipment controls only apply if your material is classed as waste in any of the countries involved in the shipment. If it&rsquo;s classed as waste, the controls will apply for the whole journey.</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/check-if-your-material-is-waste">Check if your material is waste</a></li>
+    </ul>
+    <p class="govuk-body">If the competent authorities involved disagree about whether your material is waste, the material will always be treated as waste.</p>
+    <p class="govuk-body">You have a legal duty of care to handle waste safely and only pass it to someone authorised to take it. It is your responsibility to classify your waste correctly and ship it under the correct controls.</p>
+
+    <h2 class="govuk-heading-m">Waste shipment controls</h2>
+    <p class="govuk-body">Controls are set out in the assimilated Waste Shipments Regulation (EC) No 1013/2006, as amended by:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>the International Waste Shipments (Amendment) (EU Exit) Regulations 2019</li>
+      <li>the International Waste Shipments (Amendment of Regulation (EC) No 1013/2006) Regulations 2020</li>
+      <li>the International Waste Shipments (Amendment of Regulation (EC) No. 1013/2006 and 1418/2007) Regulations 2021</li>
+    </ul>
+    <p class="govuk-body">This guidance refers to these together as the &lsquo;relevant regulations&rsquo;. The rules apply in the country where the shipment starts, the country where it ends, and any transit countries on the intended journey.</p>
+    <p class="govuk-body">Some waste shipments are prohibited (not allowed). If your waste is not prohibited, you must comply with either:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><strong>notification controls</strong> (amber list) &ndash; you need consent from every competent authority involved before you can ship</li>
+      <li><strong>article 18 controls</strong> (green list) &ndash; simplified controls that apply to most non-hazardous waste</li>
+    </ul>
+
+    <h2 class="govuk-heading-m">How to find out which controls apply</h2>
+    <p class="govuk-body">Which controls apply depends on the type of waste, the type of treatment planned at the destination, and the country of destination and the transport route. There are also separate producer responsibility regulations for exporting packaging, batteries, end of life vehicles (ELVs) and waste electrical and electronic equipment (WEEE).</p>
+
+    <h3 class="govuk-heading-s">The type of waste</h3>
+    <p class="govuk-body">Waste should be described using codes from the relevant regulations &ndash; a <a class="govuk-link" href="https://www.gov.uk/government/publications/waste-shipments-regulation-wsr-consolidated-waste-list">consolidated waste list</a> can help you find the right description. There are two types of code: Basel Convention codes (a single letter, for example B3011) and OECD codes (two letters, for example AC300). If there is no Basel or OECD code for your waste, you must describe it as &lsquo;not listed&rsquo; and notification controls will apply.</p>
+    <p class="govuk-body">Some waste types have their own dedicated guidance:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/importing-and-exporting-waste-plastic">Importing and exporting waste plastic</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/importing-and-exporting-waste-electrical-and-electronic-equipment-weee">Importing and exporting waste electrical and electronic equipment (WEEE)</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/importing-and-exporting-waste-and-non-waste-textiles">Importing and exporting waste and non-waste textiles</a></li>
+    </ul>
+
+    <h3 class="govuk-heading-s">The type of treatment</h3>
+    <p class="govuk-body">Waste &lsquo;treatment&rsquo; means either disposal or recovery, as defined in Directive 2008/98/EC. Generally, imports and exports of waste must be for recovery &ndash; imports or exports for disposal are prohibited, except for the exceptions set out in the <a class="govuk-link" href="https://www.gov.uk/government/publications/uk-plan-for-waste-shipments">UK plan for waste shipments</a>, where notification controls always apply. For some plastics, the controls that apply depend on the type of recovery planned.</p>
+
+    <h3 class="govuk-heading-s">The intended journey and destination</h3>
+    <p class="govuk-body">You must follow the rules of every country your waste stops in or passes through. A <a class="govuk-link" href="https://www.gov.uk/government/publications/waste-exports-control-tool">waste export controls tool</a> can help you work out which controls apply, but you should always check with the competent authorities, government departments or customs inspectorates in the destination and transit countries before you ship.</p>
+
+    <h3 class="govuk-heading-s">Recovery in OECD countries or EU member states</h3>
+    <p class="govuk-body">Article 18 (green list) controls generally apply to waste listed under single entries in Annex III or IIIB, or mixtures listed in Annex IIIA. Notification controls apply to all other waste. For shipments to the EU, you must also follow the <a class="govuk-link" href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A52015XC0512%2803%29">guidelines for customs controls on transboundary shipments of waste</a>.</p>
+
+    <h3 class="govuk-heading-s">Recovery in non-OECD countries outside the EU</h3>
+    <p class="govuk-body">The <a class="govuk-link" href="https://www.legislation.gov.uk/eur/2007/1418/contents">&lsquo;Green list&rsquo; regulations 1418/2007, as amended</a>, set out which controls apply to waste listed in Annex III and IIIA, by country. Hazardous waste and household waste listed in <a class="govuk-link" href="https://www.legislation.gov.uk/eur/2006/1013/annex/V">Annex V</a> are prohibited for export. Notification controls apply to all other waste.</p>
+    <p class="govuk-body">You may also need:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://european-union.europa.eu/principles-countries-history/eu-countries_en">the list of EU countries</a></li>
+      <li><a class="govuk-link" href="https://www.oecd.org/en/about/members-partners.html">the list of OECD countries</a></li>
+      <li><a class="govuk-link" href="https://ec.europa.eu/environment/topics/waste-and-recycling/waste-shipments_en#ecl-inpage-424">competent authorities of EU member states</a></li>
+      <li><a class="govuk-link" href="https://www.oecd.org/en/data/tools/transboundary-movements-of-waste.html">competent authorities of OECD countries</a></li>
+      <li><a class="govuk-link" href="http://www.basel.int/Countries/CountryContacts/tabid/1342/Default.aspx">competent authorities of non-OECD countries</a></li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Exporting waste under notification controls</h2>
+    <p class="govuk-body">Before you export under notification controls, you must notify all the competent authorities involved and get their consent. To export from England you must be under England or Wales jurisdiction and be the original waste producer, a licensed new producer, a licensed waste collector, a dealer or broker registered with the Environment Agency with written approval from the producer or collector, or the waste holder where others are unknown or insolvent.</p>
+    <p class="govuk-body">The process is:</p>
+    <ol class="govuk-list govuk-list--number">
+      <li>Fill in a notification application using the <a class="govuk-link" href="https://international-waste-shipments.service.gov.uk/">IWS online service</a>, giving full details of the waste, its origin, treatment and journey to final destination, including every transit country.</li>
+      <li>Decide how many shipments you will make &ndash; a &lsquo;single shipment&rsquo; is defined in <a class="govuk-link" href="https://www.gov.uk/government/publications/waste-miscellaneous-charging-scheme/waste-miscellaneous-england-charging-scheme-2018#part-5">part 5 of the Waste (Miscellaneous) (England) Charging Scheme 2018</a>. You have up to 12 months from the date of consent to complete your shipments (up to 3 years if the destination facility has pre-consented status).</li>
+      <li>Find out if you&rsquo;re exporting to a pre-consented recovery site &ndash; this can mean a quicker consent process and consent lasting up to 3 years.</li>
+      <li>Find out if you&rsquo;re exporting waste to an interim operation (for example pre-processing or storage overseas before final recovery or disposal) and explain clearly what the interim treatment involves.</li>
+      <li>Arrange a financial guarantee or equivalent insurance approved by the Environment Agency, using the <a class="govuk-link" href="https://www.gov.uk/government/publications/application-for-approval-of-financial-guarantee-or-equivalent-insurance">financial guarantee form</a>. This must cover transporting the waste, its recovery or disposal, and storage for up to 90 days, and must be approved before shipments begin.</li>
+      <li>Put a legally enforceable contract in place with the waste treatment business (the importer), covering what happens if the shipment or recovery does not go ahead as planned or is found to be illegal.</li>
+      <li>Arrange third party liability insurance against damage caused by the waste shipment, in place before you submit your application.</li>
+      <li>Pay the charge &ndash; the Environment Agency will not deal with your notification until the correct fee has been paid. Charges depend on whether it&rsquo;s for recovery or disposal, the waste type, the number of shipments, and whether controlled substances are present; see the <a class="govuk-link" href="https://www.gov.uk/government/publications/waste-miscellaneous-charging-scheme/waste-miscellaneous-england-charging-scheme-2018#charges-relating-to-international-waste-shipments">charging scheme</a> and <a class="govuk-link" href="https://www.gov.uk/government/publications/international-waste-shipments-fee-payment-options">fee payment options</a>.</li>
+      <li>Send your application, including the signed notification form, the unsigned movement form, required annexes, proof of payment, and your contract, to <a class="govuk-link" href="mailto:askshipments@environment-agency.gov.uk">askshipments@environment-agency.gov.uk</a> via <a class="govuk-link" href="https://international-waste-shipments.service.gov.uk/">IWS online</a>.</li>
+    </ol>
+    <p class="govuk-body">Within 3 working days of receiving a complete notification package, the Environment Agency will assess it and send it to all the competent authorities involved. The competent authority of destination then reviews the package, and every authority involved (destination, dispatch and transit) must decide whether to consent without conditions, consent with conditions, or object &ndash; waste cannot be shipped until all of them have consented. If a transit country does not respond within 30 days, you may be able to assume &lsquo;tacit consent&rsquo;, although rules on this vary by country.</p>
+    <p class="govuk-body">Consent is normally given for up to 12 months and can only be used by the notifier named on the notification. Before each shipment you must check consent and a valid financial guarantee are in place, create a pre-notification on IWS online, and send copies of the signed movement document to the competent authorities and destination facility at least 3 (and no more than 30) working days before the waste moves. A copy of the completed movement document and consented notification must travel with the waste throughout the journey. The receiving facility must confirm receipt within 3 working days and provide a certificate of recovery or disposal within 30 days of treatment.</p>
+    <p class="govuk-body">You can ask for a refund of the notification charge (minus an administration charge) if the notification is objected to, withdrawn before consent, or consented to but never used &ndash; you must apply within 12 months of the &lsquo;consent valid from&rsquo; date. You must keep all documents about the shipment and treatment for at least 3 years from the date the shipment starts.</p>
+
+    <h2 class="govuk-heading-m">Importing waste under notification controls</h2>
+    <p class="govuk-body">The import process starts in the dispatch country, where the exporter applies to their competent authority for consent. Do not use the IWS online service for waste imports to England &ndash; the competent authority in the dispatch country will give the notification and movement numbers needed to ship the waste.</p>
+    <p class="govuk-body">To import waste you must have the relevant <a class="govuk-link" href="https://environment.data.gov.uk/public-register/view/search-waste-carriers-brokers">carrier, broker or dealer licence</a>, and the recovery facility must hold a waste permit or exemption allowing the specified treatment. Recovery sites in England with a suitable environmental permit that regularly receive the same waste can apply for site pre-consent using the <a class="govuk-link" href="https://www.gov.uk/government/publications/application-form-for-issue-of-pre-consent">pre-consent form</a>, which can mean a quicker process and consent lasting up to 3 years (a pre-consent certificate itself can last up to 10 years).</p>
+    <p class="govuk-body">Once the dispatch country&rsquo;s competent authority confirms a complete application, the Environment Agency reviews the notification package (checking it's complete within 3 days, and checking the financial guarantee for non-EU imports) and, within 30 days of acknowledging it, decides to consent without conditions, consent with conditions, or object.</p>
+    <p class="govuk-body">Once consent is received, the notifier can start shipping waste to England. Before each shipment they must send the completed movement document to the Environment Agency and the destination facility at least 3 (and no more than 30) working days before the shipment starts. On arrival, the recovery or disposal facility must confirm receipt within 3 working days, and complete the treatment record within 30 days of finishing treatment. If waste arrives without the correct documents, or cannot be treated as documented, it must be quarantined immediately and the <a class="govuk-link" href="https://www.gov.uk/government/organisations/environment-agency#org-contacts">Environment Agency contacted</a>. All documents must be kept for at least 3 years.</p>
+
+    <h2 class="govuk-heading-m">If things change during import or export under a notification</h2>
+    <p class="govuk-body">Only limited changes are allowed to a notification once it has been transmitted (exports) or acknowledged (imports) and consented to. You must pay an amendment charge and get written approval from every competent authority involved, or you may need to submit a new notification. Changes that may be possible include: updating contact details; increasing the number of shipments (without increasing total tonnage); changing the intended shipment dates (until consent is received); adding an extra packaging type; adding extra waste carriers or producers; adding extra physical characteristics, UN numbers or customs (HS) codes; and correcting an incorrect EU customs office of entry.</p>
+    <p class="govuk-body">Changing the route generally requires a new application &ndash; the Environment Agency will not agree to a route change that adds a transit country not included in the original application, and consent may be withdrawn if waste passes through an uninvolved transit country. If waste is stopped, rejected or the shipment does not go ahead within 10 working days of its intended date, the shipment is treated as cancelled and the shipment number cannot be reused.</p>
+
+    <h2 class="govuk-heading-m">Transits of waste under notification controls</h2>
+    <p class="govuk-body">Waste transiting the UK has tacit consent from the Environment Agency for one calendar year &ndash; no confirmation letter or stamped notification document is issued for transit shipments. If the Environment Agency wishes to object, it will do so within 30 calendar days of the competent authority of destination acknowledging the notification. Tacit consent expires after this one year and 30-day period, and you must not make a shipment after the expiry date.</p>
+
+    <h2 class="govuk-heading-m">Exporting waste under article 18 (green list) controls</h2>
+    <p class="govuk-body">Waste exported under article 18 (green list) controls must not be prohibited, must not require notification controls, must not contain hazardous waste, and must be properly sorted before loading so that any remaining contamination is minimal. For every shipment you must complete an <a class="govuk-link" href="https://www.gov.uk/government/publications/annex-vii-document-for-green-list-waste-shipments">Annex VII form</a> in full and have a written contract in place with the importer that meets the requirements of article 18 of the Waste Shipments Regulation. You must check with the competent authorities of the transit and destination countries in case different rules, consent requirements or fees apply there.</p>
+    <p class="govuk-body">From 1 July 2026 there are new rules for exporting from England under article 18 controls:</p>
+    <ol class="govuk-list govuk-list--number">
+      <li>Register to export waste under article 18 controls, reporting your likely export activity for the next 12 months using the form to <a class="govuk-link" href="https://submit-form-to-defra.service.gov.uk/form/report-if-you-will-export-waste-under-article-18-controls">report if you will export waste under Article 18 controls</a>.</li>
+      <li>Send the Environment Agency the information they ask for &ndash; they may issue a formal &lsquo;information notice&rsquo; requesting standard information about your exports, in a set format and frequency.</li>
+      <li>Send extra information about the sites you send waste to, if requested within 12 months of registering, showing the waste goes to legally authorised sites capable of environmentally sound recovery.</li>
+    </ol>
+    <p class="govuk-body">Before shipping, check the destination still allows article 18 shipment using the <a class="govuk-link" href="https://www.gov.uk/government/publications/waste-exports-control-tool">waste export controls tool</a>, complete and sign the Annex VII form (keeping copies for 3 years), and have a written contract with the importer covering what happens if the shipment cannot be completed as planned. Exporters and importers must keep copies of the Annex VII form and contract for 3 years, and competent authorities can ask to see them.</p>
+
+    <h2 class="govuk-heading-m">Importing waste under article 18 (green list) controls into England</h2>
+    <p class="govuk-body">If your waste can be imported under article 18 (green list) controls, no Environment Agency consent or fee is required. The exporter completes an <a class="govuk-link" href="https://www.gov.uk/government/publications/annex-vii-document-for-green-list-waste-shipments">Annex VII form</a> with details of the waste and journey, which must travel with the waste. You must still check with the competent authorities of the dispatch and transit countries in case different rules apply.</p>
+    <p class="govuk-body">Before the waste moves, the importer should have a written contract with the exporter, check that any waste transport companies in England are <a class="govuk-link" href="https://environment.data.gov.uk/public-register/view/search-waste-carriers-brokers">registered as waste carriers</a>, and check the recovery facility has the necessary waste permit or exemption. When the waste arrives, you must be satisfied the waste matches the Annex VII description, is not prohibited, does not need notification controls, does not contain hazardous materials, and is properly sorted &ndash; if not, quarantine the waste immediately and <a class="govuk-link" href="https://www.gov.uk/government/organisations/environment-agency#org-contacts">contact the Environment Agency</a>. The importer and recovery facility must sign the Annex VII form on receipt and keep copies for 3 years.</p>
+
+    <h2 class="govuk-heading-m">Related content</h2>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/check-if-your-material-is-waste">Check if your material is waste</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/importing-and-exporting-waste-plastic">Importing and exporting waste plastic</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/importing-and-exporting-waste-electrical-and-electronic-equipment-weee">Importing and exporting waste electrical and electronic equipment (WEEE)</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/importing-and-exporting-waste-and-non-waste-textiles">Importing and exporting waste and non-waste textiles</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/radioactive-waste-spent-fuel-or-sources">Radioactive waste, spent fuel or sources</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/moving-mercury-and-products-containing-mercury">Moving mercury and products containing mercury</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/government/collections/classify-different-types-of-waste">Classify different types of waste</a></li>
+    </ul>
+
+  </div>
+</div>
+{% endblock %}

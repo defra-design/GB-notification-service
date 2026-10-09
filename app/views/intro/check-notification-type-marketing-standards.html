@@ -1,0 +1,45 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% set title = "Which marketing standards notification" %}
+{% set backLinkHref = "/intro/check-notification-type" %}
+{# All 7 commodity categories GOV.UK documents under UK Marketing Standards (see
+   .claude/knowledge/reference/marketing-standards-mks-types.md) are offered here, but only
+   MKS-EG/PO/FV have dashboard rows and reference-format support (app/data/notifications-intro.js,
+   app/lib/notification-reference.js) -- MKS-HC/BV/HP/WN are selector-only for now. That's safe
+   because notificationType is only stored in session, never branched on downstream (the
+   v1-baseline create flow always produces a CHED-A-shaped notification regardless of the value
+   chosen here) -- see app/routes.js's POST /intro/check-notification-type-marketing-standards. #}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <form method="post" novalidate>
+      <h1 class="govuk-heading-l">Which marketing standards notification do you need?</h1>
+
+      {{ govukRadios({
+        name: "notificationType",
+        fieldset: {
+          legend: {
+            text: "Which marketing standards notification do you need?",
+            classes: "govuk-visually-hidden"
+          }
+        },
+        items: [
+          { value: "mks-eg", text: "MKS-EG", hint: { text: "Eggs, under UK Marketing Standards rules" } },
+          { value: "mks-po", text: "MKS-PO", hint: { text: "Poultry meat, under UK Marketing Standards rules" } },
+          { value: "mks-fv", text: "MKS-FV", hint: { text: "Fresh fruit and vegetables, under UK Marketing Standards rules" } },
+          { value: "mks-hc", text: "MKS-HC", hint: { text: "Hatching eggs and chicks, under UK Marketing Standards rules" } },
+          { value: "mks-bv", text: "MKS-BV", hint: { text: "Beef and veal, under UK Marketing Standards rules" } },
+          { value: "mks-hp", text: "MKS-HP", hint: { text: "Hops and hop products, under UK Marketing Standards rules" } },
+          { value: "mks-wn", text: "MKS-WN", hint: { text: "Wine, under UK Marketing Standards rules" } }
+        ],
+        value: data.notificationType
+      }) }}
+
+      {{ govukButton({ text: "Continue" }) }}
+    </form>
+  </div>
+</div>
+{% endblock %}

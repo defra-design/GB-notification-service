@@ -1,0 +1,28 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% set title = "Checker - guidance and signposting" %}
+
+{% block beforeContent %}
+  {{ govukBreadcrumbs({
+    items: [
+      { text: "Home", href: "#" },
+      { text: "Import goods into the UK: step by step", href: "/intro/import-goods-into-uk" }
+    ]
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <form action="/intro/import-notification-start" method="post" novalidate>
+    <h1 class="govuk-heading-l">Checker - guidance and signposting</h1>
+
+      <p class="govuk-body">In some cases, for example products of animal origin from EU (POAO) or low-risk plants and plant products from EU, the user no longer needs to notify authorities.</p>
+      <p class="govuk-body">The checker service will inform them of this, and the reasons why.</p>
+
+    </form>
+  </div>
+</div>
+{% endblock %}

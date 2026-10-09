@@ -1,0 +1,38 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% set title = "Which notification type" %}
+{% set backLinkHref = "/intro/dashboard-two" %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <form method="post" novalidate>
+      <h1 class="govuk-heading-l">Which notification do you need?</h1>
+
+      {{ govukRadios({
+        name: "notificationType",
+        fieldset: {
+          legend: {
+            text: "Which type of notification do you need?",
+            classes: "govuk-visually-hidden"
+          }
+        },
+        items: [
+          { value: "gbn-ag", text: "GBN-AG", hint: { text: "Live animals, animal products, or high-risk food and feed from EU countries" } },
+          { value: "gbn-pp", text: "GBN-PP", hint: { text: "Plants and plant products from Rest of the World countries" } },
+          { value: "ched-pp", text: "CHED-PP", hint: { text: "Plants and plant products, such as fruit, vegetables or cut flowers from EU countries" } },
+          { value: "iuu", text: "IUU", hint: { text: "Wild-caught marine fish and seafood" } },
+          { value: "mkk", text: "MKS", hint: { text: "For example, eggs, poultry meat, or fresh fruit and vegetables under the UK Marketing Standards" } },
+          { divider: "or" },
+          { value: "not-sure", text: "I'm not sure", hint: { text: "You will be asked questions to help determine the correct notification type" }   }
+        ],
+        value: data.notificationType
+      }) }}
+
+      {{ govukButton({ text: "Continue" }) }}
+    </form>
+  </div>
+</div>
+{% endblock %}

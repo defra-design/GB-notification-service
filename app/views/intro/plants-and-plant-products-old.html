@@ -1,0 +1,48 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+
+{% set title = "Importing and exporting plants and plant products" %}
+
+{% block beforeContent %}
+  {{ govukBreadcrumbs({
+    items: [
+      { text: "Home", href: "#" },
+      { text: "Import goods into the UK: step by step", href: "/intro/import-goods-into-uk" }
+    ]
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+      {% call govukNotificationBanner() %}
+        <p class="govuk-notification-banner__heading">
+          UK import rules have changed. You need to understand how this affects you.
+          <a class="govuk-notification-banner__link" href="checker-questions">Check which service to use and read guidance</a>.
+        </p>
+      {% endcall %}
+
+    <h1 class="govuk-heading-l">Importing and exporting plants and plant products</h1>
+    <p class="govuk-body">Guidance on how to import and export plants and plant products to and from the UK.</p>
+
+    <h2 class="govuk-heading-m">Importing plants and plant products</h2>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/import-plants-and-plant-products-from-the-eu-to-great-britain">Import plants and plant products from the EU to Great Britain</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/import-plants-and-plant-products-from-non-eu-countries-to-great-britain">Import plants and plant products from non-EU countries to Great Britain</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/importing-and-exporting-fresh-fruit-and-vegetables">Importing and exporting fresh fruit and vegetables</a></li>
+      <li><a class="govuk-link" href="ipaffs">Import of products, animals, food and feed system (IPAFFS)</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/government/publications/plant-imports-authorised-border-control-posts-in-the-uk">Plant imports: authorised border control posts in the UK</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/issuing-plant-passports-to-trade-plants-in-great-britain">Issue plant passports to move regulated plant material in Great Britain</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/moving-prohibited-plants-plant-pests-pathogens-and-soil">Moving specified plants, plant pests, pathogens and soil</a></li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Exporting plants and plant products</h2>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/export-or-move-plants-and-plant-products-from-great-britain-and-northern-ireland">Export or move plants and plant products from Great Britain and Northern Ireland</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/apply-for-plant-export-certificates-and-inspections">Apply for plant export certificates and inspections</a></li>
+    </ul>
+
+  </div>
+</div>
+{% endblock %}

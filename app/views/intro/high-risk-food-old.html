@@ -1,0 +1,114 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+
+{% set title = "Importing high risk foods" %}
+
+{% block beforeContent %}
+  {{ govukBreadcrumbs({
+    items: [
+      { text: "Home", href: "#" },
+      { text: "Import goods into the UK: step by step", href: "/intro/import-goods-into-uk" }
+    ]
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    {% call govukNotificationBanner() %}
+        <p class="govuk-notification-banner__heading">
+          UK import rules have changed. You need to understand how this affects you.
+          <a class="govuk-notification-banner__link" href="checker-questions">Check which service to use and read guidance</a>.
+        </p>
+    {% endcall %}
+
+    <h1 class="govuk-heading-l">Importing high risk foods</h1>
+    <p class="govuk-body">Defining what a high risk product is, guidance on aflatoxin levels in imported food, current EU restrictions and guidance for importing certain produce from non-EU countries.</p>
+
+    <h2 class="govuk-heading-m">What you need to know if there&rsquo;s a no-deal Brexit</h2>
+    <p class="govuk-body">A Brexit deal has been agreed in principle with the EU. Both the UK and the EU need to approve and sign the withdrawal agreement. If the withdrawal agreement is not signed by the UK and the EU, the UK could still leave with no deal.</p>
+    <p class="govuk-body">If the UK leaves the EU with no deal, the information on this page will only be valid until the moment the UK leaves the EU. This <a class="govuk-link" href="https://www.gov.uk/guidance/importing-animals-animal-products-and-high-risk-food-and-feed-not-of-animal-origin-after-eu-exit">guidance on importing high risk food and feed if there&rsquo;s no exit deal</a> will tell you what you need to do to, if you are planning to import high risk food and feed into the UK after Brexit.</p>
+    <p class="govuk-body">You can also find more information on the changes that your business may need to make in the <a class="govuk-link" href="https://euexitbusiness.campaign.gov.uk/">Prepare your business for EU Exit page</a>.</p>
+
+    <p class="govuk-body">All products imported into the UK must comply with European Union (EU) law on contaminants, these laws are put into place to protect public health. There are certain types of food which are considered high risk, if you are involved with importing food from a third country, a non-EU country then you must be aware of this guidance.</p>
+    <p class="govuk-body">If imported products fail to meet the correct standards they will not be allowed into the EU. It is important to note that goods can only be imported through <a class="govuk-link" href="https://www.food.gov.uk/business-guidance/port-designations">designated points of entry (DPE)</a>, where documentary checks must be carried out and physical checks may be required prior to release. If you are importing foods which contain contaminants you must ensure you import through a DPE which can check your produce.</p>
+    <p class="govuk-body">High risk products may be considered high risk if they contain:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>contaminants - mycotoxins and aflatoxins</li>
+      <li>pesticides</li>
+      <li>salmonella</li>
+    </ul>
+    <p class="govuk-body">Information on high-risk products, country of origin and the frequency of checks can be found at Annex I of <a class="govuk-link" href="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:02009R0669-20190726&amp;qid=1569409752269&amp;from=EN">Regulation 669/2009</a> as amended.</p>
+    <p class="govuk-body">Products that are controlled at the border, are permitted to move inland pending the results of laboratory tests. However, arrangements must be put in place to ensure that the consignment remains under the continuous control of the competent authorities and cannot be tampered with in any manner pending the results of the laboratory checks. This can only be permitted with agreement of the port health authority.</p>
+    <p class="govuk-body">Until the results of the laboratory checks are known, the consignment must be stored at a UK External Temporary Storage Facility (ETSF). If you have any questions/queries, please email <a class="govuk-link" href="mailto:onward.tranport@food.gov.uk">onward.transport@food.gov.uk</a>.</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.food.gov.uk/sites/default/files/media/document/external-temporary-storage-facility-list-july-2018.xlsx_2.pdf">UK External temporary storage facility list (July 2018)</a></li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Aflatoxin levels in imported food</h2>
+    <p class="govuk-body">Aflatoxins are a type of toxin which are naturally found in food and are linked with cancer when eaten at high levels. Some spices, nuts, dried fruit and cereals, including cereal products like breakfast cereals, can contain high levels of aflatoxins.</p>
+    <p class="govuk-body">There are limits on the level of aflatoxins that can be in foods imported into the European Union (EU) and some products might need to be tested. The harmonised controls that affect the import of specific products from certain non-EU countries can be found at this link.</p>
+    <p class="govuk-body">For safeguard controls on certain food products affected by aflatoxin contamination, you will need to look at <a class="govuk-link" href="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:02014R0884-20161222&amp;qid=1533225216005&amp;from=EN">Regulation 884/2014</a>, including the amendments <a class="govuk-link" href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32016R0024">Regulation 2016/24</a> and <a class="govuk-link" href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32016R2106">Regulation 2016/2106</a>.</p>
+
+    <h2 class="govuk-heading-m">Foodstuffs with current EU restrictions</h2>
+    <p class="govuk-body">These controls exist to protect public health and may either suspend imports or specify conditions of import. In most cases, consignments may only be imported through designated entry points, documentary checks must be carried out and sampling and analysis or examination may be required prior to release.</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="https://www.food.gov.uk/sites/default/files/media/document/table-of-foodstuffs-with-current-eu-restrictions-july-2019_0.pdf">Table of Foodstuffs with current EU restrictions (July 2019)</a></li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Pesticide levels in imported food</h2>
+    <p class="govuk-body">Certain products of non-animal origin from certain third countries are controlled due to the risks of contamination with pesticides residues. For safeguard controls on these food products, you will need to look a Regulation <a class="govuk-link" href="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32018R1660&amp;qid=1548691913982&amp;from=EN">2018/1660</a>.</p>
+
+    <h2 class="govuk-heading-m">Importing Guar Gum from India</h2>
+    <p class="govuk-body">The above product is at risk of contamination by pentachlorophenol (PCP) and dioxins and have their import into the EU controlled by <a class="govuk-link" href="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:JOL_2015_030_R_0003&amp;from=EN">Regulation 2015/175</a>.</p>
+
+    <h2 class="govuk-heading-m">Importing produce from China</h2>
+    <p class="govuk-body">Products of animal origin which are imported from China must comply with specific health conditions.</p>
+    <p class="govuk-body">The following products can enter the EU providing consignments adhere to the following rules:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>undergoes pre-shipment checks for the presence of the illegal veterinary medicines chloramphenicol and nitrofurans and their metabolites</li>
+      <li>is accompanied by a signed declaration from the Chinese competent authority with the analytical check results</li>
+    </ul>
+    <p class="govuk-body">Fishery products are all animal products derived from fish. Aquaculture is a type of fishery product that has been farmed.</p>
+    <p class="govuk-body">Consignments of aquaculture need to undergo pre-shipment checks for the presence of malachite green, crystal violet and their metabolites. Aquaculture must be accompanied by a signed declaration from the Chinese competent authority with the analytical results.</p>
+    <p class="govuk-body">For full controls and a complete list of controlled products see the <a class="govuk-link" href="https://eur-lex.europa.eu/legal-content/en/ALL/?uri=CELEX:32002D0994">Commission Decision</a>.</p>
+    <p class="govuk-body">The import restrictions for some poultry products from China remain in place due to the outbreak of avian (bird) flu.</p>
+
+    <h2 class="govuk-heading-m">Importing produce from Japan</h2>
+    <p class="govuk-body">If you are importing produce from Japan you should follow <a class="govuk-link" href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32016R0006">Regulation EU 2016/6</a> as amended by <a class="govuk-link" href="https://eur-lex.europa.eu/legal-content/EN/TXT/?qid=1547559293488&amp;uri=CELEX:32017R2058">Regulation EU 2017/2058</a> &ndash; imposing special conditions governing the import of feed and food originating in or consigned from Japan following the accident at the Fukushima nuclear power station.</p>
+
+    <h2 class="govuk-heading-m">Restricted food stuffs</h2>
+
+    <h3 class="govuk-heading-s">Soy sauce containing 3-MCPD</h3>
+    <p class="govuk-body">Some soy sauce contains a dangerous chemical called 3-MCPD. There are limits on the levels of 3-MCPD that can be present in products imported into the UK and EU.</p>
+    <p class="govuk-body">These are:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>soy sauce can contain levels of 3-MCPD no higher than 0.02 mg/kg</li>
+      <li>this is for the liquid product containing 40% dry matter, which corresponds to a maximum level of 0.05 mg/kg in the dry matter</li>
+    </ul>
+
+    <h3 class="govuk-heading-s">Import ban on jelly sweets</h3>
+    <p class="govuk-body">There are restrictions within the EU on the additives permitted in certain jelly confectionery because there is a risk of choking:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>the use in jelly mini-cups of certain additives specified in Annex II of <a class="govuk-link" href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=celex%3A32008R1333">Regulation 1333/2008</a>, and the sale of these jelly mini-cups, is prohibited</li>
+      <li>in addition, the use of E425 konjac in all jelly confectionery, including jelly mini-cups, and the sale of such confectionery, is not permitted under <a class="govuk-link" href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=celex%3A32008R1333">Regulation 1333/2008</a></li>
+      <li>these provisions are enforced by way of <a class="govuk-link" href="http://www.legislation.gov.uk/uksi/2013/2210/contents/made">The Food Additives, Flavourings, Enzymes and Extraction Solvents (England) Regulations 2013</a></li>
+    </ul>
+
+    <h3 class="govuk-heading-s">Kava kava import ban</h3>
+    <p class="govuk-body">Kava Kava, a member of the pepper family, is as a traditional herbal remedy for the treatment of anxiety. The herb has been banned since 2003. This is because of concerns about its toxic effect on the liver. Kava kava supplements, or foods containing this herb cannot be imported into the EU.</p>
+
+    <h3 class="govuk-heading-s">Illegal dye in spices and palm oils</h3>
+    <p class="govuk-body">Certain spices are at risk of contamination. EU food authorities regulate high risk imports. If illegal dye levels are at or above 0.5 parts per million (0.5ppm) they are rejected.</p>
+    <p class="govuk-body">Spices at risk of contamination from illegal dye include:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>dried chilli</li>
+      <li>chilli products</li>
+      <li>curry powder</li>
+      <li>palm oil</li>
+    </ul>
+
+  </div>
+</div>
+{% endblock %}

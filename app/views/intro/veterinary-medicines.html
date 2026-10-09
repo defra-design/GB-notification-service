@@ -1,0 +1,118 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+
+{% set title = "Import a medicine for veterinary use into the UK" %}
+
+{% block beforeContent %}
+  {{ govukBreadcrumbs({
+    items: [
+      { text: "Home", href: "https://www.gov.uk/" },
+      { text: "Import goods into the UK: step by step", href: "/intro/import-goods-into-uk" }
+    ]
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 class="govuk-heading-l">Import a medicine for veterinary use into the UK</h1>
+    <p class="govuk-body">This guidance explains how to apply for an import certificate to bring medicinal products into the UK for veterinary use.</p>
+
+    <h2 class="govuk-heading-m">When an import certificate is needed</h2>
+    <p class="govuk-body">The UK maintains a Product Information Database containing all veterinary medicines authorised in Great Britain, Northern Ireland, or across the UK. Veterinary surgeons may use the &lsquo;Cascade&rsquo; procedure to source medicines authorised elsewhere when suitable local alternatives aren&rsquo;t available. GB&#8209;based practitioners importing medicines from Northern Ireland that are not authorised in GB also require certificates.</p>
+
+    <h3 class="govuk-heading-s">Movement from Great Britain to Northern Ireland</h3>
+    <p class="govuk-body">Under the Veterinary Medicines Internal Market Scheme (VMIMS), import certificates aren&rsquo;t required when sourcing pharmaceutical medicines authorised in GB for NI use under the cascade. However, vaccines authorised in GB cannot be moved into NI under VMIMS.</p>
+
+    <h3 class="govuk-heading-s">Importation of vaccines into Northern Ireland</h3>
+    <p class="govuk-body">Import certificates are mandatory for vaccines not authorised for veterinary use in NI, whether from EU or third-country sources. Vaccines from GB or outside the EU require certificates only if Article 110 conditions of Regulation (EU) 2019/6 are satisfied. The online Special Imports Scheme lists eligible vaccines.</p>
+
+    <h2 class="govuk-heading-m">Import certificate types</h2>
+    <p class="govuk-body">There are 3 certificate types:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>Special Import Certificate (SIC) &ndash; for importing medicines</li>
+      <li>Wholesale Dealers Import Certificate (WDIC) &ndash; for wholesalers importing and holding medicines to supply SIC holders</li>
+      <li>Research Import Certificate (RIC) &ndash; for products or substances used in licensed research under the Animals (Scientific Procedures) Act</li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Veterinary surgeons</h2>
+    <p class="govuk-body">GB-based veterinary surgeons require an SIC to import, use, or hold any medicine not authorised for veterinary use in GB.</p>
+    <p class="govuk-body">NI-based veterinary surgeons require an SIC to import, use, or hold:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>GB-authorised immunological medicines</li>
+      <li>any other medicine not authorised for veterinary use in NI</li>
+    </ul>
+    <p class="govuk-body">NI-based surgeons do not need an SIC for:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>non-immunological GB-authorised pharmaceutical medicines moved into NI under VMIMS</li>
+      <li>EU medicines permitted under the Veterinary Medicines Health Situation Scheme</li>
+    </ul>
+    <p class="govuk-body">Applicants must be registered with the Royal College of Veterinary Surgeons (RCVS) and provide their membership number during the application. Full responsibility rests with the veterinary surgeon for ensuring SIC conditions are met and the product is administered properly.</p>
+
+    <h2 class="govuk-heading-m">Wholesale dealers</h2>
+    <p class="govuk-body">Wholesale dealers require a Wholesale Dealer Import Certificate (WDIC) to hold and supply imported medicines to SIC holders. Applicants must hold a Wholesale Dealer&rsquo;s Authorisation (WDA) with appropriate permissions and provide their WDA or registration number.</p>
+    <p class="govuk-body">Applications are considered when valid SICs exist; otherwise, applications remain on hold for a maximum of 14 days awaiting SIC approval. No WDIC is required if products are supplied under VMIMS.</p>
+
+    <h2 class="govuk-heading-m">Researchers</h2>
+    <p class="govuk-body">A Research Import Certificate (RIC) is required when a Home Office project licence holder needs medicinal products for animal research conducted under an Animals (Scientific Procedures) Act licence. Only project licence holders may apply, and applicants must enter their Home Office Project Licence number.</p>
+
+    <h2 class="govuk-heading-m">How to apply</h2>
+    <p class="govuk-body">Applicants should apply for an SIC through the VMD&rsquo;s online <a class="govuk-link" href="https://www.vmd.defra.gov.uk/sis/default.aspx">Special Imports Scheme</a>.</p>
+    <p class="govuk-body">After providing personal details, applicants identify the product and target animals. Products currently eligible for import appear in dropdown menus. Some applications require assessment; on-screen prompts indicate this status. Otherwise, certificates are emailed immediately upon application completion.</p>
+    <p class="govuk-body">If the product, country, or species isn&rsquo;t listed, a benefit-risk assessment becomes necessary. Required data varies case-by-case.</p>
+
+    <h2 class="govuk-heading-m">Applications that require assessment</h2>
+    <p class="govuk-body">Applicants must demonstrate the absence of suitable authorised veterinary products in their territory. Costs, convenience, or withdrawal periods don&rsquo;t justify alternatives. The <a class="govuk-link" href="https://www.gov.uk/check-animal-medicine-licensed">Product Information Database</a> lists all authorised UK veterinary medicines.</p>
+    <p class="govuk-body">Temporary supply issues permit import only until supply resumes or alternatives become available; applicants should purchase quantities matching anticipated needs.</p>
+    <p class="govuk-body">In exceptional cases, emergency stock retention may be permitted.</p>
+
+    <h3 class="govuk-heading-s">Data required for assessment</h3>
+    <p class="govuk-body">Complete the online form and provide the Summary of Product Characteristics (SPC) or equivalent product information translated to English, and product labels in the native language. The VMD may request additional product or patient data during assessment. Applicants should provide as much supporting information as possible during the application.</p>
+
+    <h3 class="govuk-heading-s">For live vaccines, also provide</h3>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>full product formulation details</li>
+      <li>strain origin details and evidence of whether it&rsquo;s considered exotic to the UK</li>
+      <li>strain genotype information and relationships to known strains</li>
+      <li>a Transmissible Spongiform Encephalopathies (TSE) risk assessment for manufacturing materials of human or animal origin</li>
+      <li>proof of attenuation stability and evidence of no reversion-to-virulence risk</li>
+      <li>extraneous agents testing details</li>
+      <li>the recent batch release protocol, including all finished product tests and results</li>
+    </ul>
+
+    <h3 class="govuk-heading-s">Raised import risk profile or application refusal</h3>
+    <p class="govuk-body">Products assessed as having raised import risk profiles receive certificates restricted to named individual animals or herds/flocks. Horses cannot be grouped. If initial applications lack named animal information, the VMD will request this during assessment. Unsuccessful applications receive explanatory letters.</p>
+
+    <h3 class="govuk-heading-s">Controlled drugs</h3>
+    <p class="govuk-body">Products falling within the scope of the Misuse of Drugs Regulations 2001 may require additional Home Office approval. See <a class="govuk-link" href="https://www.gov.uk/guidance/controlled-drugs-import-and-export-licences">Controlled drugs: import and export licences</a> guidance from the Home Office.</p>
+
+    <h3 class="govuk-heading-s">Assessment timescales</h3>
+    <p class="govuk-body">From receipt of a valid application (or the next working day for weekend/bank holiday submissions), outcomes are emailed within 25 working days. If further information is needed, timescales are suspended pending your response. Applicants receive response deadlines; missed deadlines result in refusal and the need to reapply.</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>previously imported SIC products &ndash; instantly available, or up to 10 working days if further assessment is required</li>
+      <li>new SIC pharmaceutical products (including emergency stock and new species applications) &ndash; up to 15 working days</li>
+      <li>new SIC immunological products not previously assessed &ndash; up to 25 working days</li>
+      <li>new SIC immunological products &ndash; emergency stock and new species applications &ndash; up to 15 working days</li>
+    </ul>
+    <p class="govuk-body">For immediate, clinically life-threatening needs, email the VMD at <a class="govuk-link" href="mailto:importcert@vmd.gov.uk">importcert@vmd.gov.uk</a> marked &lsquo;urgent&rsquo; with an explanation.</p>
+
+    <h2 class="govuk-heading-m">Validity of certificate</h2>
+    <p class="govuk-body">Import certificates remain valid for one year from issuance. Applicants should import only volumes meeting immediate clinical needs, up to a maximum one-year supply. Wholesalers importing during temporary supply issues may hold stock only until supply resumes or alternatives become authorised; quantities should match anticipated needs.</p>
+    <p class="govuk-body">Products remaining after certificate expiration require a new application for continued holding and use.</p>
+
+    <h2 class="govuk-heading-m">Fees</h2>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>SIC &ndash; no fee</li>
+      <li>RIC &ndash; no fee</li>
+      <li>WDIC &ndash; a &pound;760 fee applies if 100 or more SICs naming the importing wholesale dealer were issued in the last 12 months. An invoice is issued upon certificate issuance.</li>
+    </ul>
+
+    <h2 class="govuk-heading-m">Report a supply problem</h2>
+    <p class="govuk-body">Supply problems can be reported on the <a class="govuk-link" href="https://www.gov.uk/government/publications/report-a-supply-problem-with-a-veterinary-medicine">Report a supply problem</a> page.</p>
+
+    <h2 class="govuk-heading-m">Contact us</h2>
+    <p class="govuk-body">For all enquiries, email <a class="govuk-link" href="mailto:importcert@vmd.gov.uk">importcert@vmd.gov.uk</a>.</p>
+
+  </div>
+</div>
+{% endblock %}

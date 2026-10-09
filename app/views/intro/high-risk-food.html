@@ -1,0 +1,138 @@
+{% extends "layouts/main.html" %}
+{% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+
+{% set title = "Import high risk food and feed of non-animal origin from the EU to Great Britain" %}
+
+{% block beforeContent %}
+  {{ govukBreadcrumbs({
+    items: [
+      { text: "Home", href: "#" },
+      { text: "Import goods into the UK: step by step", href: "/intro/import-goods-into-uk" }
+    ]
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    {% call govukNotificationBanner() %}
+        <p class="govuk-notification-banner__heading">
+          UK import rules have changed. You need to understand how this affects you.
+          <a class="govuk-notification-banner__link" href="checker-questions">Check which service to use and read guidance</a>.
+        </p>
+    {% endcall %}
+
+    <span class="govuk-caption-l">Guidance</span>
+    <h1 class="govuk-heading-l">Import high risk food and feed of non-animal origin from the EU to Great Britain</h1>
+
+    <p class="govuk-body-l">How to import or move high risk food and feed of non-animal origin from the EU to Great Britain.</p>
+
+    <nav class="app-contents-list" aria-label="Contents">
+      <h2 class="app-contents-list__title">Contents</h2>
+      <ul class="app-contents-list__list">
+        <li class="govuk-body-s"><a class="govuk-link" href="#check-what-documents-you-need">Check what documents you need</a></li>
+        <li class="govuk-body-s"><a class="govuk-link" href="#notify-authorities-in-great-britain">Notify authorities in Great Britain</a></li>
+        <li class="govuk-body-s"><a class="govuk-link" href="#moving-hrfnao-from-northern-ireland-to-great-britain">Moving HRFNAO from Northern Ireland to Great Britain</a></li>
+        <li class="govuk-body-s"><a class="govuk-link" href="#sps-checks">Find out if your consignment needs sanitary and phytosanitary (SPS) checks</a></li>
+        <li class="govuk-body-s"><a class="govuk-link" href="#if-you-need-help">If you need help</a></li>
+        <li class="govuk-body-s"><a class="govuk-link" href="#if-you-need-help-with-your-customs-declaration">If you need help with your customs declaration</a></li>
+      </ul>
+    </nav>
+
+    <div class="btom-note">
+      <p class="govuk-body">High risk food and feed of non-animal origin (HRFNAO) is not included in the <a class="govuk-link" href="https://www.gov.uk/government/publications/risk-categories-for-animal-and-animal-product-imports-to-great-britain">categorisation of products as high, medium or low risk</a> under the Border Target Operating Model (BTOM).</p>
+      <p class="govuk-body"><a class="govuk-link" href="https://www.gov.uk/government/publications/the-border-target-operating-model-august-2023">Read more about importing HRFNAO under the Border Target Operating Model</a>.</p>
+    </div>
+
+    <p class="govuk-body">This guidance applies to businesses in Great Britain (England, Scotland and Wales) importing or moving HRFNAO from the EU. Imports from Iceland, Liechtenstein, Norway and Switzerland should follow this guidance.</p>
+    <p class="govuk-body">It also applies to goods imported for commercial purposes by post or courier. Contact your post or courier service to find out if they offer an import service for commercial imports and for more information about the process.</p>
+
+    <p class="govuk-body">HRFNAO includes:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>food and feed of non-animal origin (FNAO) with known or emerging risks to public health</li>
+      <li>unauthorised genetically modified rice in rice products originating from China</li>
+    </ul>
+
+    <p class="govuk-body">Unless the goods are from Ireland:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>all HRFNAO must enter Great Britain through a point of entry that has the relevant <a class="govuk-link" href="https://www.gov.uk/government/publications/uk-border-control-posts-animal-and-animal-product-imports">border control post (BCP)</a></li>
+      <li>there are checks at the border on all HRFNAO imported from the EU</li>
+    </ul>
+    <p class="govuk-body">Goods moving directly from the Republic of Ireland must enter England or Scotland through a point of entry with a relevant BCP, or through Heysham. Goods from Ireland can enter Wales through any named point of entry.</p>
+
+    <p class="govuk-body">This guidance does not cover:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>moving <a class="govuk-link" href="https://www.gov.uk/guidance/moving-qualifying-goods-from-northern-ireland-to-the-rest-of-the-uk">qualifying Northern Ireland goods</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/importing-live-animals-or-animal-products-from-non-eu-countries#hrfnao">HRFNAO from non-EU countries</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/import-animal-by-products-from-the-eu-to-great-britain">animal by-products (ABP) from the EU</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/import-or-move-food-and-drink-from-the-eu-and-northern-ireland-to-great-britain">food and drink that are products of animal origin (POAO) from the EU</a></li>
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/import-or-move-composite-products-from-the-eu-and-northern-ireland-to-great-britain">composite products from the EU</a></li>
+    </ul>
+
+    <h2 class="govuk-heading-m" id="check-what-documents-you-need">Check what documents you need</h2>
+    <p class="govuk-body">Importers need a laboratory report and a health certificate for specific HRFNAO products:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>rice products from China listed in <a class="govuk-link" href="https://eur-lex.europa.eu/legal-content/EN/ALL/?uri=CELEX:32011D0884&amp;qid=1609344606896">Annex 1 of 2011/844</a></li>
+      <li>products listed in <a class="govuk-link" href="https://www.legislation.gov.uk/eur/2019/1793/annex/II">Annex 2 of 2019/1793</a></li>
+      <li>Chernobyl affected products listed in <a class="govuk-link" href="https://www.legislation.gov.uk/eur/2020/1158/annex/II">Annex 2 of 2020/1158</a></li>
+    </ul>
+    <p class="govuk-body">All HRFNAO imports require commercial documents.</p>
+
+    <h3 class="govuk-heading-s">Laboratory reports</h3>
+    <p class="govuk-body">Full laboratory analyses must be provided for HRFNAO products to screen for various contaminants. Analyses must be dated within 6 months before the health certificate and be accompanied by a declaration from the competent authority where the analysis was carried out.</p>
+
+    <h3 class="govuk-heading-s">Health certificates</h3>
+    <p class="govuk-body">The EU exporter must apply for the export health certificate in their country and provide an electronic copy for uploading to IPAFFS. Most health certificates are valid for 4 months from the date of issue but no longer than 6 months from the date of the results of the last laboratory analysis. The original certificate must travel with the consignment.</p>
+    <p class="govuk-body">See the <a class="govuk-link" href="https://www.gov.uk/government/collections/health-certificates-for-animal-and-animal-product-imports-to-great-britain">model health certificates</a>.</p>
+
+    <h3 class="govuk-heading-s">Commercial documents</h3>
+    <p class="govuk-body">Accompanying documents (invoice, packing list, bill of lading, airway bill) must be uploaded to IPAFFS and travel with the consignment.</p>
+
+    <h2 class="govuk-heading-m" id="notify-authorities-in-great-britain">Notify authorities in Great Britain</h2>
+    <p class="govuk-body">You must submit an import notification on the <a class="govuk-link" href="https://www.gov.uk/guidance/import-of-products-animals-food-and-feed-system">import of products, animals, food and feed system (IPAFFS)</a> to notify authorities in Great Britain about all imports of HRFNAO from the EU. Submit notifications at least one working day before the consignment arrives. The notification reference is in the format CHEDD.GB.YYYY.XXXXXXX.</p>
+
+    <h3 class="govuk-heading-s">Add information about the business you're importing from</h3>
+    <p class="govuk-body">For consignments from the EU, Iceland, Norway, Switzerland, Liechtenstein, San Marino, Faroe Islands or Greenland, follow these steps:</p>
+    <ol class="govuk-list govuk-list--number">
+      <li><a class="govuk-link" href="https://www.gov.uk/guidance/import-of-products-animals-food-and-feed-system">Sign in or register to use IPAFFS</a>.</li>
+      <li>Select 'Add a place of origin' then 'Create a new place of origin'.</li>
+      <li>Enter the exporting business's full name.</li>
+      <li>Enter the complete address, telephone number, country and email address.</li>
+      <li>Save the details to your address book.</li>
+      <li>Add the approved business to your notification.</li>
+    </ol>
+
+    <h3 class="govuk-heading-s">Importing products made of more than one commodity type</h3>
+    <p class="govuk-body">If you are importing a product that contains different commodity types with different import requirements, you need to submit separate import notifications on IPAFFS for each commodity type.</p>
+    <p class="govuk-body">For products containing HRFNAO and animal products, submit both a CHED.D and a CHED.P, and include both reference numbers in the commercial documentation. Enter the CHED reference numbers in CDS field DE 2/3 in the format GBCHDyyyy.nnnnnnn, using the document codes:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>C678 for CHED-D</li>
+      <li>N853 for CHED-P</li>
+    </ul>
+    <p class="govuk-body">If CHED reference numbers are missing, your products may be held. Read <a class="govuk-link" href="https://www.gov.uk/guidance/importing-sps-controlled-goods-that-interact-with-alvs">how to enter data into CDS</a>.</p>
+
+    <h3 class="govuk-heading-s">If you need help with import notifications</h3>
+    <p class="govuk-body">Contact the APHA helpline on 03300 416 999 or email <a class="govuk-link" href="mailto:APHAServiceDesk@apha.gov.uk">APHAServiceDesk@apha.gov.uk</a> for technical IPAFFS assistance.</p>
+    <p class="govuk-body">For help completing notifications, email the FSA at <a class="govuk-link" href="mailto:imported.food@food.gov.uk">imported.food@food.gov.uk</a>.</p>
+
+    <h2 class="govuk-heading-m" id="moving-hrfnao-from-northern-ireland-to-great-britain">Moving HRFNAO from Northern Ireland to Great Britain</h2>
+    <p class="govuk-body">HRFNAO can be moved from Northern Ireland to Great Britain if it is classified as <a class="govuk-link" href="https://www.gov.uk/guidance/moving-qualifying-goods-from-northern-ireland-to-the-rest-of-the-uk">qualifying Northern Ireland goods</a>. Separate rules apply for these movements.</p>
+
+    <h2 class="govuk-heading-m" id="sps-checks">Find out if your consignment needs sanitary and phytosanitary (SPS) checks</h2>
+    <p class="govuk-body">Consignments must be presented at the relevant border control post if selected for SPS checks.</p>
+    <p class="govuk-body">For imports through an airport, authorities conduct the necessary checks before release.</p>
+    <p class="govuk-body">For imports through a port, the process depends on whether the transporter uses the <a class="govuk-link" href="https://www.gov.uk/guidance/register-for-the-goods-vehicle-movement-service">Goods Vehicle Movement Service (GVMS)</a>.</p>
+    <p class="govuk-body">If using GVMS, transporters should use the <a class="govuk-link" href="https://www.tax.service.gov.uk/driver-inspection-notification/start">check if you need to report for an inspection service</a>.</p>
+    <p class="govuk-body">If not using GVMS, IPAFFS provides an initial risk assessment when you submit your notification. If checks are needed, you'll receive text and email messages 2 hours before arrival confirming the required actions. If IPAFFS tells you your consignment has not been selected for SPS checks, you should still check for messages until your consignment has cleared the port, because the authorities may still call you for checks based on their final risk assessment.</p>
+    <p class="govuk-body">Read more about <a class="govuk-link" href="https://www.gov.uk/guidance/sanitary-and-phytosanitary-sps-checks-at-border-control-posts-bcps">what happens at BCPs</a>.</p>
+
+    <h2 class="govuk-heading-m" id="if-you-need-help">If you need help</h2>
+    <p class="govuk-body">Contact the FSA if you're not sure about anything in this guide, email <a class="govuk-link" href="mailto:imported.food@food.gov.uk">imported.food@food.gov.uk</a>.</p>
+
+    <h2 class="govuk-heading-m" id="if-you-need-help-with-your-customs-declaration">If you need help with your customs declaration</h2>
+    <p class="govuk-body"><a class="govuk-link" href="https://www.gov.uk/government/organisations/hm-revenue-customs/contact/customs-international-trade-and-excise-enquiries">Contact HMRC</a> for assistance.</p>
+
+  </div>
+</div>
+{% endblock %}
