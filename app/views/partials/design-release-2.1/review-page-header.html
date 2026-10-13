@@ -9,9 +9,7 @@
 
   <div class="app-dr2-review-page-header__actions">
     {% if pageHeader.showAmendButton %}
-      <button class="govuk-button" type="button" data-amend-modal-open>
-        Amend this notification
-      </button>
+      <a class="govuk-button" href="{{ pageHeader.amendHref or ((journeyBasePath + '/notifications/amend') if journeyBasePath else '/notifications/amend') }}">Amend this notification</a>
     {% endif %}
     {% if pageHeader.showCopyButton %}
       {% if pageHeader.showAmendButton %}

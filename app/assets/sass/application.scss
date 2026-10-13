@@ -2682,7 +2682,11 @@ button.govuk-link.app-govuk-body-link--small {
 
   &__success-banner {
     width: 100%;
-    max-width: 960px;
+    max-width: none;
+
+    .govuk-notification-banner__content > * {
+      max-width: none;
+    }
   }
 
   &__header {
@@ -3413,7 +3417,11 @@ button.govuk-link.app-govuk-body-link--small {
 
   &__success-banner {
     width: 100%;
-    max-width: 960px;
+    max-width: none;
+
+    .govuk-notification-banner__content > * {
+      max-width: none;
+    }
   }
 
   &__title-row {
@@ -3998,7 +4006,11 @@ button.govuk-link.app-govuk-body-link--small {
 
   &__success-banner {
     width: 100%;
-    max-width: 960px;
+    max-width: none;
+
+    .govuk-notification-banner__content > * {
+      max-width: none;
+    }
   }
 
   &__title-row {
@@ -4374,6 +4386,10 @@ button.govuk-link.app-govuk-body-link--small {
 
   &__success-banner {
     width: 100%;
+
+    .govuk-notification-banner__content > * {
+      max-width: none;
+    }
   }
 
   &__header {
@@ -5510,7 +5526,11 @@ button.govuk-link.app-govuk-body-link--small {
 
   &__success-banner {
     width: 100%;
-    max-width: 960px;
+    max-width: none;
+
+    .govuk-notification-banner__content > * {
+      max-width: none;
+    }
   }
 
   &__header {

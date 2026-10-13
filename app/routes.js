@@ -477,7 +477,7 @@ function saveAndReturnToTemplateReview (sessionData) {
   const templateId = editingTemplateId || savedTemplate.id
   const templateTitle = savedTemplate.title || sessionData.templateName || 'Template'
 
-  sessionData.templateReviewSuccessMessage = `${templateTitle} has been updated`
+  sessionData.templateReviewSuccessMessage = `${templateTitle} has been updated.`
   clearTemplateReviewEditState(sessionData)
   sessionData.isCreatingTemplate = false
   delete sessionData.templateName
@@ -3746,10 +3746,10 @@ function formatTransporterSuccessMessage (name) {
   const trimmed = (name || '').trim()
 
   if (!trimmed) {
-    return 'Transporter added'
+    return 'Transporter added.'
   }
 
-  return `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1).toLowerCase()} transporter added`
+  return `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1).toLowerCase()} transporter added.`
 }
 
 function mapAddedTransporterToAddressBookEntry (transporter, addressBookPath = '/address-book') {
@@ -4792,6 +4792,64 @@ function getReviewAnimalDetailsCommonNames (sessionData) {
   return names.join(', ')
 }
 
+function formatCommodityCodeWithCommonName (code, name) {
+  const commodityCode = String(code || '').trim()
+  const commonName = String(name || '').trim()
+  const hasCode = commodityCode && commodityCode !== 'Not applicable' && commodityCode.toUpperCase() !== 'N/A'
+  const hasName = commonName && commonName !== 'Not applicable' && commonName.toUpperCase() !== 'N/A'
+
+  if (hasCode && hasName) {
+    return `${commodityCode} (${commonName})`
+  }
+
+  if (hasCode) {
+    return commodityCode
+  }
+
+  if (hasName) {
+    return commonName
+  }
+
+  return 'Not applicable'
+}
+
+function getReviewAnimalDetailsCommodityCodeAndNames (sessionData) {
+  const pairs = []
+  const seenCommodityIds = new Set()
+
+  normalizeSelectedSpecies(sessionData.selectedSpecies).forEach((speciesId) => {
+    const match = getSpeciesMatch(speciesId)
+
+    if (!match) {
+      return
+    }
+
+    if (isOtherLiveMammalsCommodityCode(match.commodity)) {
+      pairs.push({
+        code: match.commodity.code,
+        name: getSpeciesCommonName(match)
+      })
+      return
+    }
+
+    if (!seenCommodityIds.has(match.commodity.id)) {
+      seenCommodityIds.add(match.commodity.id)
+      pairs.push({
+        code: match.commodity.code,
+        name: match.commodity.name
+      })
+    }
+  })
+
+  if (!pairs.length) {
+    return 'Not applicable'
+  }
+
+  return pairs
+    .map((pair) => formatCommodityCodeWithCommonName(pair.code, pair.name))
+    .join(', ')
+}
+
 function getSelectedSpeciesLabelsForReview (sessionData) {
   return normalizeSelectedSpecies(sessionData.selectedSpecies)
     .map((speciesId) => {
@@ -4868,11 +4926,7 @@ function buildReviewCommoditySections (sessionData) {
       const rows = [
         {
           key: 'Commodity code',
-          value: formatReviewValueOrNa(entry.commodityCode)
-        },
-        {
-          key: 'Common name',
-          value: formatReviewValueOrNa(entry.commonName)
+          value: formatCommodityCodeWithCommonName(entry.commodityCode, entry.commonName)
         }
       ]
 
@@ -5087,11 +5141,7 @@ function getReviewNotificationViewModel (sessionData) {
   const animalDetailsRows = [
     {
       key: 'Commodity code',
-      value: formatReviewValueOrNa(getReviewAnimalDetailsCommodityCodes(sessionData))
-    },
-    {
-      key: 'Common name',
-      value: formatReviewValueOrNa(getReviewAnimalDetailsCommonNames(sessionData))
+      value: getReviewAnimalDetailsCommodityCodeAndNames(sessionData)
     },
     {
       key: 'Species',
@@ -6407,6 +6457,91 @@ function renderDeleteNotificationPage (req, res) {
   }))
 }
 
+function buildAmendNotificationViewLocals (options = {}) {
+  const reference = options.reference
+
+  return {
+    pageName: 'Amend this notification?',
+    confirmText: 'Confirm that you want to amend this notification.',
+    summaryRows: buildDeleteNotificationSummaryRows(options.sessionData, {
+      reference,
+      metadata: options.metadata || {}
+    }),
+    backLink: options.backLink,
+    notificationReference: reference,
+    amendAction: options.amendAction
+  }
+}
+
+function renderAmendNotificationPage (req, res) {
+  const submittedId = (req.query.submitted || '').trim()
+  const reference = (req.query.reference || '').trim()
+  const dashboardBackLink = getDashboardBackLink(req.session.data)
+
+  if (!isDesignRelease21SessionData(req.session.data) || (!submittedId && !reference)) {
+    return res.redirect(dashboardBackLink)
+  }
+
+  const sourceSnapshot = getCopyAsNewSourceSnapshot(req.session.data, {
+    submittedId,
+    reference
+  })
+
+  if (!sourceSnapshot) {
+    return res.redirect(dashboardBackLink)
+  }
+
+  const snapshot = cloneSubmittedNotificationSnapshot(sourceSnapshot)
+  const notificationReference = snapshot.notificationReference || reference
+
+  return res.render('amend-notification', buildAmendNotificationViewLocals({
+    sessionData: snapshot,
+    backLink: buildDashboardNotificationViewHref(
+      req.session.data,
+      submittedId ? { submittedId } : { reference: notificationReference }
+    ),
+    reference: notificationReference,
+    metadata: getDashboardNotificationMetadata(req.session.data, notificationReference) || {},
+    amendAction: buildDashboardNotificationAmendHref(
+      submittedId ? { submittedId } : { reference: notificationReference }
+    )
+  }))
+}
+
+function startAmendNotification (req, res) {
+  if (!isDesignRelease2SessionData(req.session.data)) {
+    return res.redirect('/')
+  }
+
+  const submittedId = (req.query.submitted || '').trim()
+  const reference = (req.query.reference || '').trim()
+  const sourceSnapshot = getCopyAsNewSourceSnapshot(req.session.data, {
+    submittedId,
+    reference
+  })
+
+  if (!sourceSnapshot) {
+    return res.redirect(getDashboardBackLink(req.session.data))
+  }
+
+  const snapshot = cloneSubmittedNotificationSnapshot(sourceSnapshot)
+  const notificationReference = snapshot.notificationReference || reference ||
+    generateDesignReleaseNotificationReference(req.session.data)
+
+  loadDraftSnapshotIntoSession(req.session.data, snapshot)
+  req.session.data.notificationReference = notificationReference
+  req.session.data.notificationStatus = 'Amend'
+  req.session.data.amendingFrom = {
+    submittedId: submittedId || null,
+    reference: reference || notificationReference || null
+  }
+  req.session.data.amendOriginalSnapshot = getComparableNotificationSnapshot(snapshot)
+  req.session.data.errorList = null
+  req.session.data.errors = null
+
+  return res.redirect('/review-notification')
+}
+
 function formatDeclarationDate (date = new Date()) {
   const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -7238,6 +7373,20 @@ function buildDashboardNotificationDeleteHref (options = {}) {
   const query = params.toString()
 
   return query ? `/notifications/delete?${query}` : '/notifications/delete'
+}
+
+function buildDashboardNotificationAmendHref (options = {}) {
+  const params = new URLSearchParams()
+
+  if (options.submittedId) {
+    params.set('submitted', options.submittedId)
+  } else if (options.reference) {
+    params.set('reference', options.reference)
+  }
+
+  const query = params.toString()
+
+  return query ? `/notifications/amend?${query}` : '/notifications/amend'
 }
 
 function getDashboardNotificationSnapshotByReference (sessionData, reference) {
@@ -8096,7 +8245,12 @@ function mapTemplateCertificationPurpose (certifiedFor) {
 
 function seedNotificationSessionFromTemplate (sessionData, template) {
   const review = template.review || {}
-  const speciesIds = resolveSpeciesIdsFromTemplateReview(review)
+  const explicitSpeciesIds = Array.isArray(review.selectedSpecies)
+    ? review.selectedSpecies.filter((speciesId) => Boolean(getSpeciesMatch(speciesId)))
+    : []
+  const speciesIds = explicitSpeciesIds.length
+    ? explicitSpeciesIds
+    : resolveSpeciesIdsFromTemplateReview(review)
   const regionOfOriginCode = String(review.regionOfOriginCode || '').trim()
   const regionParts = regionOfOriginCode.split('-')
   const regionSuffix = regionParts.length > 1 ? regionParts.slice(1).join('-') : regionOfOriginCode
@@ -8464,8 +8618,7 @@ function buildTemplateReviewViewModel (template, basePath = '/design-release-2',
       id: 'template-animal-details',
       title: 'What are you importing?',
       rows: [
-        { key: 'Commodity code', value: formatReviewValueOrNa(review.commodityCode) },
-        { key: 'Common name', value: formatReviewValueOrNa(review.commonName) },
+        { key: 'Commodity code', value: formatCommodityCodeWithCommonName(review.commodityCode, review.commonName) },
         { key: 'Species', value: formatReviewValueOrNa(review.species) }
       ]
     }, getTemplateReviewChangeHref(templateId, 'what-are-you-importing')),
@@ -8692,7 +8845,7 @@ function handleDiscardTemplatePage (req, res) {
   const title = String(req.session.data.templateName || '').trim() || 'Template'
 
   resetNotificationJourneySession(req.session.data)
-  req.session.data.templatesSuccessMessage = `${title} has been deleted`
+  req.session.data.templatesSuccessMessage = `${title} has been deleted.`
 
   return res.redirect('/templates')
 }
@@ -8749,7 +8902,7 @@ function handleDeleteTemplatePage (req, res) {
     }
   }
 
-  req.session.data.templatesSuccessMessage = `${template.title} has been deleted`
+  req.session.data.templatesSuccessMessage = `${template.title} has been deleted.`
 
   return res.redirect('/templates')
 }
@@ -9105,7 +9258,7 @@ function handleSaveTemplateFromHub (req, res) {
   }
 
   const savedTemplate = saveTemplateFromSession(req.session.data)
-  const successMessage = `${savedTemplate.title} saved to templates`
+  const successMessage = `${savedTemplate.title} saved to templates.`
 
   resetNotificationJourneySession(req.session.data)
   req.session.data.templatesSuccessMessage = successMessage
@@ -9611,6 +9764,18 @@ function getAddressBookEntryViewModel (addressId, sessionData = {}, options = {}
   }
 }
 
+function cameFromNotificationAddressSelection (returnTo, addressBookBasePath) {
+  const path = String(returnTo || '').trim().split('?')[0].split('#')[0]
+
+  if (!path.startsWith('/') || path.startsWith('//')) {
+    return false
+  }
+
+  const addressBookPaths = [addressBookBasePath, '/address-book'].filter(Boolean)
+
+  return !addressBookPaths.some((base) => path === base || path.startsWith(`${base}/`))
+}
+
 function renderAddressBookViewPage (req, res) {
   const addressBookBasePath = getAddressBookBasePath(res)
   const backLink = getSafeReturnPath(req.query.return, addressBookBasePath)
@@ -9624,7 +9789,11 @@ function renderAddressBookViewPage (req, res) {
     return res.redirect(backLink)
   }
 
-  return res.render('address-book-view', viewModel)
+  return res.render('address-book-view', {
+    ...viewModel,
+    showAddressBookOnlyNotice: isDesignRelease21SessionData(req.session.data) &&
+      cameFromNotificationAddressSelection(req.query.return, addressBookBasePath)
+  })
 }
 
 function renderDeleteAddressPage (req, res) {
@@ -9643,7 +9812,7 @@ function renderDeleteAddressPage (req, res) {
   return res.render('delete-address', {
     serviceNavActive: 'address-book',
     pageName: 'Delete this address?',
-    confirmText: 'Confirm that you want to delete this address.',
+    confirmText: 'This will not remove the address from existing notifications.',
     addressName: entry.name,
     summaryRows: buildDeleteAddressSummaryRows(entry),
     backLink: `${addressBookBasePath}/${encodedAddressId}${returnQuery}`,
@@ -9750,30 +9919,30 @@ function formatAddressBookSuccessMessage (name) {
   const trimmed = (name || '').trim()
 
   if (!trimmed) {
-    return 'Address added to your address book'
+    return 'Address added to your address book.'
   }
 
-  return `${trimmed} address added to your address book`
+  return `${trimmed} address added to your address book.`
 }
 
 function formatAddressBookUpdatedMessage (name) {
   const trimmed = (name || '').trim()
 
   if (!trimmed) {
-    return 'Address updated'
+    return 'Address updated.'
   }
 
-  return `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1).toLowerCase()} address updated`
+  return `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1).toLowerCase()} address updated.`
 }
 
 function formatAddressBookDeletedMessage (name) {
   const trimmed = (name || '').trim()
 
   if (!trimmed) {
-    return 'Address deleted'
+    return 'Address deleted.'
   }
 
-  return `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1).toLowerCase()} address deleted`
+  return `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1).toLowerCase()} address deleted.`
 }
 
 function buildAddressBookEntryFromManual (manualAddress, addressTypeOrTypes, existingId = null) {
@@ -11806,37 +11975,15 @@ router.get('/notifications/copy-as-new', (req, res) => {
 })
 
 router.get('/notifications/amend', (req, res) => {
-  if (!isDesignRelease2SessionData(req.session.data)) {
-    return res.redirect('/')
+  if (isDesignRelease21SessionData(req.session.data)) {
+    return renderAmendNotificationPage(req, res)
   }
 
-  const submittedId = (req.query.submitted || '').trim()
-  const reference = (req.query.reference || '').trim()
-  const sourceSnapshot = getCopyAsNewSourceSnapshot(req.session.data, {
-    submittedId,
-    reference
-  })
+  return startAmendNotification(req, res)
+})
 
-  if (!sourceSnapshot) {
-    return res.redirect(getDashboardBackLink(req.session.data))
-  }
-
-  const snapshot = cloneSubmittedNotificationSnapshot(sourceSnapshot)
-  const notificationReference = snapshot.notificationReference || reference ||
-    generateDesignReleaseNotificationReference(req.session.data)
-
-  loadDraftSnapshotIntoSession(req.session.data, snapshot)
-  req.session.data.notificationReference = notificationReference
-  req.session.data.notificationStatus = 'Amend'
-  req.session.data.amendingFrom = {
-    submittedId: submittedId || null,
-    reference: reference || notificationReference || null
-  }
-  req.session.data.amendOriginalSnapshot = getComparableNotificationSnapshot(snapshot)
-  req.session.data.errorList = null
-  req.session.data.errors = null
-
-  return res.redirect('/review-notification')
+router.post('/notifications/amend', (req, res) => {
+  return startAmendNotification(req, res)
 })
 
 router.get('/notifications/cancel-amend', (req, res) => {
@@ -12270,8 +12417,8 @@ router.post('/notifications/delete', (req, res) => {
   }
 
   req.session.data.dashboardSuccessMessage = notificationReference
-    ? `${notificationReference} has been deleted`
-    : 'Notification has been deleted'
+    ? `${notificationReference} has been deleted.`
+    : 'Notification has been deleted.'
 
   return res.redirect(getDashboardBackLink(req.session.data))
 })

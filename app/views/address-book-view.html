@@ -2,6 +2,7 @@
 
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 
@@ -26,6 +27,12 @@
   <div class="govuk-grid-column-two-thirds app-address-book-view-page">
 
     <h1 class="govuk-heading-l app-address-book-view-page__heading">{{ pageHeading }}</h1>
+
+    {% if showAddressBookOnlyNotice %}
+      {{ govukInsetText({
+        text: "You can only edit this address in the address book"
+      }) }}
+    {% endif %}
 
     {{ govukSummaryList({
       classes: "app-address-book-view-page__summary-list",

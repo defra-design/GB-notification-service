@@ -3,6 +3,7 @@
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
 
 {% set pageName = pageHeading or "Add address details" %}
@@ -36,6 +37,12 @@
         <div class="app-address-book-lookup-page__header">
           <h1 class="app-address-book-lookup-page__heading">{{ pageHeading or "Add address details" }}</h1>
         </div>
+
+        {% if isEditMode and isDesignRelease21Version %}
+          {{ govukInsetText({
+            text: "Changing the address here will not affect existing notifications"
+          }) }}
+        {% endif %}
 
         <form method="post" action="{{ formAction or '/address-book/add/lookup' }}" novalidate class="app-address-book-lookup-form">
           <input type="hidden" name="addressType" value="{{ selectedAddressType }}">

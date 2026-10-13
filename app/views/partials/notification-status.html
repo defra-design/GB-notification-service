@@ -1,9 +1,10 @@
 {% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "partials/design-release-2.1/notification-reference.html" import dr21NotificationReference %}
 
 {% set isCreatingTemplate = data.isCreatingTemplate %}
 {% set statusText = "Template" if isCreatingTemplate else (data.notificationStatus if data.notificationStatus else "Draft") %}
 {% set isAmendStatus = statusText == "Amend" %}
-{% set statusReference = data.templateName if isCreatingTemplate else notificationReference %}
+{% set statusReference = data.templateName if isCreatingTemplate else (dr21NotificationReference(notificationReference, data.notificationType) if isDesignRelease21Version else notificationReference) %}
 
 {% if isDesignRelease2Version %}
   {% set statusModifier = statusText | lower | replace(" ", "-") %}

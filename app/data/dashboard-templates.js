@@ -251,5 +251,98 @@ module.exports = [
       useSameAddressForParties: true,
       cphNumber: '00/000/0000'
     }
+  },
+  {
+    id: 'friesland-bovine-genetics',
+    categoryLabel: 'Germinal products',
+    title: 'Friesland Bovine Genetics',
+    commodityLabel: 'Cattle, Semen',
+    origin: 'Netherlands',
+    consignee: 'Briarwood Genetics Ltd',
+    consignor: 'Friesland Bovine Genetics',
+    dateCreated: '15 April 2026',
+    review: {
+      countryOfOrigin: 'Netherlands',
+      regionOfOriginCode: 'NL-011',
+      internalReferenceNumber: 'N/A',
+      commodityCode: '05111000',
+      commonName: 'Cattle, Semen',
+      species: 'Bos taurus',
+      selectedSpecies: ['cattle-semen-bos-taurus'],
+      commoditySelections: [
+        {
+          type: 'species',
+          commodityId: 'cattle-semen',
+          commodityCode: '05111000',
+          speciesId: 'cattle-semen-bos-taurus'
+        }
+      ],
+      numberOfPackages: '10',
+      numberOfPackagesBySpecies: {
+        'cattle-semen-bos-taurus': '10'
+      },
+      grossWeight: '1.2',
+      storageTemperature: 'Frozen',
+      reasonForImport: 'Internal market',
+      purposeInTheMarket: 'Breeding',
+      certifiedFor: 'Breeding and/or production',
+      placeOfOrigin: {
+        name: 'Friesland Bovine Genetics',
+        lines: [
+          '82 Handelsweg',
+          'Unit 4',
+          'Rotterdam',
+          '3044 BC',
+          'Netherlands'
+        ]
+      },
+      useSameAddressForParties: true
+    }
+  },
+  {
+    id: 'normandie-reproduction-equine',
+    categoryLabel: 'Germinal products',
+    title: 'Normandie Reproduction Equine',
+    commodityLabel: 'Horse, Embryos/Ova',
+    origin: 'France',
+    consignee: 'Ashdown Equine Centre',
+    consignor: 'Normandie Reproduction Equine',
+    dateCreated: '15 April 2026',
+    review: {
+      countryOfOrigin: 'France',
+      regionOfOriginCode: 'FR-092032',
+      internalReferenceNumber: 'N/A',
+      commodityCode: '05119985',
+      commonName: 'Horse, Embryos/Ova',
+      species: 'Equus cabalus',
+      selectedSpecies: ['horse-embryos-ova-equus-cabalus'],
+      commoditySelections: [
+        {
+          type: 'species',
+          commodityId: 'horse-embryos-ova',
+          commodityCode: '05119985',
+          speciesId: 'horse-embryos-ova-equus-cabalus'
+        }
+      ],
+      numberOfPackages: '6',
+      numberOfPackagesBySpecies: {
+        'horse-embryos-ova-equus-cabalus': '6'
+      },
+      grossWeight: '0.8',
+      storageTemperature: 'Frozen',
+      reasonForImport: 'Internal market',
+      purposeInTheMarket: 'Breeding',
+      certifiedFor: 'Breeding and/or production',
+      placeOfOrigin: {
+        name: 'Normandie Reproduction Equine',
+        lines: [
+          '12 Route des Haras',
+          'Deauville',
+          '14800',
+          'France'
+        ]
+      },
+      useSameAddressForParties: true
+    }
   }
 ]

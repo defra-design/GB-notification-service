@@ -1,0 +1,15 @@
+{% macro dr21NotificationReference(reference, notificationType) %}
+{%- set notificationTypeLabels = {
+  "live-animals": "Live animals",
+  "germinal-products": "Germinal products",
+  "plants-for-planting": "Plants for planting",
+  "potatoes": "Potatoes (seed and ware)",
+  "wood-products": "Wood products"
+} -%}
+{%- set notificationTypeLabel = notificationTypeLabels[notificationType] if notificationType else "" -%}
+{%- if notificationTypeLabel and reference -%}
+{{- notificationTypeLabel }} - {{ reference -}}
+{%- else -%}
+{{- reference -}}
+{%- endif -%}
+{% endmacro %}
