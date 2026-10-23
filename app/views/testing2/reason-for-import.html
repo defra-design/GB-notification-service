@@ -1,0 +1,77 @@
+{% extends "layouts/main.html" %}
+
+{% set pageName = "Main import reason" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+    <div class="app-reason-for-import-shell">
+
+      {% include "partials/notification-status.html" %}
+
+      {% if data.errorList %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: data.errorList
+        }) }}
+      {% endif %}
+
+      <div class="app-reason-for-import-page">
+        <div class="app-reason-for-import-page__header">
+          <p class="app-reason-for-import-page__caption">About the consignment</p>
+          <h1 class="app-reason-for-import-page__heading">Main import reason</h1>
+        </div>
+
+        <form method="post" action="/testing2/reason-for-import" novalidate class="app-reason-for-import-form">
+
+          {% if fromHub %}
+            <input type="hidden" name="from" value="hub">
+          {% endif %}
+
+          {{ govukRadios({
+            idPrefix: "import-reason",
+            name: "importReason",
+            fieldset: {
+              legend: {
+                text: "What is the main reason for importing the animals?",
+                classes: "govuk-visually-hidden"
+              }
+            },
+            errorMessage: data.errors.importReason if data.errors and data.errors.importReason,
+            classes: "app-reason-for-import-radios",
+            formGroup: {
+              classes: "app-reason-for-import-page__question"
+            },
+            items: importReasonItems
+          }) }}
+
+          {% set journeyFormActionOptions = {} %}
+          {% include "partials/testing2/journey-form-actions.html" %}
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

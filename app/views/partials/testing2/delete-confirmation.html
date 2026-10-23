@@ -1,0 +1,31 @@
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+<h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+{% if confirmAsInset %}
+  {{ govukInsetText({
+    text: confirmText
+  }) }}
+{% endif %}
+
+{{ govukSummaryList({
+  rows: summaryRows
+}) }}
+
+{% if not confirmAsInset %}
+  <p class="govuk-body">{{ confirmText }}</p>
+{% endif %}
+<p class="govuk-body">This action cannot be undone.</p>
+
+<form method="post" action="{{ deleteAction }}">
+  <div class="govuk-button-group">
+    {{ govukButton({
+      text: "Yes, delete",
+      classes: "govuk-button--warning"
+    }) }}
+
+    <a class="govuk-link" href="{{ backLink }}">No, cancel</a>
+  </div>
+</form>

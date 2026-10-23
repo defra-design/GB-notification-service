@@ -1,0 +1,20 @@
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+<h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+{{ govukSummaryList({
+  rows: summaryRows
+}) }}
+
+<p class="govuk-body">{{ confirmText }}</p>
+
+<form method="post" action="{{ amendAction }}">
+  <div class="govuk-button-group">
+    {{ govukButton({
+      text: "Yes, amend"
+    }) }}
+
+    <a class="govuk-link" href="{{ backLink }}">No, cancel</a>
+  </div>
+</form>

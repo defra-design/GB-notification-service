@@ -1,0 +1,86 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "partials/testing2/dashboard-template-card.html" import dr2DashboardTemplateCard %}
+
+{% set pageName = "Manage templates" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full app-dashboard-page app-dashboard-page--dr2">
+
+    {% if successMessage %}
+      {% set successBannerHtml %}
+        <h3 class="govuk-notification-banner__heading">{{ successMessage }}</h3>
+      {% endset %}
+      {{ govukNotificationBanner({
+        type: "success",
+        titleText: "Success",
+        html: successBannerHtml,
+        classes: "app-dr2-dashboard__success-banner",
+        attributes: {
+          "data-auto-dismiss-ms": "5000"
+        }
+      }) }}
+    {% endif %}
+
+    <section class="app-dr2-dashboard-intro app-dr2-dashboard-intro--templates" aria-labelledby="dashboard-templates-heading">
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+          <div class="app-dr2-dashboard-intro__header">
+            <h1 class="app-dr2-dashboard-intro__heading" id="dashboard-templates-heading">Manage templates</h1>
+            <p class="app-dr2-dashboard-intro__description">Select, manage or create new notification templates</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="app-dr2-dashboard-intro__actions">
+        {{ govukButton({
+          text: "Create new template",
+          href: "/testing2/templates/create?new=1"
+        }) }}
+      </div>
+    </section>
+
+    <section class="app-dr2-dashboard-templates" aria-labelledby="dashboard-templates-list-heading">
+      <h2 class="app-dr2-dashboard-templates__heading" id="dashboard-templates-list-heading">My templates</h2>
+
+      <div class="app-dr2-dashboard-templates__controls">
+        <p class="app-dr2-dashboard-results__count">{{ resultsText }}</p>
+
+        <div class="app-dr2-dashboard-search__sort">
+          {{ govukSelect({
+            id: "dashboard-templates-sort",
+            name: "sort",
+            label: {
+              text: "Sort by:",
+              classes: "app-dr2-dashboard-search__sort-label"
+            },
+            classes: "app-dr2-dashboard-search__sort-select",
+            items: sortItems
+          }) }}
+        </div>
+      </div>
+
+      <div class="app-dr2-dashboard-template-list">
+        {% for template in templates %}
+          {{ dr2DashboardTemplateCard(template) }}
+        {% endfor %}
+      </div>
+    </section>
+
+  </div>
+</div>
+{% endblock %}

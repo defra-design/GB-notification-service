@@ -155,6 +155,41 @@ Import notification service
         href: "/testing"
       }) }}
     </div>
+
+    <div class="prototype-release-card govuk-!-margin-top-6">
+      {{ govukTag({
+        text: "Testing",
+        classes: "govuk-tag--yellow"
+      }) }}
+
+      <h2 class="govuk-heading-l">
+        Testing 2
+      </h2>
+
+      <h3 class="govuk-heading-m">
+        Create a notification
+      </h3>
+
+      <p class="govuk-body">
+        A copy of Design release 2.1, including the germinal products journey, for testing with users.
+      </p>
+
+      {{ govukDetails({
+        summaryText: "What the journey contains",
+        html: '
+          <ul class="govuk-list govuk-list--bullet">
+            <li>Same journey as Design release 2.1, including germinal products</li>
+            <li>Separate dashboard and session data</li>
+            <li>Shared address book</li>
+          </ul>
+        '
+      }) }}
+
+      {{ govukButton({
+        text: "Start testing 2",
+        href: "/testing2"
+      }) }}
+    </div>
   </div>
 </div>
 

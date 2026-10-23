@@ -337,6 +337,7 @@ function resetNotificationJourneySession (sessionData) {
   const testingSession = sessionData._testing
   const designRelease2Session = sessionData._designRelease2
   const designRelease21Session = sessionData._designRelease21
+  const testing2Session = sessionData._testing2
 
   Object.keys(sessionData).forEach((key) => {
     delete sessionData[key]
@@ -376,6 +377,10 @@ function resetNotificationJourneySession (sessionData) {
 
   if (designRelease21Session && typeof designRelease21Session === 'object') {
     sessionData._designRelease21 = designRelease21Session
+  }
+
+  if (testing2Session && typeof testing2Session === 'object') {
+    sessionData._testing2 = testing2Session
   }
 }
 
@@ -6029,8 +6034,10 @@ function loadDraftSnapshotIntoSession (sessionData, snapshot) {
   const preserveKeys = [
     '_isDesignRelease2Version',
     '_isDesignRelease21Version',
+    '_isTesting2Version',
     '_designRelease2',
     '_designRelease21',
+    '_testing2',
     'deletedNotificationReferences',
     'draftNotifications',
     'submittedNotifications',
@@ -7146,7 +7153,9 @@ function getComparableNotificationSnapshot (sessionData) {
     '_designRelease21',
     '_isDesignRelease2Version',
     '_isDesignRelease21Version',
+    '_isTesting2Version',
     '_testing',
+    '_testing2',
     'addressBookAddedAddresses',
     'amendingFrom',
     'amendOriginalSnapshot',
@@ -7285,6 +7294,10 @@ function isDesignRelease2SessionData (sessionData) {
 }
 
 function getDesignReleaseBasePath (sessionData = {}) {
+  if (sessionData._isTesting2Version) {
+    return '/testing2'
+  }
+
   if (sessionData._isDesignRelease21Version) {
     return '/design-release-2.1'
   }
@@ -8528,6 +8541,7 @@ function remapTemplateReviewPresentation (value, templateId) {
 function buildTemplateReviewSessionData (template, requestSession = {}) {
   const sessionLike = {
     _isDesignRelease21Version: requestSession._isDesignRelease21Version,
+    _isTesting2Version: requestSession._isTesting2Version,
     _isDesignRelease2Version: requestSession._isDesignRelease2Version,
     isCreatingTemplate: true
   }
@@ -9155,7 +9169,22 @@ function renderOverallDashboardPage (req, res) {
   })
 }
 
+// Testing 2 runs the 2.1 journey but shows the testing version's dashboard, so
+// build its dashboard data as the testing version would.
+function getTesting2DashboardSessionView (sessionData) {
+  return Object.create(sessionData, {
+    _isTestingVersion: { value: true },
+    _isTesting2Version: { value: false },
+    _isDesignRelease2Version: { value: false },
+    _isDesignRelease21Version: { value: false }
+  })
+}
+
 function renderDashboardPage (req, res) {
+  if (req.session.data._isTesting2Version) {
+    return renderTesting2DashboardPage(req, res)
+  }
+
   const successMessage = req.session.data.dashboardSuccessMessage || null
   const journeyBasePath = res.locals.journeyBasePath || ''
   const category = getDashboardCategoryFromRequest(req)
@@ -9172,6 +9201,21 @@ function renderDashboardPage (req, res) {
     backLink,
     successMessage,
     ...getDashboardViewModel(req.session.data, { ...req.query, category })
+  })
+}
+
+function renderTesting2DashboardPage (req, res) {
+  const successMessage = req.session.data.dashboardSuccessMessage || null
+
+  if (successMessage) {
+    delete req.session.data.dashboardSuccessMessage
+  }
+
+  return res.render('dashboard', {
+    serviceNavActive: 'dashboard',
+    backLink: '/testing2/index',
+    successMessage,
+    ...getDashboardViewModel(getTesting2DashboardSessionView(req.session.data), req.query)
   })
 }
 
@@ -11868,7 +11912,7 @@ router.get('/reason-for-import', (req, res) => {
 })
 
 router.get('/', (req, res) => {
-  if (isDesignRelease21SessionData(req.session.data)) {
+  if (isDesignRelease21SessionData(req.session.data) && !req.session.data._isTesting2Version) {
     return renderOverallDashboardPage(req, res)
   }
 
@@ -13414,9 +13458,12 @@ router.post('/intro/sign-in', function (req, res) {
 })
 
 const { mountTestingVersion } = require('./lib/testing-version')
+const { mountTesting2Version } = require('./lib/testing2-version')
 const { mountDesignRelease2Version } = require('./lib/design-release-2-version')
 const { mountDesignRelease21Version } = require('./lib/design-release-2.1-version')
 
+// Mount testing2 before testing so Express does not treat /testing2 as /testing
+mountTesting2Version(govukPrototypeKit, router)
 mountTestingVersion(govukPrototypeKit, router)
 // Mount 2.1 before 2 so Express does not treat /design-release-2.1 as /design-release-2
 mountDesignRelease21Version(govukPrototypeKit, router)

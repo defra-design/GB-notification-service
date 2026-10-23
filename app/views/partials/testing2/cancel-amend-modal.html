@@ -1,0 +1,32 @@
+<div class="app-dr2-amend-modal" id="cancel-amend-modal" hidden data-module="dr2-confirm-modal">
+  <div class="app-dr2-amend-modal__overlay" data-modal-dismiss></div>
+  <div
+    class="app-dr2-amend-modal__dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="cancel-amend-modal-title"
+    tabindex="-1"
+  >
+    <div class="app-dr2-amend-modal__header">
+      <button
+        class="app-dr2-amend-modal__close"
+        type="button"
+        data-modal-dismiss
+        aria-label="Close"
+      >
+        <span class="app-dr2-amend-modal__close-icon" aria-hidden="true"></span>
+      </button>
+    </div>
+    <div class="app-dr2-amend-modal__body">
+      <h2 class="app-dr2-amend-modal__title" id="cancel-amend-modal-title">
+        Are you sure you want to cancel this amendment?
+      </h2>
+      <div class="app-dr2-amend-modal__actions">
+        <a class="govuk-button" href="{{ cancelAmendHref or ((journeyBasePath + '/notifications/cancel-amend') if journeyBasePath else '/notifications/cancel-amend') }}">Yes, cancel amendment</a>
+        <button class="govuk-link app-dr2-amend-modal__back-link" type="button" data-modal-dismiss>
+          Go back
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

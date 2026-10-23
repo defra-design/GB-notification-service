@@ -1,0 +1,32 @@
+{% macro dr2ReviewValue(value) %}
+  {% if value.isAddress %}
+    {% if value.name %}
+      <p class="app-dr2-review-row__address-name">{{ value.name }}</p>
+    {% endif %}
+    {% for line in value.lines %}
+      <p class="app-dr2-review-row__address-line">{{ line }}</p>
+    {% endfor %}
+  {% else %}
+    {{ value }}
+  {% endif %}
+{% endmacro %}
+
+{% macro dr2ReviewRow(row, cardChangeHref, showActions) %}
+  {% set showChange = showActions and row.showChange %}
+  {% set rowChangeHref = row.changeHref if row.changeHref else cardChangeHref %}
+  <div class="app-dr2-review-row{% if showChange %} app-dr2-review-row--with-action{% endif %}{% if row.isMissing %} app-dr2-review-row--missing{% endif %}">
+    <dt class="app-dr2-review-row__key">{{ row.key }}</dt>
+    <dd class="app-dr2-review-row__value{% if row.isMissing %} app-dr2-review-row__value--missing{% endif %}">
+      {% if row.isMissing %}
+        <span class="govuk-visually-hidden">Missing</span>
+      {% else %}
+        {{ dr2ReviewValue(row.value) }}
+      {% endif %}
+    </dd>
+    {% if showChange and rowChangeHref %}
+      <dd class="app-dr2-review-row__action">
+        <a class="app-dr2-review-row__change-link" href="{{ rowChangeHref }}">Change</a>
+      </dd>
+    {% endif %}
+  </div>
+{% endmacro %}

@@ -1,0 +1,206 @@
+{% extends "layouts/main.html" %}
+
+{% set pageName = "Commodity details" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+    <div class="app-consignment-details-shell">
+      <div class="app-consignment-details-page app-consignment-details-page--dr21">
+
+        {% include "partials/notification-status.html" %}
+
+        {% if data.errorList %}
+          {{ govukErrorSummary({
+            titleText: "There is a problem",
+            errorList: data.errorList
+          }) }}
+        {% endif %}
+
+        <form method="post" action="/testing2/consignment-details" novalidate class="app-consignment-details-form">
+
+          {% if fromHub %}
+            <input type="hidden" name="from" value="hub">
+          {% endif %}
+
+          <div class="app-consignment-details-page__intro">
+            <div class="app-consignment-details-page__header">
+              <p class="app-consignment-details-page__caption">Description of the goods</p>
+              <h1 class="app-consignment-details-page__heading">Commodity details</h1>
+            </div>
+
+            {% if selectedCommodityRows and selectedCommodityRows.length %}
+              <h2 class="app-consignment-details-page__selected-commodities-heading" id="selected-commodities-heading">
+                Selected commodities
+              </h2>
+
+              <div class="app-consignment-details-page__summary" aria-labelledby="selected-commodities-heading">
+                <div class="app-consignment-details-page__summary-row app-consignment-details-page__summary-row--header">
+                  <div class="app-consignment-details-page__summary-key">Commodity code</div>
+                  <div class="app-consignment-details-page__summary-value">Common name</div>
+                  <div class="app-consignment-details-page__summary-species">Species</div>
+                  <div class="app-consignment-details-page__summary-action"></div>
+                </div>
+
+                {% for row in selectedCommodityRows %}
+                  <div class="app-consignment-details-page__summary-row">
+                    <div class="app-consignment-details-page__summary-key">{{ row.code }}</div>
+                    <div class="app-consignment-details-page__summary-value">{{ row.name }}</div>
+                    <div class="app-consignment-details-page__summary-species">
+                      {% for speciesName in row.species %}
+                        {{ speciesName }}{% if not loop.last %},<br>{% endif %}
+                      {% endfor %}
+                    </div>
+                    <div class="app-consignment-details-page__summary-action">
+                      <button
+                        class="app-consignment-details-page__summary-remove"
+                        type="submit"
+                        {% if row.removeBy == 'species' %}
+                        name="removeSpecies"
+                        value="{{ row.speciesId }}"
+                        {% else %}
+                        name="removeCommodity"
+                        value="{{ row.commodityId }}"
+                        {% endif %}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+
+              <p class="app-consignment-details-page__add-commodity">
+                <a class="govuk-link" href="/testing2/what-are-you-importing">Add another commodity</a>
+              </p>
+            {% endif %}
+          </div>
+
+          <div class="app-consignment-details-page__details">
+            {% for group in commodityGroups %}
+              {% if not loop.first %}
+                <hr class="app-consignment-details-page__section-break">
+              {% endif %}
+
+              <h2 class="app-consignment-details-page__commodity-heading" id="commodity-group-{{ group.commodityId }}">
+                {{ group.heading }}
+              </h2>
+
+              {% for species in group.speciesEntries %}
+                {% if not loop.first and group.isGerminalProduct %}
+                  <hr class="app-consignment-details-page__section-break app-consignment-details-page__section-break--species">
+                {% endif %}
+
+                <div class="app-consignment-details-page__species-heading">
+                  <h3 class="app-consignment-details-page__species-name">{{ species.speciesName }}</h3>
+                </div>
+
+                {% if species.isGerminalProduct %}
+                  {% set numberOfPackagesError = data.errors["numberOfPackages-" + species.speciesId] if data.errors and data.errors["numberOfPackages-" + species.speciesId] %}
+
+                  {{ govukInput({
+                    label: {
+                      text: "Quantity (unit/pieces)"
+                    },
+                    id: "quantity-" + species.speciesId,
+                    name: "numberOfPackages[" + species.speciesId + "]",
+                    value: species.numberOfPackages,
+                    classes: "govuk-input--width-10 app-consignment-details-page__input",
+                    formGroup: {
+                      classes: "app-consignment-details-page__field"
+                    },
+                    errorMessage: numberOfPackagesError
+                  }) }}
+                {% else %}
+                  {% set numberOfAnimalsError = data.errors["numberOfAnimals-" + species.speciesId] if data.errors and data.errors["numberOfAnimals-" + species.speciesId] %}
+
+                  {{ govukInput({
+                    label: {
+                      text: "Number of animals"
+                    },
+                    id: "number-of-animals-" + species.speciesId,
+                    name: "numberOfAnimals[" + species.speciesId + "]",
+                    value: species.numberOfAnimals,
+                    classes: "govuk-input--width-10 app-consignment-details-page__input",
+                    errorMessage: numberOfAnimalsError
+                  }) }}
+
+                  {% if species.showPackaging %}
+                    {% for field in species.packagingFields %}
+                      {{ govukInput({
+                        label: {
+                          text: field.label
+                        },
+                        hint: {
+                          text: field.hint
+                        },
+                        id: field.id,
+                        name: field.name,
+                        value: field.value,
+                        classes: "govuk-input--width-10 app-consignment-details-page__input",
+                        errorMessage: field.errorMessage
+                      }) }}
+                    {% endfor %}
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+            {% endfor %}
+
+            {% if showTemperatureQuestion %}
+              <hr class="app-consignment-details-page__section-break">
+
+              <div class="app-consignment-details-page__temperature">
+                {{ govukRadios({
+                  idPrefix: "storage-temperature",
+                  name: "storageTemperature",
+                  fieldset: {
+                    legend: {
+                      text: "Temperature",
+                      classes: "govuk-label"
+                    }
+                  },
+                  hint: {
+                    text: "How the products will be stored."
+                  },
+                  errorMessage: data.errors.storageTemperature if data.errors and data.errors.storageTemperature,
+                  classes: "app-origin-radios",
+                  formGroup: {
+                    classes: "app-origin-radios-block app-consignment-details-page__temperature-group"
+                  },
+                  items: temperatureItems
+                }) }}
+              </div>
+            {% endif %}
+
+            {% set journeyFormActionOptions = {} %}
+            {% include "partials/testing2/journey-form-actions.html" %}
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

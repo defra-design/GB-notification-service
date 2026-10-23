@@ -1,0 +1,37 @@
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+
+<div class="app-dr2-review-page-header">
+  <h1 class="app-dr2-review-page-header__reference">{{ pageHeader.reference or notificationReference }}</h1>
+
+  <strong class="govuk-tag app-dr2-review-status__tag app-dr2-review-status__tag--{{ pageHeader.statusModifier }}">
+    {{ pageHeader.statusText }}
+  </strong>
+
+  <div class="app-dr2-review-page-header__actions">
+    {% if pageHeader.showAmendButton %}
+      <a class="govuk-button" href="{{ pageHeader.amendHref or ((journeyBasePath + '/notifications/amend') if journeyBasePath else '/notifications/amend') }}">Amend this notification</a>
+    {% endif %}
+    {% if pageHeader.showCopyButton %}
+      {% if pageHeader.showAmendButton %}
+        <a class="govuk-button govuk-button--secondary" href="{{ pageHeader.copyHref or ((journeyBasePath + '/notifications/copy-as-new') if journeyBasePath else '/notifications/copy-as-new') }}">Copy as new</a>
+      {% else %}
+        <a class="govuk-button" href="{{ pageHeader.copyHref or ((journeyBasePath + '/notifications/copy-as-new') if journeyBasePath else '/notifications/copy-as-new') }}">Copy as new</a>
+      {% endif %}
+    {% endif %}
+    {% if pageHeader.showDeleteButton %}
+      <a class="govuk-button govuk-button--warning" href="{{ pageHeader.deleteHref or ((journeyBasePath + '/notifications/delete') if journeyBasePath else '/notifications/delete') }}">Delete</a>
+    {% endif %}
+  </div>
+
+  {% if pageHeader.warningText %}
+    {{ govukWarningText({
+      text: pageHeader.warningText,
+      iconFallbackText: "Warning"
+    }) }}
+  {% endif %}
+
+  <p class="app-dr2-review-page-header__date">
+    <span class="app-dr2-review-page-header__date-label">{{ pageHeader.dateLabel }}:</span>
+    {{ pageHeader.dateValue }}
+  </p>
+</div>

@@ -1,0 +1,104 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full app-review-notification-page app-review-notification-page--dr2{% if reviewVariant %} app-review-notification-page--dr2-{{ reviewVariant }}{% endif %}">
+
+    {% if reviewVariant == 'journey' %}
+      {% include "partials/testing2/notification-status.html" %}
+    {% elif pageHeader %}
+      {% include "partials/testing2/review-page-header.html" %}
+    {% endif %}
+
+    {% if data.errorList %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: data.errorList
+      }) }}
+    {% endif %}
+
+    {% if pageName %}
+      <h1 class="app-review-notification-page__title app-review-notification-page__title--dr2">{{ pageName }}</h1>
+    {% endif %}
+
+    {% if pageHeader %}
+      <section class="app-dr2-import-reference-section" aria-labelledby="import-reference-numbers-heading">
+        <h2 class="app-dr2-import-reference-section__title" id="import-reference-numbers-heading">Import reference numbers</h2>
+
+        {{ govukWarningText({
+          text: "You must use the correct reference and code on the customs declaration or your consignment will be delayed.",
+          iconFallbackText: "Warning",
+          classes: "app-dr2-import-reference-section__warning"
+        }) }}
+
+        <div class="app-dr2-import-reference-section__list">
+          <div class="app-dr2-import-reference-section__row">
+            <p class="app-dr2-import-reference-section__key">Notification reference</p>
+            <p class="app-dr2-import-reference-section__value">{{ pageHeader.reference or notificationReference }}</p>
+            <button class="govuk-button govuk-button--secondary app-dr2-import-reference-section__copy-button" type="button" data-copy-text="{{ pageHeader.reference or notificationReference }}">Copy</button>
+          </div>
+
+          <div class="app-dr2-import-reference-section__row">
+            <p class="app-dr2-import-reference-section__key">Customs document code</p>
+            <p class="app-dr2-import-reference-section__value">C640</p>
+            <button class="govuk-button govuk-button--secondary app-dr2-import-reference-section__copy-button" type="button" data-copy-text="C640">Copy</button>
+          </div>
+        </div>
+      </section>
+    {% endif %}
+
+    {% include "partials/testing2/review-sections.html" %}
+
+    {% if reviewVariant == 'journey' or reviewVariant == 'draft' %}
+    <form method="post" action="/testing2/review-notification" novalidate class="app-review-notification-page__form">
+      <div class="govuk-button-group">
+        {{ govukButton({
+          text: "Save template" if data.isCreatingTemplate else "Continue"
+        }) }}
+        {% if data.notificationStatus == 'Amend' %}
+          <button class="govuk-button govuk-button--secondary" type="button" data-modal-open="cancel-amend-modal">
+            Cancel amend
+          </button>
+        {% endif %}
+        {% if reviewVariant == 'journey' and deleteHref %}
+          {{ govukButton({
+            text: "Delete",
+            href: deleteHref,
+            classes: "govuk-button--warning"
+          }) }}
+        {% endif %}
+      </div>
+    </form>
+    {% elif reviewVariant == 'action-required' %}
+    <p class="app-review-notification-page__form">
+      <a class="govuk-button" href="/testing2/notification-hub">Continue</a>
+    </p>
+    {% endif %}
+
+  </div>
+</div>
+
+{% if data.notificationStatus == 'Amend' %}
+  {% include "partials/testing2/cancel-amend-modal.html" %}
+{% endif %}
+{% endblock %}
