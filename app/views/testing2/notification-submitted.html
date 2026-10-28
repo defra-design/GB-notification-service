@@ -3,6 +3,7 @@
 {% set journeyPageClass = "app-notification-submitted-page" %}
 
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "partials/testing2/notification-reference.html" import testing2DisplayReference %}
 
 {% set pageName = "Import notification submitted" %}
 {% set dashboardHref = journeyBasePath if journeyBasePath else "/testing2" %}
@@ -22,7 +23,7 @@
     <div class="govuk-panel govuk-panel--confirmation app-notification-submitted-page__panel">
       <h1 class="govuk-panel__title">Import notification submitted</h1>
       <div class="govuk-panel__body">
-        Your reference number<br><strong>{{ notificationReference }}</strong>
+        Your reference number<br><strong>{{ testing2DisplayReference(notificationReference, data.notificationType) }}</strong>
       </div>
     </div>
 

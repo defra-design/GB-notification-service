@@ -1,7 +1,8 @@
+{% from "partials/testing2/notification-reference.html" import testing2DisplayReference %}
 {% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
 
 <div class="app-dr2-review-page-header">
-  <h1 class="app-dr2-review-page-header__reference">{{ pageHeader.reference or notificationReference }}</h1>
+  <h1 class="app-dr2-review-page-header__reference">{{ testing2DisplayReference(pageHeader.reference or notificationReference, data.notificationType) }}</h1>
 
   <strong class="govuk-tag app-dr2-review-status__tag app-dr2-review-status__tag--{{ pageHeader.statusModifier }}">
     {{ pageHeader.statusText }}

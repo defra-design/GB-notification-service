@@ -6,10 +6,15 @@
   "potatoes": "Potatoes (seed and ware)",
   "wood-products": "Wood products"
 } -%}
+{%- if notificationType == "germinal-products" -%}{%- set reference = "GB.2026.7963913 - CHEDP" -%}{%- endif -%}
 {%- set notificationTypeLabel = notificationTypeLabels[notificationType] if notificationType else "" -%}
 {%- if notificationTypeLabel and reference -%}
 {{- notificationTypeLabel }} - {{ reference -}}
 {%- else -%}
 {{- reference -}}
 {%- endif -%}
+{% endmacro %}
+
+{% macro testing2DisplayReference(reference, notificationType) %}
+{%- if notificationType == "germinal-products" -%}GB.2026.7963913 - CHEDP{%- else -%}{{ reference }}{%- endif -%}
 {% endmacro %}

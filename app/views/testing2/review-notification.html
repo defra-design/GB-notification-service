@@ -1,4 +1,5 @@
 {% extends "layouts/main.html" %}
+{% from "partials/testing2/notification-reference.html" import testing2DisplayReference %}
 
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
@@ -54,8 +55,8 @@
         <div class="app-dr2-import-reference-section__list">
           <div class="app-dr2-import-reference-section__row">
             <p class="app-dr2-import-reference-section__key">Notification reference</p>
-            <p class="app-dr2-import-reference-section__value">{{ pageHeader.reference or notificationReference }}</p>
-            <button class="govuk-button govuk-button--secondary app-dr2-import-reference-section__copy-button" type="button" data-copy-text="{{ pageHeader.reference or notificationReference }}">Copy</button>
+            <p class="app-dr2-import-reference-section__value">{{ testing2DisplayReference(pageHeader.reference or notificationReference, data.notificationType) }}</p>
+            <button class="govuk-button govuk-button--secondary app-dr2-import-reference-section__copy-button" type="button" data-copy-text="{{ testing2DisplayReference(pageHeader.reference or notificationReference, data.notificationType) }}">Copy</button>
           </div>
 
           <div class="app-dr2-import-reference-section__row">
