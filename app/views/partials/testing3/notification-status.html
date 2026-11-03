@@ -1,0 +1,15 @@
+{% from "partials/testing3/notification-reference.html" import dr21NotificationReference %}
+
+{% set isCreatingTemplate = data.isCreatingTemplate %}
+{% set statusText = "Template" if isCreatingTemplate else (data.notificationStatus if data.notificationStatus else "Draft") %}
+{% set statusModifier = statusText | lower | replace(" ", "-") %}
+{% set isAmendStatus = statusText == "Amend" %}
+{% set statusReference = data.templateName if isCreatingTemplate else dr21NotificationReference(notificationReference, data.notificationType) %}
+
+<div class="app-dr2-notification-status{% if isAmendStatus %} app-dr2-notification-status--amend{% endif %}">
+  <strong class="govuk-tag app-dr2-review-status__tag app-dr2-review-status__tag--{{ statusModifier }}">{{ statusText }}</strong>
+  <span class="app-dr2-notification-status__reference">{{ statusReference }}</span>
+  {% if isAmendStatus %}
+    <a class="govuk-link app-dr2-notification-status__cancel-link" href="/testing3/notifications/cancel-amend?returnTo={{ currentPath | urlencode }}">Cancel amend</a>
+  {% endif %}
+</div>

@@ -338,6 +338,7 @@ function resetNotificationJourneySession (sessionData) {
   const designRelease2Session = sessionData._designRelease2
   const designRelease21Session = sessionData._designRelease21
   const testing2Session = sessionData._testing2
+  const testing3Session = sessionData._testing3
 
   Object.keys(sessionData).forEach((key) => {
     delete sessionData[key]
@@ -381,6 +382,10 @@ function resetNotificationJourneySession (sessionData) {
 
   if (testing2Session && typeof testing2Session === 'object') {
     sessionData._testing2 = testing2Session
+  }
+
+  if (testing3Session && typeof testing3Session === 'object') {
+    sessionData._testing3 = testing3Session
   }
 }
 
@@ -6035,9 +6040,11 @@ function loadDraftSnapshotIntoSession (sessionData, snapshot) {
     '_isDesignRelease2Version',
     '_isDesignRelease21Version',
     '_isTesting2Version',
+    '_isTesting3Version',
     '_designRelease2',
     '_designRelease21',
     '_testing2',
+    '_testing3',
     'deletedNotificationReferences',
     'draftNotifications',
     'submittedNotifications',
@@ -7154,8 +7161,10 @@ function getComparableNotificationSnapshot (sessionData) {
     '_isDesignRelease2Version',
     '_isDesignRelease21Version',
     '_isTesting2Version',
+    '_isTesting3Version',
     '_testing',
     '_testing2',
+    '_testing3',
     'addressBookAddedAddresses',
     'amendingFrom',
     'amendOriginalSnapshot',
@@ -7296,6 +7305,10 @@ function isDesignRelease2SessionData (sessionData) {
 function getDesignReleaseBasePath (sessionData = {}) {
   if (sessionData._isTesting2Version) {
     return '/testing2'
+  }
+
+  if (sessionData._isTesting3Version) {
+    return '/testing3'
   }
 
   if (sessionData._isDesignRelease21Version) {
@@ -7937,6 +7950,11 @@ function getAllDashboardTemplates (sessionData = {}) {
   const savedTemplates = getSavedTemplates(sessionData).filter((template) => !deletedIds.has(template.id))
   const savedIds = new Set(savedTemplates.map((template) => template.id))
 
+  // Testing 3 starts as if the user has not created any templates yet
+  if (sessionData._isTesting3Version) {
+    return savedTemplates
+  }
+
   return [
     ...savedTemplates,
     ...dashboardTemplates.filter((template) => !deletedIds.has(template.id) && !savedIds.has(template.id))
@@ -8542,6 +8560,7 @@ function buildTemplateReviewSessionData (template, requestSession = {}) {
   const sessionLike = {
     _isDesignRelease21Version: requestSession._isDesignRelease21Version,
     _isTesting2Version: requestSession._isTesting2Version,
+    _isTesting3Version: requestSession._isTesting3Version,
     _isDesignRelease2Version: requestSession._isDesignRelease2Version,
     isCreatingTemplate: true
   }
@@ -9033,8 +9052,10 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
   const endIndex = Math.min(startIndex + pageSize, totalCount)
   const notifications = visibleNotifications.slice(startIndex, endIndex)
   const dashboardListPath = getDashboardListPath(sessionData, category)
-  const dashboardPageHeading = (DASHBOARD_CATEGORIES[category] && DASHBOARD_CATEGORIES[category].heading) ||
-    'Live animals and germinal products'
+  const dashboardPageHeading = (sessionData._isTesting3Version && category === 'live-animals')
+    ? 'Import notification service'
+    : (DASHBOARD_CATEGORIES[category] && DASHBOARD_CATEGORIES[category].heading) ||
+      'Live animals and germinal products'
   const actionsHref = category ? `/actions?category=${encodeURIComponent(category)}` : '/actions'
   const changesHref = category ? `/changes?category=${encodeURIComponent(category)}` : '/changes'
 
@@ -11439,12 +11460,14 @@ function renderUploadDocumentsPage (req, res, locals = {}) {
 
 router.get('/create-notification', (req, res) => {
   const isDr21 = isDesignRelease21SessionData(req.session.data)
+  // Testing 3 always asks what is being imported, even from a category dashboard
+  const isTesting3 = Boolean(req.session.data._isTesting3Version)
   const category = normaliseNotificationType(req.query.category)
 
   resetNotificationJourneySession(req.session.data)
   delete req.session.data.isCreatingTemplate
 
-  if (isDr21 && !category) {
+  if (isDr21 && (!category || isTesting3)) {
     return res.redirect('/notification-type')
   }
 
@@ -11912,6 +11935,14 @@ router.get('/reason-for-import', (req, res) => {
 })
 
 router.get('/', (req, res) => {
+  // Testing 3 has no top-level dashboard, so the live animals dashboard is home
+  if (req.session.data._isTesting3Version) {
+    const queryIndex = req.originalUrl.indexOf('?')
+    const queryString = queryIndex === -1 ? '' : req.originalUrl.slice(queryIndex)
+
+    return res.redirect(`/live-animals${queryString}`)
+  }
+
   if (isDesignRelease21SessionData(req.session.data) && !req.session.data._isTesting2Version) {
     return renderOverallDashboardPage(req, res)
   }
@@ -12030,7 +12061,64 @@ router.post('/notifications/amend', (req, res) => {
   return startAmendNotification(req, res)
 })
 
+// Testing 3 asks the user to confirm on its own page, like delete, instead of
+// in a modal. The page links back to wherever the user chose to cancel from.
+function getCancelAmendBackLink (req) {
+  const fallback = '/review-notification'
+  const basePath = getDesignReleaseBasePath(req.session.data)
+  const returnTo = String(req.query.returnTo || '').trim()
+
+  if (
+    !basePath ||
+    !returnTo.startsWith(`${basePath}/`) ||
+    returnTo.startsWith('//') ||
+    returnTo.startsWith(`${basePath}/notifications/cancel-amend`)
+  ) {
+    return fallback
+  }
+
+  return returnTo
+}
+
+function renderCancelAmendNotificationPage (req, res) {
+  const sessionData = req.session.data
+
+  if (sessionData.notificationStatus !== 'Amend') {
+    return res.redirect('/review-notification')
+  }
+
+  const reference = String(
+    (sessionData.amendingFrom && sessionData.amendingFrom.reference) ||
+    sessionData.notificationReference ||
+    ''
+  ).trim()
+
+  return res.render('cancel-amend-notification', {
+    pageName: 'Cancel this amendment?',
+    confirmText: 'Any changes you have made to this notification will not be saved.',
+    summaryRows: buildDeleteNotificationSummaryRows(sessionData, {
+      reference,
+      metadata: getDashboardNotificationMetadata(sessionData, reference) || {}
+    }),
+    backLink: getCancelAmendBackLink(req),
+    notificationReference: reference,
+    cancelAmendAction: '/notifications/cancel-amend'
+  })
+}
+
 router.get('/notifications/cancel-amend', (req, res) => {
+  if (req.session.data._isTesting3Version) {
+    return renderCancelAmendNotificationPage(req, res)
+  }
+
+  return cancelAmendNotification(req, res)
+})
+
+router.post('/notifications/cancel-amend', (req, res) => {
+  return cancelAmendNotification(req, res)
+})
+
+function cancelAmendNotification (req, res) {
   if (!isDesignRelease2SessionData(req.session.data)) {
     return res.redirect('/')
   }
@@ -12056,7 +12144,7 @@ router.get('/notifications/cancel-amend', (req, res) => {
   }
 
   return res.redirect(getDashboardBackLink(req.session.data))
-})
+}
 
 router.get('/actions', (req, res) => {
   return renderDashboardActionsPage(req, res)
@@ -13459,11 +13547,13 @@ router.post('/intro/sign-in', function (req, res) {
 
 const { mountTestingVersion } = require('./lib/testing-version')
 const { mountTesting2Version } = require('./lib/testing2-version')
+const { mountTesting3Version } = require('./lib/testing3-version')
 const { mountDesignRelease2Version } = require('./lib/design-release-2-version')
 const { mountDesignRelease21Version } = require('./lib/design-release-2.1-version')
 
-// Mount testing2 before testing so Express does not treat /testing2 as /testing
+// Mount testing2 and testing3 before testing so Express does not treat them as /testing
 mountTesting2Version(govukPrototypeKit, router)
+mountTesting3Version(govukPrototypeKit, router)
 mountTestingVersion(govukPrototypeKit, router)
 // Mount 2.1 before 2 so Express does not treat /design-release-2.1 as /design-release-2
 mountDesignRelease21Version(govukPrototypeKit, router)

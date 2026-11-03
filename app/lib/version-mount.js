@@ -230,6 +230,7 @@ function createVersionMount ({
     nest[versionFlag] = true
     req.session.data = nest
     res.locals.data = nest
+    res.locals.currentPath = req.originalUrl
 
     ;[req.body, req.query].forEach((source) => {
       if (!source || typeof source !== 'object') {
