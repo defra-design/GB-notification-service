@@ -284,6 +284,15 @@ function isTesting3SessionData (sessionData) {
   return Boolean(sessionData && sessionData._isTesting3Version)
 }
 
+function isTesting2SessionData (sessionData) {
+  return Boolean(sessionData && sessionData._isTesting2Version)
+}
+
+// Testing 2 and Testing 3 both use "Health certificate" document wording.
+function usesHealthCertificateWording (sessionData) {
+  return isTesting2SessionData(sessionData) || isTesting3SessionData(sessionData)
+}
+
 function getPrototypeNotificationReference (sessionData) {
   return isTestingSessionData(sessionData)
     ? TESTING_NOTIFICATION_REFERENCE
@@ -6218,6 +6227,10 @@ function renderReviewNotificationPage (req, res, options = {}) {
     sessionData = { ...sessionData, _isTesting3Version: true }
   }
 
+  if (isTesting2SessionData(req.session.data)) {
+    sessionData = { ...sessionData, _isTesting2Version: true }
+  }
+
   const isAmending = String(sessionData.notificationStatus || '').trim() === 'Amend'
   const isTemplateCreate = isDesignRelease21TemplateCreate(sessionData)
   const showAmendResubmitHeading = isAmending && hasAmendChanges(sessionData)
@@ -6650,7 +6663,7 @@ function hasAttachedItahc (sessionData) {
 }
 
 function getMissingCertificateMessage (versionData) {
-  return isTesting3SessionData(versionData)
+  return usesHealthCertificateWording(versionData)
     ? 'Health certificate is missing'
     : 'ITAHC is missing'
 }
@@ -6688,7 +6701,7 @@ function getConditionalSubmissionItems (sessionData, versionData = sessionData) 
   const items = []
 
   if (!hasAttachedItahc(sessionData)) {
-    items.push(isTesting3SessionData(versionData)
+    items.push(usesHealthCertificateWording(versionData)
       ? 'upload the health certificate and any other required documents'
       : 'upload the ITAHC and any other required documents')
   }
@@ -11284,7 +11297,7 @@ const MAX_UPLOADED_DOCUMENTS = 15
 const VIRUS_CHECK_DELAY_MS = 2500
 
 function getDocumentTypeOptions (sessionData) {
-  return isTestingSessionData(sessionData) || isTesting3SessionData(sessionData)
+  return isTestingSessionData(sessionData) || usesHealthCertificateWording(sessionData)
     ? testingDocumentTypeOptions
     : designReleaseDocumentTypeOptions
 }
@@ -11295,7 +11308,7 @@ function getDocumentTypeValues (sessionData) {
 
 function getDocumentTypeLabel (documentType, sessionData) {
   if (documentType === 'itahc') {
-    return isTestingSessionData(sessionData) || isTesting3SessionData(sessionData)
+    return isTestingSessionData(sessionData) || usesHealthCertificateWording(sessionData)
       ? 'Health certificate'
       : 'Intra Trade Animal Health Certificate (ITAHC)'
   }
@@ -11311,7 +11324,7 @@ function getDocumentTypeLabel (documentType, sessionData) {
 }
 
 function getUploadedDocumentTypeLabel (document, sessionData) {
-  if (isTesting3SessionData(sessionData) && document.documentType === 'itahc') {
+  if (usesHealthCertificateWording(sessionData) && document.documentType === 'itahc') {
     return getDocumentTypeLabel(document.documentType, sessionData)
   }
 
