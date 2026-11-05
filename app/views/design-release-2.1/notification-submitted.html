@@ -42,11 +42,13 @@
       <h2 class="app-notification-submitted-page__section-heading" id="submitted-transport-heading">Transporting the consignment</h2>
       <p class="govuk-body">Tell the transporter that this consignment must go directly to the place of destination on entry to Great Britain.</p>
       <p class="govuk-body">The animals or consignment may need to be inspected.</p>
+      {% if data.notificationType == "live-animals" %}
       <p class="govuk-body">If so, the animals must stay at the place of destination for either:</p>
       <ul class="govuk-list govuk-list--bullet app-notification-submitted-page__list">
         <li>the time stated on the health certificate</li>
         <li>48 hours if no time is specified</li>
       </ul>
+      {% endif %}
     </section>
 
     <section class="app-notification-submitted-page__section" aria-labelledby="submitted-amend-heading">

@@ -45,6 +45,7 @@
       </p>
     </div>
 
+    {% if data.notificationType == "live-animals" %}
     <div class="app-transporter-page__guidance">
       <p class="app-transporter-page__guidance-text">
         Your transporter must hold a valid transporter authorisation, issued by DAERA or APHA in the UK if they are:
@@ -60,6 +61,7 @@
       <p class="app-transporter-page__guidance-text">Documents issued by DAERA are valid for use in GB.</p>
       <p class="app-transporter-page__guidance-text">Documents issued in any EU member state are not valid for use in GB.</p>
     </div>
+    {% endif %}
 
     <form method="post" action="/design-release-2.1/transporter" novalidate class="app-transporter-form">
 
