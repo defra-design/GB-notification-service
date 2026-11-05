@@ -228,12 +228,10 @@
                         >{{ document.status.text }}</strong>
                       </td>
                       <td class="govuk-table__cell govuk-table__cell--numeric">
-                        <button
-                          type="submit"
-                          name="action"
-                          value="remove:{{ document.id }}"
+                        <a
+                          href="{{ (journeyBasePath + '/upload-documents') if journeyBasePath else '/upload-documents' }}/{{ document.id }}/delete{% if fromReview %}?from=review{% elif fromHub %}?from=hub{% endif %}"
                           class="govuk-link app-upload-documents-table__remove-button"
-                        >Remove</button>
+                        >Remove<span class="govuk-visually-hidden"> {{ document.documentReference }}</span></a>
                       </td>
                     </tr>
                   {% endfor %}

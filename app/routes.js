@@ -12703,6 +12703,38 @@ router.get('/notification-submitted', (req, res) => {
   return renderNotificationSubmittedPage(req, res)
 })
 
+router.get('/upload-documents/:documentId/delete', (req, res) => {
+  const returnQuery = getUploadDocumentsReturnQuery(req)
+  const documentId = (req.params.documentId || '').trim()
+  const document = ensureUploadedDocuments(req.session.data).find((item) => item.id === documentId)
+
+  if (!document) {
+    return res.redirect(`/upload-documents${returnQuery}`)
+  }
+
+  return res.render('delete-document', {
+    pageName: 'Delete this document?',
+    confirmText: 'This will remove the document from this notification.',
+    summaryRows: [
+      buildDeleteSummaryRow('Document reference', document.documentReference),
+      buildDeleteSummaryRow('Document type', document.documentTypeLabel || getDocumentTypeLabel(document.documentType, req.session.data)),
+      buildDeleteSummaryRow('Date of issue', document.dateOfIssue),
+      buildDeleteSummaryRow('File', document.fileName)
+    ],
+    backLink: `/upload-documents${returnQuery}`,
+    deleteAction: `/upload-documents/${encodeURIComponent(documentId)}/delete${returnQuery}`
+  })
+})
+
+router.post('/upload-documents/:documentId/delete', (req, res) => {
+  const returnQuery = getUploadDocumentsReturnQuery(req)
+
+  removeUploadedDocument(req.session.data, (req.params.documentId || '').trim())
+  resetUploadDocumentFormState(req.session.data)
+
+  return res.redirect(`/upload-documents${returnQuery}`)
+})
+
 router.get('/upload-documents', (req, res) => {
   ensurePrototypeNotificationReference(req.session.data)
 
