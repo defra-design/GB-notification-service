@@ -1573,11 +1573,13 @@ function getJourneySteps (sessionData) {
     steps.push('/upload-documents')
   }
 
-  steps.push(
-    '/roles-and-addresses',
-    '/contact-address-for-consignment',
-    '/review-notification'
-  )
+  steps.push('/roles-and-addresses')
+
+  if (!isDesignRelease21SessionData(sessionData)) {
+    steps.push('/contact-address-for-consignment')
+  }
+
+  steps.push('/review-notification')
 
   if (!isDesignRelease21TemplateCreate(sessionData)) {
     steps.push('/declaration')
@@ -5128,7 +5130,8 @@ function hasReviewNotificationComplete (sessionData) {
 }
 
 function hasNotificationComplete (sessionData) {
-  return hasReviewNotificationComplete(sessionData) && hasContactAddress(sessionData)
+  return hasReviewNotificationComplete(sessionData) &&
+    (isDesignRelease21SessionData(sessionData) || hasContactAddress(sessionData))
 }
 
 function getReviewNotificationViewModel (sessionData) {
@@ -5439,7 +5442,7 @@ function getReviewNotificationViewModelWithErrors (sessionData) {
     viewModel.movement.arrivalDetailsCard,
     viewModel.movement.transportDetailsCard,
     viewModel.addresses.rolesCard,
-    viewModel.contactAddress.contactAddressCard
+    ...(isDesignRelease21SessionData(sessionData) ? [] : [viewModel.contactAddress.contactAddressCard])
   ])
 
   return {
@@ -6826,16 +6829,18 @@ function getNotificationHubViewModel (sessionData) {
           }
         ]
       },
-      {
-        title: skipShipmentFields ? '5. Contact address' : '6. Contact address',
-        items: [
-          {
-            text: 'Contact address for this consignment',
-            href: '/contact-address-for-consignment?from=hub',
-            status: hasContactAddress(sessionData) ? statusComplete : statusTodo
-          }
-        ]
-      }
+      ...(isDesignRelease21SessionData(sessionData)
+        ? []
+        : [{
+            title: skipShipmentFields ? '5. Contact address' : '6. Contact address',
+            items: [
+              {
+                text: 'Contact address for this consignment',
+                href: '/contact-address-for-consignment?from=hub',
+                status: hasContactAddress(sessionData) ? statusComplete : statusTodo
+              }
+            ]
+          }])
     ]
   }
 }
@@ -11372,10 +11377,13 @@ function resetUploadDocumentFormState (sessionData) {
 function trySavePendingUploadDocument (sessionData, body) {
   const values = parseUploadDocumentBody(body)
 
-  if (!getDocumentTypeValues(sessionData).includes(values.documentType)) {
+  // Nothing entered: there is no pending document to save.
+  if (!values.documentReference && !values.documentType && !values.dateOfIssue && !values.attachmentFileName) {
     return { saved: false, values }
   }
 
+  // Anything entered (a file, a reference, a date or a type) counts as a pending
+  // document and must be complete, otherwise it would be silently discarded.
   const validation = validateUploadDocument(values, sessionData)
 
   if (validation.errorList.length) {
@@ -13052,6 +13060,22 @@ router.post('/transit-countries', (req, res) => {
   ))
 })
 
+router.get('/contact-address-for-consignment', (req, res, next) => {
+  if (isDesignRelease21SessionData(req.session.data)) {
+    return res.redirect('/review-notification')
+  }
+
+  return next()
+})
+
+router.post('/contact-address-for-consignment', (req, res, next) => {
+  if (isDesignRelease21SessionData(req.session.data)) {
+    return res.redirect('/review-notification')
+  }
+
+  return next()
+})
+
 router.get('/contact-address-for-consignment', (req, res) => {
   ensurePrototypeNotificationReference(req.session.data)
 
@@ -13465,18 +13489,9 @@ router.post('/roles-and-addresses', (req, res) => {
     return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
   }
 
-  const sessionData = req.session.data
-  const skipsContactAddressStep = Boolean(
-    sessionData._isDesignRelease21Version ||
-    sessionData._isTesting2Version ||
-    sessionData._isTesting3Version
-  )
-
   return res.redirect(getSectionContinueRedirect(
     req,
-    skipsContactAddressStep
-      ? '/review-notification'
-      : getNextJourneyPath('/roles-and-addresses', req.session.data)
+    getNextJourneyPath('/roles-and-addresses', req.session.data)
   ))
 })
 
