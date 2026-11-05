@@ -9279,22 +9279,7 @@ function renderOverallDashboardPage (req, res) {
   })
 }
 
-// Testing 2 runs the 2.1 journey but shows the testing version's dashboard, so
-// build its dashboard data as the testing version would.
-function getTesting2DashboardSessionView (sessionData) {
-  return Object.create(sessionData, {
-    _isTestingVersion: { value: true },
-    _isTesting2Version: { value: false },
-    _isDesignRelease2Version: { value: false },
-    _isDesignRelease21Version: { value: false }
-  })
-}
-
 function renderDashboardPage (req, res) {
-  if (req.session.data._isTesting2Version) {
-    return renderTesting2DashboardPage(req, res)
-  }
-
   const successMessage = req.session.data.dashboardSuccessMessage || null
   const journeyBasePath = res.locals.journeyBasePath || ''
   const category = getDashboardCategoryFromRequest(req)
@@ -9311,21 +9296,6 @@ function renderDashboardPage (req, res) {
     backLink,
     successMessage,
     ...getDashboardViewModel(req.session.data, { ...req.query, category })
-  })
-}
-
-function renderTesting2DashboardPage (req, res) {
-  const successMessage = req.session.data.dashboardSuccessMessage || null
-
-  if (successMessage) {
-    delete req.session.data.dashboardSuccessMessage
-  }
-
-  return res.render('dashboard', {
-    serviceNavActive: 'dashboard',
-    backLink: '/testing2/index',
-    successMessage,
-    ...getDashboardViewModel(getTesting2DashboardSessionView(req.session.data), req.query)
   })
 }
 
@@ -12040,7 +12010,7 @@ router.get('/', (req, res) => {
     return res.redirect(`/live-animals${queryString}`)
   }
 
-  if (isDesignRelease21SessionData(req.session.data) && !req.session.data._isTesting2Version) {
+  if (isDesignRelease21SessionData(req.session.data)) {
     return renderOverallDashboardPage(req, res)
   }
 
@@ -13596,9 +13566,18 @@ router.post('/roles-and-addresses', (req, res) => {
     return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
   }
 
+  const sessionData = req.session.data
+  const skipsContactAddressStep = Boolean(
+    sessionData._isDesignRelease21Version ||
+    sessionData._isTesting2Version ||
+    sessionData._isTesting3Version
+  )
+
   return res.redirect(getSectionContinueRedirect(
     req,
-    getNextJourneyPath('/roles-and-addresses', req.session.data)
+    skipsContactAddressStep
+      ? '/review-notification'
+      : getNextJourneyPath('/roles-and-addresses', req.session.data)
   ))
 })
 
