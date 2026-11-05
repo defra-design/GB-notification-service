@@ -2,7 +2,6 @@
 
 {% set hideDocuments = not dr2Review.documents %}
 {% set partiesSectionNumber = 4 if hideDocuments else 5 %}
-{% set contactSectionNumber = 5 if hideDocuments else 6 %}
 
 <section class="app-review-notification-page__section" aria-labelledby="review-section-about">
   <h2 class="app-review-notification-page__section-heading" id="review-section-about">1. About the consignment</h2>
@@ -56,10 +55,4 @@
   <h2 class="app-review-notification-page__section-heading" id="review-section-addresses">{{ partiesSectionNumber }}. Consignment addresses</h2>
 
   {{ dr2ReviewCard(dr2Review.addresses.rolesCard, showActions) }}
-</section>
-
-<section class="app-review-notification-page__section" aria-labelledby="review-section-contact-address">
-  <h2 class="app-review-notification-page__section-heading" id="review-section-contact-address">{{ contactSectionNumber }}. Contact address</h2>
-
-  {{ dr2ReviewCard(dr2Review.contactAddress.contactAddressCard, showActions) }}
 </section>

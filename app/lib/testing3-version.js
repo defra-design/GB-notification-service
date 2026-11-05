@@ -26,6 +26,7 @@ const {
       isDesignRelease2Version: true,
       isDesignRelease21Version: true,
       isTesting3Version: true,
+      serviceName: 'Import of products, animals, food and feed service',
       serviceNavDashboardHref: TESTING3_BASE,
       serviceNavServiceHref: `${TESTING3_BASE}/index`,
       serviceNavTemplatesHref: `${TESTING3_BASE}/templates`,

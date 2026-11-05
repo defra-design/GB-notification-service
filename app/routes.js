@@ -43,6 +43,11 @@ const addressBookLookupAddresses = require('./data/address-book-lookup-addresses
 const dashboardData = require('./data/dashboard-notifications')
 const dashboardTemplates = require('./data/dashboard-templates')
 const { buildDashboardNotificationSnapshot } = require('./data/dashboard-notification-snapshots')
+const {
+  DRAFT_NOTIFICATION_SEQUENCE,
+  DRAFT_NOTIFICATION_YEAR,
+  formatNotificationReference
+} = require('./utils/notification-reference')
 const { getCommoditySearchData } = require('./utils/commodity-search-data')
 
 const TRANSIT_MEANS_OF_TRANSPORT = ['Rail', 'Road']
@@ -275,6 +280,10 @@ function isTestingSessionData (sessionData) {
   return Boolean(sessionData && sessionData._isTestingVersion)
 }
 
+function isTesting3SessionData (sessionData) {
+  return Boolean(sessionData && sessionData._isTesting3Version)
+}
+
 function getPrototypeNotificationReference (sessionData) {
   return isTestingSessionData(sessionData)
     ? TESTING_NOTIFICATION_REFERENCE
@@ -299,12 +308,36 @@ function ensurePrototypeNotificationReference (sessionData) {
     return
   }
 
+  if (isTesting3SessionData(sessionData)) {
+    if (!value || !isTestingNotificationReference(value)) {
+      sessionData.notificationReference = generateTesting3NotificationReference(sessionData)
+    }
+    return
+  }
+
   if (!value || !isDesignReleaseNotificationReference(value)) {
     sessionData.notificationReference = generateDesignReleaseNotificationReference(sessionData)
   }
 }
 
-function toDesignReleaseDashboardReference (reference, index = 0) {
+function toTesting3DashboardReference (reference, index = 0) {
+  const value = String(reference || '').trim()
+
+  if (isTestingNotificationReference(value)) {
+    return value
+  }
+
+  const sequence = Number(DRAFT_NOTIFICATION_SEQUENCE) + index
+  const type = /^GBN-GP-/i.test(value) ? 'CHEDP' : 'CHEDA'
+
+  return formatNotificationReference(sequence, DRAFT_NOTIFICATION_YEAR, type)
+}
+
+function toDesignReleaseDashboardReference (reference, index = 0, sessionData = {}) {
+  if (isTesting3SessionData(sessionData)) {
+    return toTesting3DashboardReference(reference, index)
+  }
+
   const value = String(reference || '').trim()
 
   if (isDesignReleaseNotificationReference(value)) {
@@ -1573,11 +1606,13 @@ function getJourneySteps (sessionData) {
     steps.push('/upload-documents')
   }
 
-  steps.push(
-    '/roles-and-addresses',
-    '/contact-address-for-consignment',
-    '/review-notification'
-  )
+  steps.push('/roles-and-addresses')
+
+  if (!isTesting3SessionData(sessionData)) {
+    steps.push('/contact-address-for-consignment')
+  }
+
+  steps.push('/review-notification')
 
   if (!isDesignRelease21TemplateCreate(sessionData)) {
     steps.push('/declaration')
@@ -5128,7 +5163,8 @@ function hasReviewNotificationComplete (sessionData) {
 }
 
 function hasNotificationComplete (sessionData) {
-  return hasReviewNotificationComplete(sessionData) && hasContactAddress(sessionData)
+  return hasReviewNotificationComplete(sessionData) &&
+    (isTesting3SessionData(sessionData) || hasContactAddress(sessionData))
 }
 
 function getReviewNotificationViewModel (sessionData) {
@@ -5283,7 +5319,7 @@ function getReviewNotificationViewModel (sessionData) {
       },
       {
         key: 'Document type',
-        value: formatReviewValueOrNa(document.documentTypeLabel || getDocumentTypeLabel(document.documentType, sessionData))
+        value: formatReviewValueOrNa(getUploadedDocumentTypeLabel(document, sessionData))
       },
       {
         key: 'Date of issue',
@@ -5409,7 +5445,10 @@ function getReviewNotificationViewModel (sessionData) {
           key: 'Contact address',
           value: formatContactAddressForReviewValue(sessionData)
         }],
-        ...reviewCardErrorState(hasContactAddress(sessionData), 'Contact address for this consignment')
+        ...reviewCardErrorState(
+          isTesting3SessionData(sessionData) || hasContactAddress(sessionData),
+          'Contact address for this consignment'
+        )
       }
     },
     documents: {
@@ -5811,7 +5850,7 @@ function getDashboardNotificationMetadata (sessionData, reference) {
   )
 
   if (submittedMatch) {
-    const conditionalItems = getConditionalSubmissionItems(submittedMatch.snapshot)
+    const conditionalItems = getConditionalSubmissionItems(submittedMatch.snapshot, sessionData)
 
     return {
       reference: submittedMatch.reference,
@@ -5841,7 +5880,7 @@ function getDashboardNotificationMetadata (sessionData, reference) {
       ...notification,
       reference: isTestingSessionData(sessionData)
         ? notification.reference
-        : toDesignReleaseDashboardReference(notification.reference, index)
+        : toDesignReleaseDashboardReference(notification.reference, index, sessionData)
     }))
     .find((notification) => notification.reference === normalisedReference)
 
@@ -5853,7 +5892,7 @@ function getDashboardNotificationMetadata (sessionData, reference) {
     ...staticNotification,
     reviewVariant: staticNotification.reviewVariant || mapStatusTextToReviewVariant(staticNotification.statusText),
     conditionalItems: staticNotification.reviewVariant === 'action-required'
-      ? getConditionalSubmissionItems(buildDashboardNotificationSnapshot(staticNotification))
+      ? getConditionalSubmissionItems(buildDashboardNotificationSnapshot(staticNotification), sessionData)
       : []
   }
 }
@@ -6077,7 +6116,7 @@ function resolveDesignRelease2ReviewPageOptions (req, options = {}) {
       return { redirectTo: dashboardBackLink }
     }
 
-    const conditionalItems = getConditionalSubmissionItems(submittedNotification.snapshot)
+    const conditionalItems = getConditionalSubmissionItems(submittedNotification.snapshot, req.session.data)
     const reviewVariant = conditionalItems.length ? 'action-required' : 'submitted'
     const metadata = {
       reference: submittedNotification.reference,
@@ -6172,6 +6211,11 @@ function renderReviewNotificationPage (req, res, options = {}) {
 
   if (showActions === undefined) {
     showActions = !readOnly
+  }
+
+  // Dashboard snapshots are shared between versions, so carry the version over
+  if (isTesting3SessionData(req.session.data)) {
+    sessionData = { ...sessionData, _isTesting3Version: true }
   }
 
   const isAmending = String(sessionData.notificationStatus || '').trim() === 'Amend'
@@ -6605,13 +6649,19 @@ function hasAttachedItahc (sessionData) {
   })
 }
 
-function getSubmittedNotificationDashboardErrorMessage (sessionData) {
+function getMissingCertificateMessage (versionData) {
+  return isTesting3SessionData(versionData)
+    ? 'Health certificate is missing'
+    : 'ITAHC is missing'
+}
+
+function getSubmittedNotificationDashboardErrorMessage (sessionData, versionData = sessionData) {
   if (!sessionData) {
     return null
   }
 
   if (!hasAttachedItahc(sessionData)) {
-    return 'ITAHC is missing'
+    return getMissingCertificateMessage(versionData)
   }
 
   if (
@@ -6624,21 +6674,23 @@ function getSubmittedNotificationDashboardErrorMessage (sessionData) {
   return null
 }
 
-function getDashboardActionRequiredErrorMessage (notification = {}) {
+function getDashboardActionRequiredErrorMessage (notification = {}, versionData = {}) {
   if (notification.errorMessage) {
     return notification.errorMessage
   }
 
   const snapshot = notification.snapshot || buildDashboardNotificationSnapshot(notification)
 
-  return getSubmittedNotificationDashboardErrorMessage(snapshot) || 'ITAHC is missing'
+  return getSubmittedNotificationDashboardErrorMessage(snapshot, versionData) || getMissingCertificateMessage(versionData)
 }
 
-function getConditionalSubmissionItems (sessionData) {
+function getConditionalSubmissionItems (sessionData, versionData = sessionData) {
   const items = []
 
   if (!hasAttachedItahc(sessionData)) {
-    items.push('upload the ITAHC and any other required documents')
+    items.push(isTesting3SessionData(versionData)
+      ? 'upload the health certificate and any other required documents'
+      : 'upload the ITAHC and any other required documents')
   }
 
   // Soft follow-up only when identifiers are optional for submit (single commodity),
@@ -6826,16 +6878,18 @@ function getNotificationHubViewModel (sessionData) {
           }
         ]
       },
-      {
-        title: skipShipmentFields ? '5. Contact address' : '6. Contact address',
-        items: [
-          {
-            text: 'Contact address for this consignment',
-            href: '/contact-address-for-consignment?from=hub',
-            status: hasContactAddress(sessionData) ? statusComplete : statusTodo
-          }
-        ]
-      }
+      ...(isTesting3SessionData(sessionData)
+        ? []
+        : [{
+            title: skipShipmentFields ? '5. Contact address' : '6. Contact address',
+            items: [
+              {
+                text: 'Contact address for this consignment',
+                href: '/contact-address-for-consignment?from=hub',
+                status: hasContactAddress(sessionData) ? statusComplete : statusTodo
+              }
+            ]
+          }])
     ]
   }
 }
@@ -7613,7 +7667,7 @@ function enrichDesignRelease2Notification (notification, index, sessionData = {}
       text: 'Action required',
       style: 'action-required'
     }
-    errorMessage = getDashboardActionRequiredErrorMessage(notification)
+    errorMessage = getDashboardActionRequiredErrorMessage(notification, sessionData)
   } else if (reviewVariant === 'draft') {
     statusDisplay = {
       type: 'tag',
@@ -7663,7 +7717,7 @@ function enrichDesignRelease2Notification (notification, index, sessionData = {}
       text: 'Action required',
       style: 'action-required'
     }
-    finalErrorMessage = getDashboardActionRequiredErrorMessage(notification)
+    finalErrorMessage = getDashboardActionRequiredErrorMessage(notification, sessionData)
   } else if (!preserveStatusVariant) {
     const statusChangeCategory = statusChangeDemoMap[index]
 
@@ -7833,7 +7887,7 @@ function getDashboardNotificationList (sessionData = {}) {
     const snapshot = notification.snapshot || {}
     const reviewVariant = mapStatusTextToReviewVariant(notification.statusText)
     const errorMessage = reviewVariant === 'action-required'
-      ? getSubmittedNotificationDashboardErrorMessage(snapshot)
+      ? getSubmittedNotificationDashboardErrorMessage(snapshot, sessionData)
       : null
     const mapped = {
       reference: notification.reference,
@@ -7880,7 +7934,7 @@ function getDashboardNotificationList (sessionData = {}) {
         return enrichTestingNotification(notification, index + submitted.length)
       }
 
-      const reference = toDesignReleaseDashboardReference(notification.reference, index)
+      const reference = toDesignReleaseDashboardReference(notification.reference, index, sessionData)
       const mapped = {
         ...notification,
         reference,
@@ -8091,7 +8145,40 @@ function saveTemplateFromSession (sessionData) {
   return template
 }
 
+function generateTesting3NotificationReference (
+  sessionData = {},
+  type = getNotificationType(sessionData) === 'germinal-products' ? 'CHEDP' : 'CHEDA'
+) {
+  const existing = new Set([
+    String(sessionData.notificationReference || '').trim(),
+    ...((dashboardData.notifications || []).map((notification, index) =>
+      toTesting3DashboardReference(notification.reference, index)
+    )),
+    ...((sessionData.draftNotifications || []).map((notification) =>
+      String(notification.reference || '').trim()
+    )),
+    ...((sessionData.submittedNotifications || []).map((notification) =>
+      String(notification.reference || '').trim()
+    ))
+  ].filter(Boolean))
+
+  for (let attempt = 0; attempt < 25; attempt += 1) {
+    const sequence = 7000000 + Math.floor(Math.random() * 3000000)
+    const reference = formatNotificationReference(sequence, DRAFT_NOTIFICATION_YEAR, type)
+
+    if (!existing.has(reference)) {
+      return reference
+    }
+  }
+
+  return formatNotificationReference(String(Date.now()).slice(-7), DRAFT_NOTIFICATION_YEAR, type)
+}
+
 function generateDesignReleaseNotificationReference (sessionData = {}) {
+  if (isTesting3SessionData(sessionData)) {
+    return generateTesting3NotificationReference(sessionData)
+  }
+
   const existing = new Set([
     DESIGN_RELEASE_NOTIFICATION_REFERENCE,
     String(sessionData.notificationReference || '').trim(),
@@ -8288,7 +8375,9 @@ function seedNotificationSessionFromTemplate (sessionData, template) {
   const address = buildSessionAddressFromTemplatePlace(review.placeOfOrigin)
   const internalReference = String(review.internalReferenceNumber || '').trim()
 
-  sessionData.notificationReference = generateDesignReleaseNotificationReference(sessionData)
+  sessionData.notificationReference = isTesting3SessionData(sessionData) && template.categoryLabel === 'Germinal products'
+    ? generateTesting3NotificationReference(sessionData, 'CHEDP')
+    : generateDesignReleaseNotificationReference(sessionData)
   sessionData.notificationStatus = 'Draft'
   sessionData.templateId = template.id
   sessionData.templateName = template.title
@@ -9053,7 +9142,7 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
   const notifications = visibleNotifications.slice(startIndex, endIndex)
   const dashboardListPath = getDashboardListPath(sessionData, category)
   const dashboardPageHeading = (sessionData._isTesting3Version && category === 'live-animals')
-    ? 'Import notification service'
+    ? 'Your import notifications'
     : (DASHBOARD_CATEGORIES[category] && DASHBOARD_CATEGORIES[category].heading) ||
       'Live animals and germinal products'
   const actionsHref = category ? `/actions?category=${encodeURIComponent(category)}` : '/actions'
@@ -11195,7 +11284,7 @@ const MAX_UPLOADED_DOCUMENTS = 15
 const VIRUS_CHECK_DELAY_MS = 2500
 
 function getDocumentTypeOptions (sessionData) {
-  return isTestingSessionData(sessionData)
+  return isTestingSessionData(sessionData) || isTesting3SessionData(sessionData)
     ? testingDocumentTypeOptions
     : designReleaseDocumentTypeOptions
 }
@@ -11206,7 +11295,7 @@ function getDocumentTypeValues (sessionData) {
 
 function getDocumentTypeLabel (documentType, sessionData) {
   if (documentType === 'itahc') {
-    return isTestingSessionData(sessionData)
+    return isTestingSessionData(sessionData) || isTesting3SessionData(sessionData)
       ? 'Health certificate'
       : 'Intra Trade Animal Health Certificate (ITAHC)'
   }
@@ -11219,6 +11308,14 @@ function getDocumentTypeLabel (documentType, sessionData) {
     sharedDocumentTypeOptions.find((option) => option.value === documentType)
 
   return match ? match.text : documentType
+}
+
+function getUploadedDocumentTypeLabel (document, sessionData) {
+  if (isTesting3SessionData(sessionData) && document.documentType === 'itahc') {
+    return getDocumentTypeLabel(document.documentType, sessionData)
+  }
+
+  return document.documentTypeLabel || getDocumentTypeLabel(document.documentType, sessionData)
 }
 
 function buildDocumentTypeItems (selectedValue, sessionData) {
@@ -11246,7 +11343,7 @@ function ensureUploadedDocuments (sessionData) {
 function getUploadedDocumentsForDisplay (sessionData) {
   return ensureUploadedDocuments(sessionData).map((document) => ({
     ...document,
-    documentTypeLabel: document.documentTypeLabel || getDocumentTypeLabel(document.documentType, sessionData),
+    documentTypeLabel: getUploadedDocumentTypeLabel(document, sessionData),
     status: {
       text: document.virusStatus === 'passed' ? 'Check completed' : 'Scanning for virus',
       class: document.virusStatus === 'passed' ? 'govuk-tag--green' : 'govuk-tag--blue'
@@ -13053,6 +13150,10 @@ router.post('/transit-countries', (req, res) => {
 })
 
 router.get('/contact-address-for-consignment', (req, res) => {
+  if (isTesting3SessionData(req.session.data)) {
+    return res.redirect('/notification-hub')
+  }
+
   ensurePrototypeNotificationReference(req.session.data)
 
   const successMessage = req.session.data.contactAddressSuccessMessage || null
@@ -13481,6 +13582,10 @@ router.post('/roles-and-addresses', (req, res) => {
 })
 
 router.post('/contact-address-for-consignment', (req, res) => {
+  if (isTesting3SessionData(req.session.data)) {
+    return res.redirect('/notification-hub')
+  }
+
   ensurePrototypeNotificationReference(req.session.data)
 
   const addressId = (req.body.contactAddressId || '').trim()
