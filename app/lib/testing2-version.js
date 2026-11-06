@@ -17,7 +17,7 @@ const {
   sessionKey: '_testing2',
   versionFlag: '_isTesting2Version',
   viewFolder: 'testing2',
-  otherVersionBases: ['/design-release-2.1', '/design-release-2', '/testing'],
+  otherVersionBases: ['/design-release-2.1', '/testing'],
   setupSession (nest) {
     nest._isDesignRelease21Version = true
   },
