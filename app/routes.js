@@ -368,7 +368,6 @@ function resetNotificationJourneySession (sessionData) {
   const savedTemplates = sessionData.savedTemplates
   const deletedTemplateIds = sessionData.deletedTemplateIds
   const testingSession = sessionData._testing
-  const designRelease2Session = sessionData._designRelease2
   const designRelease21Session = sessionData._designRelease21
   const testing2Session = sessionData._testing2
   const testing3Session = sessionData._testing3
@@ -403,10 +402,6 @@ function resetNotificationJourneySession (sessionData) {
 
   if (testingSession && typeof testingSession === 'object') {
     sessionData._testing = testingSession
-  }
-
-  if (designRelease2Session && typeof designRelease2Session === 'object') {
-    sessionData._designRelease2 = designRelease2Session
   }
 
   if (designRelease21Session && typeof designRelease21Session === 'object') {
@@ -6076,11 +6071,9 @@ function copyNotificationAsNewIntoSession (sessionData, sourceSnapshot) {
 
 function loadDraftSnapshotIntoSession (sessionData, snapshot) {
   const preserveKeys = [
-    '_isDesignRelease2Version',
     '_isDesignRelease21Version',
     '_isTesting2Version',
     '_isTesting3Version',
-    '_designRelease2',
     '_designRelease21',
     '_testing2',
     '_testing3',
@@ -6903,11 +6896,15 @@ function renderNotificationHubPage (req, res) {
   })
 }
 
-function buildDashboardPageHref (page, sort, tab, dashboardPath = '/') {
+function buildDashboardPageHref (page, sort, tab, dashboardPath = '/', search = '') {
   const params = new URLSearchParams()
 
   if (tab && tab !== 'in-progress') {
     params.set('tab', tab)
+  }
+
+  if (search) {
+    params.set('search', search)
   }
 
   if (sort) {
@@ -7026,6 +7023,24 @@ function notificationMatchesDashboardCategory (notification, category) {
   return true
 }
 
+// Every word of the search must appear somewhere on the notification.
+function notificationMatchesDashboardSearch (notification, search) {
+  const statusDisplay = notification.statusDisplay || {}
+  const searchableText = [
+    notification.reference,
+    notification.commodityLabel,
+    notification.commodities,
+    notification.categoryLabel,
+    notification.consignee,
+    notification.consignor,
+    notification.origin,
+    notification.statusText,
+    statusDisplay.text
+  ].flat().filter(Boolean).join(' ').toLowerCase()
+
+  return search.toLowerCase().split(/\s+/).every((word) => searchableText.includes(word))
+}
+
 function getDashboardListPath (sessionData = {}, category = '') {
   if (DASHBOARD_CATEGORIES[category]) {
     return DASHBOARD_CATEGORIES[category].path
@@ -7140,7 +7155,7 @@ function buildDashboardActionsDelayFilterItems (actionNotifications, selectedFil
   }))
 }
 
-function buildDashboardPagination (currentPage, totalPages, sort, tab, dashboardPath = '/') {
+function buildDashboardPagination (currentPage, totalPages, sort, tab, dashboardPath = '/', search = '') {
   if (totalPages <= 1) {
     return {
       items: null,
@@ -7154,7 +7169,7 @@ function buildDashboardPagination (currentPage, totalPages, sort, tab, dashboard
   for (let page = 1; page <= totalPages; page++) {
     items.push({
       number: String(page),
-      href: buildDashboardPageHref(page, sort, tab, dashboardPath),
+      href: buildDashboardPageHref(page, sort, tab, dashboardPath, search),
       current: page === currentPage
     })
   }
@@ -7163,13 +7178,13 @@ function buildDashboardPagination (currentPage, totalPages, sort, tab, dashboard
     items,
     next: currentPage < totalPages
       ? {
-          href: buildDashboardPageHref(currentPage + 1, sort, tab, dashboardPath),
+          href: buildDashboardPageHref(currentPage + 1, sort, tab, dashboardPath, search),
           text: 'Next'
         }
       : null,
     previous: currentPage > 1
       ? {
-          href: buildDashboardPageHref(currentPage - 1, sort, tab, dashboardPath),
+          href: buildDashboardPageHref(currentPage - 1, sort, tab, dashboardPath, search),
           text: 'Previous'
         }
       : null
@@ -7210,9 +7225,7 @@ function cloneSubmittedNotificationSnapshot (sessionData) {
 function getComparableNotificationSnapshot (sessionData) {
   const snapshot = cloneSubmittedNotificationSnapshot(sessionData)
   const transientKeys = [
-    '_designRelease2',
     '_designRelease21',
-    '_isDesignRelease2Version',
     '_isDesignRelease21Version',
     '_isTesting2Version',
     '_isTesting3Version',
@@ -7351,7 +7364,6 @@ function saveSubmittedNotification (sessionData) {
 
 function isDesignRelease2SessionData (sessionData) {
   return Boolean(sessionData && (
-    sessionData._isDesignRelease2Version ||
     sessionData._isDesignRelease21Version
   ))
 }
@@ -7367,10 +7379,6 @@ function getDesignReleaseBasePath (sessionData = {}) {
 
   if (sessionData._isDesignRelease21Version) {
     return '/design-release-2.1'
-  }
-
-  if (sessionData._isDesignRelease2Version) {
-    return '/design-release-2'
   }
 
   return ''
@@ -8650,7 +8658,6 @@ function buildTemplateReviewSessionData (template, requestSession = {}) {
     _isDesignRelease21Version: requestSession._isDesignRelease21Version,
     _isTesting2Version: requestSession._isTesting2Version,
     _isTesting3Version: requestSession._isTesting3Version,
-    _isDesignRelease2Version: requestSession._isDesignRelease2Version,
     isCreatingTemplate: true
   }
 
@@ -8670,7 +8677,7 @@ function buildTemplateCheckAnswersPresentation (template, requestSession = {}) {
   )
 }
 
-function buildTemplateReviewViewModel (template, basePath = '/design-release-2', options = {}) {
+function buildTemplateReviewViewModel (template, basePath = '/design-release-2.1', options = {}) {
   const review = template.review || {}
   const templateId = template.id
   const hideArrivalDate = Boolean(options.hideArrivalDate)
@@ -8815,7 +8822,7 @@ function buildTemplateReviewViewModel (template, basePath = '/design-release-2',
 
 function getDashboardTemplatesViewModel (query = {}, sessionData = {}) {
   const sort = (query.sort || '').trim()
-  const basePath = getDesignReleaseBasePath(sessionData) || '/design-release-2'
+  const basePath = getDesignReleaseBasePath(sessionData) || '/design-release-2.1'
   const templates = getAllDashboardTemplates(sessionData).map((template) => ({
     categoryLabel: template.categoryLabel,
     title: template.title,
@@ -8846,7 +8853,7 @@ function renderViewTemplatePage (req, res) {
     return res.redirect('/templates')
   }
 
-  const basePath = getDesignReleaseBasePath(req.session.data) || '/design-release-2'
+  const basePath = getDesignReleaseBasePath(req.session.data) || '/design-release-2.1'
   const editHref = `${basePath}/templates/${template.id}/edit`
   const successMessage = req.session.data.templateReviewSuccessMessage || null
 
@@ -8984,7 +8991,7 @@ function renderDeleteTemplatePage (req, res) {
     return res.redirect('/templates')
   }
 
-  const basePath = getDesignReleaseBasePath(req.session.data) || '/design-release-2'
+  const basePath = getDesignReleaseBasePath(req.session.data) || '/design-release-2.1'
 
   return res.render('delete-template', {
     serviceNavActive: 'templates',
@@ -9108,8 +9115,11 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
   const requestedPage = Math.max(1, Number(query.page) || 1)
   const pageSize = dashboardData.pageSize
   const category = (query.category || '').trim()
+  const search = (query.search || '').trim()
+  const activeSearch = sessionData._isTesting3Version ? search : ''
   const allNotifications = getDashboardNotificationList(sessionData)
     .filter((notification) => notificationMatchesDashboardCategory(notification, category))
+    .filter((notification) => !activeSearch || notificationMatchesDashboardSearch(notification, activeSearch))
   const actionNotifications = isDr2
     ? getDashboardActionNotifications(sessionData)
       .filter((notification) => notificationMatchesDashboardCategory(notification, category))
@@ -9129,11 +9139,14 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
   )
   const draftNotifications = allNotifications.filter((notification) => notification.reviewVariant === 'draft')
   const completedNotifications = allNotifications.filter((notification) => notification.reviewVariant === 'submission-complete')
-  const visibleNotifications = activeTab === 'drafts'
+  const tabNotifications = activeTab === 'drafts'
     ? draftNotifications
     : activeTab === 'completed'
       ? completedNotifications
       : inProgressNotifications
+  const visibleNotifications = activeSearch
+    ? [...inProgressNotifications, ...draftNotifications, ...completedNotifications]
+    : tabNotifications
   const totalCount = visibleNotifications.length
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
   const currentPage = Math.min(requestedPage, totalPages)
@@ -9170,11 +9183,13 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
         href: `${dashboardListPath}?tab=completed`
       }
     ],
-    notificationSectionHeading: activeTab === 'drafts'
-      ? 'Draft notifications'
-      : activeTab === 'completed'
-        ? 'Completed notifications'
-        : 'Notifications in progress',
+    notificationSectionHeading: activeSearch
+      ? 'Search results'
+      : activeTab === 'drafts'
+        ? 'Draft notifications'
+        : activeTab === 'completed'
+          ? 'Completed notifications'
+          : 'Notifications in progress',
     glanceCounts: isDr2
       ? {
         actionNeeded: actionNotifications.length,
@@ -9227,9 +9242,11 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
     notifications,
     sort,
     sortItems: buildDashboardSortItems(sort, { testing: isTesting }),
-    search: (query.search || '').trim(),
+    search,
+    searchResultCount: totalCount,
+    clearSearchHref: buildDashboardPageHref(1, sort, activeTab, dashboardListPath),
     resultsText: buildDashboardResultsText(startIndex + 1, endIndex, totalCount, { testing: isTesting }),
-    pagination: buildDashboardPagination(currentPage, totalPages, sort, activeTab, dashboardListPath),
+    pagination: buildDashboardPagination(currentPage, totalPages, sort, activeTab, dashboardListPath, activeSearch),
     currentPage,
     dashboardListPath,
     dashboardPageHeading,
@@ -13632,13 +13649,10 @@ router.post('/intro/sign-in', function (req, res) {
 const { mountTestingVersion } = require('./lib/testing-version')
 const { mountTesting2Version } = require('./lib/testing2-version')
 const { mountTesting3Version } = require('./lib/testing3-version')
-const { mountDesignRelease2Version } = require('./lib/design-release-2-version')
 const { mountDesignRelease21Version } = require('./lib/design-release-2.1-version')
 
 // Mount testing2 and testing3 before testing so Express does not treat them as /testing
 mountTesting2Version(govukPrototypeKit, router)
 mountTesting3Version(govukPrototypeKit, router)
 mountTestingVersion(govukPrototypeKit, router)
-// Mount 2.1 before 2 so Express does not treat /design-release-2.1 as /design-release-2
 mountDesignRelease21Version(govukPrototypeKit, router)
-mountDesignRelease2Version(govukPrototypeKit, router)

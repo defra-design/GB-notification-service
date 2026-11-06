@@ -57,35 +57,12 @@
       </div>
     </section>
 
-    <section class="app-dr2-dashboard-glance" aria-labelledby="dashboard-glance-heading">
-      <h2 class="app-dr2-dashboard-glance__heading" id="dashboard-glance-heading">Summary</h2>
-
-      <div class="app-dr2-dashboard-glance__cards">
-        <article class="app-dr2-dashboard-glance-card app-dr2-dashboard-glance-card--action">
-          <h3 class="app-dr2-dashboard-glance-card__title">Action needed</h3>
-          <p class="app-dr2-dashboard-glance-card__description">Tasks requiring your attention</p>
-          <p class="app-dr2-dashboard-glance-card__count">{{ glanceCounts.actionNeeded }}</p>
-          <a class="govuk-link app-dr2-dashboard-glance-card__link" href="{{ actionsHref }}">View tasks</a>
-        </article>
-
-        <article class="app-dr2-dashboard-glance-card">
-          <h3 class="app-dr2-dashboard-glance-card__title">Status updated</h3>
-          <p class="app-dr2-dashboard-glance-card__description">Changes in the past 24 hours</p>
-          <p class="app-dr2-dashboard-glance-card__count app-dr2-dashboard-glance-card__count--blue">{{ glanceCounts.statusChange }}</p>
-          <a class="govuk-link app-dr2-dashboard-glance-card__link" href="{{ changesHref }}">View updates</a>
-        </article>
-      </div>
-    </section>
-
     <section class="app-dr2-dashboard-notifications" aria-labelledby="dashboard-notifications-heading">
       <h2 class="app-dr2-dashboard-notifications__heading" id="dashboard-notifications-heading">Notifications</h2>
 
       <form method="get" action="{{ dashboardListPath }}" class="app-dr2-dashboard-search">
         {% if activeTab and activeTab != "in-progress" %}
           <input type="hidden" name="tab" value="{{ activeTab }}">
-        {% endif %}
-        {% if currentPage > 1 %}
-          <input type="hidden" name="page" value="{{ currentPage }}">
         {% endif %}
 
         <div class="app-dr2-dashboard-search__row">
@@ -101,8 +78,13 @@
                 text: "Keyword, notification number, commodity, consignee or consignor"
               },
               value: search,
-              classes: "app-dr2-dashboard-search__input"
+              classes: "app-dr2-dashboard-search__input app-dr2-dashboard-search__input--with-delete"
             }) }}
+            <button class="app-dr2-dashboard-search__delete" type="button" aria-label="Delete search"{% if search %} data-clear-href="{{ clearSearchHref }}"{% else %} hidden{% endif %}>
+              <svg class="app-dr2-dashboard-search__icon" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false">
+                <path fill="none" stroke="currentColor" stroke-width="2.5" d="M1 1l12 12M13 1 1 13"/>
+              </svg>
+            </button>
             <button class="app-dr2-dashboard-search__button" type="submit" aria-label="Search">
               <svg class="app-dr2-dashboard-search__icon" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
                 <path fill="#ffffff" d="M19.6 18.4 14.1 12.9C15.2 11.5 15.9 9.7 15.9 7.7 15.9 3.5 12.4 0 8.2 0S.5 3.5.5 7.7s3.5 7.7 7.7 7.7c2 0 3.8-.7 5.2-1.9l5.5 5.5 1.7-1.6ZM8.2 13.5c-3.2 0-5.8-2.6-5.8-5.8S5 1.9 8.2 1.9s5.8 2.6 5.8 5.8-2.6 5.8-5.8 5.8Z"/>
@@ -209,19 +191,34 @@
 
       </form>
 
-      <div class="govuk-tabs app-dr2-dashboard-tabs">
-        <ul class="govuk-tabs__list" role="tablist">
-          {% for tabItem in tabItems %}
-            <li class="govuk-tabs__list-item{% if tabItem.id == activeTab %} govuk-tabs__list-item--selected{% endif %}" role="presentation">
-              <a class="govuk-tabs__tab" href="{{ tabItem.href }}" role="tab" {% if tabItem.id == activeTab %}aria-selected="true"{% else %}aria-selected="false"{% endif %}>
-                {{ tabItem.text }}{% if tabItem.id == "in-progress" %} <strong>({{ tabItem.count }})</strong>{% endif %}
-              </a>
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
+      {% if not search %}
+        <div class="govuk-tabs app-dr2-dashboard-tabs">
+          <ul class="govuk-tabs__list" role="tablist">
+            {% for tabItem in tabItems %}
+              <li class="govuk-tabs__list-item{% if tabItem.id == activeTab %} govuk-tabs__list-item--selected{% endif %}" role="presentation">
+                <a class="govuk-tabs__tab" href="{{ tabItem.href }}" role="tab" {% if tabItem.id == activeTab %}aria-selected="true"{% else %}aria-selected="false"{% endif %}>
+                  {{ tabItem.text }}{% if tabItem.id == "in-progress" %} <strong>({{ tabItem.count }})</strong>{% endif %}
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
 
       <h3 class="app-dr2-dashboard-notifications__subheading">{{ notificationSectionHeading }}</h3>
+
+      {% if search %}
+        <p class="govuk-body govuk-!-margin-bottom-4" role="status">
+          {% if searchResultCount == 0 %}
+            No notifications match &ldquo;{{ search }}&rdquo;.
+          {% elif searchResultCount == 1 %}
+            1 result for &ldquo;{{ search }}&rdquo;.
+          {% else %}
+            {{ searchResultCount }} results for &ldquo;{{ search }}&rdquo;.
+          {% endif %}
+          <a class="govuk-link" href="{{ clearSearchHref }}">Clear search</a>
+        </p>
+      {% endif %}
 
       <div class="app-dr2-dashboard-notification-list">
         {% for notification in notifications %}

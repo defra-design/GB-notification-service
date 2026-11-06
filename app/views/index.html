@@ -5,6 +5,7 @@
 {% from "govuk/components/tag/macro.njk" import govukTag %}
 
 {% set pageName="Home" %}
+{% set useServiceNavigation = false %}
 
 {% block pageTitle %}
 Import notification service
@@ -26,6 +27,10 @@ Import notification service
 
 <div class="govuk-grid-row govuk-!-margin-top-6">
   <div class="govuk-grid-column-two-thirds">
+    <h2 class="govuk-heading-l">
+      Latest designs
+    </h2>
+
     <div class="prototype-release-card">
       {{ govukTag({
         text: "In design",
@@ -87,24 +92,29 @@ Import notification service
             <li>Same journey as Design release 1</li>
             <li>Separate dashboard and session data</li>
             <li>Shared address book</li>
+            <li>Some content which is unique to the Live Animals journey only</li>
           </ul>
         '
       }) }}
 
       {{ govukButton({
         text: "Start design release 2",
-        href: "/design-release-2"
+        href: "/design-release-2.1"
       }) }}
     </div>
 
-    <div class="prototype-release-card govuk-!-margin-top-6">
+    <h2 class="govuk-heading-l govuk-!-margin-top-9">
+      Testing prototypes
+    </h2>
+
+    <div class="prototype-release-card">
       {{ govukTag({
-        text: "In design",
-        classes: "govuk-tag--purple"
+        text: "Tested",
+        classes: "govuk-tag--green"
       }) }}
 
       <h2 class="govuk-heading-l">
-        Design release 2.1
+        Round 1 (Live animals)
       </h2>
 
       <h3 class="govuk-heading-m">
@@ -112,7 +122,67 @@ Import notification service
       </h3>
 
       <p class="govuk-body">
-        A duplicate of Design release 2 for making changes without affecting the original version.
+        A separate testing journey with CHEDA references and IPAFFS-style dashboard patterns.
+      </p>
+
+      {{ govukButton({
+        text: "Start round 1 (live animals)",
+        href: "/testing"
+      }) }}
+    </div>
+
+    <div class="prototype-release-card govuk-!-margin-top-6">
+      {{ govukTag({
+        text: "Testing",
+        classes: "govuk-tag--yellow"
+      }) }}
+
+      <h2 class="govuk-heading-l">
+        Round 1 (Germinals)
+      </h2>
+
+      <h3 class="govuk-heading-m">
+        Create a notification
+      </h3>
+
+      <p class="govuk-body">
+        A copy of Design release 2, including the germinal products journey, for testing with users.
+      </p>
+
+      {{ govukDetails({
+        summaryText: "What the journey contains",
+        html: '
+          <ul class="govuk-list govuk-list--bullet">
+            <li>Same journey as Design release 2, including germinal products</li>
+            <li>Separate dashboard and session data</li>
+            <li>Shared address book</li>
+            <li>Some content which is unique to the Live Animals journey only</li>
+          </ul>
+        '
+      }) }}
+
+      {{ govukButton({
+        text: "Start round 1 (germinals)",
+        href: "/testing2"
+      }) }}
+    </div>
+
+    <div class="prototype-release-card govuk-!-margin-top-6">
+      {{ govukTag({
+        text: "Testing",
+        classes: "govuk-tag--yellow"
+      }) }}
+
+      <h2 class="govuk-heading-l">
+        Round 2 (Live animals)
+      </h2>
+
+      <h3 class="govuk-heading-m">
+        Create a notification
+      </h3>
+
+      <p class="govuk-body">
+        A copy of Design release 2 for testing changes without affecting the original version.
       </p>
 
       {{ govukDetails({
@@ -128,103 +198,7 @@ Import notification service
       }) }}
 
       {{ govukButton({
-        text: "Start design release 2.1",
-        href: "/design-release-2.1"
-      }) }}
-    </div>
-
-    <div class="prototype-release-card govuk-!-margin-top-6">
-      {{ govukTag({
-        text: "Testing",
-        classes: "govuk-tag--yellow"
-      }) }}
-
-      <h2 class="govuk-heading-l">
-        Testing version
-      </h2>
-
-      <h3 class="govuk-heading-m">
-        Create a notification
-      </h3>
-
-      <p class="govuk-body">
-        A separate testing journey with CHEDA references and IPAFFS-style dashboard patterns.
-      </p>
-
-      {{ govukButton({
-        text: "Start testing version",
-        href: "/testing"
-      }) }}
-    </div>
-
-    <div class="prototype-release-card govuk-!-margin-top-6">
-      {{ govukTag({
-        text: "Testing",
-        classes: "govuk-tag--yellow"
-      }) }}
-
-      <h2 class="govuk-heading-l">
-        Testing 2
-      </h2>
-
-      <h3 class="govuk-heading-m">
-        Create a notification
-      </h3>
-
-      <p class="govuk-body">
-        A copy of Design release 2.1, including the germinal products journey, for testing with users.
-      </p>
-
-      {{ govukDetails({
-        summaryText: "What the journey contains",
-        html: '
-          <ul class="govuk-list govuk-list--bullet">
-            <li>Same journey as Design release 2.1, including germinal products</li>
-            <li>Separate dashboard and session data</li>
-            <li>Shared address book</li>
-            <li>Some content which is unique to the Live Animals journey only</li>
-          </ul>
-        '
-      }) }}
-
-      {{ govukButton({
-        text: "Start testing 2",
-        href: "/testing2"
-      }) }}
-    </div>
-
-    <div class="prototype-release-card govuk-!-margin-top-6">
-      {{ govukTag({
-        text: "Testing",
-        classes: "govuk-tag--yellow"
-      }) }}
-
-      <h2 class="govuk-heading-l">
-        Testing 3
-      </h2>
-
-      <h3 class="govuk-heading-m">
-        Create a notification
-      </h3>
-
-      <p class="govuk-body">
-        A copy of Design release 2.1 for testing changes without affecting the original version.
-      </p>
-
-      {{ govukDetails({
-        summaryText: "What the journey contains",
-        html: '
-          <ul class="govuk-list govuk-list--bullet">
-            <li>Same journey as Design release 2.1</li>
-            <li>Separate dashboard and session data</li>
-            <li>Shared address book</li>
-            <li>Some content which is unique to the Live Animals journey only</li>
-          </ul>
-        '
-      }) }}
-
-      {{ govukButton({
-        text: "Start testing 3",
+        text: "Start round 2 (live animals)",
         href: "/testing3"
       }) }}
     </div>

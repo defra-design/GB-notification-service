@@ -14,7 +14,7 @@ const {
   sessionKey: '_designRelease21',
   versionFlag: '_isDesignRelease21Version',
   viewFolder: 'design-release-2.1',
-  otherVersionBases: ['/design-release-2', '/testing'],
+  otherVersionBases: ['/testing'],
   setupLocals () {
     return {
       journeyBasePath: DESIGN_RELEASE_21_BASE,

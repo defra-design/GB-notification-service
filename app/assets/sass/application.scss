@@ -8753,6 +8753,41 @@ body.app-dr2-amend-modal-open {
     padding-right: 50px;
   }
 
+  &__input--with-delete {
+    padding-right: 90px;
+  }
+
+  &__delete {
+    position: absolute;
+    right: 42px;
+    bottom: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #505a5f;
+    cursor: pointer;
+
+    &[hidden] {
+      display: none;
+    }
+
+    &:hover {
+      color: #0b0c0c;
+    }
+
+    &:focus {
+      outline: 3px solid #ffdd00;
+      outline-offset: 0;
+      color: #0b0c0c;
+    }
+  }
+
   &__button {
     position: absolute;
     right: 0;
