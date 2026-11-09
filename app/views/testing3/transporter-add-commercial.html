@@ -40,7 +40,9 @@
           }) }}
         {% endif %}
 
-        {% include "partials/transporter-authorisation-banner.html" %}
+        {% if data.notificationType != 'germinal-products' %}
+          {% include "partials/transporter-authorisation-banner.html" %}
+        {% endif %}
 
         <form method="post" action="/testing3/transporter/add/commercial" novalidate class="app-transporter-add-commercial-form">
           {% include "partials/transporter-add-commercial-fields.html" %}
