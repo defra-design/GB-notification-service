@@ -284,6 +284,15 @@ function isTesting3SessionData (sessionData) {
   return Boolean(sessionData && sessionData._isTesting3Version)
 }
 
+function isTesting2SessionData (sessionData) {
+  return Boolean(sessionData && sessionData._isTesting2Version)
+}
+
+// Testing 2 and Testing 3 both use "Health certificate" document wording.
+function usesHealthCertificateWording (sessionData) {
+  return isTesting2SessionData(sessionData) || isTesting3SessionData(sessionData)
+}
+
 function isDesignRelease21OnlySessionData (sessionData) {
   return isDesignRelease21SessionData(sessionData) &&
     !sessionData._isTesting2Version &&
