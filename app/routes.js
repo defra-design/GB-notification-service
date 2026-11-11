@@ -5487,7 +5487,7 @@ function getReviewNotificationViewModelWithErrors (sessionData) {
     viewModel.movement.arrivalDetailsCard,
     viewModel.movement.transportDetailsCard,
     viewModel.addresses.rolesCard,
-    viewModel.contactAddress.contactAddressCard
+    ...(isDesignRelease21SessionData(sessionData) ? [] : [viewModel.contactAddress.contactAddressCard])
   ])
 
   return {
@@ -6225,6 +6225,10 @@ function renderReviewNotificationPage (req, res, options = {}) {
     sessionData = { ...sessionData, _isTesting3Version: true }
   }
 
+  if (isTesting2SessionData(req.session.data)) {
+    sessionData = { ...sessionData, _isTesting2Version: true }
+  }
+
   const isAmending = String(sessionData.notificationStatus || '').trim() === 'Amend'
   const isTemplateCreate = isDesignRelease21TemplateCreate(sessionData)
   const showAmendResubmitHeading = isAmending && hasAmendChanges(sessionData)
@@ -6657,7 +6661,7 @@ function hasAttachedItahc (sessionData) {
 }
 
 function getMissingCertificateMessage (versionData) {
-  return isTesting3SessionData(versionData)
+  return usesHealthCertificateWording(versionData)
     ? 'Health certificate is missing'
     : 'ITAHC is missing'
 }
@@ -6695,7 +6699,7 @@ function getConditionalSubmissionItems (sessionData, versionData = sessionData) 
   const items = []
 
   if (!hasAttachedItahc(sessionData)) {
-    items.push(isTesting3SessionData(versionData)
+    items.push(usesHealthCertificateWording(versionData)
       ? 'upload the health certificate and any other required documents'
       : 'upload the ITAHC and any other required documents')
   }
@@ -11351,7 +11355,7 @@ const MAX_UPLOADED_DOCUMENTS = 15
 const VIRUS_CHECK_DELAY_MS = 2500
 
 function getDocumentTypeOptions (sessionData) {
-  return isTestingSessionData(sessionData) || isTesting3SessionData(sessionData)
+  return isTestingSessionData(sessionData) || usesHealthCertificateWording(sessionData)
     ? testingDocumentTypeOptions
     : designReleaseDocumentTypeOptions
 }
@@ -11362,7 +11366,7 @@ function getDocumentTypeValues (sessionData) {
 
 function getDocumentTypeLabel (documentType, sessionData) {
   if (documentType === 'itahc') {
-    return isTestingSessionData(sessionData) || isTesting3SessionData(sessionData)
+    return isTestingSessionData(sessionData) || usesHealthCertificateWording(sessionData)
       ? 'Health certificate'
       : 'Intra Trade Animal Health Certificate (ITAHC)'
   }
@@ -11378,7 +11382,7 @@ function getDocumentTypeLabel (documentType, sessionData) {
 }
 
 function getUploadedDocumentTypeLabel (document, sessionData) {
-  if (isTesting3SessionData(sessionData) && document.documentType === 'itahc') {
+  if (usesHealthCertificateWording(sessionData) && document.documentType === 'itahc') {
     return getDocumentTypeLabel(document.documentType, sessionData)
   }
 
@@ -11536,10 +11540,13 @@ function resetUploadDocumentFormState (sessionData) {
 function trySavePendingUploadDocument (sessionData, body) {
   const values = parseUploadDocumentBody(body)
 
-  if (!getDocumentTypeValues(sessionData).includes(values.documentType)) {
+  // Nothing entered: there is no pending document to save.
+  if (!values.documentReference && !values.documentType && !values.dateOfIssue && !values.attachmentFileName) {
     return { saved: false, values }
   }
 
+  // Anything entered (a file, a reference, a date or a type) counts as a pending
+  // document and must be complete, otherwise it would be silently discarded.
   const validation = validateUploadDocument(values, sessionData)
 
   if (validation.errorList.length) {
@@ -12754,6 +12761,38 @@ router.get('/notification-submitted', (req, res) => {
   return renderNotificationSubmittedPage(req, res)
 })
 
+router.get('/upload-documents/:documentId/delete', (req, res) => {
+  const returnQuery = getUploadDocumentsReturnQuery(req)
+  const documentId = (req.params.documentId || '').trim()
+  const document = ensureUploadedDocuments(req.session.data).find((item) => item.id === documentId)
+
+  if (!document) {
+    return res.redirect(`/upload-documents${returnQuery}`)
+  }
+
+  return res.render('delete-document', {
+    pageName: 'Delete this document?',
+    confirmText: 'This will remove the document from this notification.',
+    summaryRows: [
+      buildDeleteSummaryRow('Document reference', document.documentReference),
+      buildDeleteSummaryRow('Document type', document.documentTypeLabel || getDocumentTypeLabel(document.documentType, req.session.data)),
+      buildDeleteSummaryRow('Date of issue', document.dateOfIssue),
+      buildDeleteSummaryRow('File', document.fileName)
+    ],
+    backLink: `/upload-documents${returnQuery}`,
+    deleteAction: `/upload-documents/${encodeURIComponent(documentId)}/delete${returnQuery}`
+  })
+})
+
+router.post('/upload-documents/:documentId/delete', (req, res) => {
+  const returnQuery = getUploadDocumentsReturnQuery(req)
+
+  removeUploadedDocument(req.session.data, (req.params.documentId || '').trim())
+  resetUploadDocumentFormState(req.session.data)
+
+  return res.redirect(`/upload-documents${returnQuery}`)
+})
+
 router.get('/upload-documents', (req, res) => {
   ensurePrototypeNotificationReference(req.session.data)
 
@@ -13216,6 +13255,22 @@ router.post('/transit-countries', (req, res) => {
   ))
 })
 
+router.get('/contact-address-for-consignment', (req, res, next) => {
+  if (isDesignRelease21SessionData(req.session.data)) {
+    return res.redirect('/review-notification')
+  }
+
+  return next()
+})
+
+router.post('/contact-address-for-consignment', (req, res, next) => {
+  if (isDesignRelease21SessionData(req.session.data)) {
+    return res.redirect('/review-notification')
+  }
+
+  return next()
+})
+
 router.get('/contact-address-for-consignment', (req, res) => {
   if (omitsContactAddressQuestion(req.session.data)) {
     return res.redirect('/notification-hub')
@@ -13633,18 +13688,9 @@ router.post('/roles-and-addresses', (req, res) => {
     return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
   }
 
-  const sessionData = req.session.data
-  const skipsContactAddressStep = Boolean(
-    sessionData._isDesignRelease21Version ||
-    sessionData._isTesting2Version ||
-    sessionData._isTesting3Version
-  )
-
   return res.redirect(getSectionContinueRedirect(
     req,
-    skipsContactAddressStep
-      ? '/review-notification'
-      : getNextJourneyPath('/roles-and-addresses', req.session.data)
+    getNextJourneyPath('/roles-and-addresses', req.session.data)
   ))
 })
 

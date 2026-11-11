@@ -39,8 +39,14 @@
       <h1 class="app-what-importing-page__heading">What are you importing?</h1>
     </div>
 
-    {{ govukInsetText({
+    {# {{ govukInsetText({
       text: "You must submit a separate notification for every single ITAHC. You must also submit a notification for goods that do not need an ITAHC.",
+      classes: "app-what-importing-page__inset"
+    }) }} #}
+
+        {{ govukInsetText({
+      text: "You must submit a separate notification for every single health certificate. 
+      You must also submit a notification for goods that do not need an health certificate.",
       classes: "app-what-importing-page__inset"
     }) }}
 

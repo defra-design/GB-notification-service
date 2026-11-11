@@ -36,7 +36,7 @@
     </div>
 
     <p class="app-upload-documents-page__intro">
-      You must attach an ITAHC if this consignment requires one. If you do not have it now, you can add it later. All documents should be uploaded before the consignment arrives at the UK port. Documents must be in English and you must upload all pages.
+      You must attach an health certificate if this consignment requires one. If you do not have it now, you can add it later. All documents should be uploaded before the consignment arrives at the UK port. Documents must be in English and you must upload all pages.
     </p>
 
     <div class="app-upload-documents-page__content">
@@ -228,12 +228,10 @@
                         >{{ document.status.text }}</strong>
                       </td>
                       <td class="govuk-table__cell govuk-table__cell--numeric">
-                        <button
-                          type="submit"
-                          name="action"
-                          value="remove:{{ document.id }}"
+                        <a
+                          href="{{ (journeyBasePath + '/upload-documents') if journeyBasePath else '/upload-documents' }}/{{ document.id }}/delete{% if fromReview %}?from=review{% elif fromHub %}?from=hub{% endif %}"
                           class="govuk-link app-upload-documents-table__remove-button"
-                        >Remove</button>
+                        >Remove<span class="govuk-visually-hidden"> {{ document.documentReference }}</span></a>
                       </td>
                     </tr>
                   {% endfor %}
