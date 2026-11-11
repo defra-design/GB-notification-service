@@ -284,13 +284,14 @@ function isTesting3SessionData (sessionData) {
   return Boolean(sessionData && sessionData._isTesting3Version)
 }
 
-function isTesting2SessionData (sessionData) {
-  return Boolean(sessionData && sessionData._isTesting2Version)
+function isDesignRelease21OnlySessionData (sessionData) {
+  return isDesignRelease21SessionData(sessionData) &&
+    !sessionData._isTesting2Version &&
+    !isTesting3SessionData(sessionData)
 }
 
-// Testing 2 and Testing 3 both use "Health certificate" document wording.
-function usesHealthCertificateWording (sessionData) {
-  return isTesting2SessionData(sessionData) || isTesting3SessionData(sessionData)
+function omitsContactAddressQuestion (sessionData) {
+  return isTesting3SessionData(sessionData) || isDesignRelease21OnlySessionData(sessionData)
 }
 
 function getPrototypeNotificationReference (sessionData) {
@@ -1612,7 +1613,7 @@ function getJourneySteps (sessionData) {
 
   steps.push('/roles-and-addresses')
 
-  if (!isDesignRelease21SessionData(sessionData) && !isTesting3SessionData(sessionData)) {
+  if (!omitsContactAddressQuestion(sessionData)) {
     steps.push('/contact-address-for-consignment')
   }
 
@@ -2561,6 +2562,10 @@ function getSessionConsignmentAddressSections (sessionData) {
     sections = sections.filter((section) => section.id !== 'permanent-address')
   }
 
+  if (getNotificationType(sessionData) === 'germinal-products') {
+    sections = sections.filter((section) => section.id !== 'cph')
+  }
+
   return sections.map((section) => ({
     ...section,
     hint: getConsignmentAddressSectionHint(section, sessionData)
@@ -2568,7 +2573,7 @@ function getSessionConsignmentAddressSections (sessionData) {
 }
 
 function getConsignmentAddressSectionHint (section, sessionData) {
-  if (hasGerminalProductsOnly(sessionData) && section.germinalHint) {
+  if (getNotificationType(sessionData) === 'germinal-products' && section.germinalHint) {
     return section.germinalHint
   }
 
@@ -5168,7 +5173,7 @@ function hasReviewNotificationComplete (sessionData) {
 
 function hasNotificationComplete (sessionData) {
   return hasReviewNotificationComplete(sessionData) &&
-    (isDesignRelease21SessionData(sessionData) || isTesting3SessionData(sessionData) || hasContactAddress(sessionData))
+    (omitsContactAddressQuestion(sessionData) || hasContactAddress(sessionData))
 }
 
 function getReviewNotificationViewModel (sessionData) {
@@ -5757,7 +5762,7 @@ function buildDesignRelease2ReviewPresentation (viewModel, sessionData, readOnly
     : null
   const rolesCard = withDr2HeaderChange({
     ...viewModel.addresses.rolesCard,
-    title: 'Addresses'
+    title: 'Consignment addresses'
   }, readOnly)
   const contactAddressCard = withDr2HeaderChange({
     ...viewModel.contactAddress.contactAddressCard,
@@ -6884,7 +6889,7 @@ function getNotificationHubViewModel (sessionData) {
           }
         ]
       },
-      ...(isDesignRelease21SessionData(sessionData) || isTesting3SessionData(sessionData)
+      ...(omitsContactAddressQuestion(sessionData)
         ? []
         : [{
             title: skipShipmentFields ? '5. Contact address' : '6. Contact address',
@@ -9165,7 +9170,36 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
   const currentPage = Math.min(requestedPage, totalPages)
   const startIndex = (currentPage - 1) * pageSize
   const endIndex = Math.min(startIndex + pageSize, totalCount)
-  const notifications = visibleNotifications.slice(startIndex, endIndex)
+  const notifications = visibleNotifications.slice(startIndex, endIndex).map((notification) => {
+    if (!isDr21) {
+      return notification
+    }
+
+    if (activeTab === 'in-progress') {
+      return {
+        ...notification,
+        statusDisplay: {
+          type: 'tag',
+          text: 'Submitted',
+          govukTag: true
+        }
+      }
+    }
+
+    if (activeTab === 'completed') {
+      return {
+        ...notification,
+        statusDisplay: {
+          type: 'tag',
+          text: 'Submitted',
+          govukTag: true,
+          govukTagClasses: 'govuk-tag--green'
+        }
+      }
+    }
+
+    return notification
+  })
   const dashboardListPath = getDashboardListPath(sessionData, category)
   const dashboardPageHeading = (sessionData._isTesting3Version && category === 'live-animals')
     ? 'Your import notifications'
@@ -9179,19 +9213,19 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
     tabItems: [
       {
         id: 'in-progress',
-        text: 'In progress',
+        text: isDr21 ? 'Submitted' : 'In progress',
         count: inProgressNotifications.length,
         href: dashboardListPath
       },
       {
         id: 'drafts',
-        text: isDr21 ? 'Draft' : 'Drafts',
+        text: isDr21 ? 'Draft and Amend' : 'Drafts',
         count: draftNotifications.length,
         href: `${dashboardListPath}?tab=drafts`
       },
       {
         id: 'completed',
-        text: 'Completed',
+        text: isDr21 ? 'Past' : 'Completed',
         count: completedNotifications.length,
         href: `${dashboardListPath}?tab=completed`
       }
@@ -9201,8 +9235,15 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
       : activeTab === 'drafts'
         ? 'Draft notifications'
         : activeTab === 'completed'
-          ? 'Completed notifications'
-          : 'Notifications in progress',
+          ? (isDr21 ? 'Past notifications' : 'Completed notifications')
+          : (isDr21 ? 'Submitted notifications' : 'Notifications in progress'),
+    notificationSectionDescription: isDr21 && !activeSearch
+      ? (activeTab === 'drafts'
+        ? 'Notifications you have started but not submitted.'
+        : activeTab === 'completed'
+          ? 'Notifications that have been processed. They move here 2 weeks after the commodity arrival date.'
+          : 'Notifications you have submitted. You can still change them and add documents.')
+      : null,
     glanceCounts: isDr2
       ? {
         actionNeeded: actionNotifications.length,
@@ -13231,7 +13272,7 @@ router.post('/contact-address-for-consignment', (req, res, next) => {
 })
 
 router.get('/contact-address-for-consignment', (req, res) => {
-  if (isTesting3SessionData(req.session.data)) {
+  if (omitsContactAddressQuestion(req.session.data)) {
     return res.redirect('/notification-hub')
   }
 
@@ -13654,7 +13695,7 @@ router.post('/roles-and-addresses', (req, res) => {
 })
 
 router.post('/contact-address-for-consignment', (req, res) => {
-  if (isTesting3SessionData(req.session.data)) {
+  if (omitsContactAddressQuestion(req.session.data)) {
     return res.redirect('/notification-hub')
   }
 

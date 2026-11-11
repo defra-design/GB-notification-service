@@ -5,7 +5,6 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
-{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
 
 {% set pageName = "Consignment addresses" %}
 
@@ -37,15 +36,10 @@
     {% endif %}
 
     <div class="app-roles-and-addresses-page__header">
-      <p class="app-roles-and-addresses-page__caption">Consignment parties</p>
+      <p class="app-roles-and-addresses-page__caption">Addresses</p>
       <h1 class="app-roles-and-addresses-page__heading">Consignment addresses</h1>
       <p class="app-roles-and-addresses-page__intro">Add all the addresses that are involved in the consignment.</p>
     </div>
-
-    {{ govukWarningText({
-      text: "Providing a false address is an act of fraud",
-      classes: "app-roles-and-addresses-page__warning"
-    }) }}
 
     {% if data.errorList %}
       {{ govukErrorSummary({

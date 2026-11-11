@@ -5,6 +5,7 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
 
 {% set pageName = heading %}
 
@@ -39,7 +40,7 @@
 
     <div class="app-consignment-address-select-page__title-row">
       <div class="app-consignment-address-select-page__title">
-        <p class="app-consignment-address-select-page__caption">Consignment parties</p>
+        <p class="app-consignment-address-select-page__caption">Addresses</p>
         <h1 class="app-consignment-address-select-page__heading">{{ heading }}</h1>
       </div>
 
@@ -53,6 +54,12 @@
     <p class="app-consignment-address-select-page__intro">
       {{ intro }}
     </p>
+    {% if sectionId == "place-of-destination" %}
+      {{ govukWarningText({
+        text: "Providing a false address is an act of fraud",
+        classes: "app-consignment-address-select-page__warning"
+      }) }}
+    {% endif %}
     {% if introList %}
       <ul class="govuk-list govuk-list--bullet app-consignment-address-select-page__intro-list">
         {% for item in introList %}

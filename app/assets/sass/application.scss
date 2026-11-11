@@ -3469,6 +3469,10 @@ button.govuk-link.app-govuk-body-link--small {
     color: #0b0c0c;
   }
 
+  &__warning {
+    max-width: 630px;
+  }
+
   &__intro-list {
     margin: 0;
     font-family: "GDS Transport", arial, sans-serif;
@@ -8717,6 +8721,18 @@ body.app-dr2-amend-modal-open {
     font-size: 24px;
     font-weight: 700;
     line-height: 30px;
+    color: #0b0c0c;
+  }
+
+  &__subheading--with-description {
+    margin-bottom: 10px;
+  }
+
+  &__description {
+    margin: 0 0 30px;
+    font-size: 19px;
+    font-weight: 400;
+    line-height: 25px;
     color: #0b0c0c;
   }
 }
