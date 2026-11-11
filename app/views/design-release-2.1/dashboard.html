@@ -219,14 +219,17 @@
           {% for tabItem in tabItems %}
             <li class="govuk-tabs__list-item{% if tabItem.id == activeTab %} govuk-tabs__list-item--selected{% endif %}" role="presentation">
               <a class="govuk-tabs__tab" href="{{ tabItem.href }}" role="tab" {% if tabItem.id == activeTab %}aria-selected="true"{% else %}aria-selected="false"{% endif %}>
-                {{ tabItem.text }}{% if tabItem.id == "in-progress" %} <strong>({{ tabItem.count }})</strong>{% endif %}
+                {{ tabItem.text }}{% if tabItem.id == "in-progress" or tabItem.id == "drafts" %} <strong>({{ tabItem.count }})</strong>{% endif %}
               </a>
             </li>
           {% endfor %}
         </ul>
       </div>
 
-      <h3 class="app-dr2-dashboard-notifications__subheading">{{ notificationSectionHeading }}</h3>
+      <h3 class="app-dr2-dashboard-notifications__subheading{% if notificationSectionDescription %} app-dr2-dashboard-notifications__subheading--with-description{% endif %}">{{ notificationSectionHeading }}</h3>
+      {% if notificationSectionDescription %}
+        <p class="app-dr2-dashboard-notifications__description">{{ notificationSectionDescription }}</p>
+      {% endif %}
 
       <div class="app-dr2-dashboard-notification-list">
         {% for notification in notifications %}

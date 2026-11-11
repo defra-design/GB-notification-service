@@ -58,6 +58,7 @@ const consignmentAddressSections = [
     id: 'place-of-destination',
     heading: 'Place of destination',
     hint: 'This is where the animals will be unloaded and accommodated for at least 48 hours. If a health certificate is required, it will show this address.',
+    germinalHint: 'This is where the consignment will be unloaded. If a health certificate is required, it will show this address.',
     linkText: 'Add a place of destination',
     path: '/place-of-destination',
     sessionAddressKey: 'placeOfDestinationAddress',
