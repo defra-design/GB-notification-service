@@ -284,23 +284,31 @@ function isTesting3SessionData (sessionData) {
   return Boolean(sessionData && sessionData._isTesting3Version)
 }
 
+function isTesting4SessionData (sessionData) {
+  return Boolean(sessionData && sessionData._isTesting4Version)
+}
+
+function isRound2TestingSessionData (sessionData) {
+  return isTesting3SessionData(sessionData) || isTesting4SessionData(sessionData)
+}
+
 function isTesting2SessionData (sessionData) {
   return Boolean(sessionData && sessionData._isTesting2Version)
 }
 
-// Testing 2 and Testing 3 both use "Health certificate" document wording.
+// Round 2 prototypes use "Health certificate" document wording.
 function usesHealthCertificateWording (sessionData) {
-  return isTesting2SessionData(sessionData) || isTesting3SessionData(sessionData)
+  return isRound2TestingSessionData(sessionData)
 }
 
 function isDesignRelease21OnlySessionData (sessionData) {
   return isDesignRelease21SessionData(sessionData) &&
     !sessionData._isTesting2Version &&
-    !isTesting3SessionData(sessionData)
+    !isRound2TestingSessionData(sessionData)
 }
 
 function omitsContactAddressQuestion (sessionData) {
-  return isTesting3SessionData(sessionData) || isDesignRelease21OnlySessionData(sessionData)
+  return isRound2TestingSessionData(sessionData) || isDesignRelease21OnlySessionData(sessionData)
 }
 
 function getPrototypeNotificationReference (sessionData) {
@@ -327,7 +335,7 @@ function ensurePrototypeNotificationReference (sessionData) {
     return
   }
 
-  if (isTesting3SessionData(sessionData)) {
+  if (isRound2TestingSessionData(sessionData)) {
     if (!value || !isTestingNotificationReference(value)) {
       sessionData.notificationReference = generateTesting3NotificationReference(sessionData)
     }
@@ -353,7 +361,7 @@ function toTesting3DashboardReference (reference, index = 0) {
 }
 
 function toDesignReleaseDashboardReference (reference, index = 0, sessionData = {}) {
-  if (isTesting3SessionData(sessionData)) {
+  if (isRound2TestingSessionData(sessionData)) {
     return toTesting3DashboardReference(reference, index)
   }
 
@@ -390,6 +398,7 @@ function resetNotificationJourneySession (sessionData) {
   const designRelease21Session = sessionData._designRelease21
   const testing2Session = sessionData._testing2
   const testing3Session = sessionData._testing3
+  const testing4Session = sessionData._testing4
 
   Object.keys(sessionData).forEach((key) => {
     delete sessionData[key]
@@ -433,6 +442,10 @@ function resetNotificationJourneySession (sessionData) {
 
   if (testing3Session && typeof testing3Session === 'object') {
     sessionData._testing3 = testing3Session
+  }
+
+  if (testing4Session && typeof testing4Session === 'object') {
+    sessionData._testing4 = testing4Session
   }
 }
 
@@ -5464,7 +5477,7 @@ function getReviewNotificationViewModel (sessionData) {
           value: formatContactAddressForReviewValue(sessionData)
         }],
         ...reviewCardErrorState(
-          isTesting3SessionData(sessionData) || hasContactAddress(sessionData),
+          isRound2TestingSessionData(sessionData) || hasContactAddress(sessionData),
           'Contact address for this consignment'
         )
       }
@@ -5974,6 +5987,7 @@ function buildDr2ReviewPageHeader (metadata = {}, reviewVariant = 'journey') {
     showCopyButton: true,
     copyHref: metadata.copyHref || '/notifications/copy-as-new',
     amendHref: metadata.amendHref || '/notifications/amend',
+    makeTemplateHref: metadata.makeTemplateHref || '/notifications/make-template',
     deleteHref: metadata.deleteHref || '/notifications/delete',
     showDeleteButton: true
   }
@@ -6071,6 +6085,66 @@ function applyCarriedOverNotificationFields (sessionData, source = {}) {
   }
 }
 
+function canMakeTemplateFromNotification (sessionData) {
+  return isDesignRelease21OnlySessionData(sessionData) || isRound2TestingSessionData(sessionData)
+}
+
+function loadNotificationIntoTemplateSession (sessionData, sourceSnapshot, backLink) {
+  if (!sourceSnapshot || typeof sourceSnapshot !== 'object') {
+    return false
+  }
+
+  const source = cloneSubmittedNotificationSnapshot(sourceSnapshot)
+  const skipKeys = new Set([
+    '_designRelease21',
+    '_isDesignRelease21Version',
+    '_isTesting2Version',
+    '_isTesting3Version',
+    '_isTesting4Version',
+    '_testing',
+    '_testing2',
+    '_testing3',
+    '_testing4',
+    'addressBookAddedAddresses',
+    'amendingFrom',
+    'amendOriginalSnapshot',
+    'dashboardSuccessMessage',
+    'deletedNotificationReferences',
+    'deletedTemplateIds',
+    'draftNotifications',
+    'editingTemplateId',
+    'errorList',
+    'errors',
+    'isCreatingTemplate',
+    'isEditingTemplateFromReview',
+    'makeTemplateBackLink',
+    'makingTemplateFromNotification',
+    'notificationStatus',
+    'savedTemplates',
+    'submittedNotifications',
+    'templateId',
+    'templateName',
+    'templatesSuccessMessage'
+  ])
+
+  resetNotificationJourneySession(sessionData)
+
+  Object.keys(source).forEach((key) => {
+    if (skipKeys.has(key)) {
+      return
+    }
+
+    sessionData[key] = cloneCarriedOverValue(source[key])
+  })
+
+  sessionData.isCreatingTemplate = true
+  sessionData.makingTemplateFromNotification = true
+  sessionData.makeTemplateBackLink = backLink
+  sessionData.notificationStatus = 'Draft'
+
+  return true
+}
+
 function copyNotificationAsNewIntoSession (sessionData, sourceSnapshot) {
   if (!sourceSnapshot || typeof sourceSnapshot !== 'object') {
     return false
@@ -6097,9 +6171,11 @@ function loadDraftSnapshotIntoSession (sessionData, snapshot) {
     '_isDesignRelease21Version',
     '_isTesting2Version',
     '_isTesting3Version',
+    '_isTesting4Version',
     '_designRelease21',
     '_testing2',
     '_testing3',
+    '_testing4',
     'deletedNotificationReferences',
     'draftNotifications',
     'submittedNotifications',
@@ -6141,6 +6217,7 @@ function resolveDesignRelease2ReviewPageOptions (req, options = {}) {
       conditionalItems,
       copyHref: `/notifications/copy-as-new?submitted=${encodeURIComponent(submittedId)}`,
       amendHref: `/notifications/amend?submitted=${encodeURIComponent(submittedId)}`,
+      makeTemplateHref: `/notifications/make-template?submitted=${encodeURIComponent(submittedId)}`,
       deleteHref: `/notifications/delete?submitted=${encodeURIComponent(submittedId)}`
     }
 
@@ -6181,6 +6258,7 @@ function resolveDesignRelease2ReviewPageOptions (req, options = {}) {
         reference,
         copyHref: `/notifications/copy-as-new?reference=${encodeURIComponent(reference)}`,
         amendHref: `/notifications/amend?reference=${encodeURIComponent(reference)}`,
+        makeTemplateHref: `/notifications/make-template?reference=${encodeURIComponent(reference)}`,
         deleteHref: `/notifications/delete?reference=${encodeURIComponent(reference)}`
       }, reviewVariant)
     }
@@ -6230,12 +6308,25 @@ function renderReviewNotificationPage (req, res, options = {}) {
   }
 
   // Dashboard snapshots are shared between versions, so carry the version over
+  if (isTesting4SessionData(req.session.data)) {
+    sessionData = { ...sessionData, _isTesting4Version: true }
+  }
+
   if (isTesting3SessionData(req.session.data)) {
     sessionData = { ...sessionData, _isTesting3Version: true }
   }
 
   if (isTesting2SessionData(req.session.data)) {
     sessionData = { ...sessionData, _isTesting2Version: true }
+  }
+
+  if (
+    reviewVariant === 'journey' &&
+    sessionData &&
+    sessionData.makingTemplateFromNotification &&
+    !options.backLink
+  ) {
+    backLink = '/templates/create'
   }
 
   const isAmending = String(sessionData.notificationStatus || '').trim() === 'Amend'
@@ -7256,9 +7347,11 @@ function getComparableNotificationSnapshot (sessionData) {
     '_isDesignRelease21Version',
     '_isTesting2Version',
     '_isTesting3Version',
+    '_isTesting4Version',
     '_testing',
     '_testing2',
     '_testing3',
+    '_testing4',
     'addressBookAddedAddresses',
     'amendingFrom',
     'amendOriginalSnapshot',
@@ -7398,6 +7491,10 @@ function isDesignRelease2SessionData (sessionData) {
 function getDesignReleaseBasePath (sessionData = {}) {
   if (sessionData._isTesting2Version) {
     return '/testing2'
+  }
+
+  if (sessionData._isTesting4Version) {
+    return '/testing4'
   }
 
   if (sessionData._isTesting3Version) {
@@ -8039,8 +8136,8 @@ function getAllDashboardTemplates (sessionData = {}) {
   const savedTemplates = getSavedTemplates(sessionData).filter((template) => !deletedIds.has(template.id))
   const savedIds = new Set(savedTemplates.map((template) => template.id))
 
-  // Testing 3 starts as if the user has not created any templates yet
-  if (sessionData._isTesting3Version) {
+  // Round 2 prototypes start as if the user has not created any templates yet
+  if (isRound2TestingSessionData(sessionData)) {
     return savedTemplates
   }
 
@@ -8210,7 +8307,7 @@ function generateTesting3NotificationReference (
 }
 
 function generateDesignReleaseNotificationReference (sessionData = {}) {
-  if (isTesting3SessionData(sessionData)) {
+  if (isRound2TestingSessionData(sessionData)) {
     return generateTesting3NotificationReference(sessionData)
   }
 
@@ -8410,7 +8507,7 @@ function seedNotificationSessionFromTemplate (sessionData, template) {
   const address = buildSessionAddressFromTemplatePlace(review.placeOfOrigin)
   const internalReference = String(review.internalReferenceNumber || '').trim()
 
-  sessionData.notificationReference = isTesting3SessionData(sessionData) && template.categoryLabel === 'Germinal products'
+  sessionData.notificationReference = isRound2TestingSessionData(sessionData) && template.categoryLabel === 'Germinal products'
     ? generateTesting3NotificationReference(sessionData, 'CHEDP')
     : generateDesignReleaseNotificationReference(sessionData)
   sessionData.notificationStatus = 'Draft'
@@ -8685,6 +8782,7 @@ function buildTemplateReviewSessionData (template, requestSession = {}) {
     _isDesignRelease21Version: requestSession._isDesignRelease21Version,
     _isTesting2Version: requestSession._isTesting2Version,
     _isTesting3Version: requestSession._isTesting3Version,
+    _isTesting4Version: requestSession._isTesting4Version,
     isCreatingTemplate: true
   }
 
@@ -9143,7 +9241,7 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
   const pageSize = dashboardData.pageSize
   const category = (query.category || '').trim()
   const search = (query.search || '').trim()
-  const activeSearch = sessionData._isTesting3Version ? search : ''
+  const activeSearch = isRound2TestingSessionData(sessionData) ? search : ''
   const allNotifications = getDashboardNotificationList(sessionData)
     .filter((notification) => notificationMatchesDashboardCategory(notification, category))
     .filter((notification) => !activeSearch || notificationMatchesDashboardSearch(notification, activeSearch))
@@ -9210,7 +9308,10 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
     return notification
   })
   const dashboardListPath = getDashboardListPath(sessionData, category)
-  const dashboardPageHeading = (sessionData._isTesting3Version && category === 'live-animals')
+  const dashboardPageHeading = (
+    (sessionData._isTesting3Version && category === 'live-animals') ||
+    (sessionData._isTesting4Version && category === 'germinal-products')
+  )
     ? 'Your import notifications'
     : (DASHBOARD_CATEGORIES[category] && DASHBOARD_CATEGORIES[category].heading) ||
       'Live animals and germinal products'
@@ -9429,10 +9530,15 @@ function renderCreateTemplatePage (req, res) {
     delete req.session.data.templateName
   }
 
+  const makingTemplateFromNotification = Boolean(req.session.data.makingTemplateFromNotification)
+
   return res.render('create-template', {
     serviceNavActive: 'templates',
     templateName,
-    backLink: isDr21 && getNotificationType(req.session.data) ? '/notification-type' : '/templates'
+    makingTemplateFromNotification,
+    cancelHref: makingTemplateFromNotification ? '/notifications/make-template/cancel' : null,
+    backLink: req.session.data.makeTemplateBackLink ||
+      (isDr21 && getNotificationType(req.session.data) ? '/notification-type' : '/templates')
   })
 }
 
@@ -9443,6 +9549,14 @@ function handleCreateTemplatePage (req, res) {
 
   const templateName = String(req.body.templateName || '').trim()
   const notificationType = getNotificationType(req.session.data)
+
+  if (req.session.data.makingTemplateFromNotification) {
+    req.session.data.templateName = templateName
+    req.session.data.isCreatingTemplate = true
+    req.session.data.notificationStatus = 'Draft'
+
+    return res.redirect('/review-notification')
+  }
 
   resetNotificationJourneySession(req.session.data)
   req.session.data.templateName = templateName
@@ -11611,13 +11725,13 @@ function renderUploadDocumentsPage (req, res, locals = {}) {
 router.get('/create-notification', (req, res) => {
   const isDr21 = isDesignRelease21SessionData(req.session.data)
   // Testing 3 always asks what is being imported, even from a category dashboard
-  const isTesting3 = Boolean(req.session.data._isTesting3Version)
+  const isRound2 = isRound2TestingSessionData(req.session.data)
   const category = normaliseNotificationType(req.query.category)
 
   resetNotificationJourneySession(req.session.data)
   delete req.session.data.isCreatingTemplate
 
-  if (isDr21 && (!category || isTesting3)) {
+  if (isDr21 && (!category || isRound2)) {
     return res.redirect('/notification-type')
   }
 
@@ -12085,11 +12199,16 @@ router.get('/reason-for-import', (req, res) => {
 })
 
 router.get('/', (req, res) => {
-  // Testing 3 has no top-level dashboard, so the live animals dashboard is home
-  if (req.session.data._isTesting3Version) {
-    const queryIndex = req.originalUrl.indexOf('?')
-    const queryString = queryIndex === -1 ? '' : req.originalUrl.slice(queryIndex)
+  const queryIndex = req.originalUrl.indexOf('?')
+  const queryString = queryIndex === -1 ? '' : req.originalUrl.slice(queryIndex)
 
+  // Round 1 germinals has no top-level dashboard, so the germinal dashboard is home
+  if (req.session.data._isTesting4Version) {
+    return res.redirect(`/germinal-products${queryString}`)
+  }
+
+  // Round 2 live animals has no top-level dashboard, so the live animals dashboard is home
+  if (req.session.data._isTesting3Version) {
     return res.redirect(`/live-animals${queryString}`)
   }
 
@@ -12172,6 +12291,46 @@ router.get('/templates/:templateId/delete', (req, res) => {
 
 router.post('/templates/:templateId/delete', (req, res) => {
   return handleDeleteTemplatePage(req, res)
+})
+
+router.get('/notifications/make-template', (req, res) => {
+  if (!canMakeTemplateFromNotification(req.session.data)) {
+    return res.redirect(getDashboardBackLink(req.session.data) || '/')
+  }
+
+  const submittedId = (req.query.submitted || '').trim()
+  const reference = (req.query.reference || '').trim()
+  const sourceSnapshot = getCopyAsNewSourceSnapshot(req.session.data, {
+    submittedId,
+    reference
+  })
+
+  if (!sourceSnapshot) {
+    return res.redirect(getDashboardBackLink(req.session.data))
+  }
+
+  const backLink = submittedId
+    ? `/review-notification?submitted=${encodeURIComponent(submittedId)}`
+    : `/review-notification?reference=${encodeURIComponent(reference)}`
+  const loaded = loadNotificationIntoTemplateSession(req.session.data, sourceSnapshot, backLink)
+
+  if (!loaded) {
+    return res.redirect(backLink)
+  }
+
+  return res.redirect('/templates/create')
+})
+
+router.get('/notifications/make-template/cancel', (req, res) => {
+  if (!canMakeTemplateFromNotification(req.session.data)) {
+    return res.redirect('/templates')
+  }
+
+  const backLink = req.session.data.makeTemplateBackLink || getDashboardBackLink(req.session.data)
+
+  resetNotificationJourneySession(req.session.data)
+
+  return res.redirect(backLink)
 })
 
 router.get('/notifications/copy-as-new', (req, res) => {
@@ -12257,7 +12416,7 @@ function renderCancelAmendNotificationPage (req, res) {
 }
 
 router.get('/notifications/cancel-amend', (req, res) => {
-  if (req.session.data._isTesting3Version) {
+  if (isRound2TestingSessionData(req.session.data)) {
     return renderCancelAmendNotificationPage(req, res)
   }
 
@@ -13752,12 +13911,12 @@ router.post('/intro/sign-in', function (req, res) {
 })
 
 const { mountTestingVersion } = require('./lib/testing-version')
-const { mountTesting2Version } = require('./lib/testing2-version')
 const { mountTesting3Version } = require('./lib/testing3-version')
+const { mountTesting4Version } = require('./lib/testing4-version')
 const { mountDesignRelease21Version } = require('./lib/design-release-2.1-version')
 
-// Mount testing2 and testing3 before testing so Express does not treat them as /testing
-mountTesting2Version(govukPrototypeKit, router)
+// Mount the longer /testing* paths before /testing so Express does not treat them as that route
+mountTesting4Version(govukPrototypeKit, router)
 mountTesting3Version(govukPrototypeKit, router)
 mountTestingVersion(govukPrototypeKit, router)
 mountDesignRelease21Version(govukPrototypeKit, router)

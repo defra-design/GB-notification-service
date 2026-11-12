@@ -1,0 +1,44 @@
+{% extends "layouts/journey.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% set pageName = pageName or "Cancel this amendment?" %}
+{% set confirmText = confirmText or "Any changes you have made to this notification will not be saved." %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block journeyContent %}
+  <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+  {{ govukSummaryList({
+    rows: summaryRows
+  }) }}
+
+  <p class="govuk-body">{{ confirmText }}</p>
+
+  <form method="post" action="{{ cancelAmendAction }}">
+    <div class="govuk-button-group">
+      {{ govukButton({
+        text: "Yes, cancel amendment",
+        classes: "govuk-button--warning"
+      }) }}
+
+      <a class="govuk-link" href="{{ backLink }}">No, continue amending</a>
+    </div>
+  </form>
+{% endblock %}

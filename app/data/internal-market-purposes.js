@@ -5,6 +5,7 @@ module.exports = [
     value: 'Transfer of ownership - Sale/gift',
     text: 'Transfer of ownership - Sale/gift',
     hint: 'Any movement of an animal that has as its aim the sale of or the transfer of ownership of the animal from one person or entity to another. For example, animals that have been sold and are being moved to a new owner or will be sold once in Great Britain, purchases from a breeder/shop overseas and where an animal is being moved to a new owner with no sale involved (for example a gift).',
+    germinalHint: 'Any movement of a consignment that has as its aim the sale of or the transfer of ownership of the consignment from one person or entity to another. For example, animals that have been sold and are being moved to a new owner or will be sold once in Great Britain, purchases from a breeder/shop overseas and where an animal is being moved to a new owner with no sale involved (for example a gift).',
     forGerminalProducts: true
   },
   {
@@ -45,6 +46,7 @@ module.exports = [
     value: 'Production',
     text: 'Production',
     hint: 'Animals that are farmed for the production of meat, milk, eggs, wool or any other animal product or by-product.',
+    germinalHint: 'Animals and germinal products that are farmed for the production of meat, milk, eggs, wool or any other animal product or by-product.',
     forGerminalProducts: true
   },
   {
