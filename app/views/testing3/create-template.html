@@ -46,12 +46,16 @@
 
       <div class="app-dr2-create-template-page__actions">
         {{ govukButton({
-          text: "Save and continue",
+          text: "Continue" if makingTemplateFromNotification else "Save and continue",
           classes: "app-dr2-create-template-page__continue"
         }) }}
 
         <p class="app-dr2-create-template-page__cancel">
-          <a class="govuk-link" href="{{ journeyBasePath }}/templates">Cancel and return to manage templates</a>
+          {% if makingTemplateFromNotification %}
+            <a class="govuk-link" href="{{ cancelHref }}">Cancel and return to the notification</a>
+          {% else %}
+            <a class="govuk-link" href="{{ journeyBasePath }}/templates">Cancel and return to manage templates</a>
+          {% endif %}
         </p>
       </div>
     </form>

@@ -1,0 +1,47 @@
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+{% from "moj/components/button-menu/macro.njk" import mojButtonMenu %}
+
+{% set amendHref = pageHeader.amendHref or ((journeyBasePath + '/notifications/amend') if journeyBasePath else '/notifications/amend') %}
+{% set makeTemplateHref = pageHeader.makeTemplateHref or ((journeyBasePath + '/notifications/make-template') if journeyBasePath else '/notifications/make-template') %}
+{% set copyHref = pageHeader.copyHref or ((journeyBasePath + '/notifications/copy-as-new') if journeyBasePath else '/notifications/copy-as-new') %}
+{% set deleteHref = pageHeader.deleteHref or ((journeyBasePath + '/notifications/delete') if journeyBasePath else '/notifications/delete') %}
+{% set actionItems = [] %}
+{% if pageHeader.showAmendButton %}
+  {% set actionItems = (actionItems.push({ text: "Amend", href: amendHref }), actionItems) %}
+{% endif %}
+{% set actionItems = (actionItems.push({ text: "Make template", href: makeTemplateHref }), actionItems) %}
+{% if pageHeader.showCopyButton %}
+  {% set actionItems = (actionItems.push({ text: "Copy as new", href: copyHref }), actionItems) %}
+{% endif %}
+{% if pageHeader.showDeleteButton %}
+  {% set actionItems = (actionItems.push({ text: "Delete", href: deleteHref }), actionItems) %}
+{% endif %}
+
+<div class="app-dr2-review-page-header">
+  <h1 class="app-dr2-review-page-header__reference">{{ pageHeader.reference or notificationReference }}</h1>
+
+  <strong class="govuk-tag app-dr2-review-status__tag app-dr2-review-status__tag--{{ pageHeader.statusModifier }}">
+    {{ pageHeader.statusText }}
+  </strong>
+
+  <div class="app-dr2-review-page-header__actions">
+    {{ mojButtonMenu({
+      button: {
+        text: "Actions"
+      },
+      items: actionItems
+    }) }}
+  </div>
+
+  {% if pageHeader.warningText %}
+    {{ govukWarningText({
+      text: pageHeader.warningText,
+      iconFallbackText: "Warning"
+    }) }}
+  {% endif %}
+
+  <p class="app-dr2-review-page-header__date">
+    <span class="app-dr2-review-page-header__date-label">{{ pageHeader.dateLabel }}:</span>
+    {{ pageHeader.dateValue }}
+  </p>
+</div>
