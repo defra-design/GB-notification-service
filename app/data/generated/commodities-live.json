@@ -6,19 +6,48 @@
     "species": [
       {
         "id": "bees-apis-mellifera",
-        "label": "Apis mellifera"
+        "label": "Apis mellifera",
+        "searchTerms": [
+          "honey bee",
+          "honey bees",
+          "honeybee",
+          "western honey bee"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "bees-bombus-spp",
-        "label": "Bombus spp."
+        "label": "Bombus spp.",
+        "searchTerms": [
+          "bumblebee",
+          "bumblebees",
+          "bumble bee",
+          "bombus"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "bees-bombus-canariensis",
         "label": "Bombus canariensis",
         "commonName": "Canary Islands bumblebee",
+        "searchTerms": [
+          "bumblebee"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       }
     ],
+    "searchTerms": [
+      "bee",
+      "honey bee",
+      "honeybee",
+      "honeybees",
+      "bumblebee",
+      "bumblebees",
+      "queen bee",
+      "apis"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01064100",
       "0106410000"
@@ -31,31 +60,73 @@
     "species": [
       {
         "id": "camel-dromedarius",
-        "label": "Camelus dromedarius"
+        "label": "Camelus dromedarius",
+        "searchTerms": [
+          "dromedary",
+          "dromedaries",
+          "arabian camel"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "camel-bactrianus",
-        "label": "Camelus bactrianus"
+        "label": "Camelus bactrianus",
+        "searchTerms": [
+          "bactrian camel",
+          "bactrian camels"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "camel-camelus-spp",
         "label": "Camelus spp.",
         "commonName": "Camels",
+        "searchTerms": [
+          "camel"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "camel-lama-spp",
         "label": "Lama spp.",
         "commonName": "Llamas and guanacos",
+        "searchTerms": [
+          "llama",
+          "llamas",
+          "guanaco",
+          "guanacos"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "camel-vicugna-spp",
         "label": "Vicugna spp.",
         "commonName": "Vicunas and alpacas",
+        "searchTerms": [
+          "vicuna",
+          "vicunas",
+          "alpaca",
+          "alpacas"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       }
     ],
+    "searchTerms": [
+      "camels",
+      "dromedary",
+      "bactrian",
+      "llama",
+      "llamas",
+      "alpaca",
+      "alpacas",
+      "vicuna",
+      "guanaco",
+      "camelid"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01061300",
       "0106130000"
@@ -69,9 +140,23 @@
       {
         "id": "cat-felis-catus",
         "label": "Felis catus",
-        "commonName": "Domestic cat"
+        "commonName": "Domestic cat",
+        "searchTerms": [
+          "felis silvestris catus",
+          "cats",
+          "kitten"
+        ],
+        "searchTermsSource": "generated"
       }
     ],
+    "searchTerms": [
+      "cats",
+      "kitten",
+      "kittens",
+      "feline",
+      "pet"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01061900",
       "0106190000"
@@ -85,59 +170,139 @@
       {
         "id": "cattle-1-bibos-spp",
         "label": "Bibos spp.",
-        "commonName": "Gaur"
+        "commonName": "Gaur",
+        "searchTerms": [
+          "bos gaurus",
+          "gaurs",
+          "banteng"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "cattle-bison-bison",
         "label": "Bison bison",
-        "commonName": "Bison bison"
+        "commonName": "Bison bison",
+        "searchTerms": [
+          "american bison",
+          "american buffalo"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "cattle-3-bison-spp",
         "label": "Bison spp",
-        "commonName": "Bison"
+        "commonName": "Bison",
+        "searchTerms": [
+          "bison spp.",
+          "bisons",
+          "wisent"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "cattle-bos-spp",
         "label": "Bos spp",
-        "commonName": "Cattle"
+        "commonName": "Cattle",
+        "searchTerms": [
+          "bos spp.",
+          "cow",
+          "cows"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "cattle-bos-taurus",
         "label": "Bos taurus",
-        "commonName": "Domestic cattle"
+        "commonName": "Domestic cattle",
+        "searchTerms": [
+          "cow",
+          "cows",
+          "bull",
+          "bulls"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "cattle-bubalus-bubalis",
         "label": "Bubalus bubalis",
-        "commonName": "Water buffalo"
+        "commonName": "Water buffalo",
+        "searchTerms": [
+          "water buffaloes",
+          "bubalus bubalus"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "cattle-7-bubalus-spp-including-anoa",
         "label": "Bubalus spp (including Anoa)",
-        "commonName": "Buffalo"
+        "commonName": "Buffalo",
+        "searchTerms": [
+          "bubalus spp.",
+          "anoa",
+          "buffaloes"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "cattle-8-novibos-spp",
         "label": "Novibos spp",
-        "commonName": "Banteng"
+        "commonName": "Banteng",
+        "searchTerms": [
+          "novibos spp.",
+          "kouprey"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "cattle-9-ovibos-spp",
         "label": "Ovibos spp",
-        "commonName": "Musk ox"
+        "commonName": "Musk ox",
+        "searchTerms": [
+          "ovibos spp.",
+          "musk oxen",
+          "muskox"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "cattle-10-poephagus-spp",
         "label": "Poephagus spp.",
-        "commonName": "Yak"
+        "commonName": "Yak",
+        "searchTerms": [
+          "bos grunniens",
+          "bos mutus",
+          "yaks"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "cattle-11-syncerus-spp",
         "label": "Syncerus spp.",
-        "commonName": "African buffalo"
+        "commonName": "African buffalo",
+        "searchTerms": [
+          "cape buffalo",
+          "african buffaloes"
+        ],
+        "searchTermsSource": "generated"
       }
     ],
+    "searchTerms": [
+      "cow",
+      "cows",
+      "bull",
+      "bulls",
+      "calf",
+      "calves",
+      "heifer",
+      "steer",
+      "ox",
+      "oxen",
+      "bovine",
+      "buffalo",
+      "bison",
+      "yak"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01020000",
       "0102211000",
@@ -202,15 +367,41 @@
     "species": [
       {
         "id": "chicken-gallus-domesticus",
-        "label": "Gallus domesticus"
+        "label": "Gallus domesticus",
+        "searchTerms": [
+          "gallus gallus domesticus",
+          "chickens",
+          "hen",
+          "hens"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "chicken-gallus-gallus",
         "label": "Gallus gallus",
         "commonName": "Chicken",
+        "searchTerms": [
+          "red junglefowl",
+          "chickens"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-same-code"
       }
     ],
+    "searchTerms": [
+      "chickens",
+      "hen",
+      "hens",
+      "cockerel",
+      "rooster",
+      "chick",
+      "chicks",
+      "poultry",
+      "fowl",
+      "broiler",
+      "layer"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01051111",
       "0105111100",
@@ -232,9 +423,23 @@
       {
         "id": "dog-canis-familiaris",
         "label": "Canis familiaris",
-        "commonName": "Domestic dog"
+        "commonName": "Domestic dog",
+        "searchTerms": [
+          "canis lupus familiaris",
+          "dogs",
+          "puppy"
+        ],
+        "searchTermsSource": "generated"
       }
     ],
+    "searchTerms": [
+      "dogs",
+      "puppy",
+      "puppies",
+      "canine",
+      "pet"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01061900",
       "0106190000"
@@ -247,25 +452,55 @@
     "species": [
       {
         "id": "duck-anas-platyrhynchos",
-        "label": "Anas platyrhynchos domesticus"
+        "label": "Anas platyrhynchos domesticus",
+        "searchTerms": [
+          "mallard",
+          "domestic duck",
+          "ducks"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "duck-cairina-moschata",
-        "label": "Cairina moschata"
+        "label": "Cairina moschata",
+        "searchTerms": [
+          "muscovy duck",
+          "muscovy ducks"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "duck-aix-spp",
         "label": "Aix spp.",
         "commonName": "Perching ducks",
+        "searchTerms": [
+          "wood duck",
+          "mandarin duck"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-same-code"
       },
       {
         "id": "duck-anas-spp",
         "label": "Anas spp.",
         "commonName": "Dabbling ducks",
+        "searchTerms": [
+          "mallard",
+          "teal",
+          "ducks"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-same-code"
       }
     ],
+    "searchTerms": [
+      "ducks",
+      "duckling",
+      "ducklings",
+      "poultry",
+      "waterfowl"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01051300",
       "0105130000",
@@ -283,10 +518,18 @@
         "label": "Mustela putorius furo",
         "commonName": "Ferret",
         "searchTerms": [
-          "Mustela putorius furio"
-        ]
+          "Mustela putorius furio",
+          "ferrets",
+          "mustela furo"
+        ],
+        "searchTermsSource": "generated"
       }
     ],
+    "searchTerms": [
+      "ferrets",
+      "pet"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01061900",
       "0106190000"
@@ -299,15 +542,35 @@
     "species": [
       {
         "id": "goat-capra-hircus",
-        "label": "Capra hircus"
+        "label": "Capra hircus",
+        "searchTerms": [
+          "capra aegagrus hircus",
+          "domestic goat",
+          "goats"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "goat-capra-spp",
         "label": "Capra spp.",
         "commonName": "Goats",
+        "searchTerms": [
+          "ibex",
+          "wild goat"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       }
     ],
+    "searchTerms": [
+      "goats",
+      "kid",
+      "kids",
+      "billy goat",
+      "nanny goat",
+      "caprine"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01042000",
       "0104201000",
@@ -321,15 +584,33 @@
     "species": [
       {
         "id": "goose-anser-anser",
-        "label": "Anser anser domesticus"
+        "label": "Anser anser domesticus",
+        "searchTerms": [
+          "domestic goose",
+          "greylag goose",
+          "geese"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "goose-anser-spp",
         "label": "Anser spp.",
         "commonName": "Geese",
+        "searchTerms": [
+          "goose"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-same-code"
       }
     ],
+    "searchTerms": [
+      "geese",
+      "gosling",
+      "goslings",
+      "poultry",
+      "waterfowl"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01051400",
       "0105140000",
@@ -344,9 +625,23 @@
     "species": [
       {
         "id": "guinea-fowl-numida-meleagris",
-        "label": "Numida meleagris"
+        "label": "Numida meleagris",
+        "searchTerms": [
+          "helmeted guineafowl",
+          "guineafowl",
+          "guinea fowl"
+        ],
+        "searchTermsSource": "generated"
       }
     ],
+    "searchTerms": [
+      "guineafowl",
+      "guinea fowls",
+      "keet",
+      "keets",
+      "poultry"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01051500",
       "0105150000",
@@ -365,13 +660,23 @@
         "commonName": "Mule",
         "searchTerms": [
           "Equus caballus*asinus",
-          "Equus cabalus*asinus"
-        ]
+          "Equus cabalus*asinus",
+          "equus caballus x asinus",
+          "mules",
+          "hinny"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "horse-equus-asinus",
         "label": "Equus asinus",
-        "commonName": "Donkey"
+        "commonName": "Donkey",
+        "searchTerms": [
+          "equus africanus asinus",
+          "donkeys",
+          "ass"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "horse-equus-caballus",
@@ -379,10 +684,28 @@
         "commonName": "Horse",
         "searchTerms": [
           "Equus caballas",
-          "Equus caballus"
-        ]
+          "Equus caballus",
+          "horses",
+          "pony"
+        ],
+        "searchTermsSource": "generated"
       }
     ],
+    "searchTerms": [
+      "horses",
+      "pony",
+      "ponies",
+      "foal",
+      "mare",
+      "stallion",
+      "donkey",
+      "donkeys",
+      "mule",
+      "mules",
+      "equine",
+      "equid"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01010000",
       "0101210000",
@@ -399,33 +722,60 @@
     "species": [
       {
         "id": "ostrich-struthio-camelus",
-        "label": "Struthio camelus"
+        "label": "Struthio camelus",
+        "searchTerms": [
+          "ostriches",
+          "common ostrich"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "ostrich-casuarius-spp",
         "label": "Casuarius spp.",
         "commonName": "Cassowaries",
+        "searchTerms": [
+          "casuarius"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-same-code"
       },
       {
         "id": "ostrich-dromaius-spp",
         "label": "Dromaius spp.",
         "commonName": "Emus",
+        "searchTerms": [
+          "emu"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-genus"
       },
       {
         "id": "ostrich-rhea-spp",
         "label": "Rhea spp.",
         "commonName": "Rheas",
+        "searchTerms": [
+          "rhea"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "ostrich-struthio-spp",
         "label": "Struthio spp.",
         "commonName": "Ostriches",
+        "searchTerms": [
+          "ostrich"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       }
     ],
+    "searchTerms": [
+      "ostriches",
+      "emu",
+      "emus"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01063300",
       "0106330000",
@@ -477,7 +827,13 @@
       {
         "id": "other-live-mammals-8-axis-hyelaphus-spp",
         "label": "Axis-Hyelaphus spp.",
-        "commonName": "Spotted deer"
+        "commonName": "Spotted deer",
+        "searchTerms": [
+          "axis deer",
+          "chital",
+          "hog deer"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-9-blastocerus-spp",
@@ -492,7 +848,12 @@
       {
         "id": "other-live-mammals-11-callosciurus-erythraeus",
         "label": "Callosciurus erythraeus",
-        "commonName": "Pallas's squirrel"
+        "commonName": "Pallas's squirrel",
+        "searchTerms": [
+          "pallas squirrel",
+          "red-bellied squirrel"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-12-capreolus-spp",
@@ -517,12 +878,21 @@
       {
         "id": "other-live-mammals-16-cervus-rucervus-spp",
         "label": "Cervus-Rucervus spp.",
-        "commonName": "Red deer"
+        "commonName": "Red deer",
+        "searchTerms": [
+          "sika deer",
+          "wapiti"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-17-chiroptera",
         "label": "Chiroptera",
-        "commonName": "Bat"
+        "commonName": "Bat",
+        "searchTerms": [
+          "bats"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-18-connochaetes-spp",
@@ -542,12 +912,23 @@
       {
         "id": "other-live-mammals-21-dasyuromorphia",
         "label": "Dasyuromorphia",
-        "commonName": "Dasyuromorph"
+        "commonName": "Dasyuromorph",
+        "searchTerms": [
+          "tasmanian devil",
+          "quoll"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-22-dermopterae",
         "label": "Dermopterae",
-        "commonName": "Colugo"
+        "commonName": "Colugo",
+        "searchTerms": [
+          "dermoptera",
+          "colugos",
+          "flying lemur"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-23-dicerorhinus-spp",
@@ -562,7 +943,14 @@
       {
         "id": "other-live-mammals-25-diprotodontia",
         "label": "Diprotodontia",
-        "commonName": "Diprotodont"
+        "commonName": "Diprotodont",
+        "searchTerms": [
+          "kangaroo",
+          "wallaby",
+          "koala",
+          "wombat"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-26-dorcatragus-spp",
@@ -572,27 +960,53 @@
       {
         "id": "other-live-mammals-27-elaphurus-spp",
         "label": "Elaphurus spp.",
-        "commonName": "Père David's deer"
+        "commonName": "Père David's deer",
+        "searchTerms": [
+          "pere david's deer",
+          "milu"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-28-elephas-spp",
         "label": "Elephas spp.",
-        "commonName": "Asian elephant"
+        "commonName": "Asian elephant",
+        "searchTerms": [
+          "elephant",
+          "elephants"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-29-equus-burchelli",
         "label": "Equus burchelli",
-        "commonName": "Burchell's zebra"
+        "commonName": "Burchell's zebra",
+        "searchTerms": [
+          "equus burchellii",
+          "zebra",
+          "zebras"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-30-equus-grevyi",
         "label": "Equus grevyi",
-        "commonName": "Grevy's zebra"
+        "commonName": "Grevy's zebra",
+        "searchTerms": [
+          "zebra",
+          "zebras"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-31-equus-quagga",
         "label": "Equus quagga",
-        "commonName": "Plains zebra"
+        "commonName": "Plains zebra",
+        "searchTerms": [
+          "zebra",
+          "zebras"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-32-equus-spp",
@@ -602,7 +1016,11 @@
       {
         "id": "other-live-mammals-33-equus-zebra",
         "label": "Equus zebra",
-        "commonName": "Mountain zebra"
+        "commonName": "Mountain zebra",
+        "searchTerms": [
+          "zebras"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-34-gazella-spp",
@@ -612,7 +1030,11 @@
       {
         "id": "other-live-mammals-35-giraffa-spp",
         "label": "Giraffa spp.",
-        "commonName": "Giraffe"
+        "commonName": "Giraffe",
+        "searchTerms": [
+          "giraffes"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-36-hemitragus-spp",
@@ -622,12 +1044,22 @@
       {
         "id": "other-live-mammals-37-herpestes-javanicus",
         "label": "Herpestes javanicus",
-        "commonName": "Small Asian mongoose"
+        "commonName": "Small Asian mongoose",
+        "searchTerms": [
+          "herpestes auropunctatus",
+          "mongoose"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-38-hexaprotodon-choeropsis-spp",
         "label": "Hexaprotodon-Choeropsis spp.",
-        "commonName": "Pygmy hippopotamus"
+        "commonName": "Pygmy hippopotamus",
+        "searchTerms": [
+          "choeropsis liberiensis",
+          "pygmy hippo"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-39-hippocamelus-spp",
@@ -637,7 +1069,12 @@
       {
         "id": "other-live-mammals-40-hippopotamus-spp",
         "label": "Hippopotamus spp.",
-        "commonName": "Hippopotamus"
+        "commonName": "Hippopotamus",
+        "searchTerms": [
+          "hippo",
+          "hippos"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-41-hippotragus-spp",
@@ -657,12 +1094,25 @@
       {
         "id": "other-live-mammals-44-hyracoidae",
         "label": "Hyracoidae",
-        "commonName": "Hyrax"
+        "commonName": "Hyrax",
+        "searchTerms": [
+          "hyracoidea",
+          "hyraxes",
+          "dassie"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-45-insectivorae",
         "label": "Insectivorae",
-        "commonName": "Insectivore"
+        "commonName": "Insectivore",
+        "searchTerms": [
+          "insectivora",
+          "hedgehog",
+          "shrew",
+          "mole"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-46-kobus-spp",
@@ -677,17 +1127,33 @@
       {
         "id": "other-live-mammals-48-loxodonta-spp",
         "label": "Loxodonta spp.",
-        "commonName": "African elephant"
+        "commonName": "African elephant",
+        "searchTerms": [
+          "elephant",
+          "elephants"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-49-macroscelidaes",
         "label": "Macroscelidaes",
-        "commonName": "Elephant shrew"
+        "commonName": "Elephant shrew",
+        "searchTerms": [
+          "macroscelidea",
+          "sengi",
+          "elephant shrews"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-50-madogua-spp",
         "label": "Madogua spp.",
-        "commonName": "Royal antelope"
+        "commonName": "Royal antelope",
+        "searchTerms": [
+          "madoqua",
+          "dik-dik"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-51-mazama-spp",
@@ -702,7 +1168,12 @@
       {
         "id": "other-live-mammals-53-monotremata",
         "label": "Monotremata",
-        "commonName": "Monotreme"
+        "commonName": "Monotreme",
+        "searchTerms": [
+          "echidna",
+          "platypus"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-54-moschus-spp",
@@ -712,7 +1183,12 @@
       {
         "id": "other-live-mammals-55-muntiacus-reevesi",
         "label": "Muntiacus reevesi",
-        "commonName": "Reeves's muntjac"
+        "commonName": "Reeves's muntjac",
+        "searchTerms": [
+          "reeves muntjac",
+          "chinese muntjac"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-56-muntiacus-spp",
@@ -727,12 +1203,23 @@
       {
         "id": "other-live-mammals-58-myocastor-coypus",
         "label": "Myocastor coypus",
-        "commonName": "Coypu"
+        "commonName": "Coypu",
+        "searchTerms": [
+          "nutria"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-59-naemorhedus-spp-including-nemorhaedus-and-capricornis",
         "label": "Naemorhedus spp. (including Nemorhaedus and Capricornis)",
-        "commonName": "Goral"
+        "commonName": "Goral",
+        "searchTerms": [
+          "naemorhedus",
+          "nemorhaedus",
+          "capricornis",
+          "serow"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-60-nasua-nasua",
@@ -747,7 +1234,12 @@
       {
         "id": "other-live-mammals-62-nyctereutes-procyonoides",
         "label": "Nyctereutes procyonoides",
-        "commonName": "Raccoon dog"
+        "commonName": "Raccoon dog",
+        "searchTerms": [
+          "raccoon dogs",
+          "tanuki"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-63-odocoileus-spp",
@@ -767,7 +1259,12 @@
       {
         "id": "other-live-mammals-66-oreamuos-spp",
         "label": "Oreamuos spp.",
-        "commonName": "Mountain goat"
+        "commonName": "Mountain goat",
+        "searchTerms": [
+          "oreamnos",
+          "mountain goats"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-67-oreotragus-spp",
@@ -784,16 +1281,23 @@
         "label": "Other Carnivora",
         "commonName": "Other carnivore",
         "searchTerms": [
-          "Otra Carnivora"
-        ]
+          "Otra Carnivora",
+          "carnivora",
+          "carnivores"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-70-other-lagomorpha",
         "label": "Other Lagomorpha",
         "commonName": "Other lagomorph",
         "searchTerms": [
-          "Otra Lagomorpha"
-        ]
+          "Otra Lagomorpha",
+          "lagomorpha",
+          "lagomorphs",
+          "pika"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-other-mammalia-lower",
@@ -813,8 +1317,11 @@
         "label": "Other Rodentia",
         "commonName": "Other rodent",
         "searchTerms": [
-          "Otra Rodentia"
-        ]
+          "Otra Rodentia",
+          "rodentia",
+          "rodents"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-74-ourebia-spp",
@@ -829,12 +1336,21 @@
       {
         "id": "other-live-mammals-76-panthera-leo",
         "label": "Panthera leo",
-        "commonName": "Lion"
+        "commonName": "Lion",
+        "searchTerms": [
+          "lions"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-77-patholops-spp",
         "label": "Patholops spp.",
-        "commonName": "Tibetan antelope"
+        "commonName": "Tibetan antelope",
+        "searchTerms": [
+          "pantholops",
+          "chiru"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-78-pecari-tayassu-spp",
@@ -849,17 +1365,35 @@
       {
         "id": "other-live-mammals-80-peramelemorphia",
         "label": "Peramelemorphia",
-        "commonName": "Bandicoot"
+        "commonName": "Bandicoot",
+        "searchTerms": [
+          "bandicoots",
+          "bilby"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-81-pholidota",
         "label": "Pholidota",
-        "commonName": "Pangolin"
+        "commonName": "Pangolin",
+        "searchTerms": [
+          "pangolins"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-82-pinnipedae",
         "label": "Pinnipedae",
-        "commonName": "Pinniped"
+        "commonName": "Pinniped",
+        "searchTerms": [
+          "pinnipedia",
+          "pinnipeds",
+          "seal",
+          "seals",
+          "sea lion",
+          "walrus"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-83-procapra-spp",
@@ -869,7 +1403,12 @@
       {
         "id": "other-live-mammals-84-procyon-lotor",
         "label": "Procyon lotor",
-        "commonName": "Raccoon"
+        "commonName": "Raccoon",
+        "searchTerms": [
+          "raccoons",
+          "racoon"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-85-pseudois-spp",
@@ -889,7 +1428,11 @@
       {
         "id": "other-live-mammals-88-rangifer-spp",
         "label": "Rangifer spp.",
-        "commonName": "Reindeer"
+        "commonName": "Reindeer",
+        "searchTerms": [
+          "caribou"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-89-raphicerus-spp",
@@ -904,7 +1447,12 @@
       {
         "id": "other-live-mammals-91-rhinoceros-spp",
         "label": "Rhinoceros spp.",
-        "commonName": "Rhinoceros"
+        "commonName": "Rhinoceros",
+        "searchTerms": [
+          "rhino",
+          "rhinos"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-92-rupicapra-spp",
@@ -919,12 +1467,22 @@
       {
         "id": "other-live-mammals-94-scandentia",
         "label": "Scandentia",
-        "commonName": "Tree shrew"
+        "commonName": "Tree shrew",
+        "searchTerms": [
+          "treeshrew",
+          "treeshrews"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-95-sciurus-carolinensis",
         "label": "Sciurus carolinensis",
-        "commonName": "Grey squirrel"
+        "commonName": "Grey squirrel",
+        "searchTerms": [
+          "grey squirrels",
+          "gray squirrel"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-96-sciurus-niger",
@@ -934,7 +1492,12 @@
       {
         "id": "other-live-mammals-97-sigmoceros-alecelaphus-spp",
         "label": "Sigmoceros-Alecelaphus spp.",
-        "commonName": "Hartebeest"
+        "commonName": "Hartebeest",
+        "searchTerms": [
+          "sigmoceros",
+          "alcelaphus"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-98-sylvicapra-spp",
@@ -944,7 +1507,12 @@
       {
         "id": "other-live-mammals-99-tamias-sibiricus",
         "label": "Tamias sibiricus",
-        "commonName": "Siberian chipmunk"
+        "commonName": "Siberian chipmunk",
+        "searchTerms": [
+          "chipmunk",
+          "chipmunks"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-100-tapirus-spp",
@@ -974,12 +1542,23 @@
       {
         "id": "other-live-mammals-105-tubilidentae",
         "label": "Tubilidentae",
-        "commonName": "Aardvark"
+        "commonName": "Aardvark",
+        "searchTerms": [
+          "tubulidentata",
+          "aardvarks"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-106-xenarthra",
         "label": "Xenarthra",
-        "commonName": "Xenarthran"
+        "commonName": "Xenarthran",
+        "searchTerms": [
+          "armadillo",
+          "sloth",
+          "anteater"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-addax-spp",
@@ -988,6 +1567,19 @@
         "commonNameSource": "defra-genus"
       }
     ],
+    "searchTerms": [
+      "mammal",
+      "mammals",
+      "deer",
+      "antelope",
+      "antelopes",
+      "zebra",
+      "elephant",
+      "rhinoceros",
+      "giraffe",
+      "squirrel"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01061900",
       "0106190000"
@@ -1000,54 +1592,100 @@
     "species": [
       {
         "id": "parrot-psittaciformes",
-        "label": "Psittaciformes"
+        "label": "Psittaciformes",
+        "searchTerms": [
+          "parrot",
+          "parrots",
+          "psittacine"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "parrot-agapornis",
         "label": "Agapornis",
         "commonName": "Lovebirds",
+        "searchTerms": [
+          "lovebird"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-alisterus",
         "label": "Alisterus",
         "commonName": "King parrots",
+        "searchTerms": [
+          "king parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-amazona",
         "label": "Amazona",
         "commonName": "Amazon parrots",
+        "searchTerms": [
+          "amazon parrot",
+          "amazons"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-anodorhynchus",
         "label": "Anodorhynchus",
         "commonName": "Blue macaws",
+        "searchTerms": [
+          "hyacinth macaw",
+          "macaw",
+          "macaws"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-aprosmictus",
         "label": "Aprosmictus",
         "commonName": "Red-winged parrots",
+        "searchTerms": [
+          "red-winged parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-ara",
         "label": "Ara",
         "commonName": "Macaws",
+        "searchTerms": [
+          "macaw",
+          "scarlet macaw"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-aratinga",
         "label": "Aratinga",
         "commonName": "Sun conures",
+        "searchTerms": [
+          "conure",
+          "conures",
+          "sun conure"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-barnardius",
         "label": "Barnardius",
         "commonName": "Australian ringnecks",
+        "searchTerms": [
+          "ringneck",
+          "australian ringneck",
+          "port lincoln parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
@@ -1060,42 +1698,79 @@
         "id": "parrot-bolborhynchus",
         "label": "Bolborhynchus",
         "commonName": "Barred parakeets",
+        "searchTerms": [
+          "lineolated parakeet",
+          "barred parakeet",
+          "linnie"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-brotogeris",
         "label": "Brotogeris",
         "commonName": "Canary-winged parakeets",
+        "searchTerms": [
+          "parakeet",
+          "parakeets",
+          "canary-winged parakeet"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-cacatua",
         "label": "Cacatua",
         "commonName": "White cockatoos",
+        "searchTerms": [
+          "cockatoo",
+          "cockatoos",
+          "corella",
+          "corellas"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-callocephalon",
         "label": "Callocephalon",
         "commonName": "Gang-gang cockatoo",
+        "searchTerms": [
+          "cockatoo"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-calyptorhynchus",
         "label": "Calyptorhynchus",
         "commonName": "Black cockatoos",
+        "searchTerms": [
+          "black cockatoo"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-chalcopsitta",
         "label": "Chalcopsitta",
         "commonName": "Black lories",
+        "searchTerms": [
+          "lory",
+          "lories"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-charmosyna",
         "label": "Charmosyna",
         "commonName": "Fairy lorikeets",
+        "searchTerms": [
+          "lorikeet",
+          "lorikeets"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
@@ -1108,84 +1783,148 @@
         "id": "parrot-cyanoliseus",
         "label": "Cyanoliseus",
         "commonName": "Burrowing parrot",
+        "searchTerms": [
+          "patagonian conure"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-cyanopsitta",
         "label": "Cyanopsitta",
         "commonName": "Spix's macaw",
+        "searchTerms": [
+          "macaw"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-cyanoramphus",
         "label": "Cyanoramphus",
         "commonName": "Kakarikis",
+        "searchTerms": [
+          "kakariki",
+          "parakeet"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-cyclopsitta",
         "label": "Cyclopsitta",
         "commonName": "Fig parrots",
+        "searchTerms": [
+          "fig parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-deroptyus",
         "label": "Deroptyus",
         "commonName": "Red-fan parrot",
+        "searchTerms": [
+          "hawk-headed parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-diopsittaca",
         "label": "Diopsittaca",
         "commonName": "Red-shouldered macaw",
+        "searchTerms": [
+          "hahn's macaw",
+          "mini macaw"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-eclectus",
         "label": "Eclectus",
         "commonName": "Red-sided parrots",
+        "searchTerms": [
+          "eclectus parrot",
+          "eclectus parrots"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-enicognathus",
         "label": "Enicognathus",
         "commonName": "Austral parakeets",
+        "searchTerms": [
+          "slender-billed parakeet",
+          "austral parakeet",
+          "conure"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-eolophus",
         "label": "Eolophus",
         "commonName": "Galah",
+        "searchTerms": [
+          "galahs",
+          "rose-breasted cockatoo"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-eos",
         "label": "Eos",
         "commonName": "Red lories",
+        "searchTerms": [
+          "lory",
+          "lories"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-eunymphicus",
         "label": "Eunymphicus",
         "commonName": "Horned parakeets",
+        "searchTerms": [
+          "horned parakeet"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-forpus",
         "label": "Forpus",
         "commonName": "Parrotlets",
+        "searchTerms": [
+          "parrotlet"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-geoffroyus",
         "label": "Geoffroyus",
         "commonName": "Red-cheeked parrots",
+        "searchTerms": [
+          "red-cheeked parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-glossopsitta",
         "label": "Glossopsitta",
         "commonName": "Musk lorikeets",
+        "searchTerms": [
+          "musk lorikeet",
+          "lorikeet"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
@@ -1198,12 +1937,20 @@
         "id": "parrot-guarouba",
         "label": "Guarouba",
         "commonName": "Golden parakeet",
+        "searchTerms": [
+          "golden conure"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-hapalopsittaca",
         "label": "Hapalopsittaca",
         "commonName": "Rusty-faced parrots",
+        "searchTerms": [
+          "rusty-faced parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
@@ -1216,18 +1963,31 @@
         "id": "parrot-leptosittaca",
         "label": "Leptosittaca",
         "commonName": "Golden-plumed parakeet",
+        "searchTerms": [
+          "conure"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-loriculus",
         "label": "Loriculus",
         "commonName": "Hanging parrots",
+        "searchTerms": [
+          "hanging parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-lorius",
         "label": "Lorius",
         "commonName": "Chattering lories",
+        "searchTerms": [
+          "lory",
+          "lories"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
@@ -1240,267 +2000,495 @@
         "id": "parrot-melopsittacus",
         "label": "Melopsittacus",
         "commonName": "Budgerigar",
+        "searchTerms": [
+          "budgerigars",
+          "budgie",
+          "budgies",
+          "parakeet"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-micropsitta",
         "label": "Micropsitta",
         "commonName": "Pygmy parrots",
+        "searchTerms": [
+          "pygmy parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-myiopsitta",
         "label": "Myiopsitta",
         "commonName": "Monk parakeet",
+        "searchTerms": [
+          "quaker parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-nandayus",
         "label": "Nandayus",
         "commonName": "Black-hooded parakeets",
+        "searchTerms": [
+          "nanday parakeet",
+          "nanday conure"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-nannopsittaca",
         "label": "Nannopsittaca",
         "commonName": "Tepui parrotlets",
+        "searchTerms": [
+          "tepui parrotlet",
+          "parrotlet"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-neophema",
         "label": "Neophema",
         "commonName": "Grass parakeets",
+        "searchTerms": [
+          "grass parakeet",
+          "grass parrot",
+          "turquoise parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-neopsephotus",
         "label": "Neopsephotus",
         "commonName": "Bourke's parrots",
+        "searchTerms": [
+          "bourke's parrot",
+          "bourkes parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-neopsittacus",
         "label": "Neopsittacus",
         "commonName": "Yellow-billed and orange-billed lorikeets",
+        "searchTerms": [
+          "mountain lorikeet",
+          "lorikeet"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-nestor",
         "label": "Nestor",
         "commonName": "Keas and kakas",
+        "searchTerms": [
+          "kea",
+          "kaka"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-northiella",
         "label": "Northiella",
         "commonName": "Bluebonnets",
+        "searchTerms": [
+          "bluebonnet"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-nymphicus",
         "label": "Nymphicus",
         "commonName": "Cockatiels",
+        "searchTerms": [
+          "cockatiel"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-ognorhynchus",
         "label": "Ognorhynchus",
         "commonName": "Yellow-eared parrots",
+        "searchTerms": [
+          "yellow-eared parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-oreopsittacus",
         "label": "Oreopsittacus",
         "commonName": "Plum-faced lorikeets",
+        "searchTerms": [
+          "plum-faced lorikeet",
+          "lorikeet"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-pezoporus",
         "label": "Pezoporus",
         "commonName": "Ground and night parrots",
+        "searchTerms": [
+          "ground parrot",
+          "night parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-phigys",
         "label": "Phigys",
         "commonName": "Collared lories",
+        "searchTerms": [
+          "collared lory",
+          "lory"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-pionites",
         "label": "Pionites",
         "commonName": "Caiques",
+        "searchTerms": [
+          "caique"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-pionopsitta",
         "label": "Pionopsitta",
         "commonName": "Pileated parrots",
+        "searchTerms": [
+          "pileated parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-pionus",
         "label": "Pionus",
         "commonName": "Red-vented parrots",
+        "searchTerms": [
+          "pionus parrot",
+          "pionus parrots"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-platycercus",
         "label": "Platycercus",
         "commonName": "Rosellas",
+        "searchTerms": [
+          "rosella"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-poicephalus",
         "label": "Poicephalus",
         "commonName": "Senegal and Meyer's parrots",
+        "searchTerms": [
+          "senegal parrot",
+          "meyer's parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-polytelis",
         "label": "Polytelis",
         "commonName": "Superb, regent and princess parrots",
+        "searchTerms": [
+          "princess parrot",
+          "superb parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-primolius",
         "label": "Primolius",
         "commonName": "Illiger's and golden-collared macaws",
+        "searchTerms": [
+          "blue-headed macaw",
+          "mini macaw"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-prioniturus",
         "label": "Prioniturus",
         "commonName": "Racket-tailed parrots",
+        "searchTerms": [
+          "racket-tail",
+          "racket-tailed parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-probosciger",
         "label": "Probosciger",
         "commonName": "Palm cockatoos",
+        "searchTerms": [
+          "palm cockatoo",
+          "cockatoo"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-prosopeia",
         "label": "Prosopeia",
         "commonName": "Shining parrots",
+        "searchTerms": [
+          "shining parrot",
+          "musk parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-psephotus",
         "label": "Psephotus",
         "commonName": "Red-rumped and hooded parrots",
+        "searchTerms": [
+          "red-rumped parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-pseudeos",
         "label": "Pseudeos",
         "commonName": "Dusky lories",
+        "searchTerms": [
+          "dusky lory",
+          "lory"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-psilopsiagon",
         "label": "Psilopsiagon",
         "commonName": "Mountain parakeets",
+        "searchTerms": [
+          "mountain parakeet"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-psittacella",
         "label": "Psittacella",
         "commonName": "Tiger parrots",
+        "searchTerms": [
+          "tiger parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-psittacula",
         "label": "Psittacula",
         "commonName": "Rose-ringed and Alexandrine parakeets",
+        "searchTerms": [
+          "ring-necked parakeet",
+          "rose-ringed parakeet",
+          "parakeet",
+          "parakeets"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-psittaculirostris",
         "label": "Psittaculirostris",
         "commonName": "Large fig parrots",
+        "searchTerms": [
+          "fig parrot",
+          "fig parrots"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-psittacus",
         "label": "Psittacus",
         "commonName": "African grey parrots",
+        "searchTerms": [
+          "african grey",
+          "african grey parrot",
+          "grey parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-psitteuteles",
         "label": "Psitteuteles",
         "commonName": "Varied lorikeets",
+        "searchTerms": [
+          "varied lorikeet",
+          "lorikeet"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-psittinus",
         "label": "Psittinus",
         "commonName": "Blue-rumped parrots",
+        "searchTerms": [
+          "blue-rumped parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-psittrichas",
         "label": "Psittrichas",
         "commonName": "Pesquet's parrots",
+        "searchTerms": [
+          "pesquet's parrot",
+          "vulturine parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-purpureicephalus",
         "label": "Purpureicephalus",
         "commonName": "Red-capped parrots",
+        "searchTerms": [
+          "red-capped parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-pyrrhura",
         "label": "Pyrrhura",
         "commonName": "Green-cheeked and painted conures",
+        "searchTerms": [
+          "conure",
+          "conures",
+          "green-cheeked conure"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-rhynchopsitta",
         "label": "Rhynchopsitta",
         "commonName": "Thick-billed parrots",
+        "searchTerms": [
+          "thick-billed parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-strigops",
         "label": "Strigops",
         "commonName": "Kakapos",
+        "searchTerms": [
+          "kakapo"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-tanygnathus",
         "label": "Tanygnathus",
         "commonName": "Great-billed parrots",
+        "searchTerms": [
+          "great-billed parrot",
+          "blue-naped parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-touit",
         "label": "Touit",
         "commonName": "Lilac-tailed and scarlet-shouldered parrotlets",
+        "searchTerms": [
+          "parrotlet",
+          "parrotlets"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-trichoglossus",
         "label": "Trichoglossus",
         "commonName": "Rainbow lorikeets",
+        "searchTerms": [
+          "rainbow lorikeet",
+          "lorikeet",
+          "lorikeets"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-triclaria",
         "label": "Triclaria",
         "commonName": "Blue-bellied parrots",
+        "searchTerms": [
+          "blue-bellied parrot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "parrot-vini",
         "label": "Vini",
         "commonName": "Polynesian lorikeets",
+        "searchTerms": [
+          "blue lorikeet",
+          "lorikeet"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       }
     ],
+    "searchTerms": [
+      "parrots",
+      "parakeet",
+      "parakeets",
+      "budgie",
+      "budgerigar",
+      "cockatoo",
+      "cockatiel",
+      "macaw",
+      "lovebird",
+      "conure",
+      "lorikeet",
+      "lory",
+      "psittacine"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01063200",
       "0106320000"
@@ -1513,51 +2501,103 @@
     "species": [
       {
         "id": "pig-sus-scrofa",
-        "label": "Sus scrofa domesticus"
+        "label": "Sus scrofa domesticus",
+        "searchTerms": [
+          "sus scrofa",
+          "domestic pig",
+          "pigs",
+          "swine",
+          "hog"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "pig-babyrousa-spp",
         "label": "Babyrousa spp.",
         "commonName": "Babirusas",
+        "searchTerms": [
+          "babirusa"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-genus"
       },
       {
         "id": "pig-dicotyles-spp",
         "label": "Dicotyles spp.",
         "commonName": "Peccaries",
+        "searchTerms": [
+          "peccary",
+          "collared peccary"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-same-code"
       },
       {
         "id": "pig-hylochoerus-spp",
         "label": "Hylochoerus spp.",
         "commonName": "Forest hogs",
+        "searchTerms": [
+          "giant forest hog"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-genus"
       },
       {
         "id": "pig-phacochoerus-spp",
         "label": "Phacochoerus spp.",
         "commonName": "Warthogs",
+        "searchTerms": [
+          "warthog"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-genus"
       },
       {
         "id": "pig-potamochoerus-spp",
         "label": "Potamochoerus spp.",
         "commonName": "Bushpigs",
+        "searchTerms": [
+          "bushpig",
+          "red river hog"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-genus"
       },
       {
         "id": "pig-sus-scrofa-2",
         "label": "Sus scrofa",
         "commonName": "Wild boar",
+        "searchTerms": [
+          "boar",
+          "wild boars"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-same-code"
       },
       {
         "id": "pig-sus-spp",
         "label": "Sus spp.",
         "commonName": "Pigs",
+        "searchTerms": [
+          "wild pig",
+          "wild pigs"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       }
     ],
+    "searchTerms": [
+      "pigs",
+      "swine",
+      "hog",
+      "hogs",
+      "boar",
+      "sow",
+      "piglet",
+      "piglets",
+      "porcine"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01030000",
       "0103100000",
@@ -1575,18 +2615,35 @@
     "species": [
       {
         "id": "rabbit-oryctolagus-cuniculus",
-        "label": "Oryctolagus cuniculus"
+        "label": "Oryctolagus cuniculus",
+        "searchTerms": [
+          "european rabbit",
+          "rabbits"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "rabbit-other-lagomorpha",
         "label": "Other Lagomorpha",
         "commonName": "Other lagomorphs (rabbits, hares and pikas)",
         "searchTerms": [
-          "Otra Lagomorpha"
+          "Otra Lagomorpha",
+          "lagomorpha",
+          "hare",
+          "hares"
         ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-same-code"
       }
     ],
+    "searchTerms": [
+      "rabbits",
+      "bunny",
+      "hare",
+      "hares",
+      "lagomorph"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01061410",
       "0106141000",
@@ -1601,25 +2658,65 @@
     "species": [
       {
         "id": "reptile-serpentes",
-        "label": "Serpentes"
+        "label": "Serpentes",
+        "searchTerms": [
+          "snake",
+          "snakes"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "reptile-testudines",
-        "label": "Testudines"
+        "label": "Testudines",
+        "searchTerms": [
+          "tortoise",
+          "tortoises",
+          "turtle",
+          "turtles",
+          "terrapin"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "reptile-other-testudinata",
         "label": "Other Testudinata",
         "commonName": "Other turtles, tortoises and terrapins",
+        "searchTerms": [
+          "testudines",
+          "tortoise",
+          "turtle",
+          "terrapin"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "reptile-trachemys-scripta",
         "label": "Trachemys scripta",
         "commonName": "Pond slider",
+        "searchTerms": [
+          "red-eared slider",
+          "terrapin",
+          "pond sliders"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-same-code"
       }
     ],
+    "searchTerms": [
+      "reptiles",
+      "snake",
+      "snakes",
+      "lizard",
+      "lizards",
+      "tortoise",
+      "tortoises",
+      "turtle",
+      "turtles",
+      "terrapin",
+      "terrapins"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01062000",
       "0106200000"
@@ -1632,21 +2729,47 @@
     "species": [
       {
         "id": "sheep-ovis-aries",
-        "label": "Ovis aries"
+        "label": "Ovis aries",
+        "searchTerms": [
+          "domestic sheep",
+          "lamb",
+          "ram",
+          "ewe"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "sheep-ammotragus-spp",
         "label": "Ammotragus spp.",
         "commonName": "Barbary sheep",
+        "searchTerms": [
+          "aoudad"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "sheep-ovis-spp",
         "label": "Ovis spp.",
         "commonName": "Sheep",
+        "searchTerms": [
+          "mouflon",
+          "wild sheep"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-genus"
       }
     ],
+    "searchTerms": [
+      "lamb",
+      "lambs",
+      "ram",
+      "rams",
+      "ewe",
+      "ewes",
+      "ovine"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01041000",
       "0104101000",
@@ -1661,9 +2784,21 @@
     "species": [
       {
         "id": "turkey-meleagris-gallopavo",
-        "label": "Meleagris gallopavo"
+        "label": "Meleagris gallopavo",
+        "searchTerms": [
+          "turkeys",
+          "wild turkey"
+        ],
+        "searchTermsSource": "generated"
       }
     ],
+    "searchTerms": [
+      "turkeys",
+      "poult",
+      "poults",
+      "poultry"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01051200",
       "0105120000",
@@ -1680,351 +2815,626 @@
         "id": "primates-allenopithecus",
         "label": "Allenopithecus",
         "commonName": "Allen's swamp monkeys",
+        "searchTerms": [
+          "allen's swamp monkey",
+          "swamp monkey"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-allocebus",
         "label": "Allocebus",
         "commonName": "Hairy-eared dwarf lemurs",
+        "searchTerms": [
+          "hairy-eared dwarf lemur"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-alouatta",
         "label": "Alouatta",
         "commonName": "Howler monkeys",
+        "searchTerms": [
+          "howler monkey"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-aotus",
         "label": "Aotus",
         "commonName": "Night monkeys",
+        "searchTerms": [
+          "night monkey",
+          "owl monkey"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-arctocebus",
         "label": "Arctocebus",
         "commonName": "Angwantibos",
+        "searchTerms": [
+          "angwantibo",
+          "golden potto"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-ateles",
         "label": "Ateles",
         "commonName": "Spider monkeys",
+        "searchTerms": [
+          "spider monkey"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-avahi",
         "label": "Avahi",
         "commonName": "Woolly lemurs",
+        "searchTerms": [
+          "woolly lemur"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-brachyteles",
         "label": "Brachyteles",
         "commonName": "Woolly spider monkeys",
+        "searchTerms": [
+          "muriqui",
+          "woolly spider monkey"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-cacajao",
         "label": "Cacajao",
         "commonName": "Uakaris",
+        "searchTerms": [
+          "uakari"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-callicebus",
         "label": "Callicebus",
         "commonName": "Titi monkeys",
+        "searchTerms": [
+          "titi monkey"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-callimico",
         "label": "Callimico",
         "commonName": "Goeldi's monkeys",
+        "searchTerms": [
+          "goeldi's monkey",
+          "goeldi's marmoset"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-callithrix",
         "label": "Callithrix",
         "commonName": "Marmosets",
+        "searchTerms": [
+          "marmoset"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-cebuella",
         "label": "Cebuella",
         "commonName": "Pygmy marmosets",
+        "searchTerms": [
+          "pygmy marmoset"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-cebus",
         "label": "Cebus",
         "commonName": "Capuchin monkeys",
+        "searchTerms": [
+          "capuchin",
+          "capuchins"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-cercocebus",
         "label": "Cercocebus",
         "commonName": "White-eyelid mangabeys",
+        "searchTerms": [
+          "mangabey",
+          "mangabeys"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-cercopithecus",
         "label": "Cercopithecus",
         "commonName": "Guenons",
+        "searchTerms": [
+          "guenon"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-cheirogaleus",
         "label": "Cheirogaleus",
         "commonName": "Dwarf lemurs",
+        "searchTerms": [
+          "dwarf lemur"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-chiropotes",
         "label": "Chiropotes",
         "commonName": "Bearded sakis",
+        "searchTerms": [
+          "bearded saki"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-colobus",
         "label": "Colobus",
         "commonName": "Black-and-white colobus monkeys",
+        "searchTerms": [
+          "colobus monkey",
+          "colobus monkeys"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-daubentonia",
         "label": "Daubentonia",
         "commonName": "Aye-ayes",
+        "searchTerms": [
+          "aye-aye"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-erythrocebus",
         "label": "Erythrocebus",
         "commonName": "Patas monkeys",
+        "searchTerms": [
+          "patas monkey"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-euoticus",
         "label": "Euoticus",
         "commonName": "Needle-clawed bushbabies",
+        "searchTerms": [
+          "needle-clawed bushbaby",
+          "galago"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-galago",
         "label": "Galago",
         "commonName": "Lesser bushbabies",
+        "searchTerms": [
+          "bushbaby",
+          "bushbabies",
+          "galagos"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-gorilla",
         "label": "Gorilla",
         "commonName": "Eastern and western gorillas",
+        "searchTerms": [
+          "gorillas"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-hapalemur",
         "label": "Hapalemur",
         "commonName": "Bamboo lemurs",
+        "searchTerms": [
+          "bamboo lemur"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-hylobates",
         "label": "Hylobates",
         "commonName": "Gibbons",
+        "searchTerms": [
+          "gibbon"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-indri",
         "label": "Indri",
         "commonName": "Primates (Indri)",
+        "searchTerms": [
+          "babakoto"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated-fallback"
       },
       {
         "id": "primates-lagothrix",
         "label": "Lagothrix",
         "commonName": "Woolly monkeys",
+        "searchTerms": [
+          "woolly monkey"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-lemur",
         "label": "Lemur",
         "commonName": "Ring-tailed lemurs",
+        "searchTerms": [
+          "ring-tailed lemur",
+          "lemurs"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-leontopithecus",
         "label": "Leontopithecus",
         "commonName": "Lion tamarins",
+        "searchTerms": [
+          "lion tamarin",
+          "golden lion tamarin"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-lepilemur",
         "label": "Lepilemur",
         "commonName": "Sportive lemurs",
+        "searchTerms": [
+          "sportive lemur"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-loris",
         "label": "Loris",
         "commonName": "Slender lorises",
+        "searchTerms": [
+          "slender loris"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-macaca",
         "label": "Macaca",
         "commonName": "Macaques",
+        "searchTerms": [
+          "macaque",
+          "rhesus monkey",
+          "barbary ape"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-mandrillus",
         "label": "Mandrillus",
         "commonName": "Mandrills and drills",
+        "searchTerms": [
+          "mandrill",
+          "drill"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-microcebus",
         "label": "Microcebus",
         "commonName": "Mouse lemurs",
+        "searchTerms": [
+          "mouse lemur"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-miopithecus",
         "label": "Miopithecus",
         "commonName": "Talapoins",
+        "searchTerms": [
+          "talapoin"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-mirza",
         "label": "Mirza",
         "commonName": "Giant mouse lemurs",
+        "searchTerms": [
+          "giant mouse lemur"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-nasalis",
         "label": "Nasalis",
         "commonName": "Proboscis monkeys",
+        "searchTerms": [
+          "proboscis monkey"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-nycticebus",
         "label": "Nycticebus",
         "commonName": "Slow lorises",
+        "searchTerms": [
+          "slow loris"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-otolemur",
         "label": "Otolemur",
         "commonName": "Greater bushbabies",
+        "searchTerms": [
+          "greater galago",
+          "thick-tailed bushbaby"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-pan",
         "label": "Pan",
         "commonName": "Chimpanzees and bonobos",
+        "searchTerms": [
+          "chimpanzee",
+          "chimpanzees",
+          "chimp",
+          "bonobo"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-papio",
         "label": "Papio",
         "commonName": "Baboons",
+        "searchTerms": [
+          "baboon"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-perodicticus",
         "label": "Perodicticus",
         "commonName": "Pottos",
+        "searchTerms": [
+          "potto"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-petterus",
         "label": "Petterus",
         "commonName": "True lemurs",
+        "searchTerms": [
+          "eulemur",
+          "brown lemur"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-phaner",
         "label": "Phaner",
         "commonName": "Fork-marked lemurs",
+        "searchTerms": [
+          "fork-marked lemur"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-pithecia",
         "label": "Pithecia",
         "commonName": "Sakis",
+        "searchTerms": [
+          "saki",
+          "saki monkey"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-pongo",
         "label": "Pongo",
         "commonName": "Orangutans",
+        "searchTerms": [
+          "orangutan",
+          "orang-utan"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-presbytis",
         "label": "Presbytis",
         "commonName": "Surilis",
+        "searchTerms": [
+          "langur",
+          "surili"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-procolobus",
         "label": "Procolobus",
         "commonName": "Red and olive colobuses",
+        "searchTerms": [
+          "red colobus",
+          "olive colobus"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-propithecus",
         "label": "Propithecus",
         "commonName": "Sifakas",
+        "searchTerms": [
+          "sifaka"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-pygathrix",
         "label": "Pygathrix",
         "commonName": "Doucs",
+        "searchTerms": [
+          "douc",
+          "douc langur"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-saguinus",
         "label": "Saguinus",
         "commonName": "Tamarins",
+        "searchTerms": [
+          "tamarin"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-saimiri",
         "label": "Saimiri",
         "commonName": "Squirrel monkeys",
+        "searchTerms": [
+          "squirrel monkey"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-simias",
         "label": "Simias",
         "commonName": "Pig-tailed langurs",
+        "searchTerms": [
+          "pig-tailed langur"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-tarsius",
         "label": "Tarsius",
         "commonName": "Tarsiers",
+        "searchTerms": [
+          "tarsier"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-theropithecus",
         "label": "Theropithecus",
         "commonName": "Geladas",
+        "searchTerms": [
+          "gelada"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-trachypithecus",
         "label": "Trachypithecus",
         "commonName": "Lutungs",
+        "searchTerms": [
+          "lutung",
+          "leaf monkey"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "primates-varecia",
         "label": "Varecia",
         "commonName": "Ruffed lemurs",
+        "searchTerms": [
+          "ruffed lemur"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       }
     ],
+    "searchTerms": [
+      "primate",
+      "monkey",
+      "monkeys",
+      "ape",
+      "apes",
+      "lemur",
+      "lemurs",
+      "marmoset",
+      "macaque",
+      "chimpanzee",
+      "gorilla",
+      "baboon",
+      "gibbon"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01061100",
       "0106110000"
@@ -2075,21 +3485,54 @@
         "id": "birds-of-prey-accipitriformes",
         "label": "Accipitriformes",
         "commonName": "Diurnal birds of prey",
+        "searchTerms": [
+          "hawk",
+          "eagle",
+          "buzzard",
+          "kite",
+          "vulture"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-same-code"
       },
       {
         "id": "birds-of-prey-falconiformes",
         "label": "Falconiformes",
         "commonName": "Falcons",
+        "searchTerms": [
+          "falcon",
+          "kestrel",
+          "merlin"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-same-code"
       },
       {
         "id": "birds-of-prey-strigiformes",
         "label": "Strigiformes",
         "commonName": "Owls",
+        "searchTerms": [
+          "owl",
+          "barn owl"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-same-code"
       }
     ],
+    "searchTerms": [
+      "raptor",
+      "raptors",
+      "falcon",
+      "falcons",
+      "hawk",
+      "hawks",
+      "eagle",
+      "eagles",
+      "owl",
+      "owls",
+      "falconry"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01063100",
       "0106310000"
@@ -2106,27 +3549,59 @@
         "id": "pigeons-colombiformes",
         "label": "Colombiformes",
         "commonName": "Pigeons and doves",
+        "searchTerms": [
+          "columbiformes",
+          "pigeon",
+          "dove"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "pigeons-columba-spp",
         "label": "Columba spp.",
         "commonName": "Pigeons",
+        "searchTerms": [
+          "pigeon",
+          "racing pigeon",
+          "rock dove"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-same-code"
       },
       {
         "id": "pigeons-columbidae",
         "label": "Columbidae",
         "commonName": "Pigeon and dove family",
+        "searchTerms": [
+          "pigeon",
+          "pigeons",
+          "dove",
+          "doves"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "pigeons-geotrygon-spp",
         "label": "Geotrygon spp.",
         "commonName": "Turtledoves",
+        "searchTerms": [
+          "quail-dove",
+          "quail-doves"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-same-code"
       }
     ],
+    "searchTerms": [
+      "pigeon",
+      "dove",
+      "doves",
+      "racing pigeon",
+      "racing pigeons"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01063910",
       "0106391000"
@@ -2143,186 +3618,347 @@
         "id": "other-birds-alectoris-spp",
         "label": "Alectoris spp.",
         "commonName": "Rock partridges",
+        "searchTerms": [
+          "partridge",
+          "red-legged partridge",
+          "chukar"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-same-code"
       },
       {
         "id": "other-birds-alopochen-aegyptiacus",
         "label": "Alopochen aegyptiacus",
         "commonName": "Egyptian goose",
+        "searchTerms": [
+          "egyptian geese"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-amnoperdix-spp",
         "label": "Amnoperdix spp.",
         "commonName": "Sand partridges",
+        "searchTerms": [
+          "ammoperdix",
+          "sand partridge",
+          "see-see partridge"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-anseriformes",
         "label": "Anseriformes",
         "commonName": "Ducks, geese and swans",
+        "searchTerms": [
+          "waterfowl",
+          "wild ducks",
+          "wild geese",
+          "swans"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-anurophasis-spp",
         "label": "Anurophasis spp.",
         "commonName": "Snow Mountain quails",
+        "searchTerms": [
+          "snow mountain quail"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-apodiformes",
         "label": "Apodiformes",
         "commonName": "Swifts and hummingbirds",
+        "searchTerms": [
+          "swift",
+          "swifts",
+          "hummingbird",
+          "hummingbirds"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-apterygiformes",
         "label": "Apterygiformes",
         "commonName": "Kiwis",
+        "searchTerms": [
+          "kiwi"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-bucerotiformes",
         "label": "Bucerotiformes",
         "commonName": "Hornbills and hoopoes",
+        "searchTerms": [
+          "hornbill",
+          "hornbills",
+          "hoopoe"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-caprimulgiformes",
         "label": "Caprimulgiformes",
         "commonName": "Nightjars and frogmouths",
+        "searchTerms": [
+          "nightjar",
+          "nightjars",
+          "frogmouth"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-casuarius-spp",
         "label": "Casuarius spp.",
         "commonName": "Cassowaries",
+        "searchTerms": [
+          "cassowary"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "other-birds-catreus-spp",
         "label": "Catreus spp.",
         "commonName": "Cheer pheasants",
+        "searchTerms": [
+          "cheer pheasant"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-charadriformes",
         "label": "Charadriformes",
         "commonName": "Waders, gulls and auks",
+        "searchTerms": [
+          "charadriiformes",
+          "wader",
+          "waders",
+          "gull",
+          "gulls"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-chrysolohus-spp",
         "label": "Chrysolohus spp.",
         "commonName": "Ruffed pheasants",
+        "searchTerms": [
+          "chrysolophus",
+          "golden pheasant",
+          "lady amherst's pheasant"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-ciconiiformes",
         "label": "Ciconiiformes",
         "commonName": "Storks",
+        "searchTerms": [
+          "stork"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-coliiformes",
         "label": "Coliiformes",
         "commonName": "Mousebirds",
+        "searchTerms": [
+          "mousebird"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-colombiformes",
         "label": "Colombiformes",
         "commonName": "Pigeons and doves",
+        "searchTerms": [
+          "columbiformes"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "other-birds-columba-spp",
         "label": "Columba spp.",
         "commonName": "Pigeons",
+        "searchTerms": [
+          "columba"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "other-birds-coraciiformes",
         "label": "Coraciiformes",
         "commonName": "Kingfishers and rollers",
+        "searchTerms": [
+          "kingfisher",
+          "kingfishers",
+          "bee-eater",
+          "roller"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-corvus-splendens",
         "label": "Corvus splendens",
         "commonName": "House crow",
+        "searchTerms": [
+          "indian house crow"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-coturnis-spp",
         "label": "Coturnis spp.",
         "commonName": "Old World quails",
+        "searchTerms": [
+          "coturnix",
+          "quail",
+          "quails"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-cuculiformes",
         "label": "Cuculiformes",
         "commonName": "Cuckoos",
+        "searchTerms": [
+          "cuckoo",
+          "turaco"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-dendrortyx-spp",
         "label": "Dendrortyx spp.",
         "commonName": "Wood partridges",
+        "searchTerms": [
+          "wood partridge"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-dromaius-spp",
         "label": "Dromaius spp.",
         "commonName": "Emus",
+        "searchTerms": [
+          "dromaius"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-genus"
       },
       {
         "id": "other-birds-galliformes",
         "label": "Galliformes",
         "commonName": "Gamebirds",
+        "searchTerms": [
+          "gamebird",
+          "game birds",
+          "pheasant",
+          "quail",
+          "grouse"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-gaviiformes",
         "label": "Gaviiformes",
         "commonName": "Divers",
+        "searchTerms": [
+          "diver",
+          "loon"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-geotrygon-spp",
         "label": "Geotrygon spp.",
         "commonName": "Turtledoves",
+        "searchTerms": [
+          "geotrygon"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "other-birds-gruiformes",
         "label": "Gruiformes",
         "commonName": "Cranes and rails",
+        "searchTerms": [
+          "crane",
+          "cranes",
+          "rail",
+          "coot"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-lagopus-spp",
         "label": "Lagopus spp.",
         "commonName": "Ptarmigans",
+        "searchTerms": [
+          "grouse",
+          "ptarmigan",
+          "red grouse"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-lophura-spp",
         "label": "Lophura spp.",
         "commonName": "Gallopheasants",
+        "searchTerms": [
+          "kalij pheasant",
+          "fireback"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-margaroperdix-spp",
         "label": "Margaroperdix spp.",
         "commonName": "Madagascar partridges",
+        "searchTerms": [
+          "madagascar partridge"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-melanoperdix-spp",
         "label": "Melanoperdix spp.",
         "commonName": "Black partridges",
+        "searchTerms": [
+          "black wood partridge"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
@@ -2335,99 +3971,193 @@
         "id": "other-birds-passeriformes",
         "label": "Passeriformes",
         "commonName": "Perching birds",
+        "searchTerms": [
+          "songbird",
+          "songbirds",
+          "passerine",
+          "finch",
+          "canary"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-pelecaniformes",
         "label": "Pelecaniformes",
         "commonName": "Pelicans, herons and ibises",
+        "searchTerms": [
+          "pelican",
+          "heron",
+          "ibis"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-perdix-spp",
         "label": "Perdix spp.",
         "commonName": "Grey partridges",
+        "searchTerms": [
+          "grey partridge",
+          "partridge"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-phasianus-spp",
         "label": "Phasianus spp.",
         "commonName": "Pheasants",
+        "searchTerms": [
+          "pheasant",
+          "common pheasant"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-genus"
       },
       {
         "id": "other-birds-phoenicopteriformes",
         "label": "Phoenicopteriformes",
         "commonName": "Flamingos",
+        "searchTerms": [
+          "flamingo"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-piciformes",
         "label": "Piciformes",
         "commonName": "Woodpeckers and toucans",
+        "searchTerms": [
+          "woodpecker",
+          "woodpeckers",
+          "toucan",
+          "toucans"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-podicipediformes",
         "label": "Podicipediformes",
         "commonName": "Grebes",
+        "searchTerms": [
+          "grebe"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-procellariiformes",
         "label": "Procellariiformes",
         "commonName": "Albatrosses and petrels",
+        "searchTerms": [
+          "albatross",
+          "petrel",
+          "shearwater"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-rhea-spp",
         "label": "Rhea spp.",
         "commonName": "Rheas",
+        "searchTerms": [
+          "rhea"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "other-birds-rhizothera-spp",
         "label": "Rhizothera spp.",
         "commonName": "Long-billed partridges",
+        "searchTerms": [
+          "long-billed partridge"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-sphenisciformes",
         "label": "Sphenisciformes",
         "commonName": "Penguins",
+        "searchTerms": [
+          "penguin"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-struthio-spp",
         "label": "Struthio spp.",
         "commonName": "Ostriches",
+        "searchTerms": [
+          "struthio"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "other-birds-syrmaticus-spp",
         "label": "Syrmaticus spp.",
         "commonName": "Long-tailed pheasants",
+        "searchTerms": [
+          "reeves's pheasant",
+          "long-tailed pheasant"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-threskiornis-aethiopicus",
         "label": "Threskiornis aethiopicus",
         "commonName": "African sacred ibis",
+        "searchTerms": [
+          "sacred ibis"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-tinamiformes",
         "label": "Tinamiformes",
         "commonName": "Tinamous",
+        "searchTerms": [
+          "tinamou"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-birds-trogoniformes",
         "label": "Trogoniformes",
         "commonName": "Trogons",
+        "searchTerms": [
+          "trogon",
+          "quetzal"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       }
     ],
+    "searchTerms": [
+      "bird",
+      "birds",
+      "songbird",
+      "finch",
+      "canary",
+      "pheasant",
+      "partridge",
+      "quail",
+      "waterfowl",
+      "penguin",
+      "flamingo",
+      "aviary"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01063980",
       "0106398000"
@@ -2445,17 +4175,40 @@
         "label": "Other Insecta",
         "commonName": "Other insects",
         "searchTerms": [
-          "Otra Insecta"
+          "Otra Insecta",
+          "insecta",
+          "insect",
+          "insects"
         ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-insects-vespa-velutina-nigrithorax",
         "label": "Vespa velutina nigrithorax",
         "commonName": "Hornet",
+        "searchTerms": [
+          "asian hornet",
+          "yellow-legged hornet",
+          "vespa velutina"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-same-code"
       }
     ],
+    "searchTerms": [
+      "insect",
+      "insects",
+      "bug",
+      "bugs",
+      "beetle",
+      "butterfly",
+      "cricket",
+      "locust",
+      "hornet",
+      "wasp"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01064900",
       "0106490000"
@@ -2472,21 +4225,56 @@
         "id": "other-live-animals-caudata",
         "label": "Caudata",
         "commonName": "Salamanders and newts",
+        "searchTerms": [
+          "salamander",
+          "salamanders",
+          "newt",
+          "newts",
+          "axolotl"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-live-animals-lithobates-rana-catesbeianus",
         "label": "Lithobates (Rana) catesbeianus",
         "commonName": "American bullfrog",
+        "searchTerms": [
+          "rana catesbeiana",
+          "lithobates catesbeianus",
+          "bullfrog",
+          "frog"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "other-live-animals-other-amphibia",
         "label": "Other Amphibia",
         "commonName": "Other amphibians",
+        "searchTerms": [
+          "amphibia",
+          "amphibian",
+          "frog",
+          "toad"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       }
     ],
+    "searchTerms": [
+      "amphibian",
+      "amphibians",
+      "frog",
+      "frogs",
+      "toad",
+      "toads",
+      "newt",
+      "newts",
+      "salamander",
+      "axolotl"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "01069000",
       "0106900010",
@@ -2505,9 +4293,28 @@
         "id": "hatching-eggs-chicken-gallus-gallus",
         "label": "Gallus gallus",
         "commonName": "Chicken",
+        "searchTerms": [
+          "gallus gallus domesticus",
+          "chicken eggs",
+          "hen eggs"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       }
     ],
+    "searchTerms": [
+      "egg",
+      "eggs",
+      "hatching egg",
+      "fertilised egg",
+      "fertilised eggs",
+      "incubation",
+      "chicken",
+      "chicken eggs",
+      "hen",
+      "poultry"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "04071100",
       "0407110000"
@@ -2524,15 +4331,37 @@
         "id": "hatching-eggs-turkey-goose-anser-spp",
         "label": "Anser spp.",
         "commonName": "Geese",
+        "searchTerms": [
+          "goose",
+          "goose eggs"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "hatching-eggs-turkey-goose-meleagris-gallopavo",
         "label": "Meleagris gallopavo",
         "commonName": "Turkey",
+        "searchTerms": [
+          "turkey eggs"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       }
     ],
+    "searchTerms": [
+      "egg",
+      "eggs",
+      "hatching egg",
+      "fertilised egg",
+      "fertilised eggs",
+      "incubation",
+      "turkey",
+      "goose",
+      "geese",
+      "poultry"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "04071911",
       "0407191100"
@@ -2549,24 +4378,43 @@
         "id": "hatching-eggs-other-poultry-aix-spp",
         "label": "Aix spp.",
         "commonName": "Perching ducks",
+        "searchTerms": [
+          "wood duck",
+          "mandarin duck"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-same-code"
       },
       {
         "id": "hatching-eggs-other-poultry-anas-spp",
         "label": "Anas spp.",
         "commonName": "Dabbling ducks",
+        "searchTerms": [
+          "mallard",
+          "duck eggs"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-same-code"
       },
       {
         "id": "hatching-eggs-other-poultry-colombiformes",
         "label": "Colombiformes",
         "commonName": "Pigeons and doves",
+        "searchTerms": [
+          "columbiformes"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-same-code"
       },
       {
         "id": "hatching-eggs-other-poultry-numida-meleagris",
         "label": "Numida meleagris",
         "commonName": "Helmeted guineafowl",
+        "searchTerms": [
+          "guineafowl",
+          "guinea fowl"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-same-code"
       },
       {
@@ -2576,6 +4424,20 @@
         "commonNameSource": "defra-same-code"
       }
     ],
+    "searchTerms": [
+      "egg",
+      "eggs",
+      "hatching egg",
+      "fertilised egg",
+      "fertilised eggs",
+      "incubation",
+      "duck",
+      "duck eggs",
+      "guinea fowl",
+      "guineafowl",
+      "poultry"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "04071919",
       "0407191900"
@@ -2592,48 +4454,83 @@
         "id": "hatching-eggs-other-birds-aix-spp",
         "label": "Aix spp.",
         "commonName": "Perching ducks",
+        "searchTerms": [
+          "wood duck",
+          "mandarin duck"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "hatching-eggs-other-birds-anas-spp",
         "label": "Anas spp.",
         "commonName": "Dabbling ducks",
+        "searchTerms": [
+          "mallard"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "hatching-eggs-other-birds-anser-spp",
         "label": "Anser spp.",
         "commonName": "Geese",
+        "searchTerms": [
+          "anser"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "hatching-eggs-other-birds-corvus-splendens",
         "label": "Corvus splendens",
         "commonName": "House crow",
+        "searchTerms": [
+          "indian house crow"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "hatching-eggs-other-birds-gallus-gallus",
         "label": "Gallus gallus",
         "commonName": "Chicken",
+        "searchTerms": [
+          "red junglefowl"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "hatching-eggs-other-birds-meleagris-gallopavo",
         "label": "Meleagris gallopavo",
         "commonName": "Turkey",
+        "searchTerms": [
+          "wild turkey"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "hatching-eggs-other-birds-numida-meleagris",
         "label": "Numida meleagris",
         "commonName": "Helmeted guineafowl",
+        "searchTerms": [
+          "numida"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "hatching-eggs-other-birds-other-aves",
         "label": "Other aves",
         "commonName": "Other birds",
+        "searchTerms": [
+          "aves",
+          "bird",
+          "birds"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
@@ -2646,15 +4543,41 @@
         "id": "hatching-eggs-other-birds-phasianidae",
         "label": "Phasianidae",
         "commonName": "Pheasants and partridges",
+        "searchTerms": [
+          "pheasant",
+          "partridge",
+          "quail"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "hatching-eggs-other-birds-threskiornis-aethiopicus",
         "label": "Threskiornis aethiopicus",
         "commonName": "African sacred ibis",
+        "searchTerms": [
+          "sacred ibis",
+          "ibis"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       }
     ],
+    "searchTerms": [
+      "egg",
+      "eggs",
+      "hatching egg",
+      "fertilised egg",
+      "fertilised eggs",
+      "incubation",
+      "bird",
+      "birds",
+      "pheasant",
+      "partridge",
+      "quail",
+      "game bird"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "04071990",
       "0407199000"
@@ -2671,102 +4594,201 @@
         "id": "circus-animals-antilocapridae",
         "label": "Antilocapridae",
         "commonName": "Pronghorns",
+        "searchTerms": [
+          "pronghorn"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-bovidae",
         "label": "Bovidae",
         "commonName": "Cattle, antelopes, sheep and goats",
+        "searchTerms": [
+          "cattle",
+          "antelope",
+          "buffalo",
+          "bison",
+          "goat",
+          "sheep"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-camelidae",
         "label": "Camelidae",
         "commonName": "Camels and llamas",
+        "searchTerms": [
+          "camel",
+          "camels",
+          "llama",
+          "alpaca"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-carnivora",
         "label": "Carnivora",
         "commonName": "Carnivores (cats, dogs, bears and relatives)",
+        "searchTerms": [
+          "lion",
+          "tiger",
+          "bear",
+          "carnivore",
+          "carnivores"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-cervidae",
         "label": "Cervidae",
         "commonName": "Deer",
+        "searchTerms": [
+          "reindeer"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-chiroptera",
         "label": "Chiroptera",
         "commonName": "Bats",
+        "searchTerms": [
+          "bat"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "circus-animals-crocodylia",
         "label": "Crocodylia",
         "commonName": "Crocodilians",
+        "searchTerms": [
+          "crocodile",
+          "crocodiles",
+          "alligator",
+          "caiman"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "circus-animals-dasyuromorphia",
         "label": "Dasyuromorphia",
         "commonName": "Carnivorous marsupials",
+        "searchTerms": [
+          "tasmanian devil",
+          "quoll"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "circus-animals-dermopterae",
         "label": "Dermopterae",
         "commonName": "Colugos (flying lemurs)",
+        "searchTerms": [
+          "dermoptera",
+          "colugo",
+          "flying lemur"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-diprotodontia",
         "label": "Diprotodontia",
         "commonName": "Diprotodont marsupials",
+        "searchTerms": [
+          "kangaroo",
+          "wallaby",
+          "koala",
+          "wombat"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "circus-animals-giraffidae",
         "label": "Giraffidae",
         "commonName": "Giraffes and okapis",
+        "searchTerms": [
+          "giraffe",
+          "giraffes",
+          "okapi"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-hippopotamidae",
         "label": "Hippopotamidae",
         "commonName": "Hippos",
+        "searchTerms": [
+          "hippopotamus",
+          "hippo"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-hyracoidae",
         "label": "Hyracoidae",
         "commonName": "Hyraxes",
+        "searchTerms": [
+          "hyracoidea",
+          "hyrax"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-insectivorae",
         "label": "Insectivorae",
         "commonName": "Insectivores (hedgehogs, shrews and moles)",
+        "searchTerms": [
+          "insectivora",
+          "hedgehog",
+          "shrew"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-lagomorpha",
         "label": "Lagomorpha",
         "commonName": "Rabbits, hares and pikas",
+        "searchTerms": [
+          "rabbit",
+          "hare"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "circus-animals-macroscelidaes",
         "label": "Macroscelidaes",
         "commonName": "Elephant shrews (sengis)",
+        "searchTerms": [
+          "macroscelidea",
+          "elephant shrew",
+          "sengi"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-monotremata",
         "label": "Monotremata",
         "commonName": "Monotremes",
+        "searchTerms": [
+          "echidna",
+          "platypus"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
@@ -2779,93 +4801,185 @@
         "id": "circus-animals-peramelemorphia",
         "label": "Peramelemorphia",
         "commonName": "Bandicoots and bilbies",
+        "searchTerms": [
+          "bandicoot",
+          "bilby"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "circus-animals-perissodactyla",
         "label": "Perissodactyla",
         "commonName": "Odd-toed ungulates (horses, rhinos and tapirs)",
+        "searchTerms": [
+          "horse",
+          "zebra",
+          "rhinoceros",
+          "tapir"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-pholidota",
         "label": "Pholidota",
         "commonName": "Pangolins",
+        "searchTerms": [
+          "pangolin"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "circus-animals-pinnipedae",
         "label": "Pinnipedae",
         "commonName": "Seals, sea lions and walruses",
+        "searchTerms": [
+          "pinnipedia",
+          "seal",
+          "seals",
+          "sea lion",
+          "sea lions",
+          "walrus"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-proboscida",
         "label": "Proboscida",
         "commonName": "Elephants",
+        "searchTerms": [
+          "proboscidea",
+          "elephant"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-rhyncocephalia",
         "label": "Rhyncocephalia",
         "commonName": "Beak-headed reptiles",
+        "searchTerms": [
+          "rhynchocephalia",
+          "tuatara"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "circus-animals-rodentia",
         "label": "Rodentia",
         "commonName": "Rodents",
+        "searchTerms": [
+          "rodent",
+          "mouse",
+          "rat"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "circus-animals-sauria",
         "label": "Sauria",
         "commonName": "Lizards",
+        "searchTerms": [
+          "lizard"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "circus-animals-scandentia",
         "label": "Scandentia",
         "commonName": "Treeshrews",
+        "searchTerms": [
+          "tree shrew",
+          "tree shrews"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "circus-animals-serpentes",
         "label": "Serpentes",
         "commonName": "Snakes",
+        "searchTerms": [
+          "snake"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "circus-animals-tayassuidae",
         "label": "Tayassuidae",
         "commonName": "Peccaries",
+        "searchTerms": [
+          "peccary"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-testudinata",
         "label": "Testudinata",
         "commonName": "Turtles",
+        "searchTerms": [
+          "testudines",
+          "tortoise",
+          "turtle",
+          "terrapin"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "circus-animals-tragulidae",
         "label": "Tragulidae",
         "commonName": "Chevrotains (mouse deer)",
+        "searchTerms": [
+          "chevrotain",
+          "chevrotains",
+          "mouse deer"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-tubilidentae",
         "label": "Tubilidentae",
         "commonName": "Aardvarks",
+        "searchTerms": [
+          "tubulidentata",
+          "aardvark"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-xenarthra",
         "label": "Xenarthra",
         "commonName": "Xenarthrans (armadillos, sloths, anteaters)",
+        "searchTerms": [
+          "armadillo",
+          "sloth",
+          "anteater"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       }
     ],
+    "searchTerms": [
+      "circus",
+      "circuses",
+      "menagerie",
+      "menageries",
+      "travelling show",
+      "performing animals",
+      "show animals"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "95081000"
     ],

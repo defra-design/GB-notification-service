@@ -14,6 +14,8 @@ function getCommoditySearchData (commodities) {
       id: commodity.id,
       name: commodity.name,
       code: commodity.code,
+      ...(commodity.searchTerms ? { searchTerms: commodity.searchTerms } : {}),
+      ...(commodity.tariffCodes ? { codes: commodity.tariffCodes } : {}),
       species: (commodity.species || [])
         .slice()
         .sort((a, b) =>
@@ -26,7 +28,8 @@ function getCommoditySearchData (commodities) {
         .map((species) => ({
           id: species.id,
           label: species.label,
-          ...(species.commonName ? { commonName: species.commonName } : {})
+          ...(species.commonName ? { commonName: species.commonName } : {}),
+          ...(species.searchTerms ? { searchTerms: species.searchTerms } : {})
         }))
     }))
 }

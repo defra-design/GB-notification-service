@@ -2,6 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const { test, expect } = require('@playwright/test')
 const dashboardTemplates = require('../../app/data/dashboard-templates')
+const liveCommodities = require('../../app/data/commodities')
 
 const isRecording = process.env.RECORD_BASELINE === '1'
 const fixturesDir = path.join(__dirname, 'fixtures', 'commodity-search')
@@ -191,6 +192,53 @@ for (const version of VERSIONS.filter((item) => ALLOWED_DROPPED_SPECIES_IDS_BY_S
       await search(page, query)
       await expect(page.locator('#commodity-search-results'), `results for "${query}"`).toHaveText('No results found')
     }
+  })
+}
+
+function speciesIdsOfLiveCommodity (commodityId) {
+  return liveCommodities.find((commodity) => commodity.id === commodityId).species.map((species) => species.id).sort()
+}
+
+function speciesIdsUnder (rows, header) {
+  return rows.filter((row) => row.header === header).map((row) => row.speciesId).sort()
+}
+
+for (const version of VERSIONS.filter((item) => item.notificationType !== 'germinal-products')) {
+  test.describe(`commodity search by search term and tariff code on ${version.base || '/'}`, () => {
+    test.beforeEach(async ({ page }) => {
+      await openCommoditySearch(page, version)
+    })
+
+    test('shows the whole Cattle group for "cow"', async ({ page }) => {
+      await search(page, 'cow')
+      const rows = await readResultRows(page)
+
+      expect(speciesIdsUnder(rows, 'Cattle (0102)')).toEqual(speciesIdsOfLiveCommodity('cattle'))
+    })
+
+    test('shows only the matching Duck species for their search term "mallard"', async ({ page }) => {
+      await search(page, 'mallard')
+      const rows = await readResultRows(page)
+      const duckSpeciesIds = speciesIdsUnder(rows, rows.find((row) => row.header.startsWith('Duck ('))?.header)
+
+      expect(duckSpeciesIds).toContain('duck-anas-platyrhynchos')
+      expect(duckSpeciesIds.length).toBeLessThan(speciesIdsOfLiveCommodity('duck').length)
+    })
+
+    test('gives the same rows for "01.02" and "01 02" as for "0102"', async ({ page }) => {
+      const undottedPairs = await searchPairs(page, '0102')
+
+      expect(undottedPairs.length).toBeGreaterThan(0)
+      expect(await searchPairs(page, '01.02')).toEqual(undottedPairs)
+      expect(await searchPairs(page, '01 02')).toEqual(undottedPairs)
+    })
+
+    test('shows the whole Chicken group for its tariff code "01051111"', async ({ page }) => {
+      await search(page, '01051111')
+      const rows = await readResultRows(page)
+
+      expect(speciesIdsUnder(rows, 'Chicken (010511)')).toEqual(speciesIdsOfLiveCommodity('chicken'))
+    })
   })
 }
 

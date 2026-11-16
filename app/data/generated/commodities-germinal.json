@@ -8,9 +8,24 @@
       {
         "id": "cat-embryos-ova-felis-catus",
         "label": "Felis catus",
-        "commonName": "Domestic cat"
+        "commonName": "Domestic cat",
+        "searchTerms": [
+          "felis silvestris catus",
+          "cat"
+        ],
+        "searchTermsSource": "generated"
       }
-    ]
+    ],
+    "searchTerms": [
+      "cat",
+      "cats",
+      "feline",
+      "embryo",
+      "embryos",
+      "ova",
+      "ovum"
+    ],
+    "searchTermsSource": "generated"
   },
   {
     "id": "cat-semen",
@@ -21,9 +36,23 @@
       {
         "id": "cat-semen-felis-catus",
         "label": "Felis catus",
-        "commonName": "Domestic cat"
+        "commonName": "Domestic cat",
+        "searchTerms": [
+          "felis silvestris catus",
+          "cat"
+        ],
+        "searchTermsSource": "generated"
       }
-    ]
+    ],
+    "searchTerms": [
+      "cat",
+      "cats",
+      "feline",
+      "semen",
+      "sperm",
+      "straws"
+    ],
+    "searchTermsSource": "generated"
   },
   {
     "id": "cattle-embryos-ova",
@@ -34,19 +63,48 @@
       {
         "id": "cattle-embryos-ova-bison-bison",
         "label": "Bison bison",
-        "commonName": "Bison bison"
+        "commonName": "Bison bison",
+        "searchTerms": [
+          "american bison",
+          "american buffalo"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "cattle-embryos-ova-bos-taurus",
         "label": "Bos taurus",
-        "commonName": "Domestic cattle"
+        "commonName": "Domestic cattle",
+        "searchTerms": [
+          "cow",
+          "cows",
+          "bull"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "cattle-embryos-ova-bubalus-bubalis",
         "label": "Bubalus bubalis",
-        "commonName": "Water buffalo"
+        "commonName": "Water buffalo",
+        "searchTerms": [
+          "bubalus bubalus",
+          "water buffaloes"
+        ],
+        "searchTermsSource": "generated"
       }
     ],
+    "searchTerms": [
+      "cow",
+      "cows",
+      "bull",
+      "bovine",
+      "buffalo",
+      "bison",
+      "embryo",
+      "embryos",
+      "ova",
+      "ovum"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "05119985",
       "0511998520"
@@ -61,26 +119,59 @@
       {
         "id": "cattle-semen-bison-bison",
         "label": "Bison bison",
-        "commonName": "Bison bison"
+        "commonName": "Bison bison",
+        "searchTerms": [
+          "american bison",
+          "american buffalo"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "cattle-semen-bos-taurus",
         "label": "Bos taurus",
-        "commonName": "Domestic cattle"
+        "commonName": "Domestic cattle",
+        "searchTerms": [
+          "cow",
+          "cows",
+          "bull"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "cattle-semen-bovidae",
-        "label": "Bovidae"
+        "label": "Bovidae",
+        "searchTerms": [
+          "cattle",
+          "bovine",
+          "bovids"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "cattle-semen-bubalus-bubalis",
         "label": "Bubalus bubalis",
         "commonName": "Water buffalo",
         "searchTerms": [
-          "Bubalus bubalus"
-        ]
+          "Bubalus bubalus",
+          "water buffaloes"
+        ],
+        "searchTermsSource": "generated"
       }
     ],
+    "searchTerms": [
+      "cow",
+      "cows",
+      "bull",
+      "bulls",
+      "bovine",
+      "buffalo",
+      "bison",
+      "semen",
+      "sperm",
+      "straws",
+      "insemination"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "05111000",
       "0511100000"
@@ -95,9 +186,24 @@
       {
         "id": "dog-embryos-ova-canis-familiaris",
         "label": "Canis familiaris",
-        "commonName": "Domestic dog"
+        "commonName": "Domestic dog",
+        "searchTerms": [
+          "canis lupus familiaris",
+          "dog"
+        ],
+        "searchTermsSource": "generated"
       }
-    ]
+    ],
+    "searchTerms": [
+      "dog",
+      "dogs",
+      "canine",
+      "embryo",
+      "embryos",
+      "ova",
+      "ovum"
+    ],
+    "searchTermsSource": "generated"
   },
   {
     "id": "dog-semen",
@@ -108,9 +214,23 @@
       {
         "id": "dog-semen-canis-familiaris",
         "label": "Canis familiaris",
-        "commonName": "Domestic dog"
+        "commonName": "Domestic dog",
+        "searchTerms": [
+          "canis lupus familiaris",
+          "dog"
+        ],
+        "searchTermsSource": "generated"
       }
-    ]
+    ],
+    "searchTerms": [
+      "dog",
+      "dogs",
+      "canine",
+      "semen",
+      "sperm",
+      "straws"
+    ],
+    "searchTermsSource": "generated"
   },
   {
     "id": "goat-embryos-ova",
@@ -121,9 +241,24 @@
       {
         "id": "goat-embryos-ova-capra-hircus",
         "label": "Capra hircus",
-        "commonName": "Goat"
+        "commonName": "Goat",
+        "searchTerms": [
+          "capra aegagrus hircus",
+          "goats"
+        ],
+        "searchTermsSource": "generated"
       }
     ],
+    "searchTerms": [
+      "goat",
+      "goats",
+      "caprine",
+      "embryo",
+      "embryos",
+      "ova",
+      "ovum"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "05119985",
       "0511998520"
@@ -138,9 +273,24 @@
       {
         "id": "goat-semen-capra-hircus",
         "label": "Capra hircus",
-        "commonName": "Goat"
+        "commonName": "Goat",
+        "searchTerms": [
+          "capra aegagrus hircus",
+          "goats"
+        ],
+        "searchTermsSource": "generated"
       }
     ],
+    "searchTerms": [
+      "goat",
+      "goats",
+      "billy goat",
+      "caprine",
+      "semen",
+      "sperm",
+      "straws"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "05119985",
       "0511998510"
@@ -155,17 +305,37 @@
       {
         "id": "horse-embryos-ova-equus-asinus",
         "label": "Equus asinus",
-        "commonName": "Donkey"
+        "commonName": "Donkey",
+        "searchTerms": [
+          "equus africanus asinus",
+          "donkeys"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "horse-embryos-ova-equus-cabalus",
         "label": "Equus cabalus",
         "commonName": "Horse",
         "searchTerms": [
-          "Equus caballus"
-        ]
+          "Equus caballus",
+          "horses"
+        ],
+        "searchTermsSource": "generated"
       }
     ],
+    "searchTerms": [
+      "horse",
+      "horses",
+      "pony",
+      "mare",
+      "donkey",
+      "equine",
+      "embryo",
+      "embryos",
+      "ova",
+      "ovum"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "05119985",
       "0511998520"
@@ -180,17 +350,36 @@
       {
         "id": "horse-semen-equus-asinus",
         "label": "Equus asinus",
-        "commonName": "Donkey"
+        "commonName": "Donkey",
+        "searchTerms": [
+          "equus africanus asinus",
+          "donkeys"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "horse-semen-equus-cabalus",
         "label": "Equus cabalus",
         "commonName": "Horse",
         "searchTerms": [
-          "Equus caballus"
-        ]
+          "Equus caballus",
+          "horses"
+        ],
+        "searchTermsSource": "generated"
       }
     ],
+    "searchTerms": [
+      "horse",
+      "horses",
+      "pony",
+      "stallion",
+      "donkey",
+      "equine",
+      "semen",
+      "sperm",
+      "straws"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "05119985",
       "0511998510"
@@ -207,10 +396,25 @@
         "label": "Sus scrofa domesticus",
         "commonName": "Pig",
         "searchTerms": [
-          "Sus crofa domesticus"
-        ]
+          "Sus crofa domesticus",
+          "sus scrofa",
+          "pigs"
+        ],
+        "searchTermsSource": "generated"
       }
     ],
+    "searchTerms": [
+      "pig",
+      "pigs",
+      "swine",
+      "sow",
+      "porcine",
+      "embryo",
+      "embryos",
+      "ova",
+      "ovum"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "05119985",
       "0511998520"
@@ -225,9 +429,25 @@
       {
         "id": "pig-semen-sus-scrofa",
         "label": "Sus scrofa domesticus",
-        "commonName": "Pig"
+        "commonName": "Pig",
+        "searchTerms": [
+          "sus scrofa",
+          "pigs",
+          "boar"
+        ],
+        "searchTermsSource": "generated"
       }
     ],
+    "searchTerms": [
+      "pig",
+      "pigs",
+      "swine",
+      "boar",
+      "porcine",
+      "semen",
+      "sperm"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "05119985",
       "0511998510"
@@ -241,9 +461,31 @@
     "species": [
       {
         "id": "rabbit-rodent-semen",
-        "label": "Rabbit/Rodent"
+        "label": "Rabbit/Rodent",
+        "searchTerms": [
+          "rabbit",
+          "rodent",
+          "mouse",
+          "rat"
+        ],
+        "searchTermsSource": "generated"
       }
-    ]
+    ],
+    "searchTerms": [
+      "rabbit",
+      "rabbits",
+      "rodent",
+      "rodents",
+      "mouse",
+      "mice",
+      "rat",
+      "rats",
+      "guinea pig",
+      "hamster",
+      "semen",
+      "sperm"
+    ],
+    "searchTermsSource": "generated"
   },
   {
     "id": "sheep-embryos-ova",
@@ -254,9 +496,24 @@
       {
         "id": "sheep-embryos-ova-ovis-aries",
         "label": "Ovis aries",
-        "commonName": "Sheep"
+        "commonName": "Sheep",
+        "searchTerms": [
+          "domestic sheep",
+          "ewe"
+        ],
+        "searchTermsSource": "generated"
       }
     ],
+    "searchTerms": [
+      "sheep",
+      "ewe",
+      "ovine",
+      "embryo",
+      "embryos",
+      "ova",
+      "ovum"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "05119985",
       "0511998520"
@@ -271,9 +528,24 @@
       {
         "id": "sheep-semen-ovis-aries",
         "label": "Ovis aries",
-        "commonName": "Sheep"
+        "commonName": "Sheep",
+        "searchTerms": [
+          "domestic sheep",
+          "ram"
+        ],
+        "searchTermsSource": "generated"
       }
     ],
+    "searchTerms": [
+      "sheep",
+      "ram",
+      "rams",
+      "ovine",
+      "semen",
+      "sperm",
+      "straws"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "05119985",
       "0511998510"
@@ -289,9 +561,31 @@
         "id": "amphibian-embryos-ova-amphibia",
         "label": "Amphibia",
         "commonName": "Amphibians",
+        "searchTerms": [
+          "amphibian",
+          "frog",
+          "toad",
+          "newt"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       }
     ],
+    "searchTerms": [
+      "amphibian",
+      "amphibians",
+      "frog",
+      "frogs",
+      "toad",
+      "newt",
+      "salamander",
+      "spawn",
+      "embryo",
+      "embryos",
+      "ova",
+      "eggs"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "05119985",
       "0511998590"
@@ -309,9 +603,30 @@
         "id": "arachnid-embryos-ova-arachnida",
         "label": "Arachnida",
         "commonName": "Arachnids",
+        "searchTerms": [
+          "arachnid",
+          "spider",
+          "tarantula",
+          "scorpion"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "generated"
       }
     ],
+    "searchTerms": [
+      "arachnid",
+      "arachnids",
+      "spider",
+      "spiders",
+      "tarantula",
+      "scorpion",
+      "scorpions",
+      "embryo",
+      "embryos",
+      "ova",
+      "eggs"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "05119985",
       "0511998590"
@@ -329,33 +644,75 @@
         "id": "reptile-embryos-ova-crocodylia",
         "label": "Crocodylia",
         "commonName": "Crocodilians",
+        "searchTerms": [
+          "crocodile",
+          "alligator",
+          "caiman"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "reptile-embryos-ova-rhyncocephalia",
         "label": "Rhyncocephalia",
         "commonName": "Beak-headed reptiles",
+        "searchTerms": [
+          "rhynchocephalia",
+          "tuatara"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "reptile-embryos-ova-sauria",
         "label": "Sauria",
         "commonName": "Lizards",
+        "searchTerms": [
+          "lizard"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "reptile-embryos-ova-serpentes",
         "label": "Serpentes",
         "commonName": "Snakes",
+        "searchTerms": [
+          "snake"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       },
       {
         "id": "reptile-embryos-ova-testudinata",
         "label": "Testudinata",
         "commonName": "Turtles",
+        "searchTerms": [
+          "testudines",
+          "tortoise",
+          "turtle",
+          "terrapin"
+        ],
+        "searchTermsSource": "generated",
         "commonNameSource": "defra-other-code"
       }
     ],
+    "searchTerms": [
+      "reptile",
+      "reptiles",
+      "snake",
+      "snakes",
+      "lizard",
+      "lizards",
+      "tortoise",
+      "turtle",
+      "crocodile",
+      "embryo",
+      "embryos",
+      "ova",
+      "eggs"
+    ],
+    "searchTermsSource": "generated",
     "tariffCodes": [
       "05119985",
       "0511998590"

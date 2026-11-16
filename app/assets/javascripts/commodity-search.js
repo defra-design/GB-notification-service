@@ -49,16 +49,26 @@ function textMatchesQuery (text, query) {
 }
 
 function speciesMatchesQuery (species, query) {
-  const searchable = [species.label, species.commonName].filter(Boolean)
+  const searchable = [species.label, species.commonName, ...(species.searchTerms || [])].filter(Boolean)
 
   return searchable.some((value) => textMatchesQuery(value, query))
 }
 
-function commodityNameOrCodeMatches (commodity, query) {
-  const normalisedQuery = query.toLowerCase()
-  const code = commodity.code.toLowerCase()
+function codeMatchesQuery (commodity, query) {
+  const codeQuery = query.toLowerCase().replace(/[.\s]/g, '')
 
-  return textMatchesQuery(commodity.name, query) || code.startsWith(normalisedQuery)
+  if (!codeQuery) {
+    return false
+  }
+
+  return [commodity.code, ...(commodity.codes || [])]
+    .some((code) => code.toLowerCase().startsWith(codeQuery))
+}
+
+function commodityMatchesQuery (commodity, query) {
+  const names = [commodity.name, ...(commodity.searchTerms || [])]
+
+  return names.some((name) => textMatchesQuery(name, query)) || codeMatchesQuery(commodity, query)
 }
 
 function getFilteredSpecies (commodity, query) {
@@ -66,7 +76,7 @@ function getFilteredSpecies (commodity, query) {
     return []
   }
 
-  if (commodityNameOrCodeMatches(commodity, query)) {
+  if (commodityMatchesQuery(commodity, query)) {
     return commodity.species
   }
 

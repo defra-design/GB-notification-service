@@ -34,10 +34,10 @@ const SHARED_MATCH_KEY_SPECIES_IDS = new Set([
 ])
 
 const COMMODITY_KEYS = new Set([
-  'id', 'name', 'code', 'isGerminalProduct', 'species', 'searchTerms', 'tariffCodes', 'nameSource', 'tariffDescription'
+  'id', 'name', 'code', 'isGerminalProduct', 'species', 'searchTerms', 'searchTermsSource', 'tariffCodes', 'nameSource', 'tariffDescription'
 ])
 const SPECIES_KEYS = new Set([
-  'id', 'label', 'commonName', 'searchTerms', 'commonNameSource', 'labelSource'
+  'id', 'label', 'commonName', 'searchTerms', 'searchTermsSource', 'commonNameSource', 'labelSource'
 ])
 
 const FROZEN_COMMODITY_FIELDS = new Set(['id', 'name', 'code', 'isGerminalProduct', 'species'])
@@ -387,6 +387,29 @@ function checkNewCommodities (lists, baselineCommodityIds, failures) {
   }
 }
 
+function checkSearchTerms (record, failures) {
+  if (record.searchTermsSource !== undefined && record.searchTermsSource !== 'generated') {
+    failures.push(`${record.id}: searchTermsSource ${JSON.stringify(record.searchTermsSource)} is not "generated"`)
+  }
+
+  if (record.searchTermsSource && !record.searchTerms?.length) {
+    failures.push(`${record.id}: searchTermsSource is set with no searchTerms`)
+  }
+
+  for (const term of record.searchTerms || []) {
+    if (!/^[\x20-\x7e]+$/.test(term) || term.trim() !== term) {
+      failures.push(`${record.id}: search term ${JSON.stringify(term)} is not trimmed ASCII`)
+    }
+  }
+}
+
+function checkAllSearchTerms (lists, failures) {
+  for (const commodity of allCommodities(lists)) {
+    checkSearchTerms(commodity, failures)
+    commodity.species.forEach((species) => checkSearchTerms(species, failures))
+  }
+}
+
 function checkUniqueCommodityNames (lists, failures) {
   for (const [listName, list] of Object.entries(lists)) {
     const idsByName = new Map()
@@ -419,6 +442,7 @@ function runChecks () {
   checkNewSpecies(lists, baselineSpeciesIds, failures)
   checkNewCommodities(lists, baselineCommodityIds, failures)
   checkUniqueCommodityNames(lists, failures)
+  checkAllSearchTerms(lists, failures)
   checkGeneratedKeys(failures)
 
   const speciesCount = (list) => list.reduce((total, commodity) => total + commodity.species.length, 0)
