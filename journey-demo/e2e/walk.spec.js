@@ -25,6 +25,44 @@ const {
 
 const STEP_PAUSE_HUB = 1400 // pause so viewers can read the task list
 
+// Fills the journey from commodity details through to the contact address,
+// pinning that each conditional branch appeared (or didn't). Ends on the review.
+async function completeFromConsignmentDetails (page, journey) {
+  await fillConsignmentDetails(page, journey)
+
+  // Conditional — animal identification (inserted for species with identifiers)
+  if (journey.hasAnimalIdentification) {
+    await expect(page).toHaveURL(/\/animal-identification-details$/)
+    await fillAnimalIdentification(page, journey)
+  } else {
+    await expect(page).not.toHaveURL(/\/animal-identification-details$/)
+  }
+
+  await fillAdditionalAnimalDetails(page, journey)
+
+  // Section 2 — arrival + transport
+  await fillArrivalDetails(page, journey)
+
+  // Conditional — transit countries (inserted for rail / road vehicle)
+  if (journey.transitCountry) {
+    await expect(page).toHaveURL(/\/transit-countries$/)
+    await fillTransitCountries(page, journey)
+  } else {
+    await expect(page).not.toHaveURL(/\/transit-countries$/)
+  }
+
+  await fillTransporter(page, journey)
+  await fillUploadDocuments(page)
+
+  // Section 3 — roles and addresses
+  await expect(page).toHaveURL(/\/roles-and-addresses$/)
+  if (journey.addressSections) {
+    await fillAddressSections(page, journey)
+  }
+  await fillRolesAndAddresses(page)
+  await fillContactAddress(page, journey)
+}
+
 // One demo walk per journey variant. The video + trace are the deliverable;
 // the assertions only pin that each conditional branch appeared (or didn't) and
 // that the journey reached the confirmation page.
@@ -39,39 +77,7 @@ for (const journey of JOURNEYS) {
       await fillOrigin(page, journey)
       await fillCommodity(page, journey)
       await fillReason(page, journey)
-      await fillConsignmentDetails(page, journey)
-
-      // Conditional — animal identification (inserted for species with identifiers)
-      if (journey.hasAnimalIdentification) {
-        await expect(page).toHaveURL(/\/animal-identification-details$/)
-        await fillAnimalIdentification(page, journey)
-      } else {
-        await expect(page).not.toHaveURL(/\/animal-identification-details$/)
-      }
-
-      await fillAdditionalAnimalDetails(page, journey)
-
-      // Section 2 — arrival + transport
-      await fillArrivalDetails(page, journey)
-
-      // Conditional — transit countries (inserted for rail / road vehicle)
-      if (journey.transitCountry) {
-        await expect(page).toHaveURL(/\/transit-countries$/)
-        await fillTransitCountries(page, journey)
-      } else {
-        await expect(page).not.toHaveURL(/\/transit-countries$/)
-      }
-
-      await fillTransporter(page, journey)
-      await fillUploadDocuments(page)
-
-      // Section 3 — roles, addresses and declaration
-      await expect(page).toHaveURL(/\/roles-and-addresses$/)
-      if (journey.addressSections) {
-        await fillAddressSections(page, journey)
-      }
-      await fillRolesAndAddresses(page)
-      await fillContactAddress(page, journey)
+      await completeFromConsignmentDetails(page, journey)
       await fillReview(page)
 
       await expect(page).toHaveURL(/\/declaration$/)
@@ -86,9 +92,9 @@ for (const journey of JOURNEYS) {
 }
 
 // Task-list walk: part-fill the journey, save to the hub to surface the task
-// list, then submit straight from the task list.
+// list, then finish the remaining sections and submit from the review.
 test.describe('walk — task list (save to the hub and submit)', () => {
-  test('saves progress to the hub, then submits from the task list', async ({ page }) => {
+  test('saves progress to the hub, completes the remaining sections and submits', async ({ page }) => {
     const journey = JOURNEYS[0] // cattle
 
     await resetSession(page)
@@ -109,7 +115,10 @@ test.describe('walk — task list (save to the hub and submit)', () => {
     await expect(page.getByRole('link', { name: 'Roles and addresses' })).toBeVisible()
     await pause(page, STEP_PAUSE_HUB)
 
-    // Review and submit from here.
+    await page.goto('/consignment-details')
+    await completeFromConsignmentDetails(page, journey)
+
+    // Review and submit from the task list.
     await page.goto('/review-notification')
     await pause(page, STEP_PAUSE_HUB)
     await fillReview(page)

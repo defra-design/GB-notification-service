@@ -1,12 +1,11 @@
 //
 // Page-object helpers for the notification journey demo walk.
 //
-// The prototype's server-side validation is almost entirely stubbed — only
-// /declaration blocks progress — but this walk fills each page as a user would
-// so the recorded video/trace reads as a genuine journey. Data-driven variants
-// exercise the journey's conditional branches and sub-journeys:
-//   - cattle + air   → animal identification + all address sub-sections (a
-//                      complete notification); transit skipped
+// The walk fills each page as a user would so the recorded video/trace reads
+// as a genuine journey. Data-driven variants exercise the journey's
+// conditional branches and sub-journeys:
+//   - cattle + air   → animal identification + all address sub-sections;
+//                      transit skipped
 //   - poultry + rail → transit-countries branch; animal identification skipped
 //   - cat + air      → animal identification + permanent-address sub-journey
 //
@@ -17,7 +16,7 @@ const { expect } = require('@playwright/test')
 const CORE_ADDRESS_SECTIONS = [
   { href: '/place-of-origin', kind: 'radio', field: 'placeOfOriginAddressId', value: 'green-valley-livestock-farm' },
   { href: '/consignor-or-exporter', kind: 'radio', field: 'consignorAddressId', value: 'nordic-livestock-export' },
-  { href: '/consignee', kind: 'radio', field: 'consigneeAddressId', value: 'northern-livestock-imports' },
+  { href: '/consignee', kind: 'radio', field: 'consigneeAddressId', value: 'northern-livestock-imports-consignee' },
   { href: '/importer', kind: 'radio', field: 'importerAddressId', value: 'britannia-trade-livestock' },
   { href: '/place-of-destination', kind: 'radio', field: 'placeOfDestinationAddressId', value: 'riverside-holding-facility' }
 ]
@@ -30,6 +29,7 @@ const JOURNEYS = [
     reference: 'DEMO-CATTLE-001',
     species: { search: 'cattle', id: 'cattle-bos-taurus' },
     reason: 'Internal market',
+    internalMarketPurpose: 'Slaughter',
     animalCount: '2',
     hasAnimalIdentification: true,
     unweaned: 'No',
@@ -49,17 +49,18 @@ const JOURNEYS = [
     reference: 'DEMO-POULTRY-002',
     species: { search: 'chicken', id: 'chicken-gallus-domesticus' },
     reason: 'Internal market',
+    internalMarketPurpose: 'Production',
     animalCount: '400',
     hasAnimalIdentification: false,
     unweaned: null,
-    certificationPurpose: null,
-    port: null,
+    certificationPurpose: 'Slaughter',
+    port: { search: 'Folkestone', option: 'Folkestone' },
     meansOfTransport: 'Rail',
     transportId: 'EU-RAIL-77',
     transitCountry: { search: 'France', option: 'France' },
     transporterId: 'danish-meat-export',
     contactAddressId: 'aberdeen-livestock-harbour-road',
-    addressSections: null
+    addressSections: [...CORE_ADDRESS_SECTIONS, { href: '/cph-number', kind: 'cph' }]
   },
   {
     id: 'cat-permanent-address',
@@ -68,10 +69,11 @@ const JOURNEYS = [
     reference: 'DEMO-PET-003',
     species: { search: 'felis', id: 'cat-felis-catus' },
     reason: 'Internal market',
+    internalMarketPurpose: 'Transfer of ownership - Sale/gift',
     animalCount: '1',
     hasAnimalIdentification: true,
     unweaned: null,
-    certificationPurpose: null,
+    certificationPurpose: 'Further keeping',
     port: { search: 'Heathrow', option: 'London Heathrow' },
     meansOfTransport: 'Air',
     transportId: 'BA0456',
@@ -217,6 +219,7 @@ async function fillCommodity (page, journey) {
 
 async function fillReason (page, journey) {
   await pickRadio(page, 'importReason', journey.reason)
+  await pickRadio(page, 'internalMarketPurpose', journey.internalMarketPurpose)
   await clickContinue(page)
 }
 
@@ -232,7 +235,8 @@ async function fillConsignmentDetails (page, journey) {
 }
 
 // Enters identifiers for each animal (fills the visible identifier fields and
-// saves), then advances. Filling all animals leaves the section complete.
+// saves when the page offers a save per animal), then advances. Filling all
+// animals leaves the section complete.
 async function fillAnimalIdentification (page, journey) {
   const animals = Number(journey.animalCount) || 1
   for (let a = 0; a < animals; a += 1) {
@@ -243,7 +247,9 @@ async function fillAnimalIdentification (page, journey) {
       await typeInto(fields.nth(i), `UK-${journey.species.id}-${a + 1}-${i + 1}`)
       await pause(page, FIELD_PAUSE)
     }
-    await clickAt(page.locator('button[name="action"][value^="save:"]').first())
+    const saveAnimal = page.locator('button[name="action"][value^="save:"]')
+    if (!(await saveAnimal.count())) break
+    await clickAt(saveAnimal.first())
     await pause(page, STEP_PAUSE)
   }
   await clickAt(page.locator('button[name="action"][value="continue"]').first())
@@ -260,9 +266,15 @@ async function fillAdditionalAnimalDetails (page, journey) {
   await clickContinue(page)
 }
 
+function arrivalDateNextWeek () {
+  const date = new Date()
+  date.setDate(date.getDate() + 7)
+  return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`
+}
+
 async function fillArrivalDetails (page, journey) {
   const dateInput = page.locator('input[name="arrivalDateAtPort"]')
-  await typeInto(dateInput, '27/8/2026')
+  await typeInto(dateInput, arrivalDateNextWeek())
   await pause(page, FIELD_PAUSE)
   // Close the MOJ date picker so its calendar can't overlay the port dropdown.
   await dateInput.press('Escape')
@@ -271,6 +283,7 @@ async function fillArrivalDetails (page, journey) {
   }
   await selectValue(page, 'meansOfTransport', journey.meansOfTransport)
   await fillText(page, 'transportIdentification', journey.transportId)
+  await fillText(page, 'transportDocumentReference', `DOC-${journey.transportId}`)
   await clickContinue(page)
 }
 

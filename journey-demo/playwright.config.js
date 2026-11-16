@@ -1,6 +1,8 @@
 const path = require('path')
 const { defineConfig, devices } = require('@playwright/test')
 
+const port = Number(process.env.PROTOTYPE_PORT || 3000)
+
 // This suite exists to DEMONSTRATE the notification journey — the video and
 // trace are the deliverable, not the assertions. Pacing is controlled by
 // DEMO_SLOWMO (ms per action); the demo script sets it to a watchable speed.
@@ -22,7 +24,7 @@ module.exports = defineConfig({
     ['list']
   ],
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: `http://localhost:${port}`,
     actionTimeout: 15_000,
     navigationTimeout: 30_000,
     // Pacing is done explicitly in the specs (natural typing + short pauses on
@@ -52,7 +54,8 @@ module.exports = defineConfig({
     // Wait on the TCP port rather than an HTTP GET: the kit's server accepts
     // connections well before an HTTP probe settles under Node 24, so a port
     // check is both faster and reliable here.
-    port: 3000,
+    port,
+    env: { PORT: String(port) },
     timeout: 180_000,
     reuseExistingServer: !process.env.CI
   }
