@@ -6,8 +6,6 @@ const repoRoot = path.join(__dirname, '..', '..')
 const baselinePath = path.join(__dirname, 'baseline', 'prototype-baseline.json')
 const generatedDir = path.join(repoRoot, 'app/data/generated')
 
-const FISH_CODES_EXCLUDED = false
-
 const FIXED_SPECIES_IDS = [
   'cattle-bison-bison',
   'cattle-bos-taurus',
@@ -251,14 +249,23 @@ function checkSpeciesMatchKeys (commodity, failures) {
   }
 }
 
-function checkCode (commodity, failures) {
-  const excludedFishCodes = ['05119190', '0511911000']
+function isFishCode (code) {
+  return code.startsWith('03') || ['05119190', '0511911000'].includes(code)
+}
 
+function keepNonFishCommodities (lists) {
+  return {
+    live: lists.live.filter((commodity) => !isFishCode(commodity.code)),
+    germinal: lists.germinal.filter((commodity) => !isFishCode(commodity.code))
+  }
+}
+
+function checkCode (commodity, failures) {
   if (!/^(\d{4}|\d{6}|\d{8})$/.test(commodity.code)) {
     failures.push(`${commodity.id}: code ${commodity.code} is not 4, 6 or 8 digits`)
   }
 
-  if (FISH_CODES_EXCLUDED && (commodity.code.startsWith('03') || excludedFishCodes.includes(commodity.code))) {
+  if (isFishCode(commodity.code)) {
     failures.push(`${commodity.id}: code ${commodity.code} is a fish code`)
   }
 }
@@ -377,7 +384,7 @@ function checkSameAsBaseline (baseline, lists, failures) {
 }
 
 function runChecks ({ sameAsBaseline }) {
-  const baseline = readJson(baselinePath)
+  const baseline = keepNonFishCommodities(readJson(baselinePath))
   const lists = readCurrentLists()
   const baselineSpeciesIds = new Set(allCommodities(baseline).flatMap((commodity) => commodity.species.map((species) => species.id)))
   const failures = []

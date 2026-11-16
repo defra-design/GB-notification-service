@@ -25,6 +25,13 @@ const VERSIONS = [
   )
 ]
 
+const FISH_SPECIES_IDS = ['fish-cyprinidae', 'fish-poeciliidae', 'fish-cichlidae']
+
+const ALLOWED_DROPPED_SPECIES_IDS_BY_SLUG = {
+  root: FISH_SPECIES_IDS,
+  testing: FISH_SPECIES_IDS
+}
+
 const TEMPLATES_BASE = '/design-release-2.1'
 
 function readFixture (name) {
@@ -118,7 +125,8 @@ for (const version of VERSIONS) {
       await openCommoditySearch(page, version)
     })
 
-    test('keeps every recorded result row for each query', async ({ page }) => {
+    test('keeps every recorded result row for each query, except allowed drops', async ({ page }) => {
+      const allowedDrops = new Set(ALLOWED_DROPPED_SPECIES_IDS_BY_SLUG[version.slug] || [])
       const pairsByQuery = {}
 
       for (const query of QUERIES) {
@@ -133,7 +141,9 @@ for (const version of VERSIONS) {
 
       for (const [query, recordedPairs] of Object.entries(recorded)) {
         const current = new Set(pairsByQuery[query].map((pair) => JSON.stringify(pair)))
-        const missing = recordedPairs.filter((pair) => !current.has(JSON.stringify(pair)))
+        const missing = recordedPairs
+          .filter(([, speciesId]) => !allowedDrops.has(speciesId))
+          .filter((pair) => !current.has(JSON.stringify(pair)))
 
         expect(missing, `rows missing for "${query}"`).toEqual([])
       }
@@ -170,6 +180,17 @@ for (const version of VERSIONS) {
         expect(cabalusRows, `Equus cabalus rows under ${header}`).toHaveLength(1)
       }
     })
+  })
+}
+
+for (const version of VERSIONS.filter((item) => ALLOWED_DROPPED_SPECIES_IDS_BY_SLUG[item.slug])) {
+  test(`commodity search on ${version.base || '/'} finds no fish by family or code`, async ({ page }) => {
+    await openCommoditySearch(page, version)
+
+    for (const query of ['Cyprinidae', 'Poeciliidae', 'Cichlidae', '0301']) {
+      await search(page, query)
+      await expect(page.locator('#commodity-search-results'), `results for "${query}"`).toHaveText('No results found')
+    }
   })
 }
 
