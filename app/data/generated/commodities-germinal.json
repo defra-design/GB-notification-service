@@ -46,6 +46,10 @@
         "label": "Bubalus bubalis",
         "commonName": "Water buffalo"
       }
+    ],
+    "tariffCodes": [
+      "05119985",
+      "0511998520"
     ]
   },
   {
@@ -71,8 +75,15 @@
       {
         "id": "cattle-semen-bubalus-bubalis",
         "label": "Bubalus bubalis",
-        "commonName": "Water buffalo"
+        "commonName": "Water buffalo",
+        "searchTerms": [
+          "Bubalus bubalus"
+        ]
       }
+    ],
+    "tariffCodes": [
+      "05111000",
+      "0511100000"
     ]
   },
   {
@@ -112,6 +123,10 @@
         "label": "Capra hircus",
         "commonName": "Goat"
       }
+    ],
+    "tariffCodes": [
+      "05119985",
+      "0511998520"
     ]
   },
   {
@@ -125,6 +140,10 @@
         "label": "Capra hircus",
         "commonName": "Goat"
       }
+    ],
+    "tariffCodes": [
+      "05119985",
+      "0511998510"
     ]
   },
   {
@@ -141,8 +160,15 @@
       {
         "id": "horse-embryos-ova-equus-cabalus",
         "label": "Equus cabalus",
-        "commonName": "Horse"
+        "commonName": "Horse",
+        "searchTerms": [
+          "Equus caballus"
+        ]
       }
+    ],
+    "tariffCodes": [
+      "05119985",
+      "0511998520"
     ]
   },
   {
@@ -159,8 +185,15 @@
       {
         "id": "horse-semen-equus-cabalus",
         "label": "Equus cabalus",
-        "commonName": "Horse"
+        "commonName": "Horse",
+        "searchTerms": [
+          "Equus caballus"
+        ]
       }
+    ],
+    "tariffCodes": [
+      "05119985",
+      "0511998510"
     ]
   },
   {
@@ -172,8 +205,15 @@
       {
         "id": "pig-embryos-ova-sus-scrofa",
         "label": "Sus scrofa domesticus",
-        "commonName": "Pig"
+        "commonName": "Pig",
+        "searchTerms": [
+          "Sus crofa domesticus"
+        ]
       }
+    ],
+    "tariffCodes": [
+      "05119985",
+      "0511998520"
     ]
   },
   {
@@ -187,6 +227,10 @@
         "label": "Sus scrofa domesticus",
         "commonName": "Pig"
       }
+    ],
+    "tariffCodes": [
+      "05119985",
+      "0511998510"
     ]
   },
   {
@@ -212,6 +256,10 @@
         "label": "Ovis aries",
         "commonName": "Sheep"
       }
+    ],
+    "tariffCodes": [
+      "05119985",
+      "0511998520"
     ]
   },
   {
@@ -225,6 +273,94 @@
         "label": "Ovis aries",
         "commonName": "Sheep"
       }
+    ],
+    "tariffCodes": [
+      "05119985",
+      "0511998510"
     ]
+  },
+  {
+    "id": "amphibian-embryos-ova",
+    "name": "Amphibian, Embryos/Ova",
+    "code": "05119985",
+    "isGerminalProduct": true,
+    "species": [
+      {
+        "id": "amphibian-embryos-ova-amphibia",
+        "label": "Amphibia",
+        "commonName": "Amphibian, Embryos/Ova (Amphibia)",
+        "commonNameSource": "generated-fallback"
+      }
+    ],
+    "tariffCodes": [
+      "05119985",
+      "0511998590"
+    ],
+    "nameSource": "pattern",
+    "tariffDescription": "Other / Other / Other / Other"
+  },
+  {
+    "id": "arachnid-embryos-ova",
+    "name": "Arachnid, Embryos/Ova",
+    "code": "05119985",
+    "isGerminalProduct": true,
+    "species": [
+      {
+        "id": "arachnid-embryos-ova-arachnida",
+        "label": "Arachnida",
+        "commonName": "Arachnid, Embryos/Ova (Arachnida)",
+        "commonNameSource": "generated-fallback"
+      }
+    ],
+    "tariffCodes": [
+      "05119985",
+      "0511998590"
+    ],
+    "nameSource": "pattern",
+    "tariffDescription": "Other / Other / Other / Other"
+  },
+  {
+    "id": "reptile-embryos-ova",
+    "name": "Reptile, Embryos/Ova",
+    "code": "05119985",
+    "isGerminalProduct": true,
+    "species": [
+      {
+        "id": "reptile-embryos-ova-crocodylia",
+        "label": "Crocodylia",
+        "commonName": "Crocodilians",
+        "commonNameSource": "defra-other-code"
+      },
+      {
+        "id": "reptile-embryos-ova-rhyncocephalia",
+        "label": "Rhyncocephalia",
+        "commonName": "Beak-headed reptiles",
+        "commonNameSource": "defra-other-code"
+      },
+      {
+        "id": "reptile-embryos-ova-sauria",
+        "label": "Sauria",
+        "commonName": "Lizards",
+        "commonNameSource": "defra-other-code"
+      },
+      {
+        "id": "reptile-embryos-ova-serpentes",
+        "label": "Serpentes",
+        "commonName": "Snakes",
+        "commonNameSource": "defra-other-code"
+      },
+      {
+        "id": "reptile-embryos-ova-testudinata",
+        "label": "Testudinata",
+        "commonName": "Turtles",
+        "commonNameSource": "defra-other-code"
+      }
+    ],
+    "tariffCodes": [
+      "05119985",
+      "0511998590"
+    ],
+    "nameSource": "pattern",
+    "tariffDescription": "Other / Other / Other / Other"
   }
 ]

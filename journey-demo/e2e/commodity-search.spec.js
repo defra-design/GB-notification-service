@@ -239,6 +239,47 @@ test.describe('commodity search selections on /design-release-2.1 (live-animals)
     await expect(speciesValue).toHaveValue('[]')
   })
 
+  test('reaches review with a species block per commodity for one Latin name under two commodities', async ({ page }) => {
+    await selectSpecies(page, 'Gallus gallus', 'chicken-gallus-gallus')
+    await selectSpecies(page, 'Gallus gallus', 'hatching-eggs-chicken-gallus-gallus')
+    await clickContinue(page)
+    await page.goto(`${version.base}/review-notification`)
+
+    const gallusCards = page.locator('.app-dr2-review-commodity-card').filter({
+      has: page.locator('.app-dr2-review-commodity-card__species-heading', { hasText: 'Gallus gallus' })
+    })
+    await expect(gallusCards.locator('.app-dr2-review-card__title')).toHaveText([
+      /^Chicken \(010511\)$/,
+      /^Fertilised eggs for incubation, of fowls of Gallus Domesticus \(04071100\)$/
+    ])
+  })
+
+  test('shows animal identifiers only under the commodity whose species has them, for one Latin name under two commodities', async ({ page }) => {
+    await selectSpecies(page, 'Chiroptera', 'other-live-mammals-17-chiroptera')
+    await selectSpecies(page, 'Chiroptera', 'circus-animals-chiroptera')
+    await clickContinue(page)
+    await page.goto(`${version.base}/consignment-details`)
+    for (const speciesId of ['other-live-mammals-17-chiroptera', 'circus-animals-chiroptera']) {
+      await page.locator(`input[name="numberOfAnimals[${speciesId}]"]`).fill('1')
+    }
+    await clickContinue(page)
+    await expect(page).toHaveURL(/\/animal-identification-details$/)
+    const identifierFields = page.locator('input[name^="identifiers["]')
+    await expect(identifierFields.first()).toBeVisible()
+    for (const field of await identifierFields.all()) {
+      await field.fill('BAT-001')
+    }
+    await page.locator('button[name="action"][value="continue"]').first().click()
+    await page.goto(`${version.base}/review-notification`)
+
+    const cardTitled = (title) => page.locator('.app-dr2-review-commodity-card').filter({
+      has: page.locator('.app-dr2-review-card__title', { hasText: title })
+    })
+    await expect(cardTitled('Other live mammals').locator('.app-dr2-review-identification-table__value').first()).toHaveText('BAT-001')
+    await expect(cardTitled('Travelling circuses').locator('.app-dr2-review-commodity-card__species-heading')).toHaveText(['Chiroptera'])
+    await expect(cardTitled('Travelling circuses').locator('.app-dr2-review-identification-table')).toHaveCount(0)
+  })
+
   test('renders the results for "010" in under 50 ms', async ({ page }) => {
     const renderMs = await page.locator('#commodity-search').evaluate((input) => {
       input.value = '010'

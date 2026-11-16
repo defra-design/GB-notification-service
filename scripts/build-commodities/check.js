@@ -58,7 +58,15 @@ function matchKey (label) {
     ['equus cabalus*asinus', 'equus caballus*asinus'],
     ['eq cabalus*asinus', 'equus caballus*asinus'],
     ['equus cabalus', 'equus caballus'],
-    ['sus crofa', 'sus scrofa']
+    ['equus caballas', 'equus caballus'],
+    ['sus crofa', 'sus scrofa'],
+    ['bubalus bubalus', 'bubalus bubalis'],
+    ['mustela putorius furio', 'mustela putorius furo'],
+    ['otra carnivora', 'other carnivora'],
+    ['otra insecta', 'other insecta'],
+    ['otra lagomorpha', 'other lagomorpha'],
+    ['otra mammalia', 'other mammalia'],
+    ['otra rodentia', 'other rodentia']
   ]
   let key = label.toLowerCase()
 
@@ -316,7 +324,8 @@ function checkNewSpecies (lists, baselineSpeciesIds, failures) {
         failures.push(`${species.id}: commonName ${JSON.stringify(species.commonName)} is not ASCII`)
       }
 
-      if (species.commonName.toLowerCase() === species.label.toLowerCase()) {
+      const labelKey = matchKey(species.label)
+      if ([labelKey, labelKey.replace(/ spp$/, '')].includes(matchKey(species.commonName))) {
         failures.push(`${species.id}: commonName repeats the Latin label`)
       }
 
@@ -366,32 +375,20 @@ function crossCommodityLatinNames (liveList) {
     .map(([key, names]) => `${key}: ${[...names].join(', ')}`)
 }
 
-function checkSameAsBaseline (baseline, lists, failures) {
-  for (const listName of ['live', 'germinal']) {
-    const expected = baseline[listName]
-    const actual = lists[listName]
-
-    if (JSON.stringify(actual) === JSON.stringify(expected)) {
-      continue
+function checkNewCommodities (lists, baselineCommodityIds, failures) {
+  for (const commodity of allCommodities(lists).filter((item) => !baselineCommodityIds.has(item.id))) {
+    if (!commodity.nameSource) {
+      failures.push(`${commodity.id}: new commodity has no nameSource`)
     }
-
-    const firstDifferentIndex = expected.findIndex((commodity, index) =>
-      JSON.stringify(commodity) !== JSON.stringify(actual[index])
-    )
-    const differingPosition = firstDifferentIndex === -1 ? `extra commodity ${actual[expected.length].id}` : expected[firstDifferentIndex].id
-    failures.push(`${listName}: differs from the baseline, first at ${differingPosition}`)
   }
 }
 
-function runChecks ({ sameAsBaseline }) {
+function runChecks () {
   const baseline = keepNonFishCommodities(readJson(baselinePath))
   const lists = readCurrentLists()
   const baselineSpeciesIds = new Set(allCommodities(baseline).flatMap((commodity) => commodity.species.map((species) => species.id)))
+  const baselineCommodityIds = new Set(allCommodities(baseline).map((commodity) => commodity.id))
   const failures = []
-
-  if (sameAsBaseline) {
-    checkSameAsBaseline(baseline, lists, failures)
-  }
 
   checkBaselineList('live', baseline.live, lists.live, failures)
   checkBaselineList('germinal', baseline.germinal, lists.germinal, failures)
@@ -399,6 +396,7 @@ function runChecks ({ sameAsBaseline }) {
   checkUniqueIds(lists, failures)
   checkCommodityRules(lists, failures)
   checkNewSpecies(lists, baselineSpeciesIds, failures)
+  checkNewCommodities(lists, baselineCommodityIds, failures)
   checkGeneratedKeys(failures)
 
   const speciesCount = (list) => list.reduce((total, commodity) => total + commodity.species.length, 0)
@@ -420,4 +418,4 @@ function runChecks ({ sameAsBaseline }) {
   console.log('\nAll commodity checks passed')
 }
 
-runChecks({ sameAsBaseline: process.argv.includes('--same-as-baseline') })
+runChecks()
