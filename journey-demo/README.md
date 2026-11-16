@@ -6,8 +6,8 @@ non-technical audience (product owners, stakeholders) can watch the prototype
 being used end to end.
 
 Everything test-related lives in this `journey-demo/` folder so it stays out of
-the designers' way. The only touch-points in the prototype itself are two
-`npm` scripts and a dev-dependency in the root `package.json`.
+the designers' way. The only touch-points in the prototype itself are the
+`test:*` `npm` scripts and a dev-dependency in the root `package.json`.
 
 ## Running it
 
@@ -100,3 +100,22 @@ walk-throughs reflect recent changes to the prototype:
   context and the prototype keeps state in `req.session.data` (per session), so
   they stay isolated. Text-entry helpers wait for the page to catch up before
   moving on, which keeps the parallel runs reliable.
+- The kit's session store writes each session file in place and deletes any
+  file it cannot parse, so parallel sessions could delete each other's
+  half-written files. `serve-prototype.js` preloads `atomic-session-store.js`,
+  which writes to a temporary file and renames it into place.
+- Set `PROTOTYPE_PORT` to run the suite on a port other than 3000.
+
+## Commodity search spec
+
+`e2e/commodity-search.spec.js` checks that the commodity picker keeps every
+result it shows today. It runs a fixed list of queries on each prototype
+version and compares the (commodity header, species id) pairs with the
+baseline recorded in `e2e/fixtures/commodity-search/`. It also checks the
+hint examples, chips, "Clear all", Escape, the posted selections, render time,
+and the species each dashboard template brings to the consignment page.
+
+```bash
+npm run test:commodity-search          # compare with the recorded baseline
+npm run test:commodity-search:record   # re-record the baseline (run on main)
+```
