@@ -235,6 +235,7 @@ module.exports = [
       commodityCode: '0105',
       commonName: 'Poultry',
       species: 'Gallus gallus',
+      selectedSpecies: ['chicken-gallus-domesticus'],
       reasonForImport: 'Internal market',
       purposeInTheMarket: 'Transfer of ownership - Sale/gift',
       certifiedFor: 'Further keeping',

@@ -1,0 +1,299 @@
+{
+  "cattle": [
+    [
+      "Cattle, Embryos/Ova (05119985)",
+      "cattle-embryos-ova-bison-bison"
+    ],
+    [
+      "Cattle, Embryos/Ova (05119985)",
+      "cattle-embryos-ova-bos-taurus"
+    ],
+    [
+      "Cattle, Embryos/Ova (05119985)",
+      "cattle-embryos-ova-bubalus-bubalis"
+    ],
+    [
+      "Cattle, Semen (05111000)",
+      "cattle-semen-bison-bison"
+    ],
+    [
+      "Cattle, Semen (05111000)",
+      "cattle-semen-bovidae"
+    ],
+    [
+      "Cattle, Semen (05111000)",
+      "cattle-semen-bos-taurus"
+    ],
+    [
+      "Cattle, Semen (05111000)",
+      "cattle-semen-bubalus-bubalis"
+    ]
+  ],
+  "cow": [],
+  "Bos taurus": [
+    [
+      "Cattle, Embryos/Ova (05119985)",
+      "cattle-embryos-ova-bos-taurus"
+    ],
+    [
+      "Cattle, Semen (05111000)",
+      "cattle-semen-bos-taurus"
+    ]
+  ],
+  "0102": [],
+  "01.02": [],
+  "0106": [],
+  "010": [],
+  "semen": [
+    [
+      "Cat, Semen (05119985)",
+      "cat-semen-felis-catus"
+    ],
+    [
+      "Cattle, Semen (05111000)",
+      "cattle-semen-bison-bison"
+    ],
+    [
+      "Cattle, Semen (05111000)",
+      "cattle-semen-bovidae"
+    ],
+    [
+      "Cattle, Semen (05111000)",
+      "cattle-semen-bos-taurus"
+    ],
+    [
+      "Cattle, Semen (05111000)",
+      "cattle-semen-bubalus-bubalis"
+    ],
+    [
+      "Dog, Semen (05119985)",
+      "dog-semen-canis-familiaris"
+    ],
+    [
+      "Goat, Semen (05119985)",
+      "goat-semen-capra-hircus"
+    ],
+    [
+      "Horse, Semen (05119985)",
+      "horse-semen-equus-asinus"
+    ],
+    [
+      "Horse, Semen (05119985)",
+      "horse-semen-equus-cabalus"
+    ],
+    [
+      "Pig, Semen (05119985)",
+      "pig-semen-sus-scrofa"
+    ],
+    [
+      "Rabbit/Rodent, Semen (05119985)",
+      "rabbit-rodent-semen"
+    ],
+    [
+      "Sheep, Semen (05119985)",
+      "sheep-semen-ovis-aries"
+    ]
+  ],
+  "ova": [
+    [
+      "Cat, Embryos/Ova (05119985)",
+      "cat-embryos-ova-felis-catus"
+    ],
+    [
+      "Cattle, Embryos/Ova (05119985)",
+      "cattle-embryos-ova-bison-bison"
+    ],
+    [
+      "Cattle, Embryos/Ova (05119985)",
+      "cattle-embryos-ova-bos-taurus"
+    ],
+    [
+      "Cattle, Embryos/Ova (05119985)",
+      "cattle-embryos-ova-bubalus-bubalis"
+    ],
+    [
+      "Dog, Embryos/Ova (05119985)",
+      "dog-embryos-ova-canis-familiaris"
+    ],
+    [
+      "Goat, Embryos/Ova (05119985)",
+      "goat-embryos-ova-capra-hircus"
+    ],
+    [
+      "Horse, Embryos/Ova (05119985)",
+      "horse-embryos-ova-equus-asinus"
+    ],
+    [
+      "Horse, Embryos/Ova (05119985)",
+      "horse-embryos-ova-equus-cabalus"
+    ],
+    [
+      "Pig, Embryos/Ova (05119985)",
+      "pig-embryos-ova-sus-scrofa"
+    ],
+    [
+      "Sheep, Embryos/Ova (05119985)",
+      "sheep-embryos-ova-ovis-aries"
+    ]
+  ],
+  "embryos": [
+    [
+      "Cat, Embryos/Ova (05119985)",
+      "cat-embryos-ova-felis-catus"
+    ],
+    [
+      "Cattle, Embryos/Ova (05119985)",
+      "cattle-embryos-ova-bison-bison"
+    ],
+    [
+      "Cattle, Embryos/Ova (05119985)",
+      "cattle-embryos-ova-bos-taurus"
+    ],
+    [
+      "Cattle, Embryos/Ova (05119985)",
+      "cattle-embryos-ova-bubalus-bubalis"
+    ],
+    [
+      "Dog, Embryos/Ova (05119985)",
+      "dog-embryos-ova-canis-familiaris"
+    ],
+    [
+      "Goat, Embryos/Ova (05119985)",
+      "goat-embryos-ova-capra-hircus"
+    ],
+    [
+      "Horse, Embryos/Ova (05119985)",
+      "horse-embryos-ova-equus-asinus"
+    ],
+    [
+      "Horse, Embryos/Ova (05119985)",
+      "horse-embryos-ova-equus-cabalus"
+    ],
+    [
+      "Pig, Embryos/Ova (05119985)",
+      "pig-embryos-ova-sus-scrofa"
+    ],
+    [
+      "Sheep, Embryos/Ova (05119985)",
+      "sheep-embryos-ova-ovis-aries"
+    ]
+  ],
+  "05119985": [
+    [
+      "Cat, Embryos/Ova (05119985)",
+      "cat-embryos-ova-felis-catus"
+    ],
+    [
+      "Cat, Semen (05119985)",
+      "cat-semen-felis-catus"
+    ],
+    [
+      "Cattle, Embryos/Ova (05119985)",
+      "cattle-embryos-ova-bison-bison"
+    ],
+    [
+      "Cattle, Embryos/Ova (05119985)",
+      "cattle-embryos-ova-bos-taurus"
+    ],
+    [
+      "Cattle, Embryos/Ova (05119985)",
+      "cattle-embryos-ova-bubalus-bubalis"
+    ],
+    [
+      "Dog, Embryos/Ova (05119985)",
+      "dog-embryos-ova-canis-familiaris"
+    ],
+    [
+      "Dog, Semen (05119985)",
+      "dog-semen-canis-familiaris"
+    ],
+    [
+      "Goat, Embryos/Ova (05119985)",
+      "goat-embryos-ova-capra-hircus"
+    ],
+    [
+      "Goat, Semen (05119985)",
+      "goat-semen-capra-hircus"
+    ],
+    [
+      "Horse, Embryos/Ova (05119985)",
+      "horse-embryos-ova-equus-asinus"
+    ],
+    [
+      "Horse, Embryos/Ova (05119985)",
+      "horse-embryos-ova-equus-cabalus"
+    ],
+    [
+      "Horse, Semen (05119985)",
+      "horse-semen-equus-asinus"
+    ],
+    [
+      "Horse, Semen (05119985)",
+      "horse-semen-equus-cabalus"
+    ],
+    [
+      "Pig, Embryos/Ova (05119985)",
+      "pig-embryos-ova-sus-scrofa"
+    ],
+    [
+      "Pig, Semen (05119985)",
+      "pig-semen-sus-scrofa"
+    ],
+    [
+      "Rabbit/Rodent, Semen (05119985)",
+      "rabbit-rodent-semen"
+    ],
+    [
+      "Sheep, Embryos/Ova (05119985)",
+      "sheep-embryos-ova-ovis-aries"
+    ],
+    [
+      "Sheep, Semen (05119985)",
+      "sheep-semen-ovis-aries"
+    ]
+  ],
+  "horse": [
+    [
+      "Horse, Embryos/Ova (05119985)",
+      "horse-embryos-ova-equus-asinus"
+    ],
+    [
+      "Horse, Embryos/Ova (05119985)",
+      "horse-embryos-ova-equus-cabalus"
+    ],
+    [
+      "Horse, Semen (05119985)",
+      "horse-semen-equus-asinus"
+    ],
+    [
+      "Horse, Semen (05119985)",
+      "horse-semen-equus-cabalus"
+    ]
+  ],
+  "felis": [
+    [
+      "Cat, Embryos/Ova (05119985)",
+      "cat-embryos-ova-felis-catus"
+    ],
+    [
+      "Cat, Semen (05119985)",
+      "cat-semen-felis-catus"
+    ]
+  ],
+  "chicken": [],
+  "Gallus gallus": [],
+  "dog": [
+    [
+      "Dog, Embryos/Ova (05119985)",
+      "dog-embryos-ova-canis-familiaris"
+    ],
+    [
+      "Dog, Semen (05119985)",
+      "dog-semen-canis-familiaris"
+    ]
+  ],
+  "parrot": [],
+  "spp": [],
+  "ca": [],
+  "zzzz": []
+}

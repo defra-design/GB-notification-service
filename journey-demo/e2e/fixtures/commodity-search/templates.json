@@ -1,0 +1,46 @@
+{
+  "arena-aintree": {
+    "commodityLabel": "Horse",
+    "consignmentSpecies": [
+      "Equus cabalus"
+    ]
+  },
+  "rice-lane-city-farm": {
+    "commodityLabel": "Pigs",
+    "consignmentSpecies": [
+      "Sus scrofa domesticus"
+    ]
+  },
+  "monk-park-farm": {
+    "commodityLabel": "Goats and Sheep",
+    "consignmentSpecies": [
+      "Capra hircus",
+      "Ovis aries"
+    ]
+  },
+  "acorn-farm": {
+    "commodityLabel": "Cattle",
+    "consignmentSpecies": [
+      "Bison bison",
+      "Bos taurus"
+    ]
+  },
+  "glen-keen-farm": {
+    "commodityLabel": "Poultry",
+    "consignmentSpecies": [
+      "Gallus domesticus"
+    ]
+  },
+  "friesland-bovine-genetics": {
+    "commodityLabel": "Cattle, Semen",
+    "consignmentSpecies": [
+      "Bos taurus"
+    ]
+  },
+  "normandie-reproduction-equine": {
+    "commodityLabel": "Horse, Embryos/Ova",
+    "consignmentSpecies": [
+      "Equus cabalus"
+    ]
+  }
+}

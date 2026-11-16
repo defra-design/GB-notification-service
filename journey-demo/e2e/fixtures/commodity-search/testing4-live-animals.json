@@ -1,0 +1,1517 @@
+{
+  "cattle": [
+    [
+      "Cattle (0102)",
+      "cattle-11-syncerus-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-8-novibos-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-3-bison-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-bison-bison"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-7-bubalus-spp-including-anoa"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-bos-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-bos-taurus"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-1-bibos-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-9-ovibos-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-bubalus-bubalis"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-10-poephagus-spp"
+    ]
+  ],
+  "cow": [],
+  "Bos taurus": [
+    [
+      "Cattle (0102)",
+      "cattle-bos-taurus"
+    ]
+  ],
+  "0102": [
+    [
+      "Cattle (0102)",
+      "cattle-11-syncerus-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-8-novibos-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-3-bison-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-bison-bison"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-7-bubalus-spp-including-anoa"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-bos-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-bos-taurus"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-1-bibos-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-9-ovibos-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-bubalus-bubalis"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-10-poephagus-spp"
+    ]
+  ],
+  "01.02": [],
+  "0106": [
+    [
+      "Bees (01064100)",
+      "bees-apis-mellifera"
+    ],
+    [
+      "Bees (01064100)",
+      "bees-bombus-spp"
+    ],
+    [
+      "Camel (010613)",
+      "camel-bactrianus"
+    ],
+    [
+      "Camel (010613)",
+      "camel-dromedarius"
+    ],
+    [
+      "Cat (01061900)",
+      "cat-felis-catus"
+    ],
+    [
+      "Dog (01061900)",
+      "dog-canis-familiaris"
+    ],
+    [
+      "Ferret (01061900)",
+      "ferret-mustela-putorius-furo"
+    ],
+    [
+      "Ostrich (010633)",
+      "ostrich-struthio-camelus"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-105-tubilidentae"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-48-loxodonta-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-28-elephas-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-80-peramelemorphia"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-17-chiroptera"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-26-dorcatragus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-85-pseudois-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-24-diceros-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-7-antilope-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-51-mazama-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-29-equus-burchelli"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-13-catagonus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-92-rupicapra-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-43-hyemoschus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-104-tragulus-moschiola-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-60-nasua-nasua"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-22-dermopterae"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-98-sylvicapra-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-58-myocastor-coypus"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-21-dasyuromorphia"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-4-ammodorcas-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-25-diprotodontia"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-14-cephalophus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-61-neotragus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-101-taurotragus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-49-macroscelidaes"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-19-dama-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-102-tetracerus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-96-sciurus-niger"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-34-gazella-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-83-procapra-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-47-litocranius-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-52-megamuntiacus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-35-giraffa-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-59-naemorhedus-spp-including-nemorhaedus-and-capricornis"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-30-equus-grevyi"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-79-pelea-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-95-sciurus-carolinensis"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-2-alcelaphus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-97-sigmoceros-alecelaphus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-40-hippopotamus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-32-equus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-39-hippocamelus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-44-hyracoidae"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-1-aepyceros-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-45-insectivorae"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-67-oreotragus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-46-kobus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-103-tragelaphus-spp-including-boocerus"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-76-panthera-leo"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-9-blastocerus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-53-monotremata"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-3-alces-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-66-oreamuos-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-33-equus-zebra"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-56-muntiacus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-54-moschus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-65-ondatra-zibethicus"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-10-boselaphus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-64-okapia-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-74-ourebia-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-68-oryx-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-69-other-carnivora"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-70-other-lagomorpha"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-other-mammalia-lower"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-other-mammalia-upper"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-73-other-rodentia"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-11-callosciurus-erythraeus"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-75-ozotoceros-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-81-pholidota"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-78-pecari-tayassu-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-27-elaphurus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-82-pinnipedae"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-31-equus-quagga"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-6-antilocapra-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-87-pudu-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-38-hexaprotodon-choeropsis-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-84-procyon-lotor"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-62-nyctereutes-procyonoides"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-16-cervus-rucervus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-90-redunca-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-55-muntiacus-reevesi"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-88-rangifer-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-91-rhinoceros-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-12-capreolus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-50-madogua-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-41-hippotragus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-93-saiga-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-86-pseudoryx-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-99-tamias-sibiricus"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-37-herpestes-javanicus"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-8-axis-hyelaphus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-5-antidorcas-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-89-raphicerus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-23-dicerorhinus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-36-hemitragus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-100-tapirus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-77-patholops-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-20-damaliscus-spp-including-beatragus"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-94-scandentia"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-42-hydropotes-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-57-mustela-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-15-ceratotherium-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-63-odocoileus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-18-connochaetes-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-106-xenarthra"
+    ],
+    [
+      "Parrot (010632)",
+      "parrot-psittaciformes"
+    ],
+    [
+      "Rabbit (010614)",
+      "rabbit-oryctolagus-cuniculus"
+    ],
+    [
+      "Reptile (010620)",
+      "reptile-serpentes"
+    ],
+    [
+      "Reptile (010620)",
+      "reptile-testudines"
+    ]
+  ],
+  "010": [
+    [
+      "Bees (01064100)",
+      "bees-apis-mellifera"
+    ],
+    [
+      "Bees (01064100)",
+      "bees-bombus-spp"
+    ],
+    [
+      "Camel (010613)",
+      "camel-bactrianus"
+    ],
+    [
+      "Camel (010613)",
+      "camel-dromedarius"
+    ],
+    [
+      "Cat (01061900)",
+      "cat-felis-catus"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-11-syncerus-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-8-novibos-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-3-bison-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-bison-bison"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-7-bubalus-spp-including-anoa"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-bos-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-bos-taurus"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-1-bibos-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-9-ovibos-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-bubalus-bubalis"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-10-poephagus-spp"
+    ],
+    [
+      "Chicken (010511)",
+      "chicken-gallus-domesticus"
+    ],
+    [
+      "Dog (01061900)",
+      "dog-canis-familiaris"
+    ],
+    [
+      "Duck (010513)",
+      "duck-anas-platyrhynchos"
+    ],
+    [
+      "Duck (010513)",
+      "duck-cairina-moschata"
+    ],
+    [
+      "Ferret (01061900)",
+      "ferret-mustela-putorius-furo"
+    ],
+    [
+      "Goat (010420)",
+      "goat-capra-hircus"
+    ],
+    [
+      "Goose (010514)",
+      "goose-anser-anser"
+    ],
+    [
+      "Guinea fowl (010515)",
+      "guinea-fowl-numida-meleagris"
+    ],
+    [
+      "Horse (0101)",
+      "horse-equus-asinus"
+    ],
+    [
+      "Horse (0101)",
+      "horse-equus-caballus"
+    ],
+    [
+      "Horse (0101)",
+      "horse-1-eq-cabalusasinus"
+    ],
+    [
+      "Ostrich (010633)",
+      "ostrich-struthio-camelus"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-105-tubilidentae"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-48-loxodonta-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-28-elephas-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-80-peramelemorphia"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-17-chiroptera"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-26-dorcatragus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-85-pseudois-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-24-diceros-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-7-antilope-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-51-mazama-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-29-equus-burchelli"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-13-catagonus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-92-rupicapra-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-43-hyemoschus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-104-tragulus-moschiola-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-60-nasua-nasua"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-22-dermopterae"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-98-sylvicapra-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-58-myocastor-coypus"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-21-dasyuromorphia"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-4-ammodorcas-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-25-diprotodontia"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-14-cephalophus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-61-neotragus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-101-taurotragus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-49-macroscelidaes"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-19-dama-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-102-tetracerus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-96-sciurus-niger"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-34-gazella-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-83-procapra-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-47-litocranius-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-52-megamuntiacus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-35-giraffa-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-59-naemorhedus-spp-including-nemorhaedus-and-capricornis"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-30-equus-grevyi"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-79-pelea-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-95-sciurus-carolinensis"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-2-alcelaphus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-97-sigmoceros-alecelaphus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-40-hippopotamus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-32-equus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-39-hippocamelus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-44-hyracoidae"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-1-aepyceros-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-45-insectivorae"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-67-oreotragus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-46-kobus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-103-tragelaphus-spp-including-boocerus"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-76-panthera-leo"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-9-blastocerus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-53-monotremata"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-3-alces-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-66-oreamuos-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-33-equus-zebra"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-56-muntiacus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-54-moschus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-65-ondatra-zibethicus"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-10-boselaphus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-64-okapia-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-74-ourebia-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-68-oryx-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-69-other-carnivora"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-70-other-lagomorpha"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-other-mammalia-lower"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-other-mammalia-upper"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-73-other-rodentia"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-11-callosciurus-erythraeus"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-75-ozotoceros-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-81-pholidota"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-78-pecari-tayassu-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-27-elaphurus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-82-pinnipedae"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-31-equus-quagga"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-6-antilocapra-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-87-pudu-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-38-hexaprotodon-choeropsis-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-84-procyon-lotor"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-62-nyctereutes-procyonoides"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-16-cervus-rucervus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-90-redunca-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-55-muntiacus-reevesi"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-88-rangifer-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-91-rhinoceros-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-12-capreolus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-50-madogua-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-41-hippotragus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-93-saiga-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-86-pseudoryx-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-99-tamias-sibiricus"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-37-herpestes-javanicus"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-8-axis-hyelaphus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-5-antidorcas-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-89-raphicerus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-23-dicerorhinus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-36-hemitragus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-100-tapirus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-77-patholops-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-20-damaliscus-spp-including-beatragus"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-94-scandentia"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-42-hydropotes-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-57-mustela-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-15-ceratotherium-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-63-odocoileus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-18-connochaetes-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-106-xenarthra"
+    ],
+    [
+      "Parrot (010632)",
+      "parrot-psittaciformes"
+    ],
+    [
+      "Pig (0103)",
+      "pig-sus-scrofa"
+    ],
+    [
+      "Rabbit (010614)",
+      "rabbit-oryctolagus-cuniculus"
+    ],
+    [
+      "Reptile (010620)",
+      "reptile-serpentes"
+    ],
+    [
+      "Reptile (010620)",
+      "reptile-testudines"
+    ],
+    [
+      "Sheep (010410)",
+      "sheep-ovis-aries"
+    ],
+    [
+      "Turkey (010512)",
+      "turkey-meleagris-gallopavo"
+    ]
+  ],
+  "semen": [],
+  "ova": [],
+  "embryos": [],
+  "05119985": [],
+  "horse": [
+    [
+      "Horse (0101)",
+      "horse-equus-asinus"
+    ],
+    [
+      "Horse (0101)",
+      "horse-equus-caballus"
+    ],
+    [
+      "Horse (0101)",
+      "horse-1-eq-cabalusasinus"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-32-equus-spp"
+    ]
+  ],
+  "felis": [
+    [
+      "Cat (01061900)",
+      "cat-felis-catus"
+    ]
+  ],
+  "chicken": [
+    [
+      "Chicken (010511)",
+      "chicken-gallus-domesticus"
+    ]
+  ],
+  "Gallus gallus": [],
+  "dog": [
+    [
+      "Dog (01061900)",
+      "dog-canis-familiaris"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-62-nyctereutes-procyonoides"
+    ]
+  ],
+  "parrot": [
+    [
+      "Parrot (010632)",
+      "parrot-psittaciformes"
+    ]
+  ],
+  "spp": [
+    [
+      "Bees (01064100)",
+      "bees-bombus-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-11-syncerus-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-8-novibos-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-3-bison-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-7-bubalus-spp-including-anoa"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-bos-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-1-bibos-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-9-ovibos-spp"
+    ],
+    [
+      "Cattle (0102)",
+      "cattle-10-poephagus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-48-loxodonta-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-28-elephas-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-26-dorcatragus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-85-pseudois-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-24-diceros-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-7-antilope-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-51-mazama-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-13-catagonus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-92-rupicapra-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-43-hyemoschus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-104-tragulus-moschiola-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-98-sylvicapra-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-4-ammodorcas-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-14-cephalophus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-61-neotragus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-101-taurotragus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-19-dama-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-102-tetracerus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-34-gazella-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-83-procapra-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-47-litocranius-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-52-megamuntiacus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-35-giraffa-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-59-naemorhedus-spp-including-nemorhaedus-and-capricornis"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-79-pelea-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-2-alcelaphus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-97-sigmoceros-alecelaphus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-40-hippopotamus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-32-equus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-39-hippocamelus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-1-aepyceros-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-67-oreotragus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-46-kobus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-103-tragelaphus-spp-including-boocerus"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-9-blastocerus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-3-alces-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-66-oreamuos-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-56-muntiacus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-54-moschus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-10-boselaphus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-64-okapia-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-74-ourebia-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-68-oryx-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-75-ozotoceros-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-78-pecari-tayassu-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-27-elaphurus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-6-antilocapra-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-87-pudu-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-38-hexaprotodon-choeropsis-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-16-cervus-rucervus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-90-redunca-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-88-rangifer-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-91-rhinoceros-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-12-capreolus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-50-madogua-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-41-hippotragus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-93-saiga-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-86-pseudoryx-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-8-axis-hyelaphus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-5-antidorcas-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-89-raphicerus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-23-dicerorhinus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-36-hemitragus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-100-tapirus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-77-patholops-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-20-damaliscus-spp-including-beatragus"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-42-hydropotes-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-57-mustela-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-15-ceratotherium-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-63-odocoileus-spp"
+    ],
+    [
+      "Other live mammals (01061900)",
+      "other-live-mammals-18-connochaetes-spp"
+    ]
+  ],
+  "ca": [],
+  "zzzz": []
+}

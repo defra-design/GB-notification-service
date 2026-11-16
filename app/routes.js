@@ -4984,6 +4984,7 @@ function buildReviewSpeciesSections (sessionData) {
 
       return {
         id: `review-species-${index + 1}`,
+        speciesId,
         title: speciesLabel,
         changeHref: getIdentifierFieldsForSpecies(speciesId).length
           ? '/animal-identification-details'
@@ -5645,7 +5646,9 @@ function buildDesignRelease2CommodityCards (sessionData, speciesSections, readOn
     const speciesLabel = match
       ? toTitleCaseLabel(match.species.label || match.species.commonName)
       : entry.commonName
-    const speciesSection = speciesSections.find((section) => section.title === speciesLabel)
+    const speciesSection = speciesSections.find((section) => section.speciesId
+      ? section.speciesId === entry.speciesId
+      : section.title === speciesLabel)
     const requiresIdentifiers = getIdentifierFieldsForSpecies(entry.speciesId).length > 0
     const hasIdentifiers = hasAtLeastOneAnimalIdentifierForSpecies(sessionData, entry.speciesId)
     const identificationError = reviewVariant === 'action-required' && requiresIdentifiers && !hasIdentifiers
