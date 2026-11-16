@@ -3,6 +3,7 @@ const path = require('path')
 const { test, expect } = require('@playwright/test')
 const dashboardTemplates = require('../../app/data/dashboard-templates')
 const liveCommodities = require('../../app/data/commodities')
+const { clickContinue, openCommoditySearch, search, selectSpecies } = require('./commodity-search-page')
 
 const isRecording = process.env.RECORD_BASELINE === '1'
 const fixturesDir = path.join(__dirname, 'fixtures', 'commodity-search')
@@ -50,32 +51,6 @@ function writeFixture (name, value) {
   fs.writeFileSync(path.join(fixturesDir, `${name}.json`), `${JSON.stringify(value, null, 2)}\n`)
 }
 
-async function clickContinue (page) {
-  const action = page.locator('button[name="action"][value="continue"]')
-  const button = (await action.count())
-    ? action.first()
-    : page.getByRole('button', { name: /continue/i }).first()
-  await button.click()
-}
-
-async function openCommoditySearch (page, version) {
-  await page.goto(`${version.base}/create-notification`, { waitUntil: 'networkidle' })
-
-  if (version.notificationType) {
-    await expect(page).toHaveURL(/\/notification-type$/)
-    await page.locator(`input[name="notificationType"][value="${version.notificationType}"]`).check()
-    await clickContinue(page)
-    await page.waitForURL(/\/origin-of-the-import$/, { waitUntil: 'networkidle' })
-  }
-
-  await page.goto(`${version.base}/what-are-you-importing`)
-  await expect(page.locator('input.app-commodity-search__species-value')).toHaveValue('[]')
-}
-
-async function search (page, query) {
-  await page.locator('#commodity-search').fill(query)
-}
-
 function readResultRows (page) {
   return page.$$eval('#commodity-search-results > li', (items) => {
     const rows = []
@@ -112,12 +87,6 @@ async function searchPairs (page, query) {
 function hintExamples (hintText) {
   return [...hintText.matchAll(/\(([^)]+)\)/g)]
     .map(([, example]) => example.replace(/^for example,\s*/, '').trim())
-}
-
-async function selectSpecies (page, query, speciesId) {
-  await search(page, query)
-  await page.locator(`#commodity-species-${speciesId}`).check()
-  await page.locator('#commodity-search').press('Escape')
 }
 
 for (const version of VERSIONS) {

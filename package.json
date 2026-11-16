@@ -8,7 +8,8 @@
     "commodities:baseline": "node scripts/build-commodities/dump-baseline.js",
     "check:commodities": "node scripts/build-commodities/check.js",
     "test:commodity-search": "playwright test --config journey-demo/playwright.config.js commodity-search",
-    "test:commodity-search:record": "RECORD_BASELINE=1 playwright test --config journey-demo/playwright.config.js commodity-search"
+    "screenshots:commodity-checks": "playwright test --config journey-demo/playwright.screens.config.js",
+    "test:commodity-search:record":"RECORD_BASELINE=1 playwright test --config journey-demo/playwright.config.js commodity-search"
   },
   "dependencies": {
     "@govuk-prototype-kit/common-templates": "3.0.0",

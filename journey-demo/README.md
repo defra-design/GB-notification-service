@@ -119,3 +119,16 @@ and the species each dashboard template brings to the consignment page.
 npm run test:commodity-search          # compare with the recorded baseline
 npm run test:commodity-search:record   # re-record the baseline (run on main)
 ```
+
+## Commodity screenshots
+
+`screens/commodity-manual-checks.screens.js` takes full-page screenshots of
+the commodity picker on `/design-release-2.1` for a person to check by eye:
+searches for "cow", "Bos taurus", "0102", "semen", "horse" and "Amazon
+parrot", and a primate taken through to review. It is not part of
+`test:prototype`.
+
+```bash
+npm run screenshots:commodity-checks                      # saves to journey-demo/screenshots/
+SCREENSHOT_DIR=/some/folder npm run screenshots:commodity-checks
+```
