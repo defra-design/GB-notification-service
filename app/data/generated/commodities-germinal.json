@@ -288,8 +288,8 @@
       {
         "id": "amphibian-embryos-ova-amphibia",
         "label": "Amphibia",
-        "commonName": "Amphibian, Embryos/Ova (Amphibia)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Amphibians",
+        "commonNameSource": "generated"
       }
     ],
     "tariffCodes": [
@@ -308,8 +308,8 @@
       {
         "id": "arachnid-embryos-ova-arachnida",
         "label": "Arachnida",
-        "commonName": "Arachnid, Embryos/Ova (Arachnida)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Arachnids",
+        "commonNameSource": "generated"
       }
     ],
     "tariffCodes": [

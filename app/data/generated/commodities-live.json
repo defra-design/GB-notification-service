@@ -15,8 +15,8 @@
       {
         "id": "bees-bombus-canariensis",
         "label": "Bombus canariensis",
-        "commonName": "Bees (Bombus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Canary Islands bumblebee",
+        "commonNameSource": "generated"
       }
     ],
     "tariffCodes": [
@@ -40,20 +40,20 @@
       {
         "id": "camel-camelus-spp",
         "label": "Camelus spp.",
-        "commonName": "Camel (Camelus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Camels",
+        "commonNameSource": "generated"
       },
       {
         "id": "camel-lama-spp",
         "label": "Lama spp.",
-        "commonName": "Camel (Lama)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Llamas and guanacos",
+        "commonNameSource": "generated"
       },
       {
         "id": "camel-vicugna-spp",
         "label": "Vicugna spp.",
-        "commonName": "Camel (Vicugna)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Vicunas and alpacas",
+        "commonNameSource": "generated"
       }
     ],
     "tariffCodes": [
@@ -304,8 +304,8 @@
       {
         "id": "goat-capra-spp",
         "label": "Capra spp.",
-        "commonName": "Goat (Capra)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Goats",
+        "commonNameSource": "generated"
       }
     ],
     "tariffCodes": [
@@ -1005,500 +1005,500 @@
       {
         "id": "parrot-agapornis",
         "label": "Agapornis",
-        "commonName": "Parrot (Agapornis)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Lovebirds",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-alisterus",
         "label": "Alisterus",
-        "commonName": "Parrot (Alisterus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "King parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-amazona",
         "label": "Amazona",
-        "commonName": "Parrot (Amazona)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Amazon parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-anodorhynchus",
         "label": "Anodorhynchus",
-        "commonName": "Parrot (Anodorhynchus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Blue macaws",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-aprosmictus",
         "label": "Aprosmictus",
-        "commonName": "Parrot (Aprosmictus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Red-winged parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-ara",
         "label": "Ara",
-        "commonName": "Parrot (Ara)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Macaws",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-aratinga",
         "label": "Aratinga",
-        "commonName": "Parrot (Aratinga)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Sun conures",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-barnardius",
         "label": "Barnardius",
-        "commonName": "Parrot (Barnardius)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Australian ringnecks",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-bolbopsittacus",
         "label": "Bolbopsittacus",
-        "commonName": "Parrot (Bolbopsittacus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Guaiabero",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-bolborhynchus",
         "label": "Bolborhynchus",
-        "commonName": "Parrot (Bolborhynchus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Barred parakeets",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-brotogeris",
         "label": "Brotogeris",
-        "commonName": "Parrot (Brotogeris)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Canary-winged parakeets",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-cacatua",
         "label": "Cacatua",
-        "commonName": "Parrot (Cacatua)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "White cockatoos",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-callocephalon",
         "label": "Callocephalon",
-        "commonName": "Parrot (Callocephalon)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Gang-gang cockatoo",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-calyptorhynchus",
         "label": "Calyptorhynchus",
-        "commonName": "Parrot (Calyptorhynchus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Black cockatoos",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-chalcopsitta",
         "label": "Chalcopsitta",
-        "commonName": "Parrot (Chalcopsitta)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Black lories",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-charmosyna",
         "label": "Charmosyna",
-        "commonName": "Parrot (Charmosyna)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Fairy lorikeets",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-conuropsis",
         "label": "Conuropsis",
-        "commonName": "Parrot (Conuropsis)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Carolina parakeet",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-cyanoliseus",
         "label": "Cyanoliseus",
-        "commonName": "Parrot (Cyanoliseus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Burrowing parrot",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-cyanopsitta",
         "label": "Cyanopsitta",
-        "commonName": "Parrot (Cyanopsitta)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Spix's macaw",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-cyanoramphus",
         "label": "Cyanoramphus",
-        "commonName": "Parrot (Cyanoramphus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Kakarikis",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-cyclopsitta",
         "label": "Cyclopsitta",
-        "commonName": "Parrot (Cyclopsitta)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Fig parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-deroptyus",
         "label": "Deroptyus",
-        "commonName": "Parrot (Deroptyus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Red-fan parrot",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-diopsittaca",
         "label": "Diopsittaca",
-        "commonName": "Parrot (Diopsittaca)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Red-shouldered macaw",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-eclectus",
         "label": "Eclectus",
-        "commonName": "Parrot (Eclectus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Red-sided parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-enicognathus",
         "label": "Enicognathus",
-        "commonName": "Parrot (Enicognathus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Austral parakeets",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-eolophus",
         "label": "Eolophus",
-        "commonName": "Parrot (Eolophus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Galah",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-eos",
         "label": "Eos",
-        "commonName": "Parrot (Eos)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Red lories",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-eunymphicus",
         "label": "Eunymphicus",
-        "commonName": "Parrot (Eunymphicus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Horned parakeets",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-forpus",
         "label": "Forpus",
-        "commonName": "Parrot (Forpus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Parrotlets",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-geoffroyus",
         "label": "Geoffroyus",
-        "commonName": "Parrot (Geoffroyus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Red-cheeked parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-glossopsitta",
         "label": "Glossopsitta",
-        "commonName": "Parrot (Glossopsitta)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Musk lorikeets",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-graydidascalus",
         "label": "Graydidascalus",
-        "commonName": "Parrot (Graydidascalus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Short-tailed parrot",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-guarouba",
         "label": "Guarouba",
-        "commonName": "Parrot (Guarouba)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Golden parakeet",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-hapalopsittaca",
         "label": "Hapalopsittaca",
-        "commonName": "Parrot (Hapalopsittaca)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Rusty-faced parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-lathamus",
         "label": "Lathamus",
-        "commonName": "Parrot (Lathamus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Swift parrot",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-leptosittaca",
         "label": "Leptosittaca",
-        "commonName": "Parrot (Leptosittaca)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Golden-plumed parakeet",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-loriculus",
         "label": "Loriculus",
-        "commonName": "Parrot (Loriculus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Hanging parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-lorius",
         "label": "Lorius",
-        "commonName": "Parrot (Lorius)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Chattering lories",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-mascarinus",
         "label": "Mascarinus",
-        "commonName": "Parrot (Mascarinus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Mascarene parrot",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-melopsittacus",
         "label": "Melopsittacus",
-        "commonName": "Parrot (Melopsittacus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Budgerigar",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-micropsitta",
         "label": "Micropsitta",
-        "commonName": "Parrot (Micropsitta)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Pygmy parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-myiopsitta",
         "label": "Myiopsitta",
-        "commonName": "Parrot (Myiopsitta)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Monk parakeet",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-nandayus",
         "label": "Nandayus",
-        "commonName": "Parrot (Nandayus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Black-hooded parakeets",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-nannopsittaca",
         "label": "Nannopsittaca",
-        "commonName": "Parrot (Nannopsittaca)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Tepui parrotlets",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-neophema",
         "label": "Neophema",
-        "commonName": "Parrot (Neophema)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Grass parakeets",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-neopsephotus",
         "label": "Neopsephotus",
-        "commonName": "Parrot (Neopsephotus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Bourke's parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-neopsittacus",
         "label": "Neopsittacus",
-        "commonName": "Parrot (Neopsittacus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Yellow-billed and orange-billed lorikeets",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-nestor",
         "label": "Nestor",
-        "commonName": "Parrot (Nestor)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Keas and kakas",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-northiella",
         "label": "Northiella",
-        "commonName": "Parrot (Northiella)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Bluebonnets",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-nymphicus",
         "label": "Nymphicus",
-        "commonName": "Parrot (Nymphicus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Cockatiels",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-ognorhynchus",
         "label": "Ognorhynchus",
-        "commonName": "Parrot (Ognorhynchus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Yellow-eared parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-oreopsittacus",
         "label": "Oreopsittacus",
-        "commonName": "Parrot (Oreopsittacus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Plum-faced lorikeets",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-pezoporus",
         "label": "Pezoporus",
-        "commonName": "Parrot (Pezoporus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Ground and night parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-phigys",
         "label": "Phigys",
-        "commonName": "Parrot (Phigys)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Collared lories",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-pionites",
         "label": "Pionites",
-        "commonName": "Parrot (Pionites)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Caiques",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-pionopsitta",
         "label": "Pionopsitta",
-        "commonName": "Parrot (Pionopsitta)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Pileated parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-pionus",
         "label": "Pionus",
-        "commonName": "Parrot (Pionus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Red-vented parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-platycercus",
         "label": "Platycercus",
-        "commonName": "Parrot (Platycercus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Rosellas",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-poicephalus",
         "label": "Poicephalus",
-        "commonName": "Parrot (Poicephalus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Senegal and Meyer's parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-polytelis",
         "label": "Polytelis",
-        "commonName": "Parrot (Polytelis)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Superb, regent and princess parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-primolius",
         "label": "Primolius",
-        "commonName": "Parrot (Primolius)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Illiger's and golden-collared macaws",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-prioniturus",
         "label": "Prioniturus",
-        "commonName": "Parrot (Prioniturus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Racket-tailed parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-probosciger",
         "label": "Probosciger",
-        "commonName": "Parrot (Probosciger)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Palm cockatoos",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-prosopeia",
         "label": "Prosopeia",
-        "commonName": "Parrot (Prosopeia)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Shining parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-psephotus",
         "label": "Psephotus",
-        "commonName": "Parrot (Psephotus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Red-rumped and hooded parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-pseudeos",
         "label": "Pseudeos",
-        "commonName": "Parrot (Pseudeos)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Dusky lories",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-psilopsiagon",
         "label": "Psilopsiagon",
-        "commonName": "Parrot (Psilopsiagon)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Mountain parakeets",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-psittacella",
         "label": "Psittacella",
-        "commonName": "Parrot (Psittacella)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Tiger parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-psittacula",
         "label": "Psittacula",
-        "commonName": "Parrot (Psittacula)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Rose-ringed and Alexandrine parakeets",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-psittaculirostris",
         "label": "Psittaculirostris",
-        "commonName": "Parrot (Psittaculirostris)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Large fig parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-psittacus",
         "label": "Psittacus",
-        "commonName": "Parrot (Psittacus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "African grey parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-psitteuteles",
         "label": "Psitteuteles",
-        "commonName": "Parrot (Psitteuteles)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Varied lorikeets",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-psittinus",
         "label": "Psittinus",
-        "commonName": "Parrot (Psittinus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Blue-rumped parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-psittrichas",
         "label": "Psittrichas",
-        "commonName": "Parrot (Psittrichas)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Pesquet's parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-purpureicephalus",
         "label": "Purpureicephalus",
-        "commonName": "Parrot (Purpureicephalus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Red-capped parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-pyrrhura",
         "label": "Pyrrhura",
-        "commonName": "Parrot (Pyrrhura)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Green-cheeked and painted conures",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-rhynchopsitta",
         "label": "Rhynchopsitta",
-        "commonName": "Parrot (Rhynchopsitta)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Thick-billed parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-strigops",
         "label": "Strigops",
-        "commonName": "Parrot (Strigops)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Kakapos",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-tanygnathus",
         "label": "Tanygnathus",
-        "commonName": "Parrot (Tanygnathus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Great-billed parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-touit",
         "label": "Touit",
-        "commonName": "Parrot (Touit)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Lilac-tailed and scarlet-shouldered parrotlets",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-trichoglossus",
         "label": "Trichoglossus",
-        "commonName": "Parrot (Trichoglossus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Rainbow lorikeets",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-triclaria",
         "label": "Triclaria",
-        "commonName": "Parrot (Triclaria)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Blue-bellied parrots",
+        "commonNameSource": "generated"
       },
       {
         "id": "parrot-vini",
         "label": "Vini",
-        "commonName": "Parrot (Vini)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Polynesian lorikeets",
+        "commonNameSource": "generated"
       }
     ],
     "tariffCodes": [
@@ -1554,8 +1554,8 @@
       {
         "id": "pig-sus-spp",
         "label": "Sus spp.",
-        "commonName": "Pig (Sus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Pigs",
+        "commonNameSource": "generated"
       }
     ],
     "tariffCodes": [
@@ -1610,8 +1610,8 @@
       {
         "id": "reptile-other-testudinata",
         "label": "Other Testudinata",
-        "commonName": "Reptile (Testudinata)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Other turtles, tortoises and terrapins",
+        "commonNameSource": "generated"
       },
       {
         "id": "reptile-trachemys-scripta",
@@ -1637,8 +1637,8 @@
       {
         "id": "sheep-ammotragus-spp",
         "label": "Ammotragus spp.",
-        "commonName": "Sheep (Ammotragus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Barbary sheep",
+        "commonNameSource": "generated"
       },
       {
         "id": "sheep-ovis-spp",
@@ -1679,158 +1679,158 @@
       {
         "id": "primates-allenopithecus",
         "label": "Allenopithecus",
-        "commonName": "Primates (Allenopithecus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Allen's swamp monkeys",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-allocebus",
         "label": "Allocebus",
-        "commonName": "Primates (Allocebus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Hairy-eared dwarf lemurs",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-alouatta",
         "label": "Alouatta",
-        "commonName": "Primates (Alouatta)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Howler monkeys",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-aotus",
         "label": "Aotus",
-        "commonName": "Primates (Aotus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Night monkeys",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-arctocebus",
         "label": "Arctocebus",
-        "commonName": "Primates (Arctocebus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Angwantibos",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-ateles",
         "label": "Ateles",
-        "commonName": "Primates (Ateles)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Spider monkeys",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-avahi",
         "label": "Avahi",
-        "commonName": "Primates (Avahi)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Woolly lemurs",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-brachyteles",
         "label": "Brachyteles",
-        "commonName": "Primates (Brachyteles)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Woolly spider monkeys",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-cacajao",
         "label": "Cacajao",
-        "commonName": "Primates (Cacajao)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Uakaris",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-callicebus",
         "label": "Callicebus",
-        "commonName": "Primates (Callicebus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Titi monkeys",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-callimico",
         "label": "Callimico",
-        "commonName": "Primates (Callimico)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Goeldi's monkeys",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-callithrix",
         "label": "Callithrix",
-        "commonName": "Primates (Callithrix)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Marmosets",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-cebuella",
         "label": "Cebuella",
-        "commonName": "Primates (Cebuella)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Pygmy marmosets",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-cebus",
         "label": "Cebus",
-        "commonName": "Primates (Cebus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Capuchin monkeys",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-cercocebus",
         "label": "Cercocebus",
-        "commonName": "Primates (Cercocebus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "White-eyelid mangabeys",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-cercopithecus",
         "label": "Cercopithecus",
-        "commonName": "Primates (Cercopithecus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Guenons",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-cheirogaleus",
         "label": "Cheirogaleus",
-        "commonName": "Primates (Cheirogaleus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Dwarf lemurs",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-chiropotes",
         "label": "Chiropotes",
-        "commonName": "Primates (Chiropotes)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Bearded sakis",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-colobus",
         "label": "Colobus",
-        "commonName": "Primates (Colobus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Black-and-white colobus monkeys",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-daubentonia",
         "label": "Daubentonia",
-        "commonName": "Primates (Daubentonia)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Aye-ayes",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-erythrocebus",
         "label": "Erythrocebus",
-        "commonName": "Primates (Erythrocebus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Patas monkeys",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-euoticus",
         "label": "Euoticus",
-        "commonName": "Primates (Euoticus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Needle-clawed bushbabies",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-galago",
         "label": "Galago",
-        "commonName": "Primates (Galago)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Lesser bushbabies",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-gorilla",
         "label": "Gorilla",
-        "commonName": "Primates (Gorilla)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Eastern and western gorillas",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-hapalemur",
         "label": "Hapalemur",
-        "commonName": "Primates (Hapalemur)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Bamboo lemurs",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-hylobates",
         "label": "Hylobates",
-        "commonName": "Primates (Hylobates)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Gibbons",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-indri",
@@ -1841,188 +1841,188 @@
       {
         "id": "primates-lagothrix",
         "label": "Lagothrix",
-        "commonName": "Primates (Lagothrix)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Woolly monkeys",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-lemur",
         "label": "Lemur",
-        "commonName": "Primates (Lemur)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Ring-tailed lemurs",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-leontopithecus",
         "label": "Leontopithecus",
-        "commonName": "Primates (Leontopithecus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Lion tamarins",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-lepilemur",
         "label": "Lepilemur",
-        "commonName": "Primates (Lepilemur)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Sportive lemurs",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-loris",
         "label": "Loris",
-        "commonName": "Primates (Loris)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Slender lorises",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-macaca",
         "label": "Macaca",
-        "commonName": "Primates (Macaca)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Macaques",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-mandrillus",
         "label": "Mandrillus",
-        "commonName": "Primates (Mandrillus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Mandrills and drills",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-microcebus",
         "label": "Microcebus",
-        "commonName": "Primates (Microcebus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Mouse lemurs",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-miopithecus",
         "label": "Miopithecus",
-        "commonName": "Primates (Miopithecus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Talapoins",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-mirza",
         "label": "Mirza",
-        "commonName": "Primates (Mirza)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Giant mouse lemurs",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-nasalis",
         "label": "Nasalis",
-        "commonName": "Primates (Nasalis)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Proboscis monkeys",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-nycticebus",
         "label": "Nycticebus",
-        "commonName": "Primates (Nycticebus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Slow lorises",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-otolemur",
         "label": "Otolemur",
-        "commonName": "Primates (Otolemur)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Greater bushbabies",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-pan",
         "label": "Pan",
-        "commonName": "Primates (Pan)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Chimpanzees and bonobos",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-papio",
         "label": "Papio",
-        "commonName": "Primates (Papio)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Baboons",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-perodicticus",
         "label": "Perodicticus",
-        "commonName": "Primates (Perodicticus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Pottos",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-petterus",
         "label": "Petterus",
-        "commonName": "Primates (Petterus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "True lemurs",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-phaner",
         "label": "Phaner",
-        "commonName": "Primates (Phaner)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Fork-marked lemurs",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-pithecia",
         "label": "Pithecia",
-        "commonName": "Primates (Pithecia)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Sakis",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-pongo",
         "label": "Pongo",
-        "commonName": "Primates (Pongo)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Orangutans",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-presbytis",
         "label": "Presbytis",
-        "commonName": "Primates (Presbytis)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Surilis",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-procolobus",
         "label": "Procolobus",
-        "commonName": "Primates (Procolobus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Red and olive colobuses",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-propithecus",
         "label": "Propithecus",
-        "commonName": "Primates (Propithecus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Sifakas",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-pygathrix",
         "label": "Pygathrix",
-        "commonName": "Primates (Pygathrix)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Doucs",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-saguinus",
         "label": "Saguinus",
-        "commonName": "Primates (Saguinus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Tamarins",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-saimiri",
         "label": "Saimiri",
-        "commonName": "Primates (Saimiri)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Squirrel monkeys",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-simias",
         "label": "Simias",
-        "commonName": "Primates (Simias)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Pig-tailed langurs",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-tarsius",
         "label": "Tarsius",
-        "commonName": "Primates (Tarsius)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Tarsiers",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-theropithecus",
         "label": "Theropithecus",
-        "commonName": "Primates (Theropithecus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Geladas",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-trachypithecus",
         "label": "Trachypithecus",
-        "commonName": "Primates (Trachypithecus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Lutungs",
+        "commonNameSource": "generated"
       },
       {
         "id": "primates-varecia",
         "label": "Varecia",
-        "commonName": "Primates (Varecia)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Ruffed lemurs",
+        "commonNameSource": "generated"
       }
     ],
     "tariffCodes": [
@@ -2031,6 +2031,40 @@
     ],
     "nameSource": "tariff",
     "tariffDescription": "Mammals / Primates"
+  },
+  {
+    "id": "whales-dolphins-seals",
+    "name": "Whales, dolphins and porpoises (mammals of the order Cetacea); manatees and dugongs (mammals of the order Sirenia); seals, sea lions and walruses (mammals of the suborder Pinnipedia)",
+    "code": "01061200",
+    "species": [
+      {
+        "id": "whales-dolphins-seals-cetacea",
+        "label": "Cetacea",
+        "commonName": "Whales, dolphins and porpoises",
+        "commonNameSource": "generated",
+        "labelSource": "generated"
+      },
+      {
+        "id": "whales-dolphins-seals-pinnipedia",
+        "label": "Pinnipedia",
+        "commonName": "Seals, sea lions and walruses",
+        "commonNameSource": "generated",
+        "labelSource": "generated"
+      },
+      {
+        "id": "whales-dolphins-seals-sirenia",
+        "label": "Sirenia",
+        "commonName": "Manatees and dugongs",
+        "commonNameSource": "generated",
+        "labelSource": "generated"
+      }
+    ],
+    "tariffCodes": [
+      "01061200",
+      "0106120000"
+    ],
+    "nameSource": "tariff",
+    "tariffDescription": "Mammals / Whales, dolphins and porpoises (Cetacea); manatees and dugongs (Sirenia); seals, sea lions and walruses (Pinnipedia)"
   },
   {
     "id": "birds-of-prey",
@@ -2083,8 +2117,8 @@
       {
         "id": "pigeons-columbidae",
         "label": "Columbidae",
-        "commonName": "Pigeons (Columbidae)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Pigeon and dove family",
+        "commonNameSource": "generated"
       },
       {
         "id": "pigeons-geotrygon-spp",
@@ -2114,50 +2148,50 @@
       {
         "id": "other-birds-alopochen-aegyptiacus",
         "label": "Alopochen aegyptiacus",
-        "commonName": "Other live birds (Alopochen)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Egyptian goose",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-amnoperdix-spp",
         "label": "Amnoperdix spp.",
-        "commonName": "Other live birds (Amnoperdix)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Sand partridges",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-anseriformes",
         "label": "Anseriformes",
-        "commonName": "Other live birds (Anseriformes)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Ducks, geese and swans",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-anurophasis-spp",
         "label": "Anurophasis spp.",
-        "commonName": "Other live birds (Anurophasis)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Snow Mountain quails",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-apodiformes",
         "label": "Apodiformes",
-        "commonName": "Other live birds (Apodiformes)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Swifts and hummingbirds",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-apterygiformes",
         "label": "Apterygiformes",
-        "commonName": "Other live birds (Apterygiformes)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Kiwis",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-bucerotiformes",
         "label": "Bucerotiformes",
-        "commonName": "Other live birds (Bucerotiformes)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Hornbills and hoopoes",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-caprimulgiformes",
         "label": "Caprimulgiformes",
-        "commonName": "Other live birds (Caprimulgiformes)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Nightjars and frogmouths",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-casuarius-spp",
@@ -2168,32 +2202,32 @@
       {
         "id": "other-birds-catreus-spp",
         "label": "Catreus spp.",
-        "commonName": "Other live birds (Catreus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Cheer pheasants",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-charadriformes",
         "label": "Charadriformes",
-        "commonName": "Other live birds (Charadriformes)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Waders, gulls and auks",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-chrysolohus-spp",
         "label": "Chrysolohus spp.",
-        "commonName": "Other live birds (Chrysolohus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Ruffed pheasants",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-ciconiiformes",
         "label": "Ciconiiformes",
-        "commonName": "Other live birds (Ciconiiformes)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Storks",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-coliiformes",
         "label": "Coliiformes",
-        "commonName": "Other live birds (Coliiformes)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Mousebirds",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-colombiformes",
@@ -2210,32 +2244,32 @@
       {
         "id": "other-birds-coraciiformes",
         "label": "Coraciiformes",
-        "commonName": "Other live birds (Coraciiformes)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Kingfishers and rollers",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-corvus-splendens",
         "label": "Corvus splendens",
-        "commonName": "Other live birds (Corvus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "House crow",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-coturnis-spp",
         "label": "Coturnis spp.",
-        "commonName": "Other live birds (Coturnis)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Old World quails",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-cuculiformes",
         "label": "Cuculiformes",
-        "commonName": "Other live birds (Cuculiformes)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Cuckoos",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-dendrortyx-spp",
         "label": "Dendrortyx spp.",
-        "commonName": "Other live birds (Dendrortyx)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Wood partridges",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-dromaius-spp",
@@ -2246,14 +2280,14 @@
       {
         "id": "other-birds-galliformes",
         "label": "Galliformes",
-        "commonName": "Other live birds (Galliformes)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Gamebirds",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-gaviiformes",
         "label": "Gaviiformes",
-        "commonName": "Other live birds (Gaviiformes)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Divers",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-geotrygon-spp",
@@ -2264,56 +2298,56 @@
       {
         "id": "other-birds-gruiformes",
         "label": "Gruiformes",
-        "commonName": "Other live birds (Gruiformes)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Cranes and rails",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-lagopus-spp",
         "label": "Lagopus spp.",
-        "commonName": "Other live birds (Lagopus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Ptarmigans",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-lophura-spp",
         "label": "Lophura spp.",
-        "commonName": "Other live birds (Lophura)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Gallopheasants",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-margaroperdix-spp",
         "label": "Margaroperdix spp.",
-        "commonName": "Other live birds (Margaroperdix)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Madagascar partridges",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-melanoperdix-spp",
         "label": "Melanoperdix spp.",
-        "commonName": "Other live birds (Melanoperdix)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Black partridges",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-oxyura-jamaicensis",
         "label": "Oxyura jamaicensis",
-        "commonName": "Other live birds (Oxyura)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Ruddy duck",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-passeriformes",
         "label": "Passeriformes",
-        "commonName": "Other live birds (Passeriformes)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Perching birds",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-pelecaniformes",
         "label": "Pelecaniformes",
-        "commonName": "Other live birds (Pelecaniformes)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Pelicans, herons and ibises",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-perdix-spp",
         "label": "Perdix spp.",
-        "commonName": "Other live birds (Perdix)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Grey partridges",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-phasianus-spp",
@@ -2324,26 +2358,26 @@
       {
         "id": "other-birds-phoenicopteriformes",
         "label": "Phoenicopteriformes",
-        "commonName": "Other live birds (Phoenicopteriformes)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Flamingos",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-piciformes",
         "label": "Piciformes",
-        "commonName": "Other live birds (Piciformes)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Woodpeckers and toucans",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-podicipediformes",
         "label": "Podicipediformes",
-        "commonName": "Other live birds (Podicipediformes)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Grebes",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-procellariiformes",
         "label": "Procellariiformes",
-        "commonName": "Other live birds (Procellariiformes)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Albatrosses and petrels",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-rhea-spp",
@@ -2354,14 +2388,14 @@
       {
         "id": "other-birds-rhizothera-spp",
         "label": "Rhizothera spp.",
-        "commonName": "Other live birds (Rhizothera)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Long-billed partridges",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-sphenisciformes",
         "label": "Sphenisciformes",
-        "commonName": "Other live birds (Sphenisciformes)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Penguins",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-struthio-spp",
@@ -2372,26 +2406,26 @@
       {
         "id": "other-birds-syrmaticus-spp",
         "label": "Syrmaticus spp.",
-        "commonName": "Other live birds (Syrmaticus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Long-tailed pheasants",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-threskiornis-aethiopicus",
         "label": "Threskiornis aethiopicus",
-        "commonName": "Other live birds (Threskiornis)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "African sacred ibis",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-tinamiformes",
         "label": "Tinamiformes",
-        "commonName": "Other live birds (Tinamiformes)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Tinamous",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-birds-trogoniformes",
         "label": "Trogoniformes",
-        "commonName": "Other live birds (Trogoniformes)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Trogons",
+        "commonNameSource": "generated"
       }
     ],
     "tariffCodes": [
@@ -2409,11 +2443,11 @@
       {
         "id": "other-insects-other-insecta",
         "label": "Other Insecta",
-        "commonName": "Live insects other than bees (Insecta)",
+        "commonName": "Other insects",
         "searchTerms": [
           "Otra Insecta"
         ],
-        "commonNameSource": "generated-fallback"
+        "commonNameSource": "generated"
       },
       {
         "id": "other-insects-vespa-velutina-nigrithorax",
@@ -2437,20 +2471,20 @@
       {
         "id": "other-live-animals-caudata",
         "label": "Caudata",
-        "commonName": "Other live animals (Caudata)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Salamanders and newts",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-live-animals-lithobates-rana-catesbeianus",
         "label": "Lithobates (Rana) catesbeianus",
-        "commonName": "Other live animals (Lithobates)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "American bullfrog",
+        "commonNameSource": "generated"
       },
       {
         "id": "other-live-animals-other-amphibia",
         "label": "Other Amphibia",
-        "commonName": "Other live animals (Amphibia)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Other amphibians",
+        "commonNameSource": "generated"
       }
     ],
     "tariffCodes": [
@@ -2575,8 +2609,8 @@
       {
         "id": "hatching-eggs-other-birds-corvus-splendens",
         "label": "Corvus splendens",
-        "commonName": "Fertilised eggs for incubation, of other birds (Corvus)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "House crow",
+        "commonNameSource": "generated"
       },
       {
         "id": "hatching-eggs-other-birds-gallus-gallus",
@@ -2599,14 +2633,14 @@
       {
         "id": "hatching-eggs-other-birds-other-aves",
         "label": "Other aves",
-        "commonName": "Fertilised eggs for incubation, of other birds (Aves)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Other birds",
+        "commonNameSource": "generated"
       },
       {
         "id": "hatching-eggs-other-birds-oxyura-jamaicensis",
         "label": "Oxyura jamaicensis",
-        "commonName": "Fertilised eggs for incubation, of other birds (Oxyura)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Ruddy duck",
+        "commonNameSource": "generated"
       },
       {
         "id": "hatching-eggs-other-birds-phasianidae",
@@ -2617,8 +2651,8 @@
       {
         "id": "hatching-eggs-other-birds-threskiornis-aethiopicus",
         "label": "Threskiornis aethiopicus",
-        "commonName": "Fertilised eggs for incubation, of other birds (Threskiornis)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "African sacred ibis",
+        "commonNameSource": "generated"
       }
     ],
     "tariffCodes": [
@@ -2636,32 +2670,32 @@
       {
         "id": "circus-animals-antilocapridae",
         "label": "Antilocapridae",
-        "commonName": "Travelling circuses and travelling menageries (Antilocapridae)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Pronghorns",
+        "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-bovidae",
         "label": "Bovidae",
-        "commonName": "Travelling circuses and travelling menageries (Bovidae)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Cattle, antelopes, sheep and goats",
+        "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-camelidae",
         "label": "Camelidae",
-        "commonName": "Travelling circuses and travelling menageries (Camelidae)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Camels and llamas",
+        "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-carnivora",
         "label": "Carnivora",
-        "commonName": "Travelling circuses and travelling menageries (Carnivora)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Carnivores (cats, dogs, bears and relatives)",
+        "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-cervidae",
         "label": "Cervidae",
-        "commonName": "Travelling circuses and travelling menageries (Cervidae)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Deer",
+        "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-chiroptera",
@@ -2684,8 +2718,8 @@
       {
         "id": "circus-animals-dermopterae",
         "label": "Dermopterae",
-        "commonName": "Travelling circuses and travelling menageries (Dermopterae)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Colugos (flying lemurs)",
+        "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-diprotodontia",
@@ -2696,26 +2730,26 @@
       {
         "id": "circus-animals-giraffidae",
         "label": "Giraffidae",
-        "commonName": "Travelling circuses and travelling menageries (Giraffidae)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Giraffes and okapis",
+        "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-hippopotamidae",
         "label": "Hippopotamidae",
-        "commonName": "Travelling circuses and travelling menageries (Hippopotamidae)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Hippos",
+        "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-hyracoidae",
         "label": "Hyracoidae",
-        "commonName": "Travelling circuses and travelling menageries (Hyracoidae)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Hyraxes",
+        "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-insectivorae",
         "label": "Insectivorae",
-        "commonName": "Travelling circuses and travelling menageries (Insectivorae)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Insectivores (hedgehogs, shrews and moles)",
+        "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-lagomorpha",
@@ -2726,8 +2760,8 @@
       {
         "id": "circus-animals-macroscelidaes",
         "label": "Macroscelidaes",
-        "commonName": "Travelling circuses and travelling menageries (Macroscelidaes)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Elephant shrews (sengis)",
+        "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-monotremata",
@@ -2738,8 +2772,8 @@
       {
         "id": "circus-animals-moschidae",
         "label": "Moschidae",
-        "commonName": "Travelling circuses and travelling menageries (Moschidae)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Musk deer",
+        "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-peramelemorphia",
@@ -2750,8 +2784,8 @@
       {
         "id": "circus-animals-perissodactyla",
         "label": "Perissodactyla",
-        "commonName": "Travelling circuses and travelling menageries (Perissodactyla)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Odd-toed ungulates (horses, rhinos and tapirs)",
+        "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-pholidota",
@@ -2762,14 +2796,14 @@
       {
         "id": "circus-animals-pinnipedae",
         "label": "Pinnipedae",
-        "commonName": "Travelling circuses and travelling menageries (Pinnipedae)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Seals, sea lions and walruses",
+        "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-proboscida",
         "label": "Proboscida",
-        "commonName": "Travelling circuses and travelling menageries (Proboscida)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Elephants",
+        "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-rhyncocephalia",
@@ -2804,8 +2838,8 @@
       {
         "id": "circus-animals-tayassuidae",
         "label": "Tayassuidae",
-        "commonName": "Travelling circuses and travelling menageries (Tayassuidae)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Peccaries",
+        "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-testudinata",
@@ -2816,14 +2850,14 @@
       {
         "id": "circus-animals-tragulidae",
         "label": "Tragulidae",
-        "commonName": "Travelling circuses and travelling menageries (Tragulidae)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Chevrotains (mouse deer)",
+        "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-tubilidentae",
         "label": "Tubilidentae",
-        "commonName": "Travelling circuses and travelling menageries (Tubilidentae)",
-        "commonNameSource": "generated-fallback"
+        "commonName": "Aardvarks",
+        "commonNameSource": "generated"
       },
       {
         "id": "circus-animals-xenarthra",
