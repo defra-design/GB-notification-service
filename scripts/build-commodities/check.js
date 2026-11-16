@@ -359,11 +359,32 @@ function crossCommodityLatinNames (liveList) {
     .map(([key, names]) => `${key}: ${[...names].join(', ')}`)
 }
 
-function runChecks () {
+function checkSameAsBaseline (baseline, lists, failures) {
+  for (const listName of ['live', 'germinal']) {
+    const expected = baseline[listName]
+    const actual = lists[listName]
+
+    if (JSON.stringify(actual) === JSON.stringify(expected)) {
+      continue
+    }
+
+    const firstDifferentIndex = expected.findIndex((commodity, index) =>
+      JSON.stringify(commodity) !== JSON.stringify(actual[index])
+    )
+    const differingPosition = firstDifferentIndex === -1 ? `extra commodity ${actual[expected.length].id}` : expected[firstDifferentIndex].id
+    failures.push(`${listName}: differs from the baseline, first at ${differingPosition}`)
+  }
+}
+
+function runChecks ({ sameAsBaseline }) {
   const baseline = readJson(baselinePath)
   const lists = readCurrentLists()
   const baselineSpeciesIds = new Set(allCommodities(baseline).flatMap((commodity) => commodity.species.map((species) => species.id)))
   const failures = []
+
+  if (sameAsBaseline) {
+    checkSameAsBaseline(baseline, lists, failures)
+  }
 
   checkBaselineList('live', baseline.live, lists.live, failures)
   checkBaselineList('germinal', baseline.germinal, lists.germinal, failures)
@@ -392,4 +413,4 @@ function runChecks () {
   console.log('\nAll commodity checks passed')
 }
 
-runChecks()
+runChecks({ sameAsBaseline: process.argv.includes('--same-as-baseline') })

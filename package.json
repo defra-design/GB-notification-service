@@ -7,6 +7,7 @@
     "test:prototype:report": "playwright show-report journey-demo/playwright-report",
     "commodities:baseline": "node scripts/build-commodities/dump-baseline.js",
     "check:commodities": "node scripts/build-commodities/check.js",
+    "check:commodities:same-as-baseline": "node scripts/build-commodities/check.js --same-as-baseline",
     "test:commodity-search": "playwright test --config journey-demo/playwright.config.js commodity-search",
     "test:commodity-search:record": "RECORD_BASELINE=1 playwright test --config journey-demo/playwright.config.js commodity-search"
   },
