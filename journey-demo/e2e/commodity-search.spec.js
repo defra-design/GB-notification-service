@@ -250,7 +250,7 @@ test.describe('commodity search selections on /design-release-2.1 (live-animals)
     })
     await expect(gallusCards.locator('.app-dr2-review-card__title')).toHaveText([
       /^Chicken \(010511\)$/,
-      /^Fertilised eggs for incubation, of fowls of Gallus Domesticus \(04071100\)$/
+      /^Hatching eggs: chicken \(04071100\)$/
     ])
   })
 
@@ -276,8 +276,8 @@ test.describe('commodity search selections on /design-release-2.1 (live-animals)
       has: page.locator('.app-dr2-review-card__title', { hasText: title })
     })
     await expect(cardTitled('Other live mammals').locator('.app-dr2-review-identification-table__value').first()).toHaveText('BAT-001')
-    await expect(cardTitled('Travelling circuses').locator('.app-dr2-review-commodity-card__species-heading')).toHaveText(['Chiroptera'])
-    await expect(cardTitled('Travelling circuses').locator('.app-dr2-review-identification-table')).toHaveCount(0)
+    await expect(cardTitled('Travelling circus and menagerie animals').locator('.app-dr2-review-commodity-card__species-heading')).toHaveText(['Chiroptera'])
+    await expect(cardTitled('Travelling circus and menagerie animals').locator('.app-dr2-review-identification-table')).toHaveCount(0)
   })
 
   test('renders the results for "010" in under 50 ms', async ({ page }) => {

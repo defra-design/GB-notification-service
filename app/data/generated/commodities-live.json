@@ -1673,7 +1673,7 @@
   },
   {
     "id": "primates",
-    "name": "Primates",
+    "name": "Monkeys, apes and other primates",
     "code": "01061100",
     "species": [
       {
@@ -2029,12 +2029,12 @@
       "01061100",
       "0106110000"
     ],
-    "nameSource": "tariff",
+    "nameSource": "generated",
     "tariffDescription": "Mammals / Primates"
   },
   {
     "id": "whales-dolphins-seals",
-    "name": "Whales, dolphins and porpoises (mammals of the order Cetacea); manatees and dugongs (mammals of the order Sirenia); seals, sea lions and walruses (mammals of the suborder Pinnipedia)",
+    "name": "Whales, dolphins and seals",
     "code": "01061200",
     "species": [
       {
@@ -2063,7 +2063,7 @@
       "01061200",
       "0106120000"
     ],
-    "nameSource": "tariff",
+    "nameSource": "generated",
     "tariffDescription": "Mammals / Whales, dolphins and porpoises (Cetacea); manatees and dugongs (Sirenia); seals, sea lions and walruses (Pinnipedia)"
   },
   {
@@ -2094,12 +2094,12 @@
       "01063100",
       "0106310000"
     ],
-    "nameSource": "tariff",
+    "nameSource": "generated",
     "tariffDescription": "Birds / Birds of prey"
   },
   {
     "id": "pigeons",
-    "name": "Pigeons",
+    "name": "Pigeons and doves",
     "code": "01063910",
     "species": [
       {
@@ -2131,12 +2131,12 @@
       "01063910",
       "0106391000"
     ],
-    "nameSource": "tariff",
+    "nameSource": "generated",
     "tariffDescription": "Birds / Other / Pigeons"
   },
   {
     "id": "other-birds",
-    "name": "Other live birds",
+    "name": "Other birds",
     "code": "01063980",
     "species": [
       {
@@ -2432,12 +2432,12 @@
       "01063980",
       "0106398000"
     ],
-    "nameSource": "btom",
+    "nameSource": "generated",
     "tariffDescription": "Birds / Other / Other"
   },
   {
     "id": "other-insects",
-    "name": "Live insects other than bees",
+    "name": "Insects other than bees",
     "code": "01064900",
     "species": [
       {
@@ -2460,7 +2460,7 @@
       "01064900",
       "0106490000"
     ],
-    "nameSource": "btom",
+    "nameSource": "generated",
     "tariffDescription": "Insects / Other"
   },
   {
@@ -2493,12 +2493,12 @@
       "0106900019",
       "0106900090"
     ],
-    "nameSource": "btom",
+    "nameSource": "generated",
     "tariffDescription": "Other / Frogs / Fit for human consumption; Other / Frogs / Other; Other / Other"
   },
   {
     "id": "hatching-eggs-chicken",
-    "name": "Fertilised eggs for incubation, of fowls of Gallus Domesticus",
+    "name": "Hatching eggs: chicken",
     "code": "04071100",
     "species": [
       {
@@ -2512,12 +2512,12 @@
       "04071100",
       "0407110000"
     ],
-    "nameSource": "btom",
+    "nameSource": "generated",
     "tariffDescription": "Fertilised eggs for incubation, of fowls of Gallus Domesticus"
   },
   {
     "id": "hatching-eggs-turkey-goose",
-    "name": "Fertilised eggs for incubation, of other poultry, turkeys or geese",
+    "name": "Hatching eggs: turkey and goose",
     "code": "04071911",
     "species": [
       {
@@ -2537,12 +2537,12 @@
       "04071911",
       "0407191100"
     ],
-    "nameSource": "btom",
+    "nameSource": "generated",
     "tariffDescription": "Fertilised eggs for incubation, of other poultry, turkeys or geese"
   },
   {
     "id": "hatching-eggs-other-poultry",
-    "name": "Fertilised eggs for incubation, of other poultry",
+    "name": "Hatching eggs: other poultry",
     "code": "04071919",
     "species": [
       {
@@ -2580,12 +2580,12 @@
       "04071919",
       "0407191900"
     ],
-    "nameSource": "btom",
+    "nameSource": "generated",
     "tariffDescription": "Fertilised eggs for incubation, of other poultry"
   },
   {
     "id": "hatching-eggs-other-birds",
-    "name": "Fertilised eggs for incubation, of other birds",
+    "name": "Hatching eggs: other birds (not poultry)",
     "code": "04071990",
     "species": [
       {
@@ -2659,12 +2659,12 @@
       "04071990",
       "0407199000"
     ],
-    "nameSource": "btom",
+    "nameSource": "generated",
     "tariffDescription": "Fertilised eggs for incubation, of other birds"
   },
   {
     "id": "circus-animals",
-    "name": "Travelling circuses and travelling menageries",
+    "name": "Travelling circus and menagerie animals",
     "code": "95081000",
     "species": [
       {
@@ -2869,7 +2869,7 @@
     "tariffCodes": [
       "95081000"
     ],
-    "nameSource": "tariff",
+    "nameSource": "generated",
     "tariffDescription": "Travelling circuses and travelling menageries"
   }
 ]

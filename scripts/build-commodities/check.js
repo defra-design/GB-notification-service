@@ -380,6 +380,27 @@ function checkNewCommodities (lists, baselineCommodityIds, failures) {
     if (!commodity.nameSource) {
       failures.push(`${commodity.id}: new commodity has no nameSource`)
     }
+
+    if (commodity.nameSource === 'generated' && !commodity.tariffDescription) {
+      failures.push(`${commodity.id}: generated name has no tariffDescription`)
+    }
+  }
+}
+
+function checkUniqueCommodityNames (lists, failures) {
+  for (const [listName, list] of Object.entries(lists)) {
+    const idsByName = new Map()
+
+    for (const commodity of list) {
+      const name = commodity.name.toLowerCase()
+      idsByName.set(name, [...(idsByName.get(name) || []), commodity.id])
+    }
+
+    for (const [name, ids] of idsByName) {
+      if (ids.length > 1) {
+        failures.push(`${listName}: name "${name}" is used by ${ids.join(', ')}`)
+      }
+    }
   }
 }
 
@@ -397,6 +418,7 @@ function runChecks () {
   checkCommodityRules(lists, failures)
   checkNewSpecies(lists, baselineSpeciesIds, failures)
   checkNewCommodities(lists, baselineCommodityIds, failures)
+  checkUniqueCommodityNames(lists, failures)
   checkGeneratedKeys(failures)
 
   const speciesCount = (list) => list.reduce((total, commodity) => total + commodity.species.length, 0)
