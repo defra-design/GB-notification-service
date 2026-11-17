@@ -208,6 +208,33 @@ for (const version of VERSIONS.filter((item) => item.notificationType !== 'germi
 
       expect(speciesIdsUnder(rows, 'Chicken (010511)')).toEqual(speciesIdsOfLiveCommodity('chicken'))
     })
+
+    test('shows only the lizards row under Reptile for "iguana"', async ({ page }) => {
+      await search(page, 'iguana')
+      const rows = await readResultRows(page)
+
+      expect(speciesIdsUnder(rows, 'Reptile (010620)')).toEqual(['reptile-sauria'])
+    })
+
+    test('shows the other carnivore row under Other live mammals for "polar bear"', async ({ page }) => {
+      await search(page, 'polar bear')
+      const rows = await readResultRows(page)
+
+      expect(speciesIdsUnder(rows, 'Other live mammals (01061900)')).toEqual(['other-live-mammals-69-other-carnivora'])
+    })
+
+    test('shows the whole Oysters group for "oyster"', async ({ page }) => {
+      await search(page, 'oyster')
+      const rows = await readResultRows(page)
+
+      expect(speciesIdsUnder(rows, 'Oysters (030711)')).toEqual(speciesIdsOfLiveCommodity('oysters'))
+    })
+
+    test('finds no finfish for "salmon"', async ({ page }) => {
+      await search(page, 'salmon')
+
+      await expect(page.locator('#commodity-search-results')).toHaveText('No results found')
+    })
   })
 }
 
