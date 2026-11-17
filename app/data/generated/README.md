@@ -64,6 +64,34 @@ Records from the earlier list have no such field.
 Generated names are a best effort.
 Treat them as draft wording for research, not as agreed content.
 
+## Common names for search
+
+`app/assets/data/common-names-live.json` holds English animal names that search treats like a species' search terms.
+It lets "polar bear" find Other Carnivora and "toucan" find Piciformes, where no row names the animal.
+
+| Field | Holds |
+|---|---|
+| `source` | Where the names come from |
+| `names` | Each live-animals species id, with the English names that find it |
+
+Each name belongs to an animal whose nearest group in the taxonomy matches that species row's Latin name.
+
+The page fetches the file the first time someone uses the search box, and only for live animals.
+Search works without it while it loads, or if the fetch fails.
+
+The names are left out for:
+
+- germinal products
+- travelling circus and menagerie rows, which search still finds by their commodity
+- matches only at phylum level, and the broad "Other Mollusca", "Other Bivalvia" and "Other Crustacea" rows, except names of a family or smaller group
+- subspecies
+- names of finfish, such as salmon, cod or trout
+
+The file is built outside this repo, like the commodity lists. Do not edit it by hand: the next rebuild replaces it.
+
+Source: Integrated Taxonomic Information System (ITIS), October 2026 release (itisSqlite102826), [www.itis.gov](https://www.itis.gov).
+ITIS data is public domain, as a work of the US government, so no credit line is needed.
+
 ## Editing the JSON by hand
 
 You can edit these files directly. To keep the prototype working:
