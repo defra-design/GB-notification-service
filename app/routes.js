@@ -9352,7 +9352,7 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
           : (isDr21 ? 'Submitted notifications' : 'Notifications in progress'),
     notificationSectionDescription: isDr21 && !activeSearch
       ? (activeTab === 'drafts'
-        ? 'Notifications you have started but not submitted.'
+        ? 'Notifications you have started but not submitted, and notifications that are being amended.'
         : activeTab === 'completed'
           ? 'Notifications that have been processed. They move here 2 weeks after the commodity arrival date.'
           : 'Notifications you have submitted. You can still change them and add documents.')
