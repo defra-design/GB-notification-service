@@ -62,16 +62,16 @@
         <fieldset class="govuk-fieldset"{% if not isAddressBookAdd and defaultAddressUseLabel %} aria-describedby="address-uses-hint"{% endif %}>
           <legend class="govuk-fieldset__legend govuk-fieldset__legend--m app-consignment-add-address-page__usage-heading">
             {% if isAddressBookAdd %}
-              {% if showAddressLookup %}Address type{% else %}What can this address be used for?{% endif %}
+              {% if showAddressLookup %}Address type{% else %}Add to your address book{% endif %}
             {% else %}
-              What else should this address be used for?
+              Add to your address book
             {% endif %}
           </legend>
           <p id="address-uses-hint" class="govuk-hint app-consignment-add-address-page__usage-hint">
             {% if isAddressBookAdd %}
-              Select where this address can be used
+              Select what types of address this can be used for in your address book.
             {% else %}
-              This address is being added as {{ defaultAddressUseArticle or "a" }} {{ defaultAddressUseLabel }} address. Select any other roles or addresses this address should be used for.
+              This address will be added to your address book as {{ defaultAddressUseArticle or "a" }} {{ defaultAddressUseLabel }}. Select any other types of address this can also be used for.
             {% endif %}
           </p>
 
