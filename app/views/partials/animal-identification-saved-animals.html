@@ -1,7 +1,7 @@
-<div class="app-animal-identification-panel__saved" data-identifier-count="{{ panel.identifierFields.length }}">
+<div class="app-animal-identification-panel__saved" data-identifier-count="{{ panel.savedIdentifierFields.length }}" style="--identifier-count: {{ panel.savedIdentifierFields.length }}">
   <div class="app-animal-identification-panel__saved-row app-animal-identification-panel__saved-row--header">
     <div class="app-animal-identification-panel__saved-key">Animal</div>
-    {% for field in panel.identifierFields %}
+    {% for field in panel.savedIdentifierFields %}
       <div class="app-animal-identification-panel__saved-value">{{ field.label }}</div>
     {% endfor %}
     <div class="app-animal-identification-panel__saved-action"></div>

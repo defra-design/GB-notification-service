@@ -380,20 +380,22 @@ test.describe('commodity search selections on /design-release-2.1 (live-animals)
     ])
   })
 
-  test('shows animal identifiers only under the commodity whose species has them, for one Latin name under two commodities', async ({ page }) => {
+  test('keeps animal identifiers under their own commodity, for one Latin name under two commodities', async ({ page }) => {
+    const valueBySpeciesId = {
+      'other-live-mammals-17-chiroptera': 'BAT-001',
+      'circus-animals-chiroptera': 'CIRCUS-BAT-001'
+    }
     await selectSpecies(page, 'Chiroptera', 'other-live-mammals-17-chiroptera')
     await selectSpecies(page, 'Chiroptera', 'circus-animals-chiroptera')
     await clickContinue(page)
     await page.goto(`${version.base}/consignment-details`)
-    for (const speciesId of ['other-live-mammals-17-chiroptera', 'circus-animals-chiroptera']) {
+    for (const speciesId of Object.keys(valueBySpeciesId)) {
       await page.locator(`input[name="numberOfAnimals[${speciesId}]"]`).fill('1')
     }
     await clickContinue(page)
     await expect(page).toHaveURL(/\/animal-identification-details$/)
-    const identifierFields = page.locator('input[name^="identifiers["]')
-    await expect(identifierFields.first()).toBeVisible()
-    for (const field of await identifierFields.all()) {
-      await field.fill('BAT-001')
+    for (const [speciesId, value] of Object.entries(valueBySpeciesId)) {
+      await page.locator(`#identifier-${speciesId}-description`).fill(value)
     }
     await page.locator('button[name="action"][value="continue"]').first().click()
     await page.goto(`${version.base}/review-notification`)
@@ -403,7 +405,7 @@ test.describe('commodity search selections on /design-release-2.1 (live-animals)
     })
     await expect(cardTitled('Other live mammals').locator('.app-dr2-review-identification-table__value').first()).toHaveText('BAT-001')
     await expect(cardTitled('Travelling circus and menagerie animals').locator('.app-dr2-review-commodity-card__species-heading')).toHaveText(['Chiroptera'])
-    await expect(cardTitled('Travelling circus and menagerie animals').locator('.app-dr2-review-identification-table')).toHaveCount(0)
+    await expect(cardTitled('Travelling circus and menagerie animals').locator('.app-dr2-review-identification-table__value').first()).toHaveText('CIRCUS-BAT-001')
   })
 
   test('renders the results for "010" in under 50 ms', async ({ page }) => {

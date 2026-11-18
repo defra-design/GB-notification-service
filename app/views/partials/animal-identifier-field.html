@@ -1,0 +1,58 @@
+{#- One animal identifier field. Expects `panel` and `field` from the page's loops. -#}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
+
+{% set fieldId = "identifier-" + panel.speciesId + "-" + field.id %}
+{% set fieldName = "identifiers[" + panel.speciesId + "][" + field.id + "]" %}
+{% set fieldValue = panel.activeAnimal.identifierValues[field.id] or "" %}
+{% set fieldError = data.errors[fieldId] if data.errors and data.errors[fieldId] %}
+
+{% if field.type == "select" %}
+  {% set selectItems = [{ value: "", text: "Select " + field.label | lower }] %}
+  {% for option in field.options %}
+    {% set ignored = selectItems.push({ value: option, text: option, selected: option == fieldValue }) %}
+  {% endfor %}
+
+  {{ govukSelect({
+    id: fieldId,
+    name: fieldName,
+    label: {
+      text: field.label
+    },
+    items: selectItems,
+    errorMessage: fieldError
+  }) }}
+{% elif field.type == "date" %}
+  <div class="app-animal-identification-page__date-field">
+    {{ mojDatePicker({
+      id: fieldId,
+      name: fieldName,
+      value: fieldValue,
+      label: {
+        text: field.label
+      },
+      hint: {
+        text: field.hint or "For example, 27/03/2026"
+      },
+      errorMessage: fieldError,
+      formGroup: {
+        classes: "govuk-form-group" + (" govuk-form-group--error" if fieldError else "")
+      }
+    }) }}
+  </div>
+{% else %}
+  {{ govukInput({
+    label: {
+      text: field.label
+    },
+    id: fieldId,
+    name: fieldName,
+    value: fieldValue,
+    classes: "govuk-input--width-20 app-animal-identification-page__input",
+    attributes: {
+      "data-identifier-type": "text"
+    },
+    errorMessage: fieldError
+  }) }}
+{% endif %}

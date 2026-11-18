@@ -2349,6 +2349,11 @@ button.govuk-link.app-govuk-body-link--small {
     grid-template-columns: 180px repeat(3, minmax(0, 1fr)) 72px;
   }
 
+  // Four or more filled-in fields: one column each, set from the page.
+  &__saved:not([data-identifier-count="1"]):not([data-identifier-count="2"]):not([data-identifier-count="3"]) &__saved-row {
+    grid-template-columns: 140px repeat(var(--identifier-count), minmax(0, 1fr)) 72px;
+  }
+
   &__saved-key {
     min-width: 0;
     font-weight: inherit;
