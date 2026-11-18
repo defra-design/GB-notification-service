@@ -4,7 +4,7 @@ const curatedFieldsById = require('./commodity-curated')
 function withCuratedFields ({ species, ...commodity }) {
   return {
     ...commodity,
-    ...(curatedFieldsById[commodity.id] || { identifiers: [] }),
+    ...(curatedFieldsById[commodity.id] || {}),
     species
   }
 }

@@ -9,7 +9,6 @@ const germinalCertificationPurposeOptions = [
 function germinalCommodity (entry) {
   return {
     isGerminalProduct: true,
-    identifiers: [],
     certificationPurposeOptions: germinalCertificationPurposeOptions,
     packagingFields: [],
     ...entry

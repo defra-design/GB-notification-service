@@ -42,6 +42,9 @@ const SPECIES_KEYS = new Set([
 
 const FROZEN_COMMODITY_FIELDS = new Set(['id', 'name', 'code', 'isGerminalProduct', 'species'])
 
+// Identifier fields moved to app/data/commodity-identifiers.js, so the baseline's copy is not compared.
+const MOVED_COMMODITY_FIELDS = new Set(['identifiers'])
+
 function readJson (filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'))
 }
@@ -106,7 +109,7 @@ function checkBaselineList (listName, baselineList, currentList, failures) {
 
     const curatedFields = new Set(
       [...Object.keys(baselineCommodity), ...Object.keys(current)]
-        .filter((field) => !FROZEN_COMMODITY_FIELDS.has(field) && !COMMODITY_KEYS.has(field))
+        .filter((field) => !FROZEN_COMMODITY_FIELDS.has(field) && !COMMODITY_KEYS.has(field) && !MOVED_COMMODITY_FIELDS.has(field))
     )
 
     for (const field of curatedFields) {

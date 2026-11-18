@@ -6,7 +6,7 @@
 // conditional branches and sub-journeys:
 //   - cattle + air   → animal identification + all address sub-sections;
 //                      transit skipped
-//   - poultry + rail → transit-countries branch; animal identification skipped
+//   - poultry + rail → transit-countries branch; one bird of the flock identified
 //   - cat + air      → animal identification + permanent-address sub-journey
 //
 const { expect } = require('@playwright/test')
@@ -44,14 +44,15 @@ const JOURNEYS = [
   },
   {
     id: 'chicken-rail',
-    label: 'Poultry imported by rail (transit countries, no animal identification)',
+    label: 'Poultry imported by rail (transit countries, one of the flock identified)',
     country: { search: 'Germany', option: 'Germany' },
     reference: 'DEMO-POULTRY-002',
     species: { search: 'chicken', id: 'chicken-gallus-domesticus' },
     reason: 'Internal market',
     internalMarketPurpose: 'Production',
     animalCount: '400',
-    hasAnimalIdentification: false,
+    hasAnimalIdentification: true,
+    identifiedAnimalCount: 1,
     unweaned: null,
     certificationPurpose: 'Slaughter',
     port: { search: 'Folkestone', option: 'Folkestone' },
@@ -234,13 +235,13 @@ async function fillConsignmentDetails (page, journey) {
   await clickContinue(page)
 }
 
-// Enters identifiers for each animal (fills the visible identifier fields and
-// saves when the page offers a save per animal), then advances. Filling all
-// animals leaves the section complete.
+// Enters identifiers for each animal (fills the visible text identifier fields
+// and saves when the page offers a save per animal), then advances. Filling all
+// animals leaves the section complete; identifiedAnimalCount stops early.
 async function fillAnimalIdentification (page, journey) {
-  const animals = Number(journey.animalCount) || 1
+  const animals = journey.identifiedAnimalCount || Number(journey.animalCount) || 1
   for (let a = 0; a < animals; a += 1) {
-    const fields = page.locator('input[name^="identifiers["]')
+    const fields = page.locator('input[data-identifier-type="text"]')
     const n = await fields.count()
     if (n === 0) break // section already complete
     for (let i = 0; i < n; i += 1) {

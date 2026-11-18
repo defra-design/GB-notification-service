@@ -99,18 +99,7 @@
                         <h3 class="app-animal-identification-panel__entry-heading">{{ panel.activeAnimal.headingText }}</h3>
 
                         {% for field in panel.identifierFields %}
-                          {% set fieldError = data.errors["identifier-" + panel.speciesId + "-" + field.id] if data.errors and data.errors["identifier-" + panel.speciesId + "-" + field.id] %}
-
-                          {{ govukInput({
-                            label: {
-                              text: field.label
-                            },
-                            id: "identifier-" + panel.speciesId + "-" + field.id,
-                            name: "identifiers[" + panel.speciesId + "][" + field.id + "]",
-                            value: panel.activeAnimal.identifierValues[field.id] or "",
-                            classes: "govuk-input--width-20 app-animal-identification-page__input",
-                            errorMessage: fieldError
-                          }) }}
+                          {% include "partials/animal-identifier-field.html" %}
                         {% endfor %}
 
                         {% if panel.showSaveButton %}

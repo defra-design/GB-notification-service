@@ -113,41 +113,7 @@
                         <h3 class="app-animal-identification-panel__entry-heading">{{ panel.activeAnimal.headingText }}</h3>
 
                         {% for field in panel.identifierFields %}
-                          {% set fieldError = data.errors["identifier-" + panel.speciesId + "-" + field.id] if data.errors and data.errors["identifier-" + panel.speciesId + "-" + field.id] %}
-                          {% set fieldName = "identifiers[" + panel.speciesId + "][" + field.id + "]" %}
-                          {% set fieldId = "identifier-" + panel.speciesId + "-" + field.id %}
-                          {% set fieldValue = panel.activeAnimal.identifierValues[field.id] or "" %}
-
-                          {% if field.type == "date" %}
-                            <div class="app-animal-identification-page__date-field">
-                              {{ mojDatePicker({
-                                id: fieldId,
-                                name: fieldName,
-                                value: fieldValue,
-                                label: {
-                                  text: field.label
-                                },
-                                hint: {
-                                  text: field.hint or "For example, 27/03/2026"
-                                },
-                                errorMessage: fieldError,
-                                formGroup: {
-                                  classes: "govuk-form-group" + (" govuk-form-group--error" if fieldError else "")
-                                }
-                              }) }}
-                            </div>
-                          {% else %}
-                            {{ govukInput({
-                              label: {
-                                text: field.label
-                              },
-                              id: fieldId,
-                              name: fieldName,
-                              value: fieldValue,
-                              classes: "govuk-input--width-20 app-animal-identification-page__input",
-                              errorMessage: fieldError
-                            }) }}
-                          {% endif %}
+                          {% include "partials/animal-identifier-field.html" %}
                         {% endfor %}
 
                         {% if panel.showSaveButton %}

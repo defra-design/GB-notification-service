@@ -10,7 +10,7 @@ const countryLabels = countryOptions.labels
 const countryRegionPrefixes = require('./data/country-region-prefixes')
 const commodities = require('./data/commodities')
 const germinalProductCommodities = require('./data/commodities-germinal-products')
-const { getIdentifiersForCommodityCode } = require('./data/commodity-identifiers')
+const { getIdentifierFields } = require('./data/commodity-identifiers')
 const certificationPurposeOptions = require('./data/certification-purposes')
 const importReasons = require('./data/import-reasons')
 const internalMarketPurposes = require('./data/internal-market-purposes')
@@ -1918,13 +1918,11 @@ function getIdentifierFieldsForSpecies (speciesId) {
     return []
   }
 
-  const codeIdentifiers = getIdentifiersForCommodityCode(match.commodity.code)
-
-  if (codeIdentifiers.length) {
-    return codeIdentifiers
-  }
-
-  return Array.isArray(match.commodity.identifiers) ? match.commodity.identifiers : []
+  return getIdentifierFields({
+    commodityId: match.commodity.id,
+    speciesId,
+    isGerminalProduct: isGerminalProductCommodity(match.commodity)
+  })
 }
 
 function getIdentificationEntryCount (sessionData, speciesId) {
@@ -1996,8 +1994,9 @@ function hasMinimumAnimalIdentifiersForSubmit (sessionData) {
   })
 }
 
+// Every identifier field is optional on its own: an animal needs at least one.
 function isAnimalIdentifierEntryComplete (animal, fields) {
-  return fields.every((field) => {
+  return fields.some((field) => {
     const value = animal[field.id]
 
     return value != null && String(value).trim() !== ''
@@ -2091,14 +2090,24 @@ function getSpeciesIdentificationState (sessionData, speciesId) {
   const savedAnimals = isGerminalProduct
     ? []
     : getSavedAnimalsForSpecies(sessionData, panelContext)
-  const completeSavedAnimals = savedAnimals.filter((animal) => {
+  const allCompleteSavedAnimals = savedAnimals.filter((animal) => {
     return isAnimalIdentifierEntryComplete(speciesSaved[animal.index] || {}, fields)
   })
+  // Fields are optional, so the saved table only shows columns someone filled in.
+  const savedFieldIds = new Set(allCompleteSavedAnimals.flatMap((animal) => {
+    return animal.identifierValues.filter((item) => item.value).map((item) => item.id)
+  }))
+  const savedIdentifierFields = fields.filter((field) => savedFieldIds.has(field.id))
+  const completeSavedAnimals = allCompleteSavedAnimals.map((animal) => ({
+    ...animal,
+    identifierValues: animal.identifierValues.filter((item) => savedFieldIds.has(item.id))
+  }))
 
   return {
     speciesId,
     speciesLabel,
     identifierFields: fields,
+    savedIdentifierFields,
     totalAnimals: total,
     isGerminalProduct,
     panelHeaderText: speciesLabel,
@@ -2106,7 +2115,9 @@ function getSpeciesIdentificationState (sessionData, speciesId) {
     isComplete: isGerminalProduct ? false : !activeAnimal,
     activeAnimal,
     savedAnimals: completeSavedAnimals,
-    savedAnimalsTable: isGerminalProduct ? null : buildSavedAnimalsTable(panelContext, completeSavedAnimals)
+    savedAnimalsTable: isGerminalProduct
+      ? null
+      : buildSavedAnimalsTable({ ...panelContext, identifierFields: savedIdentifierFields }, completeSavedAnimals)
   }
 }
 
@@ -2266,6 +2277,10 @@ function looksLikeDdMmYyyyDate (value) {
 function getIdentifierFieldError (field, value) {
   if (field.maxLength && value.length > field.maxLength) {
     return `${field.label} must be ${field.maxLength} characters or less`
+  }
+
+  if (field.type === 'select') {
+    return field.options.includes(value) ? null : `Select a ${field.label.toLowerCase()} from the list`
   }
 
   if (field.type !== 'date') {
@@ -13255,6 +13270,14 @@ router.post('/animal-identification-details', (req, res) => {
       rawIdentifiers,
       speciesId
     )
+
+    if (!errorList.length && !isAnimalIdentifierEntryComplete(values, panel.identifierFields)) {
+      const firstFieldKey = `identifier-${speciesId}-${panel.identifierFields[0].id}`
+      const text = `Enter at least one identifier for ${panel.speciesLabel} ${panel.activeAnimal.animalNumber}`
+
+      errors[firstFieldKey] = { text }
+      errorList.push({ text, href: `#${firstFieldKey}` })
+    }
 
     if (errorList.length) {
       req.session.data.errorList = errorList
