@@ -10,7 +10,9 @@ const countryLabels = countryOptions.labels
 const countryRegionPrefixes = require('./data/country-region-prefixes')
 const commodities = require('./data/commodities')
 const germinalProductCommodities = require('./data/commodities-germinal-products')
+const testing3LiveCommodities = require('./data/commodities-testing3')
 const { getIdentifiersForCommodityCode } = require('./data/commodity-identifiers')
+const { getTesting3Identification } = require('./data/commodity-identifiers-testing3')
 const certificationPurposeOptions = require('./data/certification-purposes')
 const importReasons = require('./data/import-reasons')
 const internalMarketPurposes = require('./data/internal-market-purposes')
@@ -42,6 +44,8 @@ function getUkConsignmentLookupAddresses () {
 const addressBookLookupAddresses = require('./data/address-book-lookup-addresses')
 const dashboardData = require('./data/dashboard-notifications')
 const dashboardTemplates = require('./data/dashboard-templates')
+const testing3DashboardAmendNotifications = require('./data/dashboard-notifications-testing3')
+const testing3DashboardTemplates = require('./data/dashboard-templates-testing3')
 const { buildDashboardNotificationSnapshot } = require('./data/dashboard-notification-snapshots')
 const {
   DRAFT_NOTIFICATION_SEQUENCE,
@@ -69,7 +73,9 @@ const DESIGN_RELEASE_NOTIFICATION_REFERENCE = 'GBN-AG-26-7K8M2P'
 const TESTING_NOTIFICATION_REFERENCE = 'GB.2026.7963913 - CHEDA'
 const PROTOTYPE_NOTIFICATION_REFERENCE = DESIGN_RELEASE_NOTIFICATION_REFERENCE
 
-const allCommodities = commodities.concat(germinalProductCommodities)
+// The extra commodities are included so their species can be looked up. Only
+// the search in Design release 2.1, Testing 3 and Testing 4 offers them (see getSearchCommodities).
+const allCommodities = commodities.concat(germinalProductCommodities, testing3LiveCommodities)
 
 function isDesignRelease21SessionData (sessionData) {
   return Boolean(sessionData && sessionData._isDesignRelease21Version)
@@ -234,7 +240,9 @@ function getSearchCommodities (sessionData) {
   }
 
   if (type === 'live-animals') {
-    return sortCommoditiesByName(commodities)
+    return sortCommoditiesByName(hasJourneyUpdates(sessionData)
+      ? commodities.concat(testing3LiveCommodities)
+      : commodities)
   }
 
   return []
@@ -290,6 +298,14 @@ function isTestingSessionData (sessionData) {
 
 function isTesting3SessionData (sessionData) {
   return Boolean(sessionData && sessionData._isTesting3Version)
+}
+
+// The November 2026 updates (identification fields by commodity, removable
+// addresses and transporter, blank-friendly templates, dashboard dates and
+// Amend examples, address book uses) apply to Design release 2.1, Testing 3 and Testing 4.
+// Those are the three versions that set the Design release 2.1 flag.
+function hasJourneyUpdates (sessionData) {
+  return Boolean(sessionData && sessionData._isDesignRelease21Version)
 }
 
 function isTesting4SessionData (sessionData) {
@@ -1911,11 +1927,42 @@ function getAnimalIdentifiers (sessionData) {
   return sessionData.animalIdentifiers
 }
 
-function getIdentifierFieldsForSpecies (speciesId) {
+// Design release 2.1, Testing 3 and Testing 4 have their own
+// identification fields for live animals. Returns
+// { perAnimal, fields }, or null when the version, commodity or species is not covered.
+function getTesting3IdentificationForSpecies (speciesId, sessionData) {
+  if (!hasJourneyUpdates(sessionData)) {
+    return null
+  }
+
+  const match = getSpeciesMatch(speciesId)
+
+  if (!match || isGerminalProductCommodity(match.commodity)) {
+    return null
+  }
+
+  return getTesting3Identification(match.commodity, match.species)
+}
+
+// Flocks and batches need one set of identification details per species,
+// not one per animal.
+function isPerSpeciesIdentificationEntry (speciesId, sessionData) {
+  const testing3Identification = getTesting3IdentificationForSpecies(speciesId, sessionData)
+
+  return Boolean(testing3Identification && !testing3Identification.perAnimal)
+}
+
+function getIdentifierFieldsForSpecies (speciesId, sessionData) {
   const match = getSpeciesMatch(speciesId)
 
   if (!match) {
     return []
+  }
+
+  const testing3Identification = getTesting3IdentificationForSpecies(speciesId, sessionData)
+
+  if (testing3Identification) {
+    return testing3Identification.fields
   }
 
   const codeIdentifiers = getIdentifiersForCommodityCode(match.commodity.code)
@@ -1939,12 +1986,18 @@ function getIdentificationEntryCount (sessionData, speciesId) {
     return 1
   }
 
-  return Number((sessionData.numberOfAnimals || {})[speciesId]) || 0
+  const numberOfAnimals = Number((sessionData.numberOfAnimals || {})[speciesId]) || 0
+
+  if (isPerSpeciesIdentificationEntry(speciesId, sessionData)) {
+    return numberOfAnimals > 0 ? 1 : 0
+  }
+
+  return numberOfAnimals
 }
 
 function hasAnimalIdentifiersRequired (sessionData) {
   return normalizeSelectedSpecies(sessionData.selectedSpecies).some((speciesId) => {
-    return getIdentifierFieldsForSpecies(speciesId).length > 0
+    return getIdentifierFieldsForSpecies(speciesId, sessionData).length > 0
   })
 }
 
@@ -1966,7 +2019,7 @@ function hasSavedGerminalIdentifierEntry (sessionData, speciesId) {
 }
 
 function hasAtLeastOneAnimalIdentifierForSpecies (sessionData, speciesId) {
-  const fields = getIdentifierFieldsForSpecies(speciesId)
+  const fields = getIdentifierFieldsForSpecies(speciesId, sessionData)
 
   if (!fields.length) {
     return true
@@ -1996,12 +2049,59 @@ function hasMinimumAnimalIdentifiersForSubmit (sessionData) {
   })
 }
 
-function isAnimalIdentifierEntryComplete (animal, fields) {
-  return fields.every((field) => {
-    const value = animal[field.id]
+function hasIdentifierFieldValue (animal, field) {
+  const value = animal ? animal[field.id] : null
 
-    return value != null && String(value).trim() !== ''
+  return value != null && String(value).trim() !== ''
+}
+
+// Fields flagged countsAsIdentifier need at least one of them
+// entered. Without that flag, every field must be entered.
+function getRequiredOneOfIdentifierFields (fields) {
+  return fields.filter((field) => field.countsAsIdentifier)
+}
+
+function isAnimalIdentifierEntryComplete (animal, fields) {
+  const requiredOneOfFields = getRequiredOneOfIdentifierFields(fields)
+
+  if (requiredOneOfFields.length) {
+    return requiredOneOfFields.some((field) => hasIdentifierFieldValue(animal, field))
+  }
+
+  return fields.every((field) => hasIdentifierFieldValue(animal, field))
+}
+
+function lowerCaseFirstLetter (text) {
+  return text.charAt(0).toLowerCase() + text.slice(1)
+}
+
+function getMissingIdentifierError (fields, values, speciesId) {
+  const requiredOneOfFields = getRequiredOneOfIdentifierFields(fields)
+
+  if (!requiredOneOfFields.length || isAnimalIdentifierEntryComplete(values, fields)) {
+    return null
+  }
+
+  return {
+    key: `identifier-${speciesId}-${requiredOneOfFields[0].id}`,
+    text: requiredOneOfFields.length > 1
+      ? 'Enter at least one identifier'
+      : `Enter a ${lowerCaseFirstLetter(requiredOneOfFields[0].label)}`
+  }
+}
+
+// The saved animals table only shows by-commodity fields that have been used,
+// so a long field list does not turn into a long row of empty columns.
+function getSavedAnimalTableFields (fields, speciesSaved) {
+  if (!fields.some((field) => field.group)) {
+    return fields
+  }
+
+  const usedFields = fields.filter((field) => {
+    return speciesSaved.some((animal) => hasIdentifierFieldValue(animal, field))
   })
+
+  return usedFields.length ? usedFields : getRequiredOneOfIdentifierFields(fields)
 }
 
 function hasAnimalIdentifiersComplete (sessionData) {
@@ -2009,7 +2109,7 @@ function hasAnimalIdentifiersComplete (sessionData) {
   const saved = getAnimalIdentifiers(sessionData)
 
   return speciesIds.every((speciesId) => {
-    const fields = getIdentifierFieldsForSpecies(speciesId)
+    const fields = getIdentifierFieldsForSpecies(speciesId, sessionData)
     const total = getIdentificationEntryCount(sessionData, speciesId)
 
     if (fields.length === 0) {
@@ -2041,7 +2141,7 @@ function getSpeciesIdentificationState (sessionData, speciesId) {
     return null
   }
 
-  const fields = getIdentifierFieldsForSpecies(speciesId)
+  const fields = getIdentifierFieldsForSpecies(speciesId, sessionData)
 
   if (fields.length === 0) {
     return null
@@ -2055,6 +2155,8 @@ function getSpeciesIdentificationState (sessionData, speciesId) {
 
   const speciesLabel = match.species.label
   const isGerminalProduct = isGerminalProductCommodity(match.commodity)
+  const isPerSpeciesEntry = isPerSpeciesIdentificationEntry(speciesId, sessionData)
+  const isSingleEntryForm = isGerminalProduct || isPerSpeciesEntry
   const saved = getAnimalIdentifiers(sessionData)
   const speciesSaved = saved[speciesId] || []
   let activeAnimal = null
@@ -2066,7 +2168,7 @@ function getSpeciesIdentificationState (sessionData, speciesId) {
       activeAnimal = {
         animalNumber: index + 1,
         identifierValues: animal,
-        headingText: isGerminalProduct
+        headingText: isSingleEntryForm
           ? `Enter details for ${speciesLabel}`
           : `Enter details for ${speciesLabel} ${index + 1} of ${total}`
       }
@@ -2074,8 +2176,9 @@ function getSpeciesIdentificationState (sessionData, speciesId) {
     }
   }
 
-  // Germinal products use a single editable form, not the multi-animal save flow.
-  if (isGerminalProduct && !activeAnimal) {
+  // Germinal products, flocks and batches use a single editable form, not the
+  // multi-animal save flow.
+  if (isSingleEntryForm && !activeAnimal) {
     activeAnimal = {
       animalNumber: 1,
       identifierValues: speciesSaved[0] || {},
@@ -2083,10 +2186,12 @@ function getSpeciesIdentificationState (sessionData, speciesId) {
     }
   }
 
+  const savedFields = getSavedAnimalTableFields(fields, speciesSaved)
   const panelContext = {
     speciesId,
     speciesLabel,
-    identifierFields: fields
+    identifierFields: savedFields,
+    isSingleEntry: isPerSpeciesEntry
   }
   const savedAnimals = isGerminalProduct
     ? []
@@ -2103,9 +2208,14 @@ function getSpeciesIdentificationState (sessionData, speciesId) {
     isGerminalProduct,
     panelHeaderText: speciesLabel,
     changeCountLabel: isGerminalProduct ? 'Change number of commodities' : 'Change number of animals',
-    isComplete: isGerminalProduct ? false : !activeAnimal,
+    savedFields,
+    // Shown wherever the commodity has identifier fields, even if it has only one
+    identifierHint: fields.some((field) => field.group === 'identifier')
+      ? 'Enter at least one identifier.'
+      : null,
+    isComplete: isSingleEntryForm ? false : !activeAnimal,
     activeAnimal,
-    savedAnimals: completeSavedAnimals,
+    savedAnimals: isPerSpeciesEntry ? [] : completeSavedAnimals,
     savedAnimalsTable: isGerminalProduct ? null : buildSavedAnimalsTable(panelContext, completeSavedAnimals)
   }
 }
@@ -2142,7 +2252,7 @@ function buildAnimalIdentificationCommodityGroups (sessionData, locals = {}) {
 }
 
 function getRemainingAnimalIdentifierCountForSpecies (sessionData, speciesId) {
-  const fields = getIdentifierFieldsForSpecies(speciesId)
+  const fields = getIdentifierFieldsForSpecies(speciesId, sessionData)
 
   if (fields.length === 0) {
     return 0
@@ -2293,6 +2403,12 @@ function validateAnimalIdentifiers (identifierFields, rawIdentifiers, speciesId 
       ? String(rawIdentifiers[field.id]).trim()
       : ''
 
+    // A selection that is not in the list is treated as no selection.
+    if (field.type === 'select' && !(field.options || []).includes(value)) {
+      values[field.id] = ''
+      return
+    }
+
     values[field.id] = value
 
     if (!value) {
@@ -2324,7 +2440,9 @@ function getSavedAnimalsForSpecies (sessionData, context) {
 
   return animals.map((animal, index) => ({
     index,
-    label: `${context.speciesLabel} ${index + 1}`,
+    label: context.isSingleEntry
+      ? context.speciesLabel
+      : `${context.speciesLabel} ${index + 1}`,
     identifierValues: context.identifierFields.map((field) => ({
       id: field.id,
       value: animal[field.id] || ''
@@ -2614,7 +2732,89 @@ function isConsignmentAddressSectionActive (sessionData, sectionId) {
   return getSessionConsignmentAddressSections(sessionData).some((section) => section.id === sectionId)
 }
 
+// The updated versions let the user remove an address or the CPH number, in a
+// notification or a template. A template keeps what was removed blank, so the
+// person using the template fills it in.
+function canRemoveConsignmentAddresses (sessionData) {
+  return hasJourneyUpdates(sessionData)
+}
+
+function getRemovableConsignmentAddressSection (sectionId) {
+  return consignmentAddressSections.find((section) => {
+    return section.id === sectionId && (section.isCph || section.isPermanentAddress || section.selectable)
+  })
+}
+
+function removeConsignmentAddressFromSection (sessionData, sectionId) {
+  const section = getRemovableConsignmentAddressSection(sectionId)
+
+  if (!section || !canRemoveConsignmentAddresses(sessionData)) {
+    return false
+  }
+
+  if (section.isCph) {
+    sessionData[section.sessionCphKey] = null
+  } else {
+    sessionData[section.sessionAddressKey] = null
+    sessionData[section.sessionAddressIdKey] = null
+  }
+
+  // The permanent address can also be "same as destination" or one per animal.
+  if (section.isPermanentAddress) {
+    sessionData.permanentAddressSameAsDestination = null
+    sessionData.permanentAddressSummary = null
+    sessionData.permanentAnimalAddresses = {}
+  }
+
+  return true
+}
+
+// The updated versions list the permanent address of every animal that needs one, in
+// place of a single address or a "added for N animals" summary.
+function buildPermanentAddressAnimalDisplayList (sessionData) {
+  if (!hasJourneyUpdates(sessionData)) {
+    return null
+  }
+
+  const saved = getPermanentAnimalAddresses(sessionData)
+  const animals = buildPermanentAddressAnimalList(sessionData).map((animal) => ({
+    label: animal.heading,
+    address: formatConsignmentAddressForDisplay((saved[animal.key] || {}).address)
+  }))
+
+  return animals.some((animal) => animal.address) ? animals : null
+}
+
 function buildConsignmentAddressSections (sessionData) {
+  const canRemove = canRemoveConsignmentAddresses(sessionData)
+
+  return buildConsignmentAddressSectionStates(sessionData).map((sectionState) => {
+    const animalAddresses = sectionState.isPermanentAddress
+      ? buildPermanentAddressAnimalDisplayList(sessionData)
+      : null
+    const section = animalAddresses
+      ? { ...sectionState, animalAddresses, changeHref: sectionState.changeHref || sectionState.href }
+      : sectionState
+    const hasValue = Boolean(
+      section.selectedAddress ||
+      section.selectedAddressSummary ||
+      section.selectedCphNumber ||
+      section.animalAddresses
+    )
+
+    if (!canRemove || !hasValue || !getRemovableConsignmentAddressSection(section.id)) {
+      return section
+    }
+
+    return {
+      ...section,
+      removeAction: `remove-address:${section.id}`,
+      removeText: section.isCph ? 'Remove CPH number' : `Remove ${section.heading.toLowerCase()}`
+    }
+  })
+}
+
+function buildConsignmentAddressSectionStates (sessionData) {
   const hasConsigneeAddress = Boolean(sessionData.consigneeAddress)
   const hasPlaceOfOriginAddress = Boolean(sessionData.placeOfOriginAddress)
 
@@ -2902,7 +3102,12 @@ function buildPermanentAddressReviewRows (sessionData) {
   })
 }
 
-function getPermanentAddressAnimalLabel (match, animalNumber) {
+function getPermanentAddressAnimalLabel (match, animalNumber, sessionData) {
+  // The updated versions lead with the common name, for example "Domestic dog (Canis familiaris) 1"
+  if (hasJourneyUpdates(sessionData)) {
+    return `${getSpeciesCommonName(match)} (${match.species.label}) ${animalNumber}`
+  }
+
   return `${match.species.label} ${animalNumber}`
 }
 
@@ -2936,7 +3141,7 @@ function buildPermanentAddressAnimalList (sessionData) {
     }
 
     const total = Number((sessionData.numberOfAnimals || {})[speciesId]) || 0
-    const identifierFields = getIdentifierFieldsForSpecies(speciesId)
+    const identifierFields = getIdentifierFieldsForSpecies(speciesId, sessionData)
     const speciesSaved = savedIdentifiers[speciesId] || []
 
     for (let index = 0; index < total; index++) {
@@ -2954,7 +3159,7 @@ function buildPermanentAddressAnimalList (sessionData) {
         key: animalKey,
         speciesId,
         animalIndex: index,
-        heading: getPermanentAddressAnimalLabel(match, index + 1),
+        heading: getPermanentAddressAnimalLabel(match, index + 1, sessionData),
         identifiers,
         savedChoice: savedAddresses[animalKey] ? savedAddresses[animalKey].choice : ''
       })
@@ -3509,12 +3714,31 @@ function renderTransporterPage (req, res, locals = {}) {
     transporterResults: buildTransporterResults(searchQuery, sessionData),
     selectedTransporterId: locals.selectedTransporterId != null
       ? locals.selectedTransporterId
-      : sessionData.transporterId || '',
+      : sessionData.transporterId || getMatchingTransporterIdForSession(sessionData) || '',
     searchQuery,
     successMessage,
     data: sessionData,
     ...locals
   })
+}
+
+// A template keeps its transporter's details but not which one in the list it
+// was. The updated versions find it again by name and approval number, so its row is
+// selected when the list is shown.
+function getMatchingTransporterIdForSession (sessionData) {
+  const selected = sessionData.transporter
+
+  if (!hasJourneyUpdates(sessionData) || !selected || !selected.name) {
+    return null
+  }
+
+  const normalise = (value) => String(value || '').trim().toLowerCase()
+  const match = getAllTransporters(sessionData).find((transporter) => {
+    return normalise(transporter.name) === normalise(selected.name) &&
+      (!selected.approvalNumber || normalise(transporter.approvalNumber) === normalise(selected.approvalNumber))
+  })
+
+  return match ? match.id : null
 }
 
 function syncTransporterSession (sessionData, transporter) {
@@ -4950,7 +5174,7 @@ function getSelectedSpeciesLabelsForReview (sessionData) {
 }
 
 function buildGerminalReviewIdentification (sessionData, speciesId, readOnly) {
-  const fields = getIdentifierFieldsForSpecies(speciesId)
+  const fields = getIdentifierFieldsForSpecies(speciesId, sessionData)
 
   if (!fields.length) {
     return null
@@ -4969,7 +5193,7 @@ function buildGerminalReviewIdentification (sessionData, speciesId, readOnly) {
 
 function buildReviewSpeciesSections (sessionData) {
   return normalizeSelectedSpecies(sessionData.selectedSpecies)
-    .filter((speciesId) => getIdentifierFieldsForSpecies(speciesId).length > 0)
+    .filter((speciesId) => getIdentifierFieldsForSpecies(speciesId, sessionData).length > 0)
     .map((speciesId, index) => {
       const match = getSpeciesMatch(speciesId)
       const speciesLabel = match
@@ -4994,7 +5218,7 @@ function buildReviewSpeciesSections (sessionData) {
         id: `review-species-${index + 1}`,
         speciesId,
         title: speciesLabel,
-        changeHref: getIdentifierFieldsForSpecies(speciesId).length
+        changeHref: getIdentifierFieldsForSpecies(speciesId, sessionData).length
           ? '/animal-identification-details'
           : '/consignment-details',
         rows: [],
@@ -5114,7 +5338,7 @@ function isSpeciesConsignmentComplete (sessionData, speciesId) {
 }
 
 function isSpeciesIdentifiersComplete (sessionData, speciesId) {
-  const fields = getIdentifierFieldsForSpecies(speciesId)
+  const fields = getIdentifierFieldsForSpecies(speciesId, sessionData)
 
   if (fields.length === 0) {
     return true
@@ -5657,7 +5881,7 @@ function buildDesignRelease2CommodityCards (sessionData, speciesSections, readOn
     const speciesSection = speciesSections.find((section) => section.speciesId
       ? section.speciesId === entry.speciesId
       : section.title === speciesLabel)
-    const requiresIdentifiers = getIdentifierFieldsForSpecies(entry.speciesId).length > 0
+    const requiresIdentifiers = getIdentifierFieldsForSpecies(entry.speciesId, sessionData).length > 0
     const hasIdentifiers = hasAtLeastOneAnimalIdentifierForSpecies(sessionData, entry.speciesId)
     const identificationError = reviewVariant === 'action-required' && requiresIdentifiers && !hasIdentifiers
       ? {
@@ -5793,8 +6017,19 @@ function buildDesignRelease2ReviewPresentation (viewModel, sessionData, readOnly
       title: 'Additional details'
     }, readOnly)
     : null
+  // A template in the updated versions can leave addresses and the CPH number out, so a
+  // blank one reads "Not added" there.
+  const showBlankAddressesAsNotAdded = hasJourneyUpdates(sessionData) && isCreatingTemplateJourney(sessionData)
   const rolesCard = withDr2HeaderChange({
     ...viewModel.addresses.rolesCard,
+    ...(showBlankAddressesAsNotAdded
+      ? {
+          rows: (viewModel.addresses.rolesCard.rows || []).map((row) => ({
+            ...row,
+            value: row.value === 'Not applicable' ? TEMPLATE_BLANK_ADDRESS_TEXT : row.value
+          }))
+        }
+      : {}),
     title: 'Consignment addresses'
   }, readOnly)
   const contactAddressCard = withDr2HeaderChange({
@@ -5880,6 +6115,90 @@ function mapStatusTextToReviewVariant (statusText = '') {
   return 'draft'
 }
 
+// The updated versions work out the dates of their example dashboard notifications from
+// today's date, so each tab keeps to its own rule however long the prototype
+// has been running:
+//
+//   Past       arrived at least 2 weeks ago (the notification moves to the
+//              Past tab 2 weeks after its arrival date)
+//   Submitted  submitted in the last few days; arrives between 10 days ago
+//              and a few weeks from now, so never old enough for Past
+//   Draft      not submitted; arrives in the future
+//   Amend      already submitted and now being changed; arrives in the future
+//
+// Each list is days from today for the arrival date, used in turn.
+const TESTING3_DASHBOARD_ARRIVAL_DAY_OFFSETS = {
+  'submission-complete': [-15, -18, -22, -27, -33, -40, -48, -57, -67, -78],
+  submitted: [3, 9, -4, 16, -10, 24],
+  'action-required': [5, 12, -2, 19],
+  draft: [14, 21, 30, 42],
+  amend: [8, 17, 26]
+}
+
+function addDaysToDate (date, days) {
+  const next = startOfDay(date)
+
+  next.setDate(next.getDate() + days)
+
+  return next
+}
+
+function formatDocumentIssueDate (date) {
+  return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`
+}
+
+// The example dashboard notifications. Their position decides their reference,
+// so the shared ones keep their order and the Amend examples go after them.
+function getStaticDashboardNotifications (sessionData, referenceDate = new Date()) {
+  if (!hasJourneyUpdates(sessionData)) {
+    return dashboardData.notifications
+  }
+
+  const today = startOfDay(referenceDate)
+  const countByVariant = {}
+
+  return [...dashboardData.notifications, ...testing3DashboardAmendNotifications].map((notification) => {
+    const variant = notification.isAmend
+      ? 'amend'
+      : notification.reviewVariant || mapStatusTextToReviewVariant(notification.statusText)
+    const offsets = TESTING3_DASHBOARD_ARRIVAL_DAY_OFFSETS[variant]
+
+    if (!offsets) {
+      return notification
+    }
+
+    const position = countByVariant[variant] || 0
+    countByVariant[variant] = position + 1
+
+    // Past the end of the list, keep moving a week at a time in the same direction
+    const overflow = Math.max(0, position - (offsets.length - 1))
+    const direction = variant === 'submission-complete' ? -1 : 1
+    const arrivalOffset = offsets[Math.min(position, offsets.length - 1)] + (overflow * 7 * direction)
+    const arrival = addDaysToDate(today, arrivalOffset)
+
+    if (variant === 'draft') {
+      // Started a few days ago
+      return {
+        ...notification,
+        arrivalDate: formatDeclarationDate(arrival),
+        dateCreated: formatDeclarationDate(addDaysToDate(today, -3 - position)),
+        documentDateOfIssue: formatDocumentIssueDate(addDaysToDate(today, -5 - position))
+      }
+    }
+
+    // Submitted before it arrived, and never later than yesterday
+    const submittedOffset = Math.min(arrivalOffset - 4, -1 - (position % 5))
+    const submitted = addDaysToDate(today, submittedOffset)
+
+    return {
+      ...notification,
+      arrivalDate: formatDeclarationDate(arrival),
+      dateSubmitted: formatDeclarationDate(submitted),
+      documentDateOfIssue: formatDocumentIssueDate(addDaysToDate(submitted, -2))
+    }
+  })
+}
+
 function getDashboardNotificationMetadata (sessionData, reference) {
   const normalisedReference = String(reference || '').trim()
 
@@ -5917,7 +6236,7 @@ function getDashboardNotificationMetadata (sessionData, reference) {
     }
   }
 
-  const staticNotification = dashboardData.notifications
+  const staticNotification = getStaticDashboardNotifications(sessionData)
     .map((notification, index) => ({
       ...notification,
       reference: isTestingSessionData(sessionData)
@@ -7811,6 +8130,14 @@ function enrichDesignRelease2Notification (notification, index, sessionData = {}
       style: 'action-required'
     }
     errorMessage = getDashboardActionRequiredErrorMessage(notification, sessionData)
+  } else if (reviewVariant === 'draft' && notification.isAmend) {
+    // A submitted notification that is being amended (the Amend examples)
+    statusDisplay = {
+      type: 'tag',
+      text: 'Amend',
+      govukTag: true,
+      govukTagClasses: 'govuk-tag--yellow'
+    }
   } else if (reviewVariant === 'draft') {
     statusDisplay = {
       type: 'tag',
@@ -8071,7 +8398,7 @@ function getDashboardNotificationList (sessionData = {}) {
   const draftReferences = new Set(drafts.map((notification) => notification.reference))
   const submittedReferences = new Set(submitted.map((notification) => notification.reference))
   const deletedReferences = new Set(sessionData.deletedNotificationReferences || [])
-  const staticNotifications = dashboardData.notifications
+  const staticNotifications = getStaticDashboardNotifications(sessionData)
     .map((notification, index) => {
       if (isTestingSessionData(sessionData)) {
         return enrichTestingNotification(notification, index + submitted.length)
@@ -8082,9 +8409,11 @@ function getDashboardNotificationList (sessionData = {}) {
         ...notification,
         reference,
         statusModifier: notification.reviewVariant || mapStatusTextToReviewVariant(notification.statusText),
-        viewHref: isDesignRelease2SessionData(sessionData)
-          ? buildDashboardNotificationViewHref(sessionData, { reference })
-          : notification.viewHref,
+        viewHref: notification.isAmend
+          ? `${getDashboardBackLink(sessionData)}/notifications/amend?reference=${encodeURIComponent(reference)}&resume=1`
+          : isDesignRelease2SessionData(sessionData)
+            ? buildDashboardNotificationViewHref(sessionData, { reference })
+            : notification.viewHref,
         copyHref: isDesignRelease2SessionData(sessionData)
           ? buildDashboardNotificationCopyHref({ reference })
           : null,
@@ -8147,14 +8476,22 @@ function getAllDashboardTemplates (sessionData = {}) {
   const savedTemplates = getSavedTemplates(sessionData).filter((template) => !deletedIds.has(template.id))
   const savedIds = new Set(savedTemplates.map((template) => template.id))
 
-  // Round 2 prototypes start as if the user has not created any templates yet
+  const isAvailable = (template) => !deletedIds.has(template.id) && !savedIds.has(template.id)
+  // Example templates that use the identification fields by commodity
+  const updatedExamples = hasJourneyUpdates(sessionData)
+    ? testing3DashboardTemplates.filter(isAvailable)
+    : []
+
+  // Testing 3 and Testing 4 show only those examples. They used to start as if
+  // the user had not created any templates yet.
   if (isRound2TestingSessionData(sessionData)) {
-    return savedTemplates
+    return [...savedTemplates, ...updatedExamples]
   }
 
   return [
     ...savedTemplates,
-    ...dashboardTemplates.filter((template) => !deletedIds.has(template.id) && !savedIds.has(template.id))
+    ...dashboardTemplates.filter(isAvailable),
+    ...updatedExamples
   ]
 }
 
@@ -8195,6 +8532,30 @@ function buildTemplatePlaceFromSessionAddress (address) {
   }
 }
 
+// The consignment addresses a template keeps, by session key prefix. The updated
+// versions save each one separately so any of them can be left blank.
+const TEMPLATE_BLANK_ADDRESS_TEXT = 'Not added'
+
+const TEMPLATE_ADDRESS_SECTION_KEYS = [
+  'placeOfOrigin',
+  'consignor',
+  'consignee',
+  'importer',
+  'placeOfDestination'
+]
+
+function buildTemplateAddressesFromSession (sessionData) {
+  const addresses = {}
+
+  TEMPLATE_ADDRESS_SECTION_KEYS.forEach((sectionKey) => {
+    const place = buildTemplatePlaceFromSessionAddress(sessionData[`${sectionKey}Address`])
+
+    addresses[sectionKey] = place.name ? place : null
+  })
+
+  return addresses
+}
+
 function buildTemplateFromSession (sessionData) {
   const title = String(sessionData.templateName || '').trim() || 'Untitled template'
   const commodityLabel = getReviewAnimalDetailsCommonNames(sessionData) || 'Not applicable'
@@ -8205,12 +8566,13 @@ function buildTemplateFromSession (sessionData) {
       ? getContactAddressById(sessionData.contactAddressId, sessionData)
       : null
   )
+  const blankAddressText = hasJourneyUpdates(sessionData) ? TEMPLATE_BLANK_ADDRESS_TEXT : 'Not applicable'
   const consigneeName = sessionData.consigneeAddress && sessionData.consigneeAddress.name
     ? sessionData.consigneeAddress.name
-    : 'Not applicable'
+    : blankAddressText
   const consignorName = sessionData.consignorAddress && sessionData.consignorAddress.name
     ? sessionData.consignorAddress.name
-    : 'Not applicable'
+    : blankAddressText
   const totalAnimals = getTotalAnimalCount(sessionData)
   const totalPackages = getTotalPackageCount(sessionData)
   const transporter = sessionData.transporter || null
@@ -8271,6 +8633,9 @@ function buildTemplateFromSession (sessionData) {
       placeOfOrigin,
       contactAddress: contactAddress.name ? contactAddress : placeOfOrigin,
       useSameAddressForParties: true,
+      ...(hasJourneyUpdates(sessionData)
+        ? { addresses: buildTemplateAddressesFromSession(sessionData) }
+        : {}),
       cphNumber: sessionData.cphNumber || null
     }
   }
@@ -8294,7 +8659,7 @@ function generateTesting3NotificationReference (
 ) {
   const existing = new Set([
     String(sessionData.notificationReference || '').trim(),
-    ...((dashboardData.notifications || []).map((notification, index) =>
+    ...(getStaticDashboardNotifications(sessionData).map((notification, index) =>
       toTesting3DashboardReference(notification.reference, index)
     )),
     ...((sessionData.draftNotifications || []).map((notification) =>
@@ -8325,7 +8690,7 @@ function generateDesignReleaseNotificationReference (sessionData = {}) {
   const existing = new Set([
     DESIGN_RELEASE_NOTIFICATION_REFERENCE,
     String(sessionData.notificationReference || '').trim(),
-    ...((dashboardData.notifications || []).map((notification) =>
+    ...(getStaticDashboardNotifications(sessionData).map((notification) =>
       String(notification.reference || '').trim()
     )),
     ...((sessionData.draftNotifications || []).map((notification) =>
@@ -8579,14 +8944,20 @@ function seedNotificationSessionFromTemplate (sessionData, template) {
     sessionData.unweanedAnimals = null
   }
 
-  if (address) {
-    const addressSections = [
-      'placeOfOrigin',
-      'consignor',
-      'consignee',
-      'importer',
-      'placeOfDestination'
-    ]
+  if (review.addresses && typeof review.addresses === 'object') {
+    // Saved address by address: one left out of the template stays blank.
+    TEMPLATE_ADDRESS_SECTION_KEYS.forEach((sectionKey) => {
+      const sectionAddress = buildSessionAddressFromTemplatePlace(review.addresses[sectionKey])
+
+      if (!sectionAddress) {
+        return
+      }
+
+      sessionData[`${sectionKey}Address`] = sectionAddress
+      sessionData[`${sectionKey}AddressId`] = `template-${template.id}-${sectionKey}`
+    })
+  } else if (address) {
+    const addressSections = TEMPLATE_ADDRESS_SECTION_KEYS
 
     addressSections.forEach((sectionKey) => {
       sessionData[`${sectionKey}Address`] = {
@@ -9513,6 +9884,53 @@ function isCreatingTemplateJourney (sessionData) {
   return Boolean(sessionData && sessionData.isCreatingTemplate)
 }
 
+// The updated versions let any answer be left blank or cleared while a template is
+// created or edited. An answer that has been entered must still be valid.
+// Full validation is back once the template is used to start a notification,
+// because that is a normal notification journey.
+function allowsBlankJourneyAnswers (sessionData) {
+  return hasJourneyUpdates(sessionData) && isCreatingTemplateJourney(sessionData)
+}
+
+// Returns a page's validation result. In a template in the updated versions it keeps only
+// the errors for answers that were entered: `submittedValues` maps an error
+// key to the value the user gave, and an error is dropped when that value is
+// blank or not listed.
+function applyJourneyValidation (sessionData, validation, submittedValues = {}) {
+  if (!allowsBlankJourneyAnswers(sessionData)) {
+    return validation
+  }
+
+  const errors = {}
+
+  Object.keys(validation.errors || {}).forEach((key) => {
+    const value = submittedValues[key]
+
+    if (value != null && String(value).trim() !== '') {
+      errors[key] = validation.errors[key]
+    }
+  })
+
+  const keptTexts = new Set(Object.values(errors).map((error) => error.text))
+
+  return {
+    ...validation,
+    errors,
+    errorList: (validation.errorList || []).filter((item) => keptTexts.has(item.text))
+  }
+}
+
+// Error keys are "<prefix>-<speciesId>", so the values are keyed the same way.
+function keyValuesBySpecies (prefix, valuesBySpecies = {}) {
+  const keyed = {}
+
+  Object.keys(valuesBySpecies).forEach((speciesId) => {
+    keyed[`${prefix}-${speciesId}`] = valuesBySpecies[speciesId]
+  })
+
+  return keyed
+}
+
 function isDesignRelease21TemplateCreate (sessionData) {
   return isDesignRelease21SessionData(sessionData) && isCreatingTemplateJourney(sessionData)
 }
@@ -10118,6 +10536,21 @@ function renderAddressBookViewPage (req, res) {
     return res.redirect(backLink)
   }
 
+  const addressBookEntry = hasJourneyUpdates(req.session.data)
+    ? findAddressBookEntry(req.params.addressId, req.session.data)
+    : null
+  const useLabels = addressBookEntry ? getAddressBookEntryUseLabels(addressBookEntry).filter(Boolean) : []
+
+  if (useLabels.length) {
+    viewModel.summaryRows = [
+      ...viewModel.summaryRows,
+      {
+        key: { text: 'Address can be used for' },
+        value: { html: useLabels.map(escapeHtml).join('<br>') }
+      }
+    ]
+  }
+
   return res.render('address-book-view', {
     ...viewModel,
     showAddressBookOnlyNotice: isDesignRelease21SessionData(req.session.data) &&
@@ -10232,6 +10665,8 @@ function renderAddressBookEditPage (req, res, locals = {}) {
     showManualAddress: true,
     hideSearch: true,
     countryItems: buildAddressBookCountryItems(manualAddress.country),
+    addressUseOptions: hasJourneyUpdates(sessionData) ? getAddressBookEntryUseOptions(entry) : [],
+    selectedAddressUses: getAddressBookEntryUses(entry),
     data: sessionData,
     ...locals
   })
@@ -10659,6 +11094,38 @@ function getAddressBookAddCategoryOptions (isDesignRelease21) {
     ...item,
     text: item.textDesignRelease21 || item.text
   }))
+}
+
+// The updated versions show what an address book entry can be used for, and let the
+// user change it when its category has more than one use (for example an
+// origin address can be a place of origin, a consignor, or both).
+const ADDRESS_BOOK_USE_ALIASES = {
+  'consignor-or-exporter': 'consignor',
+  exporter: 'consignor'
+}
+
+function getAddressBookEntryUses (entry) {
+  const uses = []
+
+  ;(entry.types && entry.types.length ? entry.types : [entry.type]).forEach((type) => {
+    const use = ADDRESS_BOOK_USE_ALIASES[type] || type
+
+    if (use && !uses.includes(use)) {
+      uses.push(use)
+    }
+  })
+
+  return uses
+}
+
+function getAddressBookEntryUseOptions (entry) {
+  const options = getAddressBookUsageOptions(entry.category)
+
+  return options.length > 1 ? options : []
+}
+
+function getAddressBookEntryUseLabels (entry) {
+  return getAddressBookEntryUses(entry).map((use) => getAddressBookAddressTypeLabel(use))
 }
 
 function getAddressBookUsageOptions (category) {
@@ -11834,11 +12301,11 @@ router.post('/origin-of-the-import', (req, res) => {
     req.session.data.regionOfOriginCode = null
   }
 
-  const validation = validateOriginOfImport({
+  const validation = applyJourneyValidation(req.session.data, validateOriginOfImport({
     countryOfOrigin,
     regionOfOriginRequired,
     regionOfOriginCodeSuffix
-  })
+  }))
 
   if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
     req.session.data.errorList = null
@@ -11915,7 +12382,10 @@ router.post('/what-are-you-importing', (req, res) => {
     return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
   }
 
-  const validation = validateCommoditySelection(selectedSpecies, commoditySelections)
+  const validation = applyJourneyValidation(
+    req.session.data,
+    validateCommoditySelection(selectedSpecies, commoditySelections)
+  )
 
   if (validation.errorList.length) {
     req.session.data.errorList = validation.errorList
@@ -12005,9 +12475,21 @@ router.post('/consignment-details', (req, res) => {
   const numberOfPackages = parseNumberOfPackages(req.body, speciesIds)
   const storageTemperature = (req.body.storageTemperature || '').trim()
 
-  const animalValidation = validateNumberOfAnimals(numberOfAnimals, speciesIds)
-  const packagingValidation = validateNumberOfPackages(numberOfPackages, speciesIds)
-  const temperatureValidation = validateStorageTemperature(storageTemperature, req.session.data)
+  const animalValidation = applyJourneyValidation(
+    req.session.data,
+    validateNumberOfAnimals(numberOfAnimals, speciesIds),
+    keyValuesBySpecies('numberOfAnimals', numberOfAnimals)
+  )
+  const packagingValidation = applyJourneyValidation(
+    req.session.data,
+    validateNumberOfPackages(numberOfPackages, speciesIds),
+    keyValuesBySpecies('numberOfPackages', numberOfPackages)
+  )
+  const temperatureValidation = applyJourneyValidation(
+    req.session.data,
+    validateStorageTemperature(storageTemperature, req.session.data),
+    { storageTemperature }
+  )
   const errors = {
     ...animalValidation.errors,
     ...packagingValidation.errors,
@@ -12077,7 +12559,11 @@ router.post('/consignment-gross-weight', (req, res) => {
     return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
   }
 
-  const validation = validateGrossWeight(grossWeight, req.session.data)
+  const validation = applyJourneyValidation(
+    req.session.data,
+    validateGrossWeight(grossWeight, req.session.data),
+    { grossWeight }
+  )
 
   if (validation.errorList.length) {
     req.session.data.errorList = validation.errorList
@@ -12371,6 +12857,12 @@ router.get('/notifications/copy-as-new', (req, res) => {
 })
 
 router.get('/notifications/amend', (req, res) => {
+  // An Amend example on the dashboard is already being amended, so
+  // it opens in the amend state without asking to confirm.
+  if (hasJourneyUpdates(req.session.data) && String(req.query.resume || '') === '1') {
+    return startAmendNotification(req, res)
+  }
+
   if (isDesignRelease21SessionData(req.session.data)) {
     return renderAmendNotificationPage(req, res)
   }
@@ -12765,17 +13257,37 @@ router.post('/address-book/:addressId/edit', (req, res) => {
 
   const manualAddress = parseAddressBookManualAddressBody(req.body)
   const validation = validateAddressBookManualAddress(manualAddress)
+  const hasUpdates = hasJourneyUpdates(req.session.data)
+  const canChangeUses = hasUpdates && getAddressBookEntryUseOptions(entry).length > 0
+  const selectedAddressUses = canChangeUses
+    ? parseAddressBookUses(req.body.addressUses, entry.category)
+    : []
+
+  if (canChangeUses && !selectedAddressUses.length) {
+    validation.errors.addressUses = { text: 'Select what this address can be used for' }
+    validation.errorList.push({
+      text: 'Select what this address can be used for',
+      href: '#addressUses'
+    })
+  }
 
   if (validation.errorList.length) {
     req.session.data.errorList = validation.errorList
     req.session.data.errors = validation.errors
 
     return renderAddressBookEditPage(req, res, {
-      manualAddress: validation.value
+      manualAddress: validation.value,
+      ...(canChangeUses ? { selectedAddressUses } : {})
     })
   }
 
-  updateAddressBookEntry(req.session.data, addressId, validation.value, entry.type)
+  // The updated versions save the uses that were ticked, or keep all the entry's types
+  // where they cannot be changed. Other versions keep the entry's main type.
+  const addressTypes = canChangeUses
+    ? selectedAddressUses
+    : (hasUpdates ? entry.types : entry.type)
+
+  updateAddressBookEntry(req.session.data, addressId, validation.value, addressTypes)
   req.session.data.errorList = null
   req.session.data.errors = null
   req.session.data.addressBookSuccessMessage = formatAddressBookUpdatedMessage(validation.value.nameOrOrganisation)
@@ -13157,9 +13669,16 @@ router.post('/reason-for-import', (req, res) => {
     return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
   }
 
-  const validation = validateImportReasonProceed({
+  const validation = applyJourneyValidation(req.session.data, validateImportReasonProceed({
     sessionData: req.session.data,
     importReason,
+    internalMarketPurpose,
+    transhipmentDestinationCountry,
+    transitExitBorderControlPost,
+    transitDestinationCountry,
+    temporaryAdmissionExitDate,
+    temporaryAdmissionPortOfExit
+  }), {
     internalMarketPurpose,
     transhipmentDestinationCountry,
     transitExitBorderControlPost,
@@ -13255,6 +13774,17 @@ router.post('/animal-identification-details', (req, res) => {
       rawIdentifiers,
       speciesId
     )
+    const missingIdentifierError = allowsBlankJourneyAnswers(req.session.data)
+      ? null
+      : getMissingIdentifierError(panel.identifierFields, values, speciesId)
+
+    if (!errorList.length && missingIdentifierError) {
+      errors[missingIdentifierError.key] = { text: missingIdentifierError.text }
+      errorList.push({
+        text: missingIdentifierError.text,
+        href: `#${missingIdentifierError.key}`
+      })
+    }
 
     if (errorList.length) {
       req.session.data.errorList = errorList
@@ -13356,7 +13886,9 @@ router.post('/arrival-details', (req, res) => {
     return res.redirect(getJourneySaveRedirect(getJourneyFormAction(req), '/notification-hub', req.session.data))
   }
 
-  const validation = validateArrivalDetails(values)
+  const validation = applyJourneyValidation(req.session.data, validateArrivalDetails(values), {
+    meansOfTransport: values.meansOfTransport
+  })
 
   if (validation.errorList.length) {
     req.session.data.errorList = validation.errorList
@@ -13483,7 +14015,9 @@ router.get('/transporter', (req, res) => {
   ensurePrototypeNotificationReference(req.session.data)
 
   return renderTransporterPage(req, res, {
-    searchQuery: (req.query.search || '').trim()
+    searchQuery: (req.query.search || '').trim(),
+    // The updated versions show the selected transporter as a summary until the user chooses to change it
+    showTransporterTable: String(req.query.change || '') === '1'
   })
 })
 
@@ -13639,6 +14173,16 @@ router.post('/transporter', (req, res) => {
   const action = (req.body.action || '').trim()
   const transporter = getTransporterById(transporterId, req.session.data)
 
+  // The updated versions let the user clear the selected transporter
+  if (action === 'remove-transporter' && hasJourneyUpdates(req.session.data)) {
+    req.session.data.transporterId = null
+    req.session.data.transporter = null
+    req.session.data.errorList = null
+    req.session.data.errors = null
+
+    return res.redirect('/transporter')
+  }
+
   if (isJourneySoftSaveAction(getJourneyFormAction(req))) {
     if (transporter) {
       syncTransporterSession(req.session.data, transporter)
@@ -13687,7 +14231,7 @@ router.post('/cph-number', (req, res) => {
     return res.redirect('/roles-and-addresses')
   }
 
-  const validation = validateCphNumber(parseCphNumberBody(req.body))
+  const validation = applyJourneyValidation(req.session.data, validateCphNumber(parseCphNumberBody(req.body)))
 
   if (validation.errorList.length) {
     req.session.data.errorList = validation.errorList
@@ -13762,7 +14306,10 @@ router.post('/permanent-address/select', (req, res) => {
   const action = (req.body.action || '').trim()
   const choices = parsePermanentAddressChoices(req.body)
   const addressDetails = parsePermanentAddressDetails(req.body)
-  const validation = validatePermanentAddressAnimalsForm(choices, req.session.data, addressDetails)
+  const validation = applyJourneyValidation(
+    req.session.data,
+    validatePermanentAddressAnimalsForm(choices, req.session.data, addressDetails)
+  )
 
   if (validation.errorList.length) {
     req.session.data.errorList = validation.errorList
@@ -13857,6 +14404,13 @@ router.post('/roles-and-addresses', (req, res) => {
   if (action.startsWith('same-as-consignee:')) {
     const sectionId = action.split(':')[1]
     copyConsigneeAddressToSection(req.session.data, sectionId)
+
+    return res.redirect('/roles-and-addresses')
+  }
+
+  if (action.startsWith('remove-address:')) {
+    const sectionId = action.split(':')[1]
+    removeConsignmentAddressFromSection(req.session.data, sectionId)
 
     return res.redirect('/roles-and-addresses')
   }

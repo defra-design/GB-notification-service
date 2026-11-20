@@ -2,6 +2,7 @@
 
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
@@ -143,6 +144,35 @@
           >
             {% include "partials/address-book-manual-address-fields.html" %}
           </div>
+
+          {# Edit only, in Design release 2.1, Testing 3 and Testing 4: change what the address can be used for #}
+          {% if isEditMode and addressUseOptions and addressUseOptions.length %}
+            {% set addressUseItems = [] %}
+            {% for item in addressUseOptions %}
+              {% set addressUseItemCount = addressUseItems.push({
+                value: item.value,
+                text: item.text,
+                hint: { text: item.hint } if item.hint else null,
+                checked: item.value in selectedAddressUses
+              }) %}
+            {% endfor %}
+
+            {{ govukCheckboxes({
+              idPrefix: "addressUses",
+              name: "addressUses",
+              fieldset: {
+                legend: {
+                  text: "What can this address be used for?",
+                  classes: "govuk-fieldset__legend--m"
+                }
+              },
+              hint: {
+                text: "Select all that apply."
+              },
+              errorMessage: data.errors.addressUses if data.errors and data.errors.addressUses else null,
+              items: addressUseItems
+            }) }}
+          {% endif %}
 
           <div class="app-address-book-lookup-page__actions">
             {{ govukButton({

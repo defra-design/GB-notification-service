@@ -8,6 +8,7 @@
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
 {% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
 {% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
 
 {% block beforeContent %}
@@ -107,10 +108,14 @@
                     <div class="app-animal-identification-panel__body">
                       {% if panel.isComplete %}
                         {% if panel.savedAnimals and panel.savedAnimals.length %}
-                          {% include "partials/animal-identification-saved-animals.html" %}
+                          {% include "partials/design-release-2.1/animal-identification-saved-animals.html" %}
                         {% endif %}
                       {% else %}
                         <h3 class="app-animal-identification-panel__entry-heading">{{ panel.activeAnimal.headingText }}</h3>
+
+                        {% if panel.identifierHint %}
+                          <p class="govuk-hint">{{ panel.identifierHint }}</p>
+                        {% endif %}
 
                         {% for field in panel.identifierFields %}
                           {% set fieldError = data.errors["identifier-" + panel.speciesId + "-" + field.id] if data.errors and data.errors["identifier-" + panel.speciesId + "-" + field.id] %}
@@ -136,6 +141,21 @@
                                 }
                               }) }}
                             </div>
+                          {% elif field.type == "select" %}
+                            {% set selectItems = [{ value: "", text: "Select a " + (field.label | lower) }] %}
+                            {% for option in field.options %}
+                              {% set selectItemCount = selectItems.push({ value: option, text: option, selected: option == fieldValue }) %}
+                            {% endfor %}
+
+                            {{ govukSelect({
+                              label: {
+                                text: field.label
+                              },
+                              id: fieldId,
+                              name: fieldName,
+                              items: selectItems,
+                              errorMessage: fieldError
+                            }) }}
                           {% else %}
                             {{ govukInput({
                               label: {
@@ -159,7 +179,7 @@
                         {% endif %}
 
                         {% if panel.savedAnimals and panel.savedAnimals.length %}
-                          {% include "partials/animal-identification-saved-animals.html" %}
+                          {% include "partials/design-release-2.1/animal-identification-saved-animals.html" %}
                         {% endif %}
                       {% endif %}
                     </div>
