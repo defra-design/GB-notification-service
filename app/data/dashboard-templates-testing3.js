@@ -1,8 +1,9 @@
-// Testing 3 only: example templates for the templates section.
+// Example templates for the templates section in Design release 2.1, Testing 3 and Testing 4.
+// The file is named for Testing 3, where they were first added.
 //
-// Testing 3 used to start with no templates. These show the Testing 3
-// identification fields, so they are kept out of dashboard-templates.js, which
-// the other versions and the template tests share.
+// Testing 3 and Testing 4 used to start with no templates. These show the
+// identification fields by commodity, so they are kept out of
+// dashboard-templates.js, which the older versions and the template tests share.
 //
 // The businesses and identifiers are made up.
 

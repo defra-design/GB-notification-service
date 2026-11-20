@@ -1,4 +1,4 @@
-{# Testing 3: shows only the identification fields that have been filled in for at least one animal. #}
+{# Shows only the identification fields that have been filled in for at least one animal. #}
 {% set savedFields = panel.savedFields or panel.identifierFields %}
 {% set savedRowColumns = "grid-template-columns: 180px repeat(" + savedFields.length + ", minmax(0, 1fr)) 72px;" %}
 <div class="app-animal-identification-panel__saved" data-identifier-count="{{ savedFields.length }}">

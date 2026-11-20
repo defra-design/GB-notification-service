@@ -1,4 +1,5 @@
-// Testing 3 only: extra example notifications for the dashboard.
+// Extra example notifications for the dashboard in Design release 2.1, Testing 3 and Testing 4.
+// The file is named for Testing 3, where they were first added.
 //
 // These are submitted notifications that are part-way through being amended.
 // They show in the "Draft and Amend" tab with an "Amend" status, and open in

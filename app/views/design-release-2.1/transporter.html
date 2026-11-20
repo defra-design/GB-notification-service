@@ -72,6 +72,38 @@
         }) }}
       {% endif %}
 
+      {# Once a transporter is selected, show it as a summary with Change and Remove.
+         The table comes back when the user clicks Change, searches, or has nothing selected. #}
+      {% set showTransporterSummary = data.transporter and data.transporter.name and not showTransporterTable and not searchQuery and not data.errorList %}
+
+      {% if showTransporterSummary %}
+        <h2 class="app-transporter-page__results-heading">Selected transporter</h2>
+
+        <input type="hidden" name="transporterId" value="{{ selectedTransporterId }}">
+
+        <div class="govuk-inset-text app-roles-and-addresses-page__selected-address">
+          <p class="app-roles-and-addresses-page__selected-address-name">{{ data.transporter.name }}</p>
+          {% if data.transporter.address %}
+            <p class="app-roles-and-addresses-page__selected-address-line">{{ data.transporter.address }}</p>
+          {% endif %}
+          {% if data.transporter.approvalNumber %}
+            <p class="app-roles-and-addresses-page__selected-address-line">Approval number: {{ data.transporter.approvalNumber }}</p>
+          {% endif %}
+          {% if data.transporter.type %}
+            <p class="app-roles-and-addresses-page__selected-address-line">{{ data.transporter.type }}</p>
+          {% endif %}
+          <p class="app-roles-and-addresses-page__section-action app-roles-and-addresses-page__selected-address-action">
+            <a class="govuk-link" href="/design-release-2.1/transporter?change=1">Change<span class="govuk-visually-hidden"> transporter</span></a>
+            <button
+              type="submit"
+              name="action"
+              value="remove-transporter"
+              class="govuk-link app-roles-and-addresses-page__section-link-button govuk-!-margin-left-3"
+            >Remove<span class="govuk-visually-hidden"> transporter</span></button>
+          </p>
+        </div>
+      {% else %}
+
       <h2 class="app-transporter-page__results-heading">Select a transporter</h2>
 
       <div class="app-transporter-page__search-row">
@@ -167,6 +199,8 @@
           </table>
         </fieldset>
       </div>
+
+      {% endif %}
 
       {% set journeyFormActionOptions = {
         wrapperClass: "app-transporter-page__actions",

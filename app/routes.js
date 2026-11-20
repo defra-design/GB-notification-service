@@ -73,8 +73,8 @@ const DESIGN_RELEASE_NOTIFICATION_REFERENCE = 'GBN-AG-26-7K8M2P'
 const TESTING_NOTIFICATION_REFERENCE = 'GB.2026.7963913 - CHEDA'
 const PROTOTYPE_NOTIFICATION_REFERENCE = DESIGN_RELEASE_NOTIFICATION_REFERENCE
 
-// Testing 3's extra commodities are included so their species can be looked up.
-// Only the Testing 3 search offers them (see getSearchCommodities).
+// The extra commodities are included so their species can be looked up. Only
+// the search in Design release 2.1, Testing 3 and Testing 4 offers them (see getSearchCommodities).
 const allCommodities = commodities.concat(germinalProductCommodities, testing3LiveCommodities)
 
 function isDesignRelease21SessionData (sessionData) {
@@ -240,7 +240,7 @@ function getSearchCommodities (sessionData) {
   }
 
   if (type === 'live-animals') {
-    return sortCommoditiesByName(isTesting3SessionData(sessionData)
+    return sortCommoditiesByName(hasJourneyUpdates(sessionData)
       ? commodities.concat(testing3LiveCommodities)
       : commodities)
   }
@@ -290,6 +290,14 @@ function isTestingSessionData (sessionData) {
 
 function isTesting3SessionData (sessionData) {
   return Boolean(sessionData && sessionData._isTesting3Version)
+}
+
+// The November 2026 updates (identification fields by commodity, removable
+// addresses and transporter, blank-friendly templates, dashboard dates and
+// Amend examples, address book uses) apply to Design release 2.1, Testing 3 and Testing 4.
+// Those are the three versions that set the Design release 2.1 flag.
+function hasJourneyUpdates (sessionData) {
+  return Boolean(sessionData && sessionData._isDesignRelease21Version)
 }
 
 function isTesting4SessionData (sessionData) {
@@ -1911,10 +1919,11 @@ function getAnimalIdentifiers (sessionData) {
   return sessionData.animalIdentifiers
 }
 
-// Testing 3 has its own identification fields for live animals. Returns
+// Design release 2.1, Testing 3 and Testing 4 have their own
+// identification fields for live animals. Returns
 // { perAnimal, fields }, or null when the version, commodity or species is not covered.
 function getTesting3IdentificationForSpecies (speciesId, sessionData) {
-  if (!isTesting3SessionData(sessionData)) {
+  if (!hasJourneyUpdates(sessionData)) {
     return null
   }
 
@@ -2038,7 +2047,7 @@ function hasIdentifierFieldValue (animal, field) {
   return value != null && String(value).trim() !== ''
 }
 
-// Fields flagged countsAsIdentifier (Testing 3) need at least one of them
+// Fields flagged countsAsIdentifier need at least one of them
 // entered. Without that flag, every field must be entered.
 function getRequiredOneOfIdentifierFields (fields) {
   return fields.filter((field) => field.countsAsIdentifier)
@@ -2073,7 +2082,7 @@ function getMissingIdentifierError (fields, values, speciesId) {
   }
 }
 
-// The saved animals table only shows Testing 3 fields that have been used,
+// The saved animals table only shows by-commodity fields that have been used,
 // so a long field list does not turn into a long row of empty columns.
 function getSavedAnimalTableFields (fields, speciesSaved) {
   if (!fields.some((field) => field.group)) {
@@ -2715,11 +2724,11 @@ function isConsignmentAddressSectionActive (sessionData, sectionId) {
   return getSessionConsignmentAddressSections(sessionData).some((section) => section.id === sectionId)
 }
 
-// Testing 3 lets the user remove an address or the CPH number, in a
+// The updated versions let the user remove an address or the CPH number, in a
 // notification or a template. A template keeps what was removed blank, so the
 // person using the template fills it in.
 function canRemoveConsignmentAddresses (sessionData) {
-  return isTesting3SessionData(sessionData)
+  return hasJourneyUpdates(sessionData)
 }
 
 function getRemovableConsignmentAddressSection (sectionId) {
@@ -2752,10 +2761,10 @@ function removeConsignmentAddressFromSection (sessionData, sectionId) {
   return true
 }
 
-// Testing 3 lists the permanent address of every animal that needs one, in
+// The updated versions list the permanent address of every animal that needs one, in
 // place of a single address or a "added for N animals" summary.
 function buildPermanentAddressAnimalDisplayList (sessionData) {
-  if (!isTesting3SessionData(sessionData)) {
+  if (!hasJourneyUpdates(sessionData)) {
     return null
   }
 
@@ -3086,8 +3095,8 @@ function buildPermanentAddressReviewRows (sessionData) {
 }
 
 function getPermanentAddressAnimalLabel (match, animalNumber, sessionData) {
-  // Testing 3 leads with the common name, for example "Domestic dog (Canis familiaris) 1"
-  if (isTesting3SessionData(sessionData)) {
+  // The updated versions lead with the common name, for example "Domestic dog (Canis familiaris) 1"
+  if (hasJourneyUpdates(sessionData)) {
     return `${getSpeciesCommonName(match)} (${match.species.label}) ${animalNumber}`
   }
 
@@ -3706,12 +3715,12 @@ function renderTransporterPage (req, res, locals = {}) {
 }
 
 // A template keeps its transporter's details but not which one in the list it
-// was. Testing 3 finds it again by name and approval number, so its row is
+// was. The updated versions find it again by name and approval number, so its row is
 // selected when the list is shown.
 function getMatchingTransporterIdForSession (sessionData) {
   const selected = sessionData.transporter
 
-  if (!isTesting3SessionData(sessionData) || !selected || !selected.name) {
+  if (!hasJourneyUpdates(sessionData) || !selected || !selected.name) {
     return null
   }
 
@@ -6000,9 +6009,9 @@ function buildDesignRelease2ReviewPresentation (viewModel, sessionData, readOnly
       title: 'Additional details'
     }, readOnly)
     : null
-  // A Testing 3 template can leave addresses and the CPH number out, so a
+  // A template in the updated versions can leave addresses and the CPH number out, so a
   // blank one reads "Not added" there.
-  const showBlankAddressesAsNotAdded = isTesting3SessionData(sessionData) && isCreatingTemplateJourney(sessionData)
+  const showBlankAddressesAsNotAdded = hasJourneyUpdates(sessionData) && isCreatingTemplateJourney(sessionData)
   const rolesCard = withDr2HeaderChange({
     ...viewModel.addresses.rolesCard,
     ...(showBlankAddressesAsNotAdded
@@ -6098,7 +6107,7 @@ function mapStatusTextToReviewVariant (statusText = '') {
   return 'draft'
 }
 
-// Testing 3 works out the dates of its example dashboard notifications from
+// The updated versions work out the dates of their example dashboard notifications from
 // today's date, so each tab keeps to its own rule however long the prototype
 // has been running:
 //
@@ -6131,9 +6140,9 @@ function formatDocumentIssueDate (date) {
 }
 
 // The example dashboard notifications. Their position decides their reference,
-// so the shared ones keep their order and Testing 3's Amend examples go after them.
+// so the shared ones keep their order and the Amend examples go after them.
 function getStaticDashboardNotifications (sessionData, referenceDate = new Date()) {
-  if (!isTesting3SessionData(sessionData)) {
+  if (!hasJourneyUpdates(sessionData)) {
     return dashboardData.notifications
   }
 
@@ -8114,7 +8123,7 @@ function enrichDesignRelease2Notification (notification, index, sessionData = {}
     }
     errorMessage = getDashboardActionRequiredErrorMessage(notification, sessionData)
   } else if (reviewVariant === 'draft' && notification.isAmend) {
-    // A submitted notification that is being amended (Testing 3 examples)
+    // A submitted notification that is being amended (the Amend examples)
     statusDisplay = {
       type: 'tag',
       text: 'Amend',
@@ -8459,22 +8468,22 @@ function getAllDashboardTemplates (sessionData = {}) {
   const savedTemplates = getSavedTemplates(sessionData).filter((template) => !deletedIds.has(template.id))
   const savedIds = new Set(savedTemplates.map((template) => template.id))
 
-  // Testing 3 has its own example templates, which use its identification fields
-  if (isTesting3SessionData(sessionData)) {
-    return [
-      ...savedTemplates,
-      ...testing3DashboardTemplates.filter((template) => !deletedIds.has(template.id) && !savedIds.has(template.id))
-    ]
-  }
+  const isAvailable = (template) => !deletedIds.has(template.id) && !savedIds.has(template.id)
+  // Example templates that use the identification fields by commodity
+  const updatedExamples = hasJourneyUpdates(sessionData)
+    ? testing3DashboardTemplates.filter(isAvailable)
+    : []
 
-  // Other round 2 prototypes start as if the user has not created any templates yet
+  // Testing 3 and Testing 4 show only those examples. They used to start as if
+  // the user had not created any templates yet.
   if (isRound2TestingSessionData(sessionData)) {
-    return savedTemplates
+    return [...savedTemplates, ...updatedExamples]
   }
 
   return [
     ...savedTemplates,
-    ...dashboardTemplates.filter((template) => !deletedIds.has(template.id) && !savedIds.has(template.id))
+    ...dashboardTemplates.filter(isAvailable),
+    ...updatedExamples
   ]
 }
 
@@ -8515,8 +8524,8 @@ function buildTemplatePlaceFromSessionAddress (address) {
   }
 }
 
-// The consignment addresses a template keeps, by session key prefix. Testing 3
-// saves each one separately so any of them can be left blank.
+// The consignment addresses a template keeps, by session key prefix. The updated
+// versions save each one separately so any of them can be left blank.
 const TEMPLATE_BLANK_ADDRESS_TEXT = 'Not added'
 
 const TEMPLATE_ADDRESS_SECTION_KEYS = [
@@ -8549,7 +8558,7 @@ function buildTemplateFromSession (sessionData) {
       ? getContactAddressById(sessionData.contactAddressId, sessionData)
       : null
   )
-  const blankAddressText = isTesting3SessionData(sessionData) ? TEMPLATE_BLANK_ADDRESS_TEXT : 'Not applicable'
+  const blankAddressText = hasJourneyUpdates(sessionData) ? TEMPLATE_BLANK_ADDRESS_TEXT : 'Not applicable'
   const consigneeName = sessionData.consigneeAddress && sessionData.consigneeAddress.name
     ? sessionData.consigneeAddress.name
     : blankAddressText
@@ -8616,7 +8625,7 @@ function buildTemplateFromSession (sessionData) {
       placeOfOrigin,
       contactAddress: contactAddress.name ? contactAddress : placeOfOrigin,
       useSameAddressForParties: true,
-      ...(isTesting3SessionData(sessionData)
+      ...(hasJourneyUpdates(sessionData)
         ? { addresses: buildTemplateAddressesFromSession(sessionData) }
         : {}),
       cphNumber: sessionData.cphNumber || null
@@ -8673,7 +8682,7 @@ function generateDesignReleaseNotificationReference (sessionData = {}) {
   const existing = new Set([
     DESIGN_RELEASE_NOTIFICATION_REFERENCE,
     String(sessionData.notificationReference || '').trim(),
-    ...((dashboardData.notifications || []).map((notification) =>
+    ...(getStaticDashboardNotifications(sessionData).map((notification) =>
       String(notification.reference || '').trim()
     )),
     ...((sessionData.draftNotifications || []).map((notification) =>
@@ -9867,15 +9876,15 @@ function isCreatingTemplateJourney (sessionData) {
   return Boolean(sessionData && sessionData.isCreatingTemplate)
 }
 
-// Testing 3 lets any answer be left blank or cleared while a template is
+// The updated versions let any answer be left blank or cleared while a template is
 // created or edited. An answer that has been entered must still be valid.
 // Full validation is back once the template is used to start a notification,
 // because that is a normal notification journey.
 function allowsBlankJourneyAnswers (sessionData) {
-  return isTesting3SessionData(sessionData) && isCreatingTemplateJourney(sessionData)
+  return hasJourneyUpdates(sessionData) && isCreatingTemplateJourney(sessionData)
 }
 
-// Returns a page's validation result. In a Testing 3 template it keeps only
+// Returns a page's validation result. In a template in the updated versions it keeps only
 // the errors for answers that were entered: `submittedValues` maps an error
 // key to the value the user gave, and an error is dropped when that value is
 // blank or not listed.
@@ -10519,7 +10528,7 @@ function renderAddressBookViewPage (req, res) {
     return res.redirect(backLink)
   }
 
-  const addressBookEntry = isTesting3SessionData(req.session.data)
+  const addressBookEntry = hasJourneyUpdates(req.session.data)
     ? findAddressBookEntry(req.params.addressId, req.session.data)
     : null
   const useLabels = addressBookEntry ? getAddressBookEntryUseLabels(addressBookEntry).filter(Boolean) : []
@@ -10648,7 +10657,7 @@ function renderAddressBookEditPage (req, res, locals = {}) {
     showManualAddress: true,
     hideSearch: true,
     countryItems: buildAddressBookCountryItems(manualAddress.country),
-    addressUseOptions: isTesting3SessionData(sessionData) ? getAddressBookEntryUseOptions(entry) : [],
+    addressUseOptions: hasJourneyUpdates(sessionData) ? getAddressBookEntryUseOptions(entry) : [],
     selectedAddressUses: getAddressBookEntryUses(entry),
     data: sessionData,
     ...locals
@@ -11079,7 +11088,7 @@ function getAddressBookAddCategoryOptions (isDesignRelease21) {
   }))
 }
 
-// Testing 3 shows what an address book entry can be used for, and lets the
+// The updated versions show what an address book entry can be used for, and let the
 // user change it when its category has more than one use (for example an
 // origin address can be a place of origin, a consignor, or both).
 const ADDRESS_BOOK_USE_ALIASES = {
@@ -12839,9 +12848,9 @@ router.get('/notifications/copy-as-new', (req, res) => {
 })
 
 router.get('/notifications/amend', (req, res) => {
-  // An Amend example on the Testing 3 dashboard is already being amended, so
+  // An Amend example on the dashboard is already being amended, so
   // it opens in the amend state without asking to confirm.
-  if (isTesting3SessionData(req.session.data) && String(req.query.resume || '') === '1') {
+  if (hasJourneyUpdates(req.session.data) && String(req.query.resume || '') === '1') {
     return startAmendNotification(req, res)
   }
 
@@ -13239,8 +13248,8 @@ router.post('/address-book/:addressId/edit', (req, res) => {
 
   const manualAddress = parseAddressBookManualAddressBody(req.body)
   const validation = validateAddressBookManualAddress(manualAddress)
-  const isTesting3 = isTesting3SessionData(req.session.data)
-  const canChangeUses = isTesting3 && getAddressBookEntryUseOptions(entry).length > 0
+  const hasUpdates = hasJourneyUpdates(req.session.data)
+  const canChangeUses = hasUpdates && getAddressBookEntryUseOptions(entry).length > 0
   const selectedAddressUses = canChangeUses
     ? parseAddressBookUses(req.body.addressUses, entry.category)
     : []
@@ -13263,11 +13272,11 @@ router.post('/address-book/:addressId/edit', (req, res) => {
     })
   }
 
-  // Testing 3 saves the uses that were ticked, or keeps all the entry's types
+  // The updated versions save the uses that were ticked, or keep all the entry's types
   // where they cannot be changed. Other versions keep the entry's main type.
   const addressTypes = canChangeUses
     ? selectedAddressUses
-    : (isTesting3 ? entry.types : entry.type)
+    : (hasUpdates ? entry.types : entry.type)
 
   updateAddressBookEntry(req.session.data, addressId, validation.value, addressTypes)
   req.session.data.errorList = null
@@ -13998,7 +14007,7 @@ router.get('/transporter', (req, res) => {
 
   return renderTransporterPage(req, res, {
     searchQuery: (req.query.search || '').trim(),
-    // Testing 3 shows the selected transporter as a summary until the user chooses to change it
+    // The updated versions show the selected transporter as a summary until the user chooses to change it
     showTransporterTable: String(req.query.change || '') === '1'
   })
 })
@@ -14155,8 +14164,8 @@ router.post('/transporter', (req, res) => {
   const action = (req.body.action || '').trim()
   const transporter = getTransporterById(transporterId, req.session.data)
 
-  // Testing 3 lets the user clear the selected transporter
-  if (action === 'remove-transporter' && isTesting3SessionData(req.session.data)) {
+  // The updated versions let the user clear the selected transporter
+  if (action === 'remove-transporter' && hasJourneyUpdates(req.session.data)) {
     req.session.data.transporterId = null
     req.session.data.transporter = null
     req.session.data.errorList = null

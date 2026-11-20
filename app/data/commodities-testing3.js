@@ -1,10 +1,11 @@
-// Testing 3 only: live animal commodities that are offered in the Testing 3
-// commodity search on top of the generated list.
+// Live animal commodities that the commodity search in Design release 2.1, Testing 3 and Testing 4
+// offers on top of the generated list. The file is named for Testing 3, where
+// they were first added.
 //
 // They split gamebirds and poultry into day-old chicks and adult birds, the
 // way the Live Animals and Germinals Data Dictionary lists them.
 //
-// They are kept here, not in generated/commodities-live.json, so the other
+// They are kept here, not in generated/commodities-live.json, so the older
 // versions do not show them and a rebuild of the generated list does not
 // remove them.
 //

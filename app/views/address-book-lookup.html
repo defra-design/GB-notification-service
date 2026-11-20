@@ -145,7 +145,7 @@
             {% include "partials/address-book-manual-address-fields.html" %}
           </div>
 
-          {# Testing 3, edit only: change what the address can be used for #}
+          {# Edit only, in Design release 2.1, Testing 3 and Testing 4: change what the address can be used for #}
           {% if isEditMode and addressUseOptions and addressUseOptions.length %}
             {% set addressUseItems = [] %}
             {% for item in addressUseOptions %}

@@ -271,7 +271,7 @@ test.describe('commodity search selections on /design-release-2.1 (live-animals)
     ])
   })
 
-  test('shows animal identifiers only under the commodity whose species has them, for one Latin name under two commodities', async ({ page }) => {
+  test('shows each commodity its own identification fields, for one Latin name under two commodities', async ({ page }) => {
     await selectSpecies(page, 'Chiroptera', 'other-live-mammals-17-chiroptera')
     await selectSpecies(page, 'Chiroptera', 'circus-animals-chiroptera')
     await clickContinue(page)
@@ -294,7 +294,12 @@ test.describe('commodity search selections on /design-release-2.1 (live-animals)
     })
     await expect(cardTitled('Other live mammals').locator('.app-dr2-review-identification-table__value').first()).toHaveText('BAT-001')
     await expect(cardTitled('Travelling circus and menagerie animals').locator('.app-dr2-review-commodity-card__species-heading')).toHaveText(['Chiroptera'])
-    await expect(cardTitled('Travelling circus and menagerie animals').locator('.app-dr2-review-identification-table')).toHaveCount(0)
+    // Circus animals are not in the identifier table, so they get the default
+    // Description and Identification details fields.
+    const circusIdentification = cardTitled('Travelling circus and menagerie animals').locator('.app-dr2-review-identification-table')
+    await expect(circusIdentification).toHaveCount(1)
+    await expect(circusIdentification).toContainText('Description')
+    await expect(circusIdentification).toContainText('BAT-001')
   })
 
   test('renders the results for "010" in under 50 ms', async ({ page }) => {

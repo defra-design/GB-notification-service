@@ -1,4 +1,5 @@
-// Testing 3 only: identification fields for live animal commodities.
+// Identification fields for live animal commodities in Design release 2.1, Testing 3 and Testing 4.
+// The file is named for Testing 3, where they were first added.
 //
 // Source: the "applicable fields for the selected commodity" table that sits
 // alongside the Live Animals and Germinals Data Dictionary (Animal Identifiers
