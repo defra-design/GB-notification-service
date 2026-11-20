@@ -402,7 +402,7 @@ test.describe('commodity search selections on /design-release-2.1 (live-animals)
       has: page.locator('.app-dr2-review-card__title', { hasText: title })
     })
     await expect(cardTitled('Other live mammals').locator('.app-dr2-review-identification-table__value').first()).toHaveText('BAT-001')
-    await expect(cardTitled('Travelling circus and menagerie animals').locator('.app-dr2-review-commodity-card__species-heading')).toHaveText(['Chiroptera'])
+    await expect(cardTitled('Travelling circus and menagerie animals').locator('.app-dr2-review-commodity-card__species-heading')).toHaveText(['Bats (Chiroptera)'])
     // Circus animals are not in the identifier table, so they get the default
     // Description and Identification details fields.
     const circusIdentification = cardTitled('Travelling circus and menagerie animals').locator('.app-dr2-review-identification-table')

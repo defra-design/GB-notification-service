@@ -791,13 +791,19 @@ function getSpeciesCommonName ({ commodity, species }) {
   return species.commonName || commodity.name
 }
 
-function getSelectedSpeciesLabels (speciesIds) {
+// Pass sessionData to get the label the updated versions show, which leads
+// with the common name: "African sacred ibis (Threskiornis aethiopicus)".
+function getSelectedSpeciesLabels (speciesIds, sessionData = null) {
   return speciesIds
     .map((speciesId) => {
       const match = getSpeciesMatch(speciesId)
 
       if (!match) {
         return null
+      }
+
+      if (sessionData && match.species.label) {
+        return getIdentificationSpeciesLabel(match, sessionData)
       }
 
       return match.species.label || match.species.commonName || ''
@@ -955,7 +961,7 @@ function getSelectedCommodityRows (sessionData) {
 
         return match && match.commodity.id === commodityId
       })
-    const speciesLabels = getSelectedSpeciesLabels(speciesIds)
+    const speciesLabels = getSelectedSpeciesLabels(speciesIds, sessionData)
 
     if (isOtherLiveMammalsCommodityCode(commodity)) {
       speciesIds.forEach((speciesId) => {
@@ -969,8 +975,10 @@ function getSelectedCommodityRows (sessionData) {
           commodityId: commodity.id,
           speciesId,
           code: commodity.code,
-          name: getSpeciesCommonName(match),
-          species: getSelectedSpeciesLabels([speciesId]),
+          // The updated versions head this column "Commodity", so it holds the
+          // commodity and the species column carries the common name
+          name: hasJourneyUpdates(sessionData) ? commodity.name : getSpeciesCommonName(match),
+          species: getSelectedSpeciesLabels([speciesId], hasJourneyUpdates(sessionData) ? sessionData : null),
           numberOfAnimals: numberOfAnimals[speciesId] != null ? String(numberOfAnimals[speciesId]) : '',
           quantityLabel: 'Number of animals',
           isGerminalProduct: false,
@@ -1036,7 +1044,7 @@ function buildSpeciesConsignmentEntry (sessionData, speciesId, match) {
     commodityName: commodity.name,
     commonName: getSpeciesCommonName({ commodity, species }),
     heading: formatSpeciesDisplayTitle({ commodity, species }),
-    speciesName: species.label,
+    speciesName: getIdentificationSpeciesLabel(match, sessionData),
     isGerminalProduct,
     numberOfAnimals: numberOfAnimals[speciesId] != null ? String(numberOfAnimals[speciesId]) : '',
     netWeight: netWeight[speciesId] != null ? String(netWeight[speciesId]) : '',
@@ -2135,6 +2143,25 @@ function hasAnimalIdentifiersComplete (sessionData) {
   })
 }
 
+// The species name on the commodity details and identification details pages.
+// The updated versions lead with the common name, for example "African sacred ibis (Threskiornis
+// aethiopicus)". It is left out when there is none, or when it would only
+// repeat the commodity name above it or the Latin name.
+function getIdentificationSpeciesLabel (match, sessionData) {
+  const latinName = match.species.label
+  const commonName = String(match.species.commonName || '').trim()
+
+  if (!hasJourneyUpdates(sessionData) || !commonName) {
+    return latinName
+  }
+
+  const repeats = [match.commodity.name, latinName].some((text) => {
+    return String(text || '').trim().toLowerCase() === commonName.toLowerCase()
+  })
+
+  return repeats ? latinName : `${commonName} (${latinName})`
+}
+
 function getSpeciesIdentificationState (sessionData, speciesId) {
   const match = getSpeciesMatch(speciesId)
 
@@ -2154,7 +2181,7 @@ function getSpeciesIdentificationState (sessionData, speciesId) {
     return null
   }
 
-  const speciesLabel = match.species.label
+  const speciesLabel = getIdentificationSpeciesLabel(match, sessionData)
   const isGerminalProduct = isGerminalProductCommodity(match.commodity)
   const isPerSpeciesEntry = isPerSpeciesIdentificationEntry(speciesId, sessionData)
   const isSingleEntryForm = isGerminalProduct || isPerSpeciesEntry
@@ -5159,6 +5186,18 @@ function getReviewAnimalDetailsCommodityCodeAndNames (sessionData) {
     .join(', ')
 }
 
+// The species name on the review page. The updated versions show it as the
+// commodity and identification details pages do: the common name first where
+// there is one, and the Latin name as it is written in the data ("Gallus
+// gallus"). The older versions capitalise every word of the Latin name.
+function getReviewSpeciesLabel (match, sessionData) {
+  if (hasJourneyUpdates(sessionData) && match.species.label) {
+    return getIdentificationSpeciesLabel(match, sessionData)
+  }
+
+  return toTitleCaseLabel(match.species.label || match.species.commonName)
+}
+
 function getSelectedSpeciesLabelsForReview (sessionData) {
   return normalizeSelectedSpecies(sessionData.selectedSpecies)
     .map((speciesId) => {
@@ -5168,7 +5207,7 @@ function getSelectedSpeciesLabelsForReview (sessionData) {
         return null
       }
 
-      return toTitleCaseLabel(match.species.label || match.species.commonName)
+      return getReviewSpeciesLabel(match, sessionData)
     })
     .filter(Boolean)
     .join(', ')
@@ -5198,7 +5237,7 @@ function buildReviewSpeciesSections (sessionData) {
     .map((speciesId, index) => {
       const match = getSpeciesMatch(speciesId)
       const speciesLabel = match
-        ? toTitleCaseLabel(match.species.label || match.species.commonName)
+        ? getReviewSpeciesLabel(match, sessionData)
         : 'Species'
       const panel = getSpeciesIdentificationState(sessionData, speciesId)
       let animalTable = null
@@ -5877,7 +5916,7 @@ function buildDesignRelease2CommodityCards (sessionData, speciesSections, readOn
 
     const match = getSpeciesMatch(entry.speciesId)
     const speciesLabel = match
-      ? toTitleCaseLabel(match.species.label || match.species.commonName)
+      ? getReviewSpeciesLabel(match, sessionData)
       : entry.commonName
     const speciesSection = speciesSections.find((section) => section.speciesId
       ? section.speciesId === entry.speciesId
