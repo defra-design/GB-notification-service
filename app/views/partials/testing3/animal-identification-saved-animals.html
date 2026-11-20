@@ -1,0 +1,31 @@
+{# Testing 3: shows only the identification fields that have been filled in for at least one animal. #}
+{% set savedFields = panel.savedFields or panel.identifierFields %}
+{% set savedRowColumns = "grid-template-columns: 180px repeat(" + savedFields.length + ", minmax(0, 1fr)) 72px;" %}
+<div class="app-animal-identification-panel__saved" data-identifier-count="{{ savedFields.length }}">
+  <div class="app-animal-identification-panel__saved-row app-animal-identification-panel__saved-row--header" style="{{ savedRowColumns }}">
+    <div class="app-animal-identification-panel__saved-key">Animal</div>
+    {% for field in savedFields %}
+      <div class="app-animal-identification-panel__saved-value">{{ field.label }}</div>
+    {% endfor %}
+    <div class="app-animal-identification-panel__saved-action"></div>
+  </div>
+
+  {% for animal in panel.savedAnimals %}
+    <div class="app-animal-identification-panel__saved-row" style="{{ savedRowColumns }}">
+      <div class="app-animal-identification-panel__saved-key">{{ animal.label }}</div>
+      {% for item in animal.identifierValues %}
+        <div class="app-animal-identification-panel__saved-value">{{ item.value }}</div>
+      {% endfor %}
+      <div class="app-animal-identification-panel__saved-action">
+        <button
+          type="submit"
+          name="action"
+          value="remove:{{ panel.speciesId }}:{{ animal.index }}"
+          class="app-animal-identification-panel__saved-remove"
+        >
+          Remove
+        </button>
+      </div>
+    </div>
+  {% endfor %}
+</div>

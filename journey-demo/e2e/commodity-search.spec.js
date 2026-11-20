@@ -241,9 +241,9 @@ test.describe('commodity search selections on /design-release-2.1 (live-animals)
     await selectSpecies(page, 'cattle', 'cattle-bos-taurus')
     await expect(page.locator('#commodity-search-results')).toBeHidden()
     await expect(page.locator('#commodity-search-selected-heading')).toHaveText('1 selected')
-    await expect(selectedPanel.locator('.app-commodity-search__selected-label')).toHaveText(['Bos taurus'])
+    await expect(selectedPanel.locator('.app-commodity-search__selected-label')).toHaveText(['Domestic cattle (Bos taurus)'])
 
-    await selectedPanel.getByRole('button', { name: 'Remove Bos taurus' }).click()
+    await selectedPanel.getByRole('button', { name: 'Remove Domestic cattle (Bos taurus)' }).click()
     await expect(selectedPanel).toBeHidden()
     await expect(speciesValue).toHaveValue('[]')
 

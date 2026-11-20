@@ -16,6 +16,22 @@ function formatSpeciesOptionLabel (commodity, species) {
   return `${commodity.name} (${species.label})`
 }
 
+// Label for a selected species chip. It matches the search row, but leaves the
+// name out when it would only repeat the commodity name shown beside the chip
+// or the Latin name itself.
+function formatSelectedSpeciesLabel (commodity, species) {
+  const commonName = String(species.commonName || '').trim()
+  const repeats = [commodity.name, species.label].some((text) => {
+    return String(text || '').trim().toLowerCase() === commonName.toLowerCase()
+  })
+
+  if (!commonName || repeats) {
+    return species.label
+  }
+
+  return `${commonName} (${species.label})`
+}
+
 function textMatchesQuery (text, query) {
   const queryWords = query
     .toLowerCase()
@@ -429,7 +445,7 @@ function initCommoditySearch (root) {
 
       groups.get(commodity.id).items.push({
         value,
-        chipLabel: species.label
+        chipLabel: formatSelectedSpeciesLabel(commodity, species)
       })
     })
 
@@ -564,7 +580,7 @@ function initCommoditySearch (root) {
               ${disabled ? 'disabled' : ''}
             >
             <label class="govuk-checkboxes__label app-commodity-search__row-label" for="${checkboxId}">
-              ${labelHtml}
+              <span class="app-commodity-search__row-text">${labelHtml}</span>
             </label>
           </div>
         </div>

@@ -22,6 +22,18 @@
   }) }}
 {% endblock %}
 
+{# Clears an address or the CPH number. A template keeps it blank. #}
+{% macro removeAddressButton(section) %}
+  {% if section.removeAction %}
+    <button
+      type="submit"
+      name="action"
+      value="{{ section.removeAction }}"
+      class="govuk-link app-roles-and-addresses-page__section-link-button govuk-!-margin-left-3"
+    >Remove<span class="govuk-visually-hidden"> {{ section.removeText | replace("Remove ", "") }}</span></button>
+  {% endif %}
+{% endmacro %}
+
 {% block journeyContent %}
 
     {% include "partials/notification-status.html" %}
@@ -61,7 +73,27 @@
             </ul>
           {% endif %}
 
-          {% if section.selectedAddress %}
+          {% if section.animalAddresses %}
+            <div class="govuk-inset-text app-roles-and-addresses-page__selected-address">
+              {% for animal in section.animalAddresses %}
+                <div class="govuk-!-margin-bottom-4">
+                  <h3 class="govuk-heading-s govuk-!-margin-bottom-1">{{ animal.label }}</h3>
+                  {% if animal.address %}
+                    <p class="app-roles-and-addresses-page__selected-address-line">{{ animal.address.name }}</p>
+                    {% for line in animal.address.lines %}
+                      <p class="app-roles-and-addresses-page__selected-address-line">{{ line }}</p>
+                    {% endfor %}
+                  {% else %}
+                    <p class="app-roles-and-addresses-page__selected-address-line">Not added</p>
+                  {% endif %}
+                </div>
+              {% endfor %}
+              <p class="app-roles-and-addresses-page__section-action app-roles-and-addresses-page__selected-address-action">
+                <a class="govuk-link" href="{{ section.changeHref }}">Change</a>
+                {{ removeAddressButton(section) }}
+              </p>
+            </div>
+          {% elif section.selectedAddress %}
             <div class="govuk-inset-text app-roles-and-addresses-page__selected-address">
               <p class="app-roles-and-addresses-page__selected-address-name">{{ section.selectedAddress.name }}</p>
               {% for line in section.selectedAddress.lines %}
@@ -69,6 +101,7 @@
               {% endfor %}
               <p class="app-roles-and-addresses-page__section-action app-roles-and-addresses-page__selected-address-action">
                 <a class="govuk-link" href="{{ section.changeHref }}">Change</a>
+                {{ removeAddressButton(section) }}
               </p>
             </div>
           {% elif section.selectedAddressSummary %}
@@ -76,6 +109,7 @@
               <p class="app-roles-and-addresses-page__selected-address-line">{{ section.selectedAddressSummary }}</p>
               <p class="app-roles-and-addresses-page__section-action app-roles-and-addresses-page__selected-address-action">
                 <a class="govuk-link" href="{{ section.changeHref }}">Change</a>
+                {{ removeAddressButton(section) }}
               </p>
             </div>
           {% elif section.selectedCphNumber %}
@@ -83,6 +117,7 @@
               <p class="app-roles-and-addresses-page__selected-address-line">{{ section.selectedCphNumber }}</p>
               <p class="app-roles-and-addresses-page__section-action app-roles-and-addresses-page__selected-address-action">
                 <a class="govuk-link" href="{{ section.changeHref }}">Change</a>
+                {{ removeAddressButton(section) }}
               </p>
             </div>
           {% elif section.showSameAsPlaceOfOrigin or section.showSameAsConsignee %}

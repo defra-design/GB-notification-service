@@ -160,7 +160,7 @@ function buildCattleSnapshot (notification) {
       documentReference: 'HC-2026-0198',
       documentType: 'itahc',
       documentTypeLabel: 'Intra Trade Animal Health Certificate (ITAHC)',
-      dateOfIssue: '01/03/2026',
+      dateOfIssue: notification.documentDateOfIssue || '01/03/2026',
       fileName: 'health-certificate.pdf',
       virusStatus: 'passed'
     }],
@@ -182,7 +182,7 @@ function buildSheepGoatSnapshot (notification) {
       documentReference: 'DOC-123',
       documentType: 'itahc',
       documentTypeLabel: 'Intra Trade Animal Health Certificate (ITAHC)',
-      dateOfIssue: '22/10/2026',
+      dateOfIssue: notification.documentDateOfIssue || '22/10/2026',
       fileName: 'Health Cert.pdf',
       virusStatus: 'passed'
     }],
