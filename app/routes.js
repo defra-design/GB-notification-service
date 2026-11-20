@@ -45,6 +45,7 @@ const addressBookLookupAddresses = require('./data/address-book-lookup-addresses
 const dashboardData = require('./data/dashboard-notifications')
 const dashboardTemplates = require('./data/dashboard-templates')
 const testing3DashboardAmendNotifications = require('./data/dashboard-notifications-testing3')
+const germinalDashboardTemplates = require('./data/dashboard-templates-germinal')
 const testing3DashboardTemplates = require('./data/dashboard-templates-testing3')
 const { buildDashboardNotificationSnapshot } = require('./data/dashboard-notification-snapshots')
 const {
@@ -8478,21 +8479,28 @@ function getAllDashboardTemplates (sessionData = {}) {
   const savedIds = new Set(savedTemplates.map((template) => template.id))
 
   const isAvailable = (template) => !deletedIds.has(template.id) && !savedIds.has(template.id)
-  // Example templates that use the identification fields by commodity
-  const updatedExamples = hasJourneyUpdates(sessionData)
-    ? testing3DashboardTemplates.filter(isAvailable)
-    : []
 
-  // Testing 3 and Testing 4 show only those examples. They used to start as if
-  // the user had not created any templates yet.
-  if (isRound2TestingSessionData(sessionData)) {
-    return [...savedTemplates, ...updatedExamples]
+  // Round 1 (Germinals), at /testing4, shows germinal product examples only
+  if (isTesting4SessionData(sessionData)) {
+    return [
+      ...savedTemplates,
+      ...dashboardTemplates.filter((template) => template.categoryLabel === 'Germinal products').filter(isAvailable),
+      ...germinalDashboardTemplates.filter(isAvailable)
+    ]
   }
 
+  // Round 2 (Live animals), at /testing3, shows live animal examples only
+  if (isTesting3SessionData(sessionData)) {
+    return [...savedTemplates, ...testing3DashboardTemplates.filter(isAvailable)]
+  }
+
+  // Design release 2 shows its original templates and both sets of examples
   return [
     ...savedTemplates,
     ...dashboardTemplates.filter(isAvailable),
-    ...updatedExamples
+    ...(hasJourneyUpdates(sessionData)
+      ? [...testing3DashboardTemplates, ...germinalDashboardTemplates].filter(isAvailable)
+      : [])
   ]
 }
 

@@ -20,7 +20,7 @@ Import notification service
       Import notification service
     </h1>
     <p class="govuk-body-l">
-      Choose a prototype version to work on. Each version has its own journey and dashboard, with a shared address book.
+      Choose a version of the prototype. Each one has its own journey, dashboard and saved data. They all share one address book.
     </p>
   </div>
 </div>
@@ -42,20 +42,20 @@ Import notification service
       </h2>
 
       <h3 class="govuk-heading-m">
-        Create a notification
+        The first notification journey
       </h3>
 
       <p class="govuk-body">
-        Core notification journey from creation to submission
+        The original journey for telling us about an import of live animals, from starting a notification to submitting it. The later versions are built on this one.
       </p>
 
       {{ govukDetails({
-        summaryText: "What the journey contains",
+        summaryText: "What this version includes",
         html: '
           <ul class="govuk-list govuk-list--bullet">
             <li>Origin, commodity and reason for import</li>
             <li>Consignment, animal and arrival details</li>
-            <li>Documents, roles and addresses</li>
+            <li>Documents and consignment addresses</li>
             <li>Review, declaration and submission</li>
           </ul>
         '
@@ -78,21 +78,23 @@ Import notification service
       </h2>
 
       <h3 class="govuk-heading-m">
-        Iterations and account management
+        The current design
       </h3>
 
       <p class="govuk-body">
-        Dashboard, Germinals, Address book and Templates
+        The latest design for importing live animals and germinal products. It adds a dashboard, templates and an address book to the first journey, and has the newest changes.
       </p>
 
       {{ govukDetails({
-        summaryText: "What does the journey include",
+        summaryText: "What this version includes",
         html: '
           <ul class="govuk-list govuk-list--bullet">
-            <li>Dashboard changes</li>
-            <li>Germinals journey</li>
-            <li>Address book improvements</li>
-            <li>Templates</li>
+            <li>Journeys for live animals and for germinal products</li>
+            <li>Dashboard with Submitted, Draft and Amend, and Past tabs</li>
+            <li>Identification details that change with the commodity</li>
+            <li>Templates you can create, edit and reuse</li>
+            <li>Address book showing what each address can be used for</li>
+            <li>Amending a notification after it has been submitted</li>
           </ul>
         '
       }) }}
@@ -118,12 +120,24 @@ Import notification service
       </h2>
 
       <h3 class="govuk-heading-m">
-        Create a notification
+        First round of research on live animals
       </h3>
 
       <p class="govuk-body">
-        A separate testing journey with CHEDA references and IPAFFS-style dashboard patterns.
+        The version tested with users in the first round of research on importing live animals. It uses CHEDA reference numbers and a dashboard that looks like IPAFFS.
       </p>
+
+      {{ govukDetails({
+        summaryText: "What this version includes",
+        html: '
+          <ul class="govuk-list govuk-list--bullet">
+            <li>Live animals journey from starting a notification to submitting it</li>
+            <li>CHEDA reference numbers</li>
+            <li>Dashboard in the style of IPAFFS</li>
+            <li>Its own dashboard and saved data</li>
+          </ul>
+        '
+      }) }}
 
       {{ govukButton({
         text: "Start round 1 (live animals)",
@@ -142,21 +156,21 @@ Import notification service
       </h2>
 
       <h3 class="govuk-heading-m">
-        Create a notification
+        Research on germinal products
       </h3>
 
       <p class="govuk-body">
-        A copy of Round 2 (Live animals), with a dashboard of germinal product notifications.
+        For research on importing germinal products: semen, embryos and ova. It works the same way as Round 2 (Live animals), but its dashboard and example templates are for germinal products.
       </p>
 
       {{ govukDetails({
-        summaryText: "What the journey contains",
+        summaryText: "What this version includes",
         html: '
           <ul class="govuk-list govuk-list--bullet">
-            <li>Same journey as Round 2 (Live animals)</li>
-            <li>Dashboard shows germinal product notifications</li>
-            <li>Separate dashboard and session data</li>
-            <li>Shared address book</li>
+            <li>Dashboard of germinal product notifications</li>
+            <li>Example templates for germinal products</li>
+            <li>The same journey and features as Round 2 (Live animals)</li>
+            <li>Its own dashboard and saved data</li>
           </ul>
         '
       }) }}
@@ -178,21 +192,22 @@ Import notification service
       </h2>
 
       <h3 class="govuk-heading-m">
-        Create a notification
+        Second round of research on live animals
       </h3>
 
       <p class="govuk-body">
-        A copy of Design release 2 for testing changes without affecting the original version.
+        For the second round of research on importing live animals. It is a copy of Design release 2, so changes can be tried with users without affecting the design version.
       </p>
 
       {{ govukDetails({
-        summaryText: "What the journey contains",
+        summaryText: "What this version includes",
         html: '
           <ul class="govuk-list govuk-list--bullet">
-            <li>Same journey as Design release 2</li>
-            <li>Separate dashboard and session data</li>
-            <li>Shared address book</li>
-            <li>Some content which is unique to the Live Animals journey only</li>
+            <li>Dashboard of live animal notifications</li>
+            <li>Example templates for live animals</li>
+            <li>The same journey and features as Design release 2</li>
+            <li>Some content written only for the live animals journey</li>
+            <li>Its own dashboard and saved data</li>
           </ul>
         '
       }) }}
