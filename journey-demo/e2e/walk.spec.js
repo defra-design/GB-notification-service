@@ -112,7 +112,7 @@ test.describe('walk — task list (save to the hub and submit)', () => {
     // The task list, showing the sections completed so far.
     await expect(page).toHaveURL(/\/notification-hub$/)
     await expect(page.getByRole('link', { name: 'Arrival details' })).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Roles and addresses' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Consignment addresses' })).toBeVisible()
     await pause(page, STEP_PAUSE_HUB)
 
     await page.goto('/consignment-details')

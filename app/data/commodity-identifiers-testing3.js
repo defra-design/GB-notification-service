@@ -17,8 +17,8 @@
 // identified as a flock or batch (a Flock ID, or no identifier at all) ask for
 // one set of details per species.
 //
-// Commodities and species that are not listed here keep the fields from
-// commodity-identifiers.js and commodity-curated.js.
+// Live animal commodities and species that are not listed here get the default
+// fields: Description and Identification details, entered once per species.
 
 const POULTRY_CLASSIFICATIONS = [
   'Broilers',
@@ -241,14 +241,15 @@ function withRequiredFields (fields) {
   }))
 }
 
-// Returns { perAnimal, fields } for a commodity and species, or null when the
-// table does not cover them.
+// Returns { perAnimal, fields } for a live animal commodity and species. One
+// that is not listed above gets the default fields, so a commodity added to
+// the generated list later still has an identification details page.
 function getTesting3Identification (commodity, species) {
-  const config = (species && bySpeciesId[species.id]) || (commodity && byCommodityId[commodity.id])
-
-  if (!config) {
+  if (!commodity) {
     return null
   }
+
+  const config = (species && bySpeciesId[species.id]) || byCommodityId[commodity.id] || defaultIdentification
 
   return {
     perAnimal: config.perAnimal,
