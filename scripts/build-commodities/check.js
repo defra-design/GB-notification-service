@@ -257,8 +257,10 @@ function checkSpeciesMatchKeys (commodity, failures) {
   }
 }
 
+const FINFISH_HEADINGS = ['0301', '0302', '0303', '0304', '0305']
+
 function isFishCode (code) {
-  return code.startsWith('03') || ['05119190', '0511911000'].includes(code)
+  return FINFISH_HEADINGS.some((heading) => code.startsWith(heading)) || ['05119190', '0511911000'].includes(code)
 }
 
 function keepNonFishCommodities (lists) {

@@ -3,7 +3,7 @@ const path = require('path')
 const { test, expect } = require('@playwright/test')
 const dashboardTemplates = require('../../app/data/dashboard-templates')
 const liveCommodities = require('../../app/data/commodities')
-const { clickContinue, openCommoditySearch, search, selectSpecies } = require('./commodity-search-page')
+const { clickContinue, openCommoditySearch, search, selectSpecies, waitForCommonNames } = require('./commodity-search-page')
 
 const isRecording = process.env.RECORD_BASELINE === '1'
 const fixturesDir = path.join(__dirname, 'fixtures', 'commodity-search')
@@ -208,8 +208,117 @@ for (const version of VERSIONS.filter((item) => item.notificationType !== 'germi
 
       expect(speciesIdsUnder(rows, 'Chicken (010511)')).toEqual(speciesIdsOfLiveCommodity('chicken'))
     })
+
+    test('shows only the lizards row under Reptile for "iguana"', async ({ page }) => {
+      await search(page, 'iguana')
+      const rows = await readResultRows(page)
+
+      expect(speciesIdsUnder(rows, 'Reptile (010620)')).toEqual(['reptile-sauria'])
+    })
+
+    test('shows the other carnivore row under Other live mammals for "polar bear"', async ({ page }) => {
+      await search(page, 'polar bear')
+      const rows = await readResultRows(page)
+
+      expect(speciesIdsUnder(rows, 'Other live mammals (01061900)')).toEqual(['other-live-mammals-69-other-carnivora'])
+    })
+
+    test('shows the whole Oysters group for "oyster"', async ({ page }) => {
+      await search(page, 'oyster')
+      const rows = await readResultRows(page)
+
+      expect(speciesIdsUnder(rows, 'Oysters (030711)')).toEqual(speciesIdsOfLiveCommodity('oysters'))
+    })
+
+    test('finds no finfish for "salmon"', async ({ page }) => {
+      await search(page, 'salmon')
+
+      await expect(page.locator('#commodity-search-results')).toHaveText('No results found')
+    })
   })
 }
+
+const COMMON_NAME_SEARCHES = [
+  ['polar bear', 'other-live-mammals-69-other-carnivora'],
+  ['meerkat', 'other-live-mammals-69-other-carnivora'],
+  ['grey wolf', 'other-live-mammals-69-other-carnivora'],
+  ['kinkajou', 'other-live-mammals-69-other-carnivora'],
+  ['toucan', 'other-birds-piciformes'],
+  ['tarantula', 'other-live-animals-arachnida'],
+  ['chilean rose tarantula', 'other-live-animals-arachnida'],
+  ['golden hamster', 'other-live-mammals-73-other-rodentia'],
+  ['red squirrel', 'other-live-mammals-73-other-rodentia'],
+  ['harbour seal', 'whales-dolphins-seals-pinnipedia'],
+  ['nine-banded armadillo', 'other-live-mammals-106-xenarthra'],
+  ['rock hyrax', 'other-live-mammals-44-hyracoidae'],
+  ['sugar glider', 'other-live-mammals-25-diprotodontia'],
+  ['cane toad', 'other-live-animals-other-amphibia'],
+  ['corn snake', 'reptile-serpentes'],
+  ["hermann's tortoise", 'reptile-testudines'],
+  ['herring gull', 'other-birds-charadriformes'],
+  ['japanese quail', 'other-birds-coturnis-spp'],
+  ['laughing kookaburra', 'other-birds-coraciiformes'],
+  ['monarch butterfly', 'other-insects-other-insecta']
+]
+
+const COMMON_NAME_SEARCHES_WITH_NO_RESULTS = ['salmon', 'cod', 'goldfish', 'seahorse', 'laptop']
+
+test.describe('commodity search by common name on /design-release-2.1 (live-animals)', () => {
+  const version = VERSIONS.find((item) => item.slug === 'design-release-2-1-live-animals')
+
+  test.beforeEach(async ({ page }) => {
+    await openCommoditySearch(page, version)
+    await waitForCommonNames(page)
+  })
+
+  for (const [query, speciesId] of COMMON_NAME_SEARCHES) {
+    test(`shows the ${speciesId} row for "${query}"`, async ({ page }) => {
+      await search(page, query)
+      const rows = await readResultRows(page)
+
+      expect(rows.map((row) => row.speciesId)).toContain(speciesId)
+    })
+  }
+
+  for (const query of COMMON_NAME_SEARCHES_WITH_NO_RESULTS) {
+    test(`finds nothing for "${query}"`, async ({ page }) => {
+      await search(page, query)
+
+      await expect(page.locator('#commodity-search-results')).toHaveText('No results found')
+    })
+  }
+})
+
+test.describe('commodity search without the common names file on /design-release-2.1 (live-animals)', () => {
+  const version = VERSIONS.find((item) => item.slug === 'design-release-2-1-live-animals')
+
+  test('still finds the names on the page when the file fails to load', async ({ page }) => {
+    await page.route('**/common-names-live.json', (route) => route.abort())
+    await openCommoditySearch(page, version)
+    const failedNamesRequest = page.waitForEvent('requestfailed', (request) => request.url().endsWith('/common-names-live.json'))
+
+    await search(page, 'polar bear')
+    await failedNamesRequest
+    expect((await readResultRows(page)).map((row) => row.speciesId)).toEqual(['other-live-mammals-69-other-carnivora'])
+
+    await search(page, 'golden hamster')
+    await expect(page.locator('#commodity-search-results')).toHaveText('No results found')
+  })
+
+  test('never requests the file for germinal products', async ({ page }) => {
+    const namesRequests = []
+    page.on('request', (request) => {
+      if (request.url().endsWith('/common-names-live.json')) {
+        namesRequests.push(request.url())
+      }
+    })
+    await openCommoditySearch(page, VERSIONS.find((item) => item.slug === 'design-release-2-1-germinal-products'))
+
+    await search(page, 'semen')
+    await expect(page.locator('#commodity-search-results')).toBeVisible()
+    expect(namesRequests).toEqual([])
+  })
+})
 
 test.describe('commodity search selections on /design-release-2.1 (live-animals)', () => {
   const version = VERSIONS.find((item) => item.slug === 'design-release-2-1-live-animals')

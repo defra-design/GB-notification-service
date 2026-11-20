@@ -1283,7 +1283,46 @@
         "searchTerms": [
           "Otra Carnivora",
           "carnivora",
-          "carnivores"
+          "carnivores",
+          "bear",
+          "bears",
+          "polar bear",
+          "brown bear",
+          "black bear",
+          "panda",
+          "giant panda",
+          "red panda",
+          "wolf",
+          "wolves",
+          "fox",
+          "foxes",
+          "jackal",
+          "jackals",
+          "tiger",
+          "tigers",
+          "leopard",
+          "leopards",
+          "jaguar",
+          "cheetah",
+          "lynx",
+          "puma",
+          "cougar",
+          "hyena",
+          "hyenas",
+          "meerkat",
+          "meerkats",
+          "otter",
+          "otters",
+          "badger",
+          "badgers",
+          "wolverine",
+          "civet",
+          "genet",
+          "binturong",
+          "skunk",
+          "skunks",
+          "marten",
+          "martens"
         ],
         "searchTermsSource": "generated"
       },
@@ -1295,7 +1334,8 @@
           "Otra Lagomorpha",
           "lagomorpha",
           "lagomorphs",
-          "pika"
+          "pika",
+          "pikas"
         ],
         "searchTermsSource": "generated"
       },
@@ -1304,13 +1344,21 @@
         "label": "Other mammalia",
         "commonName": "Other mammal",
         "searchTerms": [
-          "Otra mammalia"
-        ]
+          "Otra mammalia",
+          "mammal",
+          "mammals"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-other-mammalia-upper",
         "label": "Other Mammalia",
-        "commonName": "Other mammal"
+        "commonName": "Other mammal",
+        "searchTerms": [
+          "mammal",
+          "mammals"
+        ],
+        "searchTermsSource": "generated"
       },
       {
         "id": "other-live-mammals-73-other-rodentia",
@@ -1319,7 +1367,37 @@
         "searchTerms": [
           "Otra Rodentia",
           "rodentia",
-          "rodents"
+          "rodents",
+          "rodent",
+          "rat",
+          "rats",
+          "mouse",
+          "mice",
+          "hamster",
+          "hamsters",
+          "gerbil",
+          "gerbils",
+          "guinea pig",
+          "guinea pigs",
+          "chinchilla",
+          "chinchillas",
+          "degu",
+          "degus",
+          "squirrel",
+          "squirrels",
+          "capybara",
+          "porcupine",
+          "porcupines",
+          "beaver",
+          "beavers",
+          "dormouse",
+          "vole",
+          "voles",
+          "jerboa",
+          "prairie dog",
+          "prairie dogs",
+          "marmot",
+          "marmots"
         ],
         "searchTermsSource": "generated"
       },
@@ -2678,6 +2756,23 @@
         "searchTermsSource": "generated"
       },
       {
+        "id": "reptile-crocodylia",
+        "label": "Crocodylia",
+        "commonName": "Crocodilians",
+        "searchTerms": [
+          "crocodile",
+          "crocodiles",
+          "alligator",
+          "alligators",
+          "caiman",
+          "caimans",
+          "gharial",
+          "crocodilian"
+        ],
+        "searchTermsSource": "generated",
+        "commonNameSource": "defra-same-code"
+      },
+      {
         "id": "reptile-other-testudinata",
         "label": "Other Testudinata",
         "commonName": "Other turtles, tortoises and terrapins",
@@ -2689,6 +2784,32 @@
         ],
         "searchTermsSource": "generated",
         "commonNameSource": "generated"
+      },
+      {
+        "id": "reptile-sauria",
+        "label": "Sauria",
+        "commonName": "Lizards",
+        "searchTerms": [
+          "lizard",
+          "iguana",
+          "iguanas",
+          "gecko",
+          "geckos",
+          "chameleon",
+          "chameleons",
+          "bearded dragon",
+          "bearded dragons",
+          "skink",
+          "skinks",
+          "monitor lizard",
+          "monitor lizards",
+          "anole",
+          "anoles",
+          "komodo dragon",
+          "agama"
+        ],
+        "searchTermsSource": "generated",
+        "commonNameSource": "defra-same-code"
       },
       {
         "id": "reptile-trachemys-scripta",
@@ -3085,7 +3206,7 @@
       {
         "id": "primates-indri",
         "label": "Indri",
-        "commonName": "Primates (Indri)",
+        "commonName": "Monkeys, apes and other primates (Indri)",
         "searchTerms": [
           "babakoto"
         ],
@@ -3490,7 +3611,18 @@
           "eagle",
           "buzzard",
           "kite",
-          "vulture"
+          "vulture",
+          "hawks",
+          "eagles",
+          "buzzards",
+          "kites",
+          "vultures",
+          "harrier",
+          "osprey",
+          "sparrowhawk",
+          "goshawk",
+          "harris hawk",
+          "secretary bird"
         ],
         "searchTermsSource": "generated",
         "commonNameSource": "defra-same-code"
@@ -3502,7 +3634,14 @@
         "searchTerms": [
           "falcon",
           "kestrel",
-          "merlin"
+          "merlin",
+          "peregrine",
+          "peregrine falcon",
+          "hobby",
+          "saker",
+          "gyrfalcon",
+          "lanner",
+          "caracara"
         ],
         "searchTermsSource": "generated",
         "commonNameSource": "defra-same-code"
@@ -3513,7 +3652,10 @@
         "commonName": "Owls",
         "searchTerms": [
           "owl",
-          "barn owl"
+          "barn owl",
+          "eagle owl",
+          "snowy owl",
+          "tawny owl"
         ],
         "searchTermsSource": "generated",
         "commonNameSource": "defra-same-code"
@@ -3656,7 +3798,15 @@
           "waterfowl",
           "wild ducks",
           "wild geese",
-          "swans"
+          "swans",
+          "swan",
+          "black swan",
+          "wild duck",
+          "teal",
+          "wigeon",
+          "eider",
+          "whistling duck",
+          "screamer"
         ],
         "searchTermsSource": "generated",
         "commonNameSource": "generated"
@@ -3747,7 +3897,14 @@
           "wader",
           "waders",
           "gull",
-          "gulls"
+          "gulls",
+          "puffin",
+          "puffins",
+          "plover",
+          "sandpiper",
+          "tern",
+          "avocet",
+          "auk"
         ],
         "searchTermsSource": "generated",
         "commonNameSource": "generated"
@@ -3812,7 +3969,9 @@
           "kingfisher",
           "kingfishers",
           "bee-eater",
-          "roller"
+          "roller",
+          "kookaburra",
+          "motmot"
         ],
         "searchTermsSource": "generated",
         "commonNameSource": "generated"
@@ -3879,7 +4038,14 @@
           "game birds",
           "pheasant",
           "quail",
-          "grouse"
+          "grouse",
+          "peafowl",
+          "peacock",
+          "peacocks",
+          "peahen",
+          "capercaillie",
+          "curassow",
+          "francolin"
         ],
         "searchTermsSource": "generated",
         "commonNameSource": "generated"
@@ -3913,7 +4079,11 @@
           "crane",
           "cranes",
           "rail",
-          "coot"
+          "coot",
+          "moorhen",
+          "gallinule",
+          "trumpeter",
+          "crowned crane"
         ],
         "searchTermsSource": "generated",
         "commonNameSource": "generated"
@@ -3976,7 +4146,33 @@
           "songbirds",
           "passerine",
           "finch",
-          "canary"
+          "canary",
+          "finches",
+          "canaries",
+          "zebra finch",
+          "myna",
+          "mynah",
+          "starling",
+          "sparrow",
+          "java sparrow",
+          "robin",
+          "crow",
+          "raven",
+          "magpie",
+          "jay",
+          "thrush",
+          "blackbird",
+          "weaver",
+          "waxbill",
+          "munia",
+          "bulbul",
+          "sunbird",
+          "tanager",
+          "lark",
+          "swallow",
+          "warbler",
+          "bird of paradise",
+          "lyrebird"
         ],
         "searchTermsSource": "generated",
         "commonNameSource": "generated"
@@ -3988,7 +4184,13 @@
         "searchTerms": [
           "pelican",
           "heron",
-          "ibis"
+          "ibis",
+          "pelicans",
+          "herons",
+          "ibises",
+          "egret",
+          "spoonbill",
+          "bittern"
         ],
         "searchTermsSource": "generated",
         "commonNameSource": "generated"
@@ -4033,7 +4235,10 @@
           "woodpecker",
           "woodpeckers",
           "toucan",
-          "toucans"
+          "toucans",
+          "barbet",
+          "jacamar",
+          "honeyguide"
         ],
         "searchTermsSource": "generated",
         "commonNameSource": "generated"
@@ -4178,7 +4383,36 @@
           "Otra Insecta",
           "insecta",
           "insect",
-          "insects"
+          "insects",
+          "butterfly",
+          "butterflies",
+          "moth",
+          "moths",
+          "beetle",
+          "beetles",
+          "stick insect",
+          "stick insects",
+          "mantis",
+          "praying mantis",
+          "cricket",
+          "crickets",
+          "locust",
+          "locusts",
+          "grasshopper",
+          "grasshoppers",
+          "cockroach",
+          "cockroaches",
+          "ant",
+          "ants",
+          "mealworm",
+          "mealworms",
+          "silkworm",
+          "silkworms",
+          "ladybird",
+          "ladybirds",
+          "waxworm",
+          "waxworms",
+          "black soldier fly"
         ],
         "searchTermsSource": "generated",
         "commonNameSource": "generated"
@@ -4222,6 +4456,44 @@
     "code": "01069000",
     "species": [
       {
+        "id": "other-live-animals-annelida",
+        "label": "Annelida",
+        "commonName": "Segmented worms",
+        "searchTerms": [
+          "annelid",
+          "annelids",
+          "worm",
+          "worms",
+          "earthworm",
+          "earthworms",
+          "leech",
+          "leeches",
+          "ragworm",
+          "ragworms",
+          "lugworm",
+          "lugworms"
+        ],
+        "searchTermsSource": "generated",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-live-animals-arachnida",
+        "label": "Arachnida",
+        "commonName": "Spiders, scorpions and other arachnids",
+        "searchTerms": [
+          "arachnid",
+          "arachnids",
+          "spider",
+          "spiders",
+          "tarantula",
+          "tarantulas",
+          "scorpion",
+          "scorpions"
+        ],
+        "searchTermsSource": "generated",
+        "commonNameSource": "generated"
+      },
+      {
         "id": "other-live-animals-caudata",
         "label": "Caudata",
         "commonName": "Salamanders and newts",
@@ -4244,6 +4516,22 @@
           "lithobates catesbeianus",
           "bullfrog",
           "frog"
+        ],
+        "searchTermsSource": "generated",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-live-animals-myriapodae",
+        "label": "Myriapodae",
+        "commonName": "Centipedes and millipedes",
+        "searchTerms": [
+          "myriapoda",
+          "myriapod",
+          "myriapods",
+          "centipede",
+          "centipedes",
+          "millipede",
+          "millipedes"
         ],
         "searchTermsSource": "generated",
         "commonNameSource": "generated"
@@ -4283,6 +4571,2988 @@
     ],
     "nameSource": "generated",
     "tariffDescription": "Other / Frogs / Fit for human consumption; Other / Frogs / Other; Other / Other"
+  },
+  {
+    "id": "rock-lobsters",
+    "name": "Rock lobsters and sea crawfish",
+    "code": "03063100",
+    "species": [
+      {
+        "id": "rock-lobsters-jasus-paulensis",
+        "label": "Jasus paulensis",
+        "commonName": "St Paul rock lobster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "rock-lobsters-jasus-spp",
+        "label": "Jasus spp.",
+        "commonName": "Southern rock lobsters",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "rock-lobsters-palinuridae",
+        "label": "Palinuridae",
+        "commonName": "Spiny lobsters",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "rock-lobsters-palinuris-elephas",
+        "label": "Palinuris elephas",
+        "commonName": "European spiny lobster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "rock-lobsters-palinurus-mauritanicus",
+        "label": "Palinurus mauritanicus",
+        "commonName": "Pink spiny lobster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "rock-lobsters-palinurus-regius",
+        "label": "Palinurus regius",
+        "commonName": "Royal spiny lobster (Palinurus regius)",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "rock-lobsters-palinurus-spp",
+        "label": "Palinurus spp.",
+        "commonName": "Sea crawfish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "rock-lobsters-panulirus-argus",
+        "label": "Panulirus argus",
+        "commonName": "Caribbean spiny lobster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "rock-lobsters-panulirus-gracilis",
+        "label": "Panulirus gracilis",
+        "commonName": "Green spiny lobster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "rock-lobsters-panulirus-homarus",
+        "label": "Panulirus homarus",
+        "commonName": "Scalloped spiny lobster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "rock-lobsters-panulirus-longipes",
+        "label": "Panulirus longipes",
+        "commonName": "Longlegged spiny lobster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "rock-lobsters-panulirus-ornatus",
+        "label": "Panulirus ornatus",
+        "commonName": "Ornate spiny lobster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "rock-lobsters-panulirus-penicillatus",
+        "label": "Panulirus penicillatus",
+        "commonName": "Pronghorn spiny lobster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "rock-lobsters-panulirus-regius",
+        "label": "Panulirus regius",
+        "commonName": "Royal spiny lobster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "rock-lobsters-panulirus-spp",
+        "label": "Panulirus spp.",
+        "commonName": "Tropical spiny lobsters",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "rock-lobsters-panulirus-versicolor",
+        "label": "Panulirus versicolor",
+        "commonName": "Painted spiny lobster",
+        "commonNameSource": "generated"
+      }
+    ],
+    "searchTerms": [
+      "rock lobster",
+      "spiny lobster",
+      "spiny lobsters",
+      "crawfish",
+      "langouste",
+      "shellfish",
+      "crustacean",
+      "crustaceans"
+    ],
+    "searchTermsSource": "generated",
+    "tariffCodes": [
+      "03063100",
+      "0306310010",
+      "0306310090"
+    ],
+    "nameSource": "generated",
+    "tariffDescription": "Live, fresh or chilled - rock lobster and other sea crawfish (Palinurus, Panulirus, Jasus), for processing; Live, fresh or chilled - rock lobster and other sea crawfish (Palinurus, Panulirus, Jasus), not for processing"
+  },
+  {
+    "id": "lobsters",
+    "name": "Lobsters",
+    "code": "03063210",
+    "species": [
+      {
+        "id": "lobsters-homarus-americanus",
+        "label": "Homarus americanus",
+        "commonName": "American lobster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "lobsters-homarus-gammarus",
+        "label": "Homarus gammarus",
+        "commonName": "European lobster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "lobsters-homarus-spp",
+        "label": "Homarus spp",
+        "commonName": "Clawed lobsters",
+        "commonNameSource": "generated"
+      }
+    ],
+    "searchTerms": [
+      "lobster",
+      "homarus",
+      "shellfish",
+      "crustacean",
+      "crustaceans"
+    ],
+    "searchTermsSource": "generated",
+    "tariffCodes": [
+      "03063210",
+      "0306321000"
+    ],
+    "nameSource": "generated",
+    "tariffDescription": "Live lobsters (Homarus)"
+  },
+  {
+    "id": "crabs",
+    "name": "Crabs",
+    "code": "030633",
+    "species": [
+      {
+        "id": "crabs-cancer-pagurus",
+        "label": "Cancer pagurus",
+        "commonName": "Edible crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-brachyura",
+        "label": "Brachyura",
+        "commonName": "True crabs",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-brachyura-spp",
+        "label": "Brachyura spp",
+        "commonName": "True crabs (Brachyura spp.)",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-callinectes-sapidus",
+        "label": "Callinectes sapidus",
+        "commonName": "Atlantic blue crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-callinectes-spp",
+        "label": "Callinectes spp",
+        "commonName": "Blue crabs",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-cancer-edwardsi",
+        "label": "Cancer edwardsi",
+        "commonName": "Chilean rock crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-cancer-spp",
+        "label": "Cancer spp",
+        "commonName": "Rock crabs",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-cardisoma-spp",
+        "label": "Cardisoma spp",
+        "commonName": "Giant land crabs",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-chaceon-affinis",
+        "label": "Chaceon affinis",
+        "commonName": "Deep-sea red crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-chaceon-maritae",
+        "label": "Chaceon maritae",
+        "commonName": "West African geryon",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-chaceon-quinquedens",
+        "label": "Chaceon quinquedens",
+        "commonName": "Atlantic red crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-chaceon-spp",
+        "label": "Chaceon spp",
+        "commonName": "Geryons",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-chionoecetes-japonicus",
+        "label": "Chionoecetes japonicus",
+        "commonName": "Red snow crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-chionoecetes-spp",
+        "label": "Chionoecetes spp",
+        "commonName": "Snow crabs",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-dardanus-spp",
+        "label": "Dardanus spp",
+        "commonName": "Left-handed hermit crabs",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-eriocheir-sinensis",
+        "label": "Eriocheir sinensis",
+        "commonName": "Chinese mitten crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-lithodes-murrayi",
+        "label": "Lithodes murrayi",
+        "commonName": "Subantarctic stone crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-lithodes-santolla",
+        "label": "Lithodes santolla",
+        "commonName": "Southern king crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-lithodes-spp",
+        "label": "Lithodes spp",
+        "commonName": "King crabs",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-maja-squinado",
+        "label": "Maja squinado",
+        "commonName": "European spider crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-metacarcinus-magister",
+        "label": "Metacarcinus magister",
+        "commonName": "Dungeness crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-metacarcinus-spp",
+        "label": "Metacarcinus spp",
+        "commonName": "Crabs (Metacarcinus)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "crabs-paguroidea",
+        "label": "Paguroidea",
+        "commonName": "Hermit crabs",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-paralithoides-camchaticus",
+        "label": "Paralithoides camchaticus",
+        "commonName": "Red king crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-paralomis-granulosa",
+        "label": "Paralomis granulosa",
+        "commonName": "Softshell red crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-portunus-pelagicus",
+        "label": "Portunus pelagicus",
+        "commonName": "Blue swimmer crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-portunus-segnis",
+        "label": "Portunus segnis",
+        "commonName": "Blue swimming crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-portunus-spp",
+        "label": "Portunus spp",
+        "commonName": "Swimming crabs",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-portunus-validus",
+        "label": "Portunus validus",
+        "commonName": "Smooth swimcrab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-ranina-ranina",
+        "label": "Ranina ranina",
+        "commonName": "Spanner crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-ranina-spp",
+        "label": "Ranina spp",
+        "commonName": "Frog crabs",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-scylla-serrata",
+        "label": "Scylla serrata",
+        "commonName": "Giant mud crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "crabs-ucides-occidentalis",
+        "label": "Ucides occidentalis",
+        "commonName": "Crabs (Ucides)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "crabs-varuna-litterata",
+        "label": "Varuna litterata",
+        "commonName": "Crabs (Varuna litterata)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "crabs-varuna-spp",
+        "label": "Varuna spp",
+        "commonName": "Crabs (Varuna spp)",
+        "commonNameSource": "generated-fallback"
+      }
+    ],
+    "searchTerms": [
+      "crab",
+      "brown crab",
+      "edible crab",
+      "shellfish",
+      "crustacean",
+      "crustaceans"
+    ],
+    "searchTermsSource": "generated",
+    "tariffCodes": [
+      "03063310",
+      "0306331000",
+      "03063390",
+      "0306339000"
+    ],
+    "nameSource": "generated",
+    "tariffDescription": "Live, fresh or chilled - crabs of the species Cancer Pagurus; Live, fresh or chilled - crabs, other than cancer pagarus"
+  },
+  {
+    "id": "shrimps-and-prawns",
+    "name": "Shrimps and prawns",
+    "code": "03063690",
+    "species": [
+      {
+        "id": "shrimps-and-prawns-acetes-spp",
+        "label": "Acetes spp",
+        "commonName": "Paste shrimps",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-aristeus-antennatus",
+        "label": "Aristeus antennatus",
+        "commonName": "Blue and red shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-aristeus-spp",
+        "label": "Aristeus spp",
+        "commonName": "Deep-water red shrimps",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-aristeus-varidens",
+        "label": "Aristeus varidens",
+        "commonName": "Striped red shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-artemia-spp",
+        "label": "Artemia spp",
+        "commonName": "Brine shrimps",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-canaliculatus",
+        "label": "canaliculatus",
+        "commonName": "Shrimps and prawns (Canaliculatus)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "shrimps-and-prawns-caridina-spp",
+        "label": "Caridina spp",
+        "commonName": "Freshwater dwarf shrimps",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-exopalaemon-spp",
+        "label": "Exopalaemon spp",
+        "commonName": "Shrimps and prawns (Exopalaemon)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "shrimps-and-prawns-exopalaemon-styliferus",
+        "label": "Exopalaemon styliferus",
+        "commonName": "Roshna prawn",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-farfantepenaeus-aztecus",
+        "label": "Farfantepenaeus aztecus",
+        "commonName": "Northern brown shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-farfantepenaeus-duorarum",
+        "label": "Farfantepenaeus duorarum",
+        "commonName": "Northern pink shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-farfantepenaeus-notialis",
+        "label": "Farfantepenaeus notialis",
+        "commonName": "Southern pink shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-fenneropenaeus-chinensis",
+        "label": "Fenneropenaeus chinensis",
+        "commonName": "Fleshy prawn",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-fenneropenaeus-indicus",
+        "label": "Fenneropenaeus indicus",
+        "commonName": "Indian white prawn",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-fenneropenaeus-merguiensis",
+        "label": "Fenneropenaeus merguiensis",
+        "commonName": "Banana prawn",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-haliporoides-spp",
+        "label": "Haliporoides spp",
+        "commonName": "Knife shrimps",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-haliporoides-triarthrus",
+        "label": "Haliporoides triarthrus",
+        "commonName": "Knife shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-heterocarpus-reedi",
+        "label": "Heterocarpus reedi",
+        "commonName": "Chilean nylon shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-heterocarpus-spp",
+        "label": "Heterocarpus spp",
+        "commonName": "Nylon shrimps",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-litopenaeus-schmitti",
+        "label": "Litopenaeus schmitti",
+        "commonName": "Southern white shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-litopenaeus-stylirostris",
+        "label": "Litopenaeus stylirostris",
+        "commonName": "Blue shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-litopenaeus-vannamei",
+        "label": "Litopenaeus vannamei",
+        "commonName": "Whiteleg shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-lysmata-spp",
+        "label": "Lysmata spp",
+        "commonName": "Cleaner shrimps",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-macrobrachium-rosenbergii",
+        "label": "Macrobrachium rosenbergii",
+        "commonName": "Giant river prawn",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-macrobrachium-spp",
+        "label": "Macrobrachium spp",
+        "commonName": "River prawns",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-marsupenaeus-japonicus",
+        "label": "Marsupenaeus japonicus",
+        "commonName": "Kuruma prawn",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-melicertus-canaliculatus",
+        "label": "Melicertus canaliculatus",
+        "commonName": "Witch prawn",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-melicertus-kerathurus",
+        "label": "Melicertus kerathurus",
+        "commonName": "Caramote prawn",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-melicertus-latisulcatus",
+        "label": "Melicertus latisulcatus",
+        "commonName": "Western king prawn",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-metapenaeopsis-spp",
+        "label": "Metapenaeopsis spp",
+        "commonName": "Velvet shrimps",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-metapenaeus-affinis",
+        "label": "Metapenaeus affinis",
+        "commonName": "Jinga shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-metapenaeus-brevicornis",
+        "label": "Metapenaeus brevicornis",
+        "commonName": "Yellow shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-metapenaeus-ensis",
+        "label": "Metapenaeus ensis",
+        "commonName": "Greasyback shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-metapenaeus-monoceros",
+        "label": "Metapenaeus monoceros",
+        "commonName": "Speckled shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-metapenaeus-spp",
+        "label": "Metapenaeus spp",
+        "commonName": "Greasyback shrimps",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-neocaridina-heteropoda",
+        "label": "Neocaridina heteropoda",
+        "commonName": "Cherry shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-neocaridina-spp",
+        "label": "Neocaridina spp",
+        "commonName": "Cherry shrimps",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-palaemonoidea",
+        "label": "Palaemonoidea",
+        "commonName": "Glass and river prawns",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-parapenaeopsis-atlantica",
+        "label": "Parapenaeopsis atlantica",
+        "commonName": "Guinea shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-parapenaeopsis-hardwickii",
+        "label": "Parapenaeopsis hardwickii",
+        "commonName": "Spear shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-parapeneaus-longirostris",
+        "label": "Parapeneaus longirostris",
+        "commonName": "Deep-water rose shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-penaeus-melicertus",
+        "label": "Penaeus (Melicertus)",
+        "commonName": "King prawns",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-penaeus-brasiliensis",
+        "label": "Penaeus brasiliensis",
+        "commonName": "Redspotted shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-penaeus-canaliculatus",
+        "label": "Penaeus canaliculatus",
+        "commonName": "Witch prawn (P. canaliculatus)",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-penaeus-chinensis",
+        "label": "Penaeus chinensis",
+        "commonName": "Fleshy prawn (P. chinensis)",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-penaeus-latisulcatus",
+        "label": "Penaeus latisulcatus",
+        "commonName": "Western king prawn (P. latisulcatus)",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-penaeus-merguiensis",
+        "label": "Penaeus merguiensis",
+        "commonName": "Banana prawn (P. merguiensis)",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-penaeus-schmitti",
+        "label": "Penaeus schmitti",
+        "commonName": "Southern white shrimp (P. schmitti)",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-penaeus-spp",
+        "label": "Penaeus spp",
+        "commonName": "Penaeid prawns",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-penaeus-stylirostris",
+        "label": "Penaeus stylirostris",
+        "commonName": "Blue shrimp (P. stylirostris)",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-protrachypene-precipua",
+        "label": "Protrachypene precipua",
+        "commonName": "Titi shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-protrachypene-spp",
+        "label": "Protrachypene spp",
+        "commonName": "Titi shrimps",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-sergia-lucens",
+        "label": "Sergia lucens",
+        "commonName": "Sakura shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-solenocera-spp",
+        "label": "Solenocera spp",
+        "commonName": "Mud shrimps",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-solenoceridae",
+        "label": "Solenoceridae",
+        "commonName": "Solenocerid shrimps",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "shrimps-and-prawns-trachypenaeus-spp",
+        "label": "Trachypenaeus spp",
+        "commonName": "Rough shrimps",
+        "commonNameSource": "generated"
+      }
+    ],
+    "searchTerms": [
+      "shrimp",
+      "shrimps",
+      "prawn",
+      "prawns",
+      "shellfish",
+      "crustacean",
+      "crustaceans"
+    ],
+    "searchTermsSource": "generated",
+    "tariffCodes": [
+      "03063690",
+      "0306369020",
+      "0306369030",
+      "0306369090"
+    ],
+    "nameSource": "generated",
+    "tariffDescription": "Fresh or chilled - shrimps and prawns of pleoticus muelleri, for processing; Fresh or chilled - shrimps and prawns of penaeus vannamei / monodon, not cooked, for processing; Live, fresh or chilled - other shrimps and prawns unspecified"
+  },
+  {
+    "id": "freshwater-crayfish",
+    "name": "Freshwater crayfish",
+    "code": "03063910",
+    "species": [
+      {
+        "id": "freshwater-crayfish-astacoidae",
+        "label": "Astacoidae",
+        "commonName": "Northern hemisphere crayfish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "freshwater-crayfish-astacoides-spp",
+        "label": "Astacoides spp",
+        "commonName": "Madagascan crayfish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "freshwater-crayfish-astacus-astacus",
+        "label": "Astacus astacus",
+        "commonName": "Noble crayfish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "freshwater-crayfish-astacus-spp",
+        "label": "Astacus spp",
+        "commonName": "European crayfish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "freshwater-crayfish-austropotamobius-spp",
+        "label": "Austropotamobius spp",
+        "commonName": "White-clawed and stone crayfish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "freshwater-crayfish-cambarellus-cambarellus-patzcuarensis",
+        "label": "Cambarellus (Cambarellus) patzcuarensis",
+        "commonName": "Mexican dwarf crayfish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "freshwater-crayfish-cambarellus-spp",
+        "label": "Cambarellus spp",
+        "commonName": "Dwarf crayfish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "freshwater-crayfish-cherax-destructor",
+        "label": "Cherax destructor",
+        "commonName": "Yabby",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "freshwater-crayfish-cherax-spp",
+        "label": "Cherax spp",
+        "commonName": "Yabbies and marron",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "freshwater-crayfish-orconectes-limosus",
+        "label": "Orconectes limosus",
+        "commonName": "Spinycheek crayfish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "freshwater-crayfish-orconectes-spp",
+        "label": "Orconectes spp",
+        "commonName": "Freshwater crayfish (Orconectes)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "freshwater-crayfish-orconectes-virilise",
+        "label": "Orconectes virilise",
+        "commonName": "Virile crayfish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "freshwater-crayfish-pacifastacus-leniusculus",
+        "label": "Pacifastacus leniusculus",
+        "commonName": "Signal crayfish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "freshwater-crayfish-procambarus-alleni",
+        "label": "Procambarus alleni",
+        "commonName": "Florida blue crayfish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "freshwater-crayfish-procambarus-clarkii",
+        "label": "Procambarus clarkii",
+        "commonName": "Red swamp crayfish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "freshwater-crayfish-procambarus-fallax",
+        "label": "Procambarus fallax",
+        "commonName": "Slough crayfish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "freshwater-crayfish-procambarus-spp",
+        "label": "Procambarus spp",
+        "commonName": "Swamp crayfish",
+        "commonNameSource": "generated"
+      }
+    ],
+    "searchTerms": [
+      "crayfish",
+      "crawdad",
+      "yabby",
+      "shellfish",
+      "crustacean",
+      "crustaceans",
+      "crawfish"
+    ],
+    "searchTermsSource": "generated",
+    "tariffCodes": [
+      "03063910",
+      "0306391000"
+    ],
+    "nameSource": "generated",
+    "tariffDescription": "Live, fresh or chilled - other freshwater crayfish"
+  },
+  {
+    "id": "other-crustaceans",
+    "name": "Other crustaceans",
+    "code": "03063990",
+    "species": [
+      {
+        "id": "other-crustaceans-arenareus-spp",
+        "label": "Arenareus spp",
+        "commonName": "Speckled swimming crabs",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-aristeus-antennatus",
+        "label": "Aristeus antennatus",
+        "commonName": "Blue and red shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-aristeus-spp",
+        "label": "Aristeus spp",
+        "commonName": "Red shrimps",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-aristeus-varidens",
+        "label": "Aristeus varidens",
+        "commonName": "Striped red shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-astacoidae",
+        "label": "Astacoidae",
+        "commonName": "Northern hemisphere crayfish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-astacus-astacus",
+        "label": "Astacus astacus",
+        "commonName": "Noble crayfish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-brachyura",
+        "label": "Brachyura",
+        "commonName": "True crabs",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-brachyura-spp",
+        "label": "Brachyura spp",
+        "commonName": "True crabs (Brachyura spp.)",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-callinectes-sapidus",
+        "label": "Callinectes sapidus",
+        "commonName": "Atlantic blue crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-callinectes-spp",
+        "label": "Callinectes spp",
+        "commonName": "Blue crabs",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-cancer-edwardsi",
+        "label": "Cancer edwardsi",
+        "commonName": "Chilean rock crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-cancer-pagurus",
+        "label": "Cancer pagurus",
+        "commonName": "Edible crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-cervimunida-johni",
+        "label": "Cervimunida johni",
+        "commonName": "Yellow squat lobster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-chaceon-maritae",
+        "label": "Chaceon maritae",
+        "commonName": "West African geryon",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-cherax-destructor",
+        "label": "Cherax destructor",
+        "commonName": "Yabby",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-chionoecetes-spp",
+        "label": "Chionoecetes spp",
+        "commonName": "Snow crabs",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-crangon-spp",
+        "label": "Crangon spp",
+        "commonName": "Brown shrimps",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-crangonoidea",
+        "label": "Crangonoidea",
+        "commonName": "Sand shrimps",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-euphausia-superba",
+        "label": "Euphausia superba",
+        "commonName": "Antarctic krill",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-harpiosquilla-harpax",
+        "label": "Harpiosquilla harpax",
+        "commonName": "Other crustaceans (Harpiosquilla)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "other-crustaceans-heterocarpus-reedi",
+        "label": "Heterocarpus reedi",
+        "commonName": "Chilean nylon shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-heterocarpus-spp",
+        "label": "Heterocarpus spp",
+        "commonName": "Nylon shrimps",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-homarus-gammarus",
+        "label": "Homarus gammarus",
+        "commonName": "European lobster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-homarus-spp",
+        "label": "Homarus spp",
+        "commonName": "European and American lobsters",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-jasus-paulensis",
+        "label": "Jasus paulensis",
+        "commonName": "St Paul rock lobster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-jasus-spp",
+        "label": "Jasus spp",
+        "commonName": "Southern rock lobsters",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-lithodes-santolla",
+        "label": "Lithodes santolla",
+        "commonName": "Southern king crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-litopenaeus-spp",
+        "label": "Litopenaeus spp",
+        "commonName": "White shrimps",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-macrobrachium-rosenbergii",
+        "label": "Macrobrachium rosenbergii",
+        "commonName": "Giant river prawn",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-maja-spp",
+        "label": "Maja spp",
+        "commonName": "Spider crabs",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-menippe-spp",
+        "label": "Menippe spp",
+        "commonName": "Stone crabs",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-metanephrops-challengeri",
+        "label": "Metanephrops challengeri",
+        "commonName": "New Zealand scampi",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-metanephrops-spp",
+        "label": "Metanephrops spp",
+        "commonName": "Lobsterettes",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-metapenaeopsis-spp",
+        "label": "Metapenaeopsis spp",
+        "commonName": "Velvet shrimps",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-metapenaeus-monoceros",
+        "label": "Metapenaeus monoceros",
+        "commonName": "Speckled shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-nephropidae",
+        "label": "Nephropidae",
+        "commonName": "Clawed lobsters",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-nephrops-norvegicus",
+        "label": "Nephrops norvegicus",
+        "commonName": "Norway lobster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-nephrops-spp",
+        "label": "Nephrops spp",
+        "commonName": "Langoustines",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-neptunus-validus",
+        "label": "Neptunus validus",
+        "commonName": "Smooth swimcrab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-other-crustacea",
+        "label": "Other Crustacea",
+        "commonName": "Other crustaceans",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-pacifastacus-leniusculus",
+        "label": "Pacifastacus leniusculus",
+        "commonName": "Signal crayfish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-palaemonoidea",
+        "label": "Palaemonoidea",
+        "commonName": "Palaemonid prawns",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-palinuridae",
+        "label": "Palinuridae",
+        "commonName": "Spiny lobsters",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-palinurus-mauritanicus",
+        "label": "Palinurus mauritanicus",
+        "commonName": "Pink spiny lobster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-palinurus-spp",
+        "label": "Palinurus spp",
+        "commonName": "Crawfish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-pandaloidea",
+        "label": "Pandaloidea",
+        "commonName": "Pandalid shrimps",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-pandalus-spp",
+        "label": "Pandalus spp",
+        "commonName": "Coldwater prawns",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-panulirus-regius",
+        "label": "Panulirus regius",
+        "commonName": "Royal spiny lobster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-panulirus-spp",
+        "label": "Panulirus spp",
+        "commonName": "Tropical spiny lobsters",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-paralithoides-camchaticus",
+        "label": "Paralithoides camchaticus",
+        "commonName": "Red king crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-paralomis-granulosa",
+        "label": "Paralomis granulosa",
+        "commonName": "Softshell red crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-parapenaeopsis-atlantica",
+        "label": "Parapenaeopsis atlantica",
+        "commonName": "Guinea shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-parapeneaus-longirostris",
+        "label": "Parapeneaus longirostris",
+        "commonName": "Deep-water rose shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-penaeoidea",
+        "label": "Penaeoidea",
+        "commonName": "Penaeoid shrimps and prawns",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-penaeus-litopenaeus-stylirostris",
+        "label": "Penaeus ( Litopenaeus) stylirostris",
+        "commonName": "Blue shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-penaeus-aztecus",
+        "label": "Penaeus aztecus",
+        "commonName": "Northern brown shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-penaeus-duorarum",
+        "label": "Penaeus duorarum",
+        "commonName": "Northern pink shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-penaeus-indicus",
+        "label": "Penaeus indicus",
+        "commonName": "Indian white prawn",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-penaeus-japonicus",
+        "label": "Penaeus japonicus",
+        "commonName": "Kuruma prawn",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-penaeus-kerathurus",
+        "label": "Penaeus kerathurus",
+        "commonName": "Caramote prawn",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-penaeus-monodon",
+        "label": "Penaeus monodon",
+        "commonName": "Giant tiger prawn",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-penaeus-notialis",
+        "label": "Penaeus notialis",
+        "commonName": "Southern pink shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-penaeus-setiferus",
+        "label": "Penaeus setiferus",
+        "commonName": "Northern white shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-penaeus-spp",
+        "label": "Penaeus spp",
+        "commonName": "Penaeid prawns",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-penaeus-vannamei",
+        "label": "Penaeus vannamei",
+        "commonName": "Whiteleg shrimp",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-pleuroncodes-monodon",
+        "label": "Pleuroncodes monodon",
+        "commonName": "Red squat lobster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-pleuroncodes-planipes",
+        "label": "Pleuroncodes planipes",
+        "commonName": "Pelagic red crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-pleuroncodes-spp",
+        "label": "Pleuroncodes spp",
+        "commonName": "Red squat lobsters",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-pollicipes-pollicipes",
+        "label": "Pollicipes pollicipes",
+        "commonName": "Goose barnacle",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-pollicipes-polymerus",
+        "label": "Pollicipes polymerus",
+        "commonName": "Pacific gooseneck barnacle",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-portunus-puber",
+        "label": "Portunus puber",
+        "commonName": "Velvet swimming crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-procambarus-clarckii",
+        "label": "Procambarus clarckii",
+        "commonName": "Red swamp crayfish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-puerulus-sewelli",
+        "label": "Puerulus sewelli",
+        "commonName": "Arabian whip lobster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-puerulus-sp",
+        "label": "Puerulus sp",
+        "commonName": "Whip lobsters",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-sagmariasus-verreauxi",
+        "label": "Sagmariasus verreauxi",
+        "commonName": "Eastern rock lobster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-scylla-serrata",
+        "label": "Scylla serrata",
+        "commonName": "Giant mud crab",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-scyllarides-herklostsii",
+        "label": "Scyllarides herklostsii",
+        "commonName": "Red slipper lobster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-scyllarus-arctus",
+        "label": "Scyllarus arctus",
+        "commonName": "Small European locust lobster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-scyllarus-spp",
+        "label": "Scyllarus spp",
+        "commonName": "Small slipper lobsters",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-solenocer-spp",
+        "label": "Solenocer spp",
+        "commonName": "Mud shrimps",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-squilla-spp",
+        "label": "Squilla spp",
+        "commonName": "Mantis shrimps",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-thenus-orientalis",
+        "label": "Thenus orientalis",
+        "commonName": "Flathead lobster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-trachypenaeu-spp",
+        "label": "Trachypenaeu spp",
+        "commonName": "Rough shrimps",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-crustaceans-xiphopenaeu-spp",
+        "label": "Xiphopenaeu spp",
+        "commonName": "Seabobs",
+        "commonNameSource": "generated"
+      }
+    ],
+    "searchTerms": [
+      "crustacean",
+      "crustaceans",
+      "shellfish",
+      "langoustine",
+      "langoustines",
+      "norway lobster",
+      "dublin bay prawn",
+      "scampi",
+      "krill",
+      "mantis shrimp",
+      "slipper lobster",
+      "squat lobster",
+      "barnacle",
+      "barnacles"
+    ],
+    "searchTermsSource": "generated",
+    "tariffCodes": [
+      "03063990",
+      "0306399020",
+      "0306399090"
+    ],
+    "nameSource": "generated",
+    "tariffDescription": "Live, fresh or chilled - Peurullus spp; Live, fresh or chilled - other crustaceans"
+  },
+  {
+    "id": "oysters",
+    "name": "Oysters",
+    "code": "030711",
+    "species": [
+      {
+        "id": "oysters-crassostrea-angulata",
+        "label": "Crassostrea angulata",
+        "commonName": "Portuguese oyster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "oysters-crassostrea-gasar",
+        "label": "Crassostrea gasar",
+        "commonName": "West African mangrove oyster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "oysters-crassostrea-gigas",
+        "label": "Crassostrea gigas",
+        "commonName": "Pacific oyster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "oysters-crassostrea-spp",
+        "label": "Crassostrea spp",
+        "commonName": "Cupped oysters",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "oysters-crassostrea-virginica",
+        "label": "Crassostrea virginica",
+        "commonName": "American cupped oyster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "oysters-donax-trunculus",
+        "label": "Donax trunculus",
+        "commonName": "Wedge clam",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "oysters-ostrea-angasi",
+        "label": "Ostrea angasi",
+        "commonName": "Australian flat oyster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "oysters-ostrea-chilensis",
+        "label": "Ostrea chilensis",
+        "commonName": "Chilean flat oyster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "oysters-ostrea-conchaphila",
+        "label": "Ostrea conchaphila",
+        "commonName": "Olympia oyster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "oysters-ostrea-denselammellosa",
+        "label": "Ostrea denselammellosa",
+        "commonName": "Densely lamellated oyster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "oysters-ostrea-edulis",
+        "label": "Ostrea edulis",
+        "commonName": "European flat oyster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "oysters-ostrea-puelchana",
+        "label": "Ostrea puelchana",
+        "commonName": "Argentinean flat oyster",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "oysters-ostrea-spp",
+        "label": "Ostrea spp",
+        "commonName": "Flat oysters",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "oysters-ostreidae",
+        "label": "Ostreidae",
+        "commonName": "True oysters",
+        "commonNameSource": "generated"
+      }
+    ],
+    "searchTerms": [
+      "oyster",
+      "shellfish",
+      "mollusc",
+      "molluscs",
+      "bivalve",
+      "bivalves"
+    ],
+    "searchTermsSource": "generated",
+    "tariffCodes": [
+      "03071110",
+      "0307111010",
+      "0307111090",
+      "03071190",
+      "0307119010",
+      "0307119090"
+    ],
+    "nameSource": "generated",
+    "tariffDescription": "Live - flat oysters of genus ostrea in shell, not more than 40g each, intended for human consumption; Live - flat oysters of genus ostrea in shell, not more than 40g each, not intended for human consumption; Live, fresh or chilled oysters, other than live flat oysters of genus ostrea not more than 40g each - intended for human consumption; Live, fresh or chilled oysters, other than live flat oysters of genus ostrea not more than 40g each - not intended for human consumption"
+  },
+  {
+    "id": "scallops",
+    "name": "Scallops",
+    "code": "030721",
+    "species": [
+      {
+        "id": "scallops-adamussium-colbecki",
+        "label": "Adamussium colbecki",
+        "commonName": "Antarctic scallop",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-aequipecten-felipponei",
+        "label": "Aequipecten felipponei",
+        "commonName": "Scallops (Aequipecten)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "scallops-aequipecten-opercularis",
+        "label": "Aequipecten opercularis",
+        "commonName": "Queen scallop",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-aequipecten-spp",
+        "label": "Aequipecten spp.",
+        "commonName": "Queen scallops",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-aequipecten-tehuelchus",
+        "label": "Aequipecten tehuelchus",
+        "commonName": "Tehuelche scallop",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-amusium-japonicum",
+        "label": "Amusium japonicum",
+        "commonName": "Japanese saucer scallop",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-amusium-papyraceum",
+        "label": "Amusium papyraceum",
+        "commonName": "Scallops (Amusium)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "scallops-amusium-spp",
+        "label": "Amusium spp.",
+        "commonName": "Saucer scallops",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-annachlamys-flabellata",
+        "label": "Annachlamys flabellata",
+        "commonName": "Scallops (Annachlamys)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "scallops-argopecten-gibbus",
+        "label": "Argopecten gibbus",
+        "commonName": "Calico scallop",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-argopecten-irradians",
+        "label": "Argopecten irradians",
+        "commonName": "Atlantic bay scallop",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-argopecten-spp",
+        "label": "Argopecten spp.",
+        "commonName": "Bay and calico scallops",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-argopecten-ventricosus",
+        "label": "Argopecten ventricosus",
+        "commonName": "Pacific calico scallop",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-bractechlamys-vexillum",
+        "label": "Bractechlamys vexillum",
+        "commonName": "Scallops (Bractechlamys)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "scallops-chlamys-spp",
+        "label": "Chlamys spp.",
+        "commonName": "Variegated scallops",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-chlamys-vitrea",
+        "label": "Chlamys vitrea",
+        "commonName": "Scallops (Chlamys)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "scallops-decatopecten-amiculum",
+        "label": "Decatopecten amiculum",
+        "commonName": "Scallops (Decatopecten amiculum)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "scallops-decatopecten-radula",
+        "label": "Decatopecten radula",
+        "commonName": "Scallops (Decatopecten radula)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "scallops-decatopecten-spp",
+        "label": "Decatopecten spp.",
+        "commonName": "Scallops (Decatopecten spp.)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "scallops-equichlamys-bifrons",
+        "label": "Equichlamys bifrons",
+        "commonName": "Australian queen scallop",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-flexopecten-flexuosus",
+        "label": "Flexopecten flexuosus",
+        "commonName": "Scallops (Flexopecten flexuosus)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "scallops-flexopecten-glaber",
+        "label": "Flexopecten glaber",
+        "commonName": "Smooth scallop",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-flexopecten-proteus",
+        "label": "Flexopecten proteus",
+        "commonName": "Scallops (Flexopecten proteus)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "scallops-flexopecten-spp",
+        "label": "Flexopecten spp.",
+        "commonName": "Smooth scallops",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-gloripallium-pallium",
+        "label": "Gloripallium pallium",
+        "commonName": "Royal cloak scallop",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-hinnites-giganteus",
+        "label": "Hinnites giganteus",
+        "commonName": "Giant rock scallop",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-lyropecten-nodosus",
+        "label": "Lyropecten nodosus",
+        "commonName": "Lion's paw scallop",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-lyropecten-spp",
+        "label": "Lyropecten spp.",
+        "commonName": "Lion's paw scallops",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-lyropecten-subnodosus",
+        "label": "Lyropecten subnodosus",
+        "commonName": "Pacific lion's paw scallop",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-manupecten-pesfelis",
+        "label": "Manupecten pesfelis",
+        "commonName": "Scallops (Manupecten)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "scallops-minnivola-pyxidata",
+        "label": "Minnivola pyxidata",
+        "commonName": "Scallops (Minnivola)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "scallops-patinopecten-caurinus",
+        "label": "Patinopecten caurinus",
+        "commonName": "Weathervane scallop",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-patinopecten-spp",
+        "label": "Patinopecten spp.",
+        "commonName": "Weathervane and Yesso scallops",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-patinopecten-yessoensis",
+        "label": "Patinopecten yessoensis",
+        "commonName": "Yesso scallop",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-pecten-maximus",
+        "label": "Pecten maximus",
+        "commonName": "King scallop",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-pecten-spp",
+        "label": "Pecten spp.",
+        "commonName": "King scallops",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-pectinidae",
+        "label": "Pectinidae",
+        "commonName": "Scallops",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-placopecten-spp",
+        "label": "Placopecten spp.",
+        "commonName": "Sea scallops",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-pseudamussium-clavatum",
+        "label": "Pseudamussium clavatum",
+        "commonName": "Scallops (Pseudamussium)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "scallops-swiftopecten-swiftii",
+        "label": "Swiftopecten swiftii",
+        "commonName": "Swift's scallop",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-volachlamys-singaporina",
+        "label": "Volachlamys singaporina",
+        "commonName": "Scallops (Volachlamys)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "scallops-zygochlamys-delicatula",
+        "label": "Zygochlamys delicatula",
+        "commonName": "Scallops (Zygochlamys)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "scallops-zygochlamys-patagonica",
+        "label": "Zygochlamys patagonica",
+        "commonName": "Patagonian scallop",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "scallops-zygochlamys-spp",
+        "label": "Zygochlamys spp.",
+        "commonName": "Patagonian scallops",
+        "commonNameSource": "generated"
+      }
+    ],
+    "searchTerms": [
+      "scallop",
+      "king scallop",
+      "queen scallop",
+      "shellfish",
+      "mollusc",
+      "molluscs",
+      "bivalve",
+      "bivalves"
+    ],
+    "searchTermsSource": "generated",
+    "tariffCodes": [
+      "03072110",
+      "0307211000",
+      "0307211011",
+      "0307211019",
+      "0307211091",
+      "0307211099",
+      "03072190",
+      "0307219010",
+      "0307219090"
+    ],
+    "nameSource": "generated",
+    "tariffDescription": "Live, fresh or chilled: Scallops, including queen scallops, of the genera pecten, chlamys or placopecten; Live, fresh or chilled - scallops - Coquilles St Jacques (Pecten Maximus) - intended for human consumption; Live, fresh or chilled - scallops - Coquilles St Jacques (Pecten Maximus) - not intended for human consumption; Live, fresh or chilled - scallops of Genera Pecten, Chlamys or Placopecten but not Coquilles St Jacques (Pecten Maximus) - intended for human consumption; Live, fresh or chilled - scallops of Genera Pecten, Chlamys or Placopecten but not Coquilles St Jacques (Pecten Maximus) - not intended for human consumption; Live, fresh or chilled - other scallops - intended for human consumption; Live, fresh or chilled - other scallops - not intended for human consumption"
+  },
+  {
+    "id": "mussels",
+    "name": "Mussels",
+    "code": "030731",
+    "species": [
+      {
+        "id": "mussels-mytilus-chilensis",
+        "label": "Mytilus chilensis",
+        "commonName": "Chilean mussel",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "mussels-mytilus-edulis",
+        "label": "Mytilus edulis",
+        "commonName": "Blue mussel",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "mussels-mytilus-galloprovincialis",
+        "label": "Mytilus galloprovincialis",
+        "commonName": "Mediterranean mussel",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "mussels-mytilus-spp",
+        "label": "Mytilus spp",
+        "commonName": "Sea mussels",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "mussels-perna-canalicula",
+        "label": "Perna canalicula",
+        "commonName": "Green-lipped mussel (P. canalicula)",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "mussels-perna-canaliculus",
+        "label": "Perna canaliculus",
+        "commonName": "Green-lipped mussel",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "mussels-perna-perna",
+        "label": "Perna perna",
+        "commonName": "Brown mussel",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "mussels-perna-spp",
+        "label": "Perna spp",
+        "commonName": "Green and brown mussels",
+        "commonNameSource": "generated"
+      }
+    ],
+    "searchTerms": [
+      "mussel",
+      "shellfish",
+      "mollusc",
+      "molluscs",
+      "bivalve",
+      "bivalves"
+    ],
+    "searchTermsSource": "generated",
+    "tariffCodes": [
+      "03073110",
+      "0307311010",
+      "0307311090",
+      "03073190",
+      "0307319010",
+      "0307319090"
+    ],
+    "nameSource": "generated",
+    "tariffDescription": "Live, fresh or chilled - mussels of mytilus spp. intended for human consumption; Live, fresh or chilled - mussels of mytilus spp. not intended for human consumption; Live, fresh or chilled - mussels of perna spp. intended for human consumption; Live, fresh or chilled - mussels of perna spp. not intended for human consumption"
+  },
+  {
+    "id": "cuttlefish-and-squid",
+    "name": "Cuttlefish and squid",
+    "code": "030742",
+    "species": [
+      {
+        "id": "cuttlefish-and-squid-rossia-macrosoma",
+        "label": "Rossia macrosoma",
+        "commonName": "Stout bobtail squid",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-sepia-officinalis",
+        "label": "Sepia officinalis",
+        "commonName": "Common cuttlefish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-sepia-spp",
+        "label": "Sepia spp",
+        "commonName": "Cuttlefishes",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-sepiola-rondeleti",
+        "label": "Sepiola rondeleti",
+        "commonName": "Dwarf bobtail squid",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-sepiola-spp",
+        "label": "Sepiola spp",
+        "commonName": "Bobtail squids",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-loligo-forbesi",
+        "label": "Loligo forbesi",
+        "commonName": "Veined squid",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-loligo-gahi",
+        "label": "Loligo gahi",
+        "commonName": "Patagonian squid (L. gahi)",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-loligo-patagonica",
+        "label": "Loligo patagonica",
+        "commonName": "Patagonian squid (L. patagonica)",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-loligo-pealei",
+        "label": "Loligo pealei",
+        "commonName": "Longfin inshore squid (L. pealei)",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-loligo-reynaudii",
+        "label": "Loligo reynaudii",
+        "commonName": "Chokka squid",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-loligo-spp",
+        "label": "Loligo spp",
+        "commonName": "Common squids",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-loligo-vulgaris",
+        "label": "Loligo vulgaris",
+        "commonName": "European squid",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-nototodarus-sloani",
+        "label": "Nototodarus sloani",
+        "commonName": "Wellington flying squid (N. sloani)",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-nototodarus-sloanii",
+        "label": "Nototodarus sloanii",
+        "commonName": "Wellington flying squid",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-nototodarus-spp",
+        "label": "Nototodarus spp",
+        "commonName": "Arrow squids",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-ommastrephes-spp",
+        "label": "Ommastrephes spp",
+        "commonName": "Neon flying squids",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-sepioteuthis-spp",
+        "label": "Sepioteuthis spp",
+        "commonName": "Reef squids",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-todarodes-sagittatus",
+        "label": "Todarodes sagittatus",
+        "commonName": "European flying squid",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-afrololigo-spp",
+        "label": "Afrololigo spp",
+        "commonName": "Guinean thumbstall squids",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-alloteuthis-spp",
+        "label": "Alloteuthis spp",
+        "commonName": "Little squids",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-doryteuthis-amerigo-gahi",
+        "label": "Doryteuthis (Amerigo) gahi",
+        "commonName": "Patagonian squid",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-doryteuthis-amerigo-ocula",
+        "label": "Doryteuthis (Amerigo) ocula",
+        "commonName": "Bigeye inshore squid",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-doryteuthis-amerigo-opalescens",
+        "label": "Doryteuthis (Amerigo) opalescens",
+        "commonName": "Opalescent inshore squid",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-doryteuthis-amerigo-pealeii",
+        "label": "Doryteuthis (Amerigo) pealeii",
+        "commonName": "Longfin inshore squid",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-doryteuthis-spp",
+        "label": "Doryteuthis spp",
+        "commonName": "Inshore squids",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-dosidicus-gigas",
+        "label": "Dosidicus gigas",
+        "commonName": "Jumbo flying squid",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-dosidicus-spp",
+        "label": "Dosidicus spp",
+        "commonName": "Humboldt squids",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-heterololigo-bleekeri",
+        "label": "Heterololigo bleekeri",
+        "commonName": "Spear squid",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-heterololigo-spp",
+        "label": "Heterololigo spp",
+        "commonName": "Spear squids",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-loliolus-nipponololigo-beka",
+        "label": "Loliolus (Nipponololigo) beka",
+        "commonName": "Beka squid",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-loliolus-spp",
+        "label": "Loliolus spp",
+        "commonName": "Cuttlefish and squid (Loliolus)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "cuttlefish-and-squid-lolliguncula-spp",
+        "label": "Lolliguncula spp",
+        "commonName": "Brief squids",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-pickfordiateuthis-spp",
+        "label": "Pickfordiateuthis spp",
+        "commonName": "Grass squids",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-rossia-spp",
+        "label": "Rossia spp",
+        "commonName": "Stout bobtail squids",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-sepia-aculeata",
+        "label": "Sepia aculeata",
+        "commonName": "Needle cuttlefish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-sepia-esculenta",
+        "label": "Sepia esculenta",
+        "commonName": "Golden cuttlefish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-sepia-lycidas",
+        "label": "Sepia lycidas",
+        "commonName": "Kisslip cuttlefish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-sepia-pharaonis",
+        "label": "Sepia pharaonis",
+        "commonName": "Pharaoh cuttlefish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-sepiella-inermis",
+        "label": "Sepiella inermis",
+        "commonName": "Spineless cuttlefish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-sepiella-japonica",
+        "label": "Sepiella japonica",
+        "commonName": "Japanese spineless cuttlefish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-sepiella-spp",
+        "label": "Sepiella spp",
+        "commonName": "Spineless cuttlefishes",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-todarodes-spp",
+        "label": "Todarodes spp",
+        "commonName": "Flying squids",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-uroteuthis-photololigo-chinensis",
+        "label": "Uroteuthis (Photololigo) chinensis",
+        "commonName": "Mitre squid",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-uroteuthis-photololigo-duvaucelii",
+        "label": "Uroteuthis (Photololigo) duvaucelii",
+        "commonName": "Indian squid",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-uroteuthis-photololigo-edulis",
+        "label": "Uroteuthis (Photololigo) edulis",
+        "commonName": "Swordtip squid",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-uroteuthis-photololigo-sibogae",
+        "label": "Uroteuthis (Photololigo) sibogae",
+        "commonName": "Siboga squid",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-uroteuthis-photololigo-singhalensis",
+        "label": "Uroteuthis (Photololigo) singhalensis",
+        "commonName": "Long barrel squid",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "cuttlefish-and-squid-uroteuthis-spp",
+        "label": "Uroteuthis spp",
+        "commonName": "Cuttlefish and squid (Uroteuthis)",
+        "commonNameSource": "generated-fallback"
+      }
+    ],
+    "searchTerms": [
+      "cuttlefish",
+      "squid",
+      "squids",
+      "calamari",
+      "cephalopod",
+      "cephalopods",
+      "mollusc",
+      "molluscs"
+    ],
+    "searchTermsSource": "generated",
+    "tariffCodes": [
+      "03074210",
+      "0307421000",
+      "03074220",
+      "0307422000",
+      "03074230",
+      "0307423000",
+      "03074240",
+      "0307424000",
+      "03074290",
+      "0307429000"
+    ],
+    "nameSource": "generated",
+    "tariffDescription": "Live, fresh or chilled - cuttlefish (Sepia officinalis, rossia macrosoma, sepiola spp.); Live, fresh or chilled - loligo spp.; Live, fresh or chilled - squid (Ommastrephes spp., Nototodarus spp., sepioteuthis spp.); Live, fresh or chilled - european flying squid (Todarodes sagittatus); Live, fresh or chilled - other cuttlefish and squid"
+  },
+  {
+    "id": "octopus",
+    "name": "Octopus",
+    "code": "03075100",
+    "species": [
+      {
+        "id": "octopus-cephalopoda",
+        "label": "Cephalopoda",
+        "commonName": "Cephalopods",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "octopus-octopus-cyanea",
+        "label": "Octopus cyanea",
+        "commonName": "Day octopus",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "octopus-octopus-maya",
+        "label": "Octopus maya",
+        "commonName": "Mexican four-eyed octopus",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "octopus-octopus-mimus",
+        "label": "Octopus mimus",
+        "commonName": "Changos octopus",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "octopus-octopus-spp",
+        "label": "Octopus spp",
+        "commonName": "Octopuses",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "octopus-octopus-vulgaris",
+        "label": "Octopus vulgaris",
+        "commonName": "Common octopus",
+        "commonNameSource": "generated"
+      }
+    ],
+    "searchTerms": [
+      "octopuses",
+      "octopi",
+      "cephalopod",
+      "cephalopods",
+      "mollusc",
+      "molluscs"
+    ],
+    "searchTermsSource": "generated",
+    "tariffCodes": [
+      "03075100",
+      "0307510000"
+    ],
+    "nameSource": "generated",
+    "tariffDescription": "Live, fresh or chilled - octopus"
+  },
+  {
+    "id": "snails",
+    "name": "Snails, other than sea snails",
+    "code": "03076000",
+    "species": [
+      {
+        "id": "snails-gasteropoda",
+        "label": "Gasteropoda",
+        "commonName": "Snails and slugs",
+        "commonNameSource": "generated"
+      }
+    ],
+    "searchTerms": [
+      "snail",
+      "land snail",
+      "land snails",
+      "escargot",
+      "escargots",
+      "gastropod",
+      "gastropods",
+      "mollusc",
+      "molluscs"
+    ],
+    "searchTermsSource": "generated",
+    "tariffCodes": [
+      "03076000",
+      "0307600000"
+    ],
+    "nameSource": "generated",
+    "tariffDescription": "Live, fresh, chilled, frozen, dried, salted, in brine or smoked - snails, other than sea snails"
+  },
+  {
+    "id": "clams-cockles-and-ark-shells",
+    "name": "Clams, cockles and ark shells",
+    "code": "03077100",
+    "species": [
+      {
+        "id": "clams-cockles-and-ark-shells-arcidae",
+        "label": "Arcidae",
+        "commonName": "Ark clams",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "clams-cockles-and-ark-shells-arcticidae",
+        "label": "Arcticidae",
+        "commonName": "Ocean quahogs",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "clams-cockles-and-ark-shells-bassina-yatei",
+        "label": "Bassina yatei",
+        "commonName": "Frilled venus shell",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "clams-cockles-and-ark-shells-cardiidae",
+        "label": "Cardiidae",
+        "commonName": "Cockles",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "clams-cockles-and-ark-shells-donacidae",
+        "label": "Donacidae",
+        "commonName": "Bean clams and wedge shells",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "clams-cockles-and-ark-shells-hiatellidae",
+        "label": "Hiatellidae",
+        "commonName": "Geoducks and nestling clams",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "clams-cockles-and-ark-shells-mactra-murchisoni",
+        "label": "Mactra murchisoni",
+        "commonName": "Large trough shell",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "clams-cockles-and-ark-shells-mactridae",
+        "label": "Mactridae",
+        "commonName": "Surf clams and trough shells",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "clams-cockles-and-ark-shells-mesodesmatidae",
+        "label": "Mesodesmatidae",
+        "commonName": "Wedge clams",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "clams-cockles-and-ark-shells-myidae",
+        "label": "Myidae",
+        "commonName": "Softshell clams",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "clams-cockles-and-ark-shells-semelidae",
+        "label": "Semelidae",
+        "commonName": "Furrow shells",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "clams-cockles-and-ark-shells-solecurtidae",
+        "label": "Solecurtidae",
+        "commonName": "Short razor clams",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "clams-cockles-and-ark-shells-solenidae",
+        "label": "Solenidae",
+        "commonName": "Razor clams",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "clams-cockles-and-ark-shells-tridacnidae",
+        "label": "Tridacnidae",
+        "commonName": "Giant clams",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "clams-cockles-and-ark-shells-veneridae",
+        "label": "Veneridae",
+        "commonName": "Venus clams",
+        "commonNameSource": "generated"
+      }
+    ],
+    "searchTerms": [
+      "clam",
+      "clams",
+      "cockle",
+      "cockles",
+      "ark shell",
+      "shellfish",
+      "mollusc",
+      "molluscs",
+      "bivalve",
+      "bivalves"
+    ],
+    "searchTermsSource": "generated",
+    "tariffCodes": [
+      "03077100",
+      "0307710010",
+      "0307710090"
+    ],
+    "nameSource": "generated",
+    "tariffDescription": "Live, fresh or chilled - clams, cockles and ark shells - intended for human consumption; Live, fresh or chilled - clams, cockles and ark shells - not intended for human consumption"
+  },
+  {
+    "id": "abalone",
+    "name": "Abalone",
+    "code": "03078100",
+    "species": [
+      {
+        "id": "abalone-haliotis-iris",
+        "label": "Haliotis iris",
+        "commonName": "Paua",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "abalone-haliotis-spp",
+        "label": "Haliotis spp",
+        "commonName": "Abalones",
+        "commonNameSource": "generated"
+      }
+    ],
+    "searchTerms": [
+      "abalones",
+      "ormer",
+      "ormers",
+      "paua",
+      "shellfish",
+      "mollusc",
+      "molluscs"
+    ],
+    "searchTermsSource": "generated",
+    "tariffCodes": [
+      "03078100",
+      "0307810010",
+      "0307810090"
+    ],
+    "nameSource": "generated",
+    "tariffDescription": "Live, fresh or chilled - abalone (Haliotis spp.) - intended for human consumption; Live, fresh or chilled - abalone (Haliotis spp.) - not intended for human consumption"
+  },
+  {
+    "id": "conchs",
+    "name": "Conchs",
+    "code": "03078200",
+    "species": [
+      {
+        "id": "conchs-strombus-spp",
+        "label": "Strombus spp.",
+        "commonName": "True conchs",
+        "commonNameSource": "generated"
+      }
+    ],
+    "searchTerms": [
+      "conch",
+      "shellfish",
+      "mollusc",
+      "molluscs",
+      "gastropod",
+      "gastropods"
+    ],
+    "searchTermsSource": "generated",
+    "tariffCodes": [
+      "03078200",
+      "0307820000"
+    ],
+    "nameSource": "generated",
+    "tariffDescription": "Live, fresh or chilled - stromboid conchs (Strombus spp.)"
+  },
+  {
+    "id": "other-molluscs",
+    "name": "Other molluscs",
+    "code": "03079100",
+    "species": [
+      {
+        "id": "other-molluscs-acanthocardia-tuberculatum",
+        "label": "Acanthocardia tuberculatum",
+        "commonName": "Rough cockle",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-alloteuthis-media",
+        "label": "Alloteuthis media",
+        "commonName": "Midsize squid",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-amphioctopus-aegina",
+        "label": "Amphioctopus aegina",
+        "commonName": "Sandbird octopus",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-amphioctopus-membranaceus",
+        "label": "Amphioctopus membranaceus",
+        "commonName": "Webfoot octopus",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-amusium-pleuronectes",
+        "label": "Amusium pleuronectes",
+        "commonName": "Asian moon scallop",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-amusium-spp",
+        "label": "Amusium spp",
+        "commonName": "Moon scallops",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-anodonta-cygnea",
+        "label": "Anodonta cygnea",
+        "commonName": "Swan mussel",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-argopecten-purpuratus",
+        "label": "Argopecten purpuratus",
+        "commonName": "Peruvian calico scallop",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-argopecten-spp",
+        "label": "Argopecten spp",
+        "commonName": "Bay and calico scallops",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-atrina-spp",
+        "label": "Atrina spp",
+        "commonName": "Pen shells",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-aulacomya-ater",
+        "label": "Aulacomya ater",
+        "commonName": "Magellan mussel",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-buccinum-undatum",
+        "label": "Buccinum undatum",
+        "commonName": "Common whelk",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-cardiidae",
+        "label": "Cardiidae",
+        "commonName": "Cockles",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-cardium-spp",
+        "label": "Cardium spp",
+        "commonName": "Other molluscs (Cardium)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "other-molluscs-cephalopoda",
+        "label": "Cephalopoda",
+        "commonName": "Cephalopods",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-cerastoderma-edule",
+        "label": "Cerastoderma edule",
+        "commonName": "Common cockle",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-chamelea-gallina",
+        "label": "Chamelea gallina",
+        "commonName": "Striped venus clam",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-concholepas-concholepas",
+        "label": "Concholepas concholepas",
+        "commonName": "Loco",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-cymbium-spp",
+        "label": "Cymbium spp",
+        "commonName": "Volutes",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-donax-trunculus",
+        "label": "Donax trunculus",
+        "commonName": "Wedge clam",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-dosidicus-gigas",
+        "label": "Dosidicus gigas",
+        "commonName": "Jumbo flying squid",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-dosidicus-spp",
+        "label": "Dosidicus spp",
+        "commonName": "Jumbo flying squids (Dosidicus)",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-eledone-caparti",
+        "label": "Eledone caparti",
+        "commonName": "Other molluscs (Eledone caparti)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "other-molluscs-eledone-cirrhosa",
+        "label": "Eledone cirrhosa",
+        "commonName": "Curled octopus",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-eledone-gaucha",
+        "label": "Eledone gaucha",
+        "commonName": "Other molluscs (Eledone gaucha)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "other-molluscs-eledone-massyae",
+        "label": "Eledone massyae",
+        "commonName": "Other molluscs (Eledone massyae)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "other-molluscs-eledone-microsicya",
+        "label": "Eledone microsicya",
+        "commonName": "Other molluscs (Eledone microsicya)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "other-molluscs-eledone-moschata",
+        "label": "Eledone moschata",
+        "commonName": "Musky octopus",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-eledone-nigra",
+        "label": "Eledone nigra",
+        "commonName": "Other molluscs (Eledone nigra)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "other-molluscs-eledone-palari",
+        "label": "Eledone palari",
+        "commonName": "Other molluscs (Eledone palari)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "other-molluscs-eledone-spp",
+        "label": "Eledone spp.",
+        "commonName": "Horned and musky octopuses",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-eledone-thysanophora",
+        "label": "Eledone thysanophora",
+        "commonName": "Other molluscs (Eledone thysanophora)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "other-molluscs-enteroctopus-dofleini",
+        "label": "Enteroctopus dofleini",
+        "commonName": "Giant Pacific octopus",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-enteroctopus-spp",
+        "label": "Enteroctopus spp",
+        "commonName": "Giant octopuses",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-gasteropoda",
+        "label": "Gasteropoda",
+        "commonName": "Gastropods",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-haliotis-discus-hannai",
+        "label": "Haliotis discus hannai",
+        "commonName": "Japanese abalone",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-haliotis-tuberculata",
+        "label": "Haliotis tuberculata",
+        "commonName": "Green ormer",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-illex-illecebrosus",
+        "label": "Illex illecebrosus",
+        "commonName": "Northern shortfin squid",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-littorina-littorea",
+        "label": "Littorina littorea",
+        "commonName": "Common periwinkle",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-lunatia-spp",
+        "label": "Lunatia spp",
+        "commonName": "Necklace shells",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-mactra-spp",
+        "label": "Mactra spp",
+        "commonName": "Trough shells",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-mercenaria-mercenaria",
+        "label": "Mercenaria mercenaria",
+        "commonName": "Northern quahog",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-mercenaria-spp",
+        "label": "Mercenaria spp",
+        "commonName": "Hard clams",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-meretrix-lusoria",
+        "label": "Meretrix lusoria",
+        "commonName": "Japanese hard clam",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-meretrix-spp",
+        "label": "Meretrix spp",
+        "commonName": "Asian hard clams",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-mulinia-edulis",
+        "label": "Mulinia edulis",
+        "commonName": "Other molluscs (Mulinia)",
+        "commonNameSource": "generated-fallback"
+      },
+      {
+        "id": "other-molluscs-mya-arenaria",
+        "label": "Mya arenaria",
+        "commonName": "Sand gaper",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-other-bivalvia",
+        "label": "Other Bivalvia",
+        "commonName": "Other bivalves",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-other-mollusca",
+        "label": "Other Mollusca",
+        "commonName": "Other molluscs",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-pectinidae",
+        "label": "Pectinidae",
+        "commonName": "Scallops",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-phorcus-lineatus",
+        "label": "Phorcus lineatus",
+        "commonName": "Thick top shell",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-phorcus-spp",
+        "label": "Phorcus spp",
+        "commonName": "Top shells",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-radiata",
+        "label": "Radiata",
+        "commonName": "Jellyfish, sea urchins and other radiates",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-rhopilema-spp",
+        "label": "Rhopilema spp",
+        "commonName": "Edible jellyfish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-ruditapes-decussatus",
+        "label": "Ruditapes decussatus",
+        "commonName": "Grooved carpet shell",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-ruditapes-philippinarum",
+        "label": "Ruditapes philippinarum",
+        "commonName": "Manila clam",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-ruditapes-spp",
+        "label": "Ruditapes spp",
+        "commonName": "Carpet shells (Ruditapes)",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-scrobicularia-plana",
+        "label": "Scrobicularia plana",
+        "commonName": "Peppery furrow shell",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-sepia-elegans",
+        "label": "Sepia elegans",
+        "commonName": "Elegant cuttlefish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-sepia-orbignyana",
+        "label": "Sepia orbignyana",
+        "commonName": "Pink cuttlefish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-sepia-sculenta",
+        "label": "Sepia sculenta",
+        "commonName": "Golden cuttlefish",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-solen-ensis",
+        "label": "Solen ensis",
+        "commonName": "Sword razor",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-solen-marginatus",
+        "label": "Solen marginatus",
+        "commonName": "Grooved razor shell",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-solen-siliqua",
+        "label": "Solen siliqua",
+        "commonName": "Pod razor",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-solen-spp",
+        "label": "Solen spp",
+        "commonName": "Razor shells",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-spongiaire",
+        "label": "Spongiaire",
+        "commonName": "Sponges",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-strombus-spp",
+        "label": "Strombus spp",
+        "commonName": "Conches",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-todarodes-pacificus",
+        "label": "Todarodes pacificus",
+        "commonName": "Japanese flying squid",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-todarodes-sagittatus",
+        "label": "Todarodes sagittatus",
+        "commonName": "European flying squid",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-todarodes-spp",
+        "label": "Todarodes spp",
+        "commonName": "Flying squids",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-tridacna-maxima",
+        "label": "Tridacna maxima",
+        "commonName": "Small giant clam",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-veneridae",
+        "label": "Veneridae",
+        "commonName": "Venus clams",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-venerupis-aurea",
+        "label": "Venerupis aurea",
+        "commonName": "Golden carpet shell",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-venerupis-pullastra",
+        "label": "Venerupis pullastra",
+        "commonName": "Pullet carpet shell",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-venerupis-spp",
+        "label": "Venerupis spp",
+        "commonName": "Carpet shells",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-venus-mercenaria",
+        "label": "Venus mercenaria",
+        "commonName": "Northern quahog (V. mercenaria)",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-venus-spp",
+        "label": "Venus spp",
+        "commonName": "Venus clams (Venus spp.)",
+        "commonNameSource": "generated"
+      },
+      {
+        "id": "other-molluscs-venus-verrucosa",
+        "label": "Venus verrucosa",
+        "commonName": "Warty venus",
+        "commonNameSource": "generated"
+      }
+    ],
+    "searchTerms": [
+      "mollusc",
+      "molluscs",
+      "mollusk",
+      "mollusks",
+      "shellfish",
+      "whelk",
+      "whelks",
+      "winkle",
+      "winkles",
+      "periwinkle",
+      "sea snail",
+      "sea snails"
+    ],
+    "searchTermsSource": "generated",
+    "tariffCodes": [
+      "03079100",
+      "0307910010",
+      "0307910091",
+      "0307910099"
+    ],
+    "nameSource": "generated",
+    "tariffDescription": "Live, fresh or chilled - common whelk (Buccinum Undatum); Live, fresh or chilled - other molluscs - intended for human consumption; Live, fresh or chilled - other molluscs - not intended for human consumption"
   },
   {
     "id": "hatching-eggs-chicken",

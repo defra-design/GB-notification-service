@@ -248,6 +248,14 @@ function getSearchCommodities (sessionData) {
   return []
 }
 
+function getSearchCommonNamesUrl (sessionData) {
+  if (isDesignRelease21SessionData(sessionData) && getNotificationType(sessionData) !== 'live-animals') {
+    return undefined
+  }
+
+  return '/public/data/common-names-live.json'
+}
+
 function getCommodityById (commodityId) {
   return allCommodities.find((commodity) => commodity.id === commodityId)
 }
@@ -11721,6 +11729,7 @@ function renderWhatAreYouImportingPage (req, res, locals = {}) {
     fromTemplateReview,
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     commoditiesSearchJson: JSON.stringify(getCommoditySearchData(getSearchCommodities(sessionData))),
+    commonNamesUrl: getSearchCommonNamesUrl(sessionData),
     commoditySelectionsJson: JSON.stringify(getInitialCommoditySelections(sessionData)),
     commoditySearchHint: getCommoditySearchHint(sessionData),
     data: sessionData,

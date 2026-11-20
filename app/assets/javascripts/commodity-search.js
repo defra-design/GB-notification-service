@@ -254,6 +254,24 @@ function getCommoditiesFromRoot (root) {
   }
 }
 
+function addCommonNamesToSearchTerms (commodities, namesBySpeciesId) {
+  commodities.forEach((commodity) => {
+    commodity.species.forEach((species) => {
+      const names = namesBySpeciesId[species.id]
+
+      if (!Array.isArray(names)) {
+        return
+      }
+
+      const searchTerms = species.searchTerms || []
+      const known = new Set(searchTerms.map((term) => term.toLowerCase()))
+      const newNames = names.filter((name) => !known.has(name.toLowerCase()))
+
+      species.searchTerms = [...searchTerms, ...newNames]
+    })
+  })
+}
+
 function getInitialSelections (root) {
   const dataEl = root.querySelector('.app-commodity-search__initial')
 
@@ -292,6 +310,31 @@ function initCommoditySearch (root) {
   }
 
   const selectedValues = new Set(getInitialSelections(root))
+  let commonNamesRequested = false
+
+  function loadCommonNames () {
+    const commonNamesUrl = root.dataset.commonNamesUrl
+
+    if (commonNamesRequested || !commonNamesUrl) {
+      return
+    }
+
+    commonNamesRequested = true
+
+    fetch(commonNamesUrl)
+      .then((response) => (response.ok ? response.json() : Promise.reject(new Error(`HTTP ${response.status}`))))
+      .then((data) => {
+        addCommonNamesToSearchTerms(commodities, (data && data.names) || {})
+        root.dataset.commonNamesLoaded = 'true'
+
+        if (!results.hidden && input.value.trim().length >= MIN_SEARCH_LENGTH) {
+          renderResults(input.value)
+        }
+      })
+      .catch((error) => {
+        console.warn(`Common names not loaded from ${commonNamesUrl}; search uses the names on the page`, error)
+      })
+  }
 
   function getCommodityById (commodityId) {
     return commodities.find((commodity) => commodity.id === commodityId)
@@ -677,10 +720,13 @@ function initCommoditySearch (root) {
   }
 
   input.addEventListener('input', () => {
+    loadCommonNames()
     renderResults(input.value)
   })
 
   input.addEventListener('focus', () => {
+    loadCommonNames()
+
     if (input.value.trim().length >= MIN_SEARCH_LENGTH) {
       renderResults(input.value)
     }

@@ -62,6 +62,7 @@
         <div
           class="app-commodity-search-wrapper"
           data-module="app-commodity-search"
+          {% if commonNamesUrl %}data-common-names-url="{{ commonNamesUrl }}"{% endif %}
         >
           <script type="application/json" class="app-commodity-search__data">{{ commoditiesSearchJson | safe }}</script>
           <div class="app-commodity-search-panel">

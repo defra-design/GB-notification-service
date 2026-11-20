@@ -4,7 +4,7 @@ These two files hold every commodity and species the commodity picker offers:
 
 | File | Holds |
 |---|---|
-| `commodities-live.json` | Live animals: 32 commodities, 423 species |
+| `commodities-live.json` | Live animals, including live crustaceans and molluscs: 48 commodities, 856 species |
 | `commodities-germinal.json` | Germinal products (semen, embryos, ova and hatching eggs): 18 commodities, 29 species |
 
 `app/data/commodities.js` and `app/data/commodities-germinal-products.js` load them.
@@ -20,21 +20,23 @@ The build writes these two files and nothing else here.
 | Defra commodity master data | October 2023 snapshot |
 | Defra notification test environment | Read November 2026 |
 | UK Trade Tariff, headings 0101 to 0106 and 0511 | Read 16 November 2026 |
+| Defra commodity master data, EU import route, for codes already in the list | October 2023 snapshot |
 | GOV.UK risk categories for animal imports from non-EU countries (BTOM) | Page updated 1 April 2025 |
 | EU TRACES species list | 9 November 2018 |
 | This prototype's own list before the merge | Kept as it was |
 
-Fish are left out: chapter 03 and code 0511.91.90.
+Finfish are left out: headings 0301 to 0305 and code 0511.91.90.
+Live crustaceans (0306.31 to 0306.39) and molluscs (0307) are in. The dried, salted and smoked crustacean codes (0306.91 to 0306.99) are not.
 
 ## What changed from the earlier list
 
 | Measure | Count |
 |---|---|
-| Live commodities | 32 (was 21). 12 new, ornamental fish removed. |
-| Live species | 423 (was 144). 282 new, 3 fish removed. |
+| Live commodities | 48 (was 21). 28 new, ornamental fish removed. |
+| Live species | 856 (was 144). 715 new, 3 fish removed. |
 | Germinal commodities | 18 (was 15). 3 new. |
 | Germinal species | 29 (was 22). 7 new. |
-| Latin names under more than one live commodity | 33 |
+| Latin names under more than one live commodity | 85 |
 
 Every earlier commodity and species keeps its id, label and common name, in the same order.
 Journeys, templates and tests refer to them.
@@ -46,21 +48,49 @@ Records from the earlier list have no such field.
 
 | Field | Value | Means | Count |
 |---|---|---|---|
-| Commodity `nameSource` | `generated` | A friendly name written for this list. The tariff wording is kept in `tariffDescription`. | 12 |
+| Commodity `nameSource` | `generated` | A friendly name written for this list. The tariff wording is kept in `tariffDescription`. | 28 |
 | Commodity `nameSource` | `pattern` | Named like the existing germinal commodities, for example "Reptile, Embryos/Ova". | 3 |
-| Species `commonNameSource` | `defra-same-code` | Defra data, the same species under the same code | 21 |
+| Species `commonNameSource` | `defra-same-code` | Defra data, the same species under the same code | 23 |
 | Species `commonNameSource` | `defra-other-code` | Defra data, the same species under another code | 39 |
 | Species `commonNameSource` | `defra-genus` | Defra data, matched by genus | 9 |
-| Species `commonNameSource` | `generated` | Written for this list, then checked | 219 |
-| Species `commonNameSource` | `generated-fallback` | No English name found, so it shows "commodity name (genus)" | 1 |
+| Species `commonNameSource` | `generated` | Written for this list, then checked | 616 |
+| Species `commonNameSource` | `generated-fallback` | No checked English name found, so it shows "commodity name (genus or Latin name)" | 35 |
 | Species `labelSource` | `generated` | An order-level species added because the code had none: the whales, dolphins and seals | 3 |
-| `searchTermsSource` | `generated` | The record's `searchTerms` include terms written for this list, such as "cow" on Cattle | 427 |
+| `searchTermsSource` | `generated` | The record's `searchTerms` include terms written for this list, such as "cow" on Cattle or "iguana" on lizards | 450 |
 
 `searchTerms` without that flag are other spellings of the Latin name found in the sources.
 `tariffCodes` hold each commodity's 8-digit and 10-digit codes, so search finds "01051111" and "01.02".
 
 Generated names are a best effort.
 Treat them as draft wording for research, not as agreed content.
+
+## Common names for search
+
+`app/assets/data/common-names-live.json` holds English animal names that search treats like a species' search terms.
+It lets "polar bear" find Other Carnivora and "toucan" find Piciformes, where no row names the animal.
+
+| Field | Holds |
+|---|---|
+| `source` | Where the names come from |
+| `names` | Each live-animals species id, with the English names that find it |
+
+Each name belongs to an animal whose nearest group in the taxonomy matches that species row's Latin name.
+
+The page fetches the file the first time someone uses the search box, and only for live animals.
+Search works without it while it loads, or if the fetch fails.
+
+The names are left out for:
+
+- germinal products
+- travelling circus and menagerie rows, which search still finds by their commodity
+- matches only at phylum level, and the broad "Other Mollusca", "Other Bivalvia" and "Other Crustacea" rows, except names of a family or smaller group
+- subspecies
+- names of finfish, such as salmon, cod or trout
+
+The file is built outside this repo, like the commodity lists. Do not edit it by hand: the next rebuild replaces it.
+
+Source: Integrated Taxonomic Information System (ITIS), October 2026 release (itisSqlite102826), [www.itis.gov](https://www.itis.gov).
+ITIS data is public domain, as a work of the US government, so no credit line is needed.
 
 ## Editing the JSON by hand
 
@@ -89,7 +119,7 @@ It checks that:
 
 - every earlier commodity and species is still there, unchanged
 - the fixed ids that code and templates rely on still resolve
-- no fish code is present
+- no finfish code is present (headings 0301 to 0305, or 0511.91.90)
 - fields, names, text and search terms follow the rules above
 
 It also lists the Latin names that sit under more than one live commodity.

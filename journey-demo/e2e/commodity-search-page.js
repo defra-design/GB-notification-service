@@ -26,10 +26,15 @@ async function search (page, query) {
   await page.locator('#commodity-search').fill(query)
 }
 
+async function waitForCommonNames (page) {
+  await page.locator('#commodity-search').focus()
+  await expect(page.locator('[data-module="app-commodity-search"]')).toHaveAttribute('data-common-names-loaded', 'true')
+}
+
 async function selectSpecies (page, query, speciesId) {
   await search(page, query)
   await page.locator(`#commodity-species-${speciesId}`).check()
   await page.locator('#commodity-search').press('Escape')
 }
 
-module.exports = { clickContinue, openCommoditySearch, search, selectSpecies }
+module.exports = { clickContinue, openCommoditySearch, search, selectSpecies, waitForCommonNames }
