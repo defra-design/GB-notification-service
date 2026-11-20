@@ -22,7 +22,7 @@
     "commodityLabel": "Cattle",
     "consignmentSpecies": [
       "Bison bison",
-      "Bos taurus"
+      "Domestic cattle (Bos taurus)"
     ]
   },
   "glen-keen-farm": {
@@ -34,13 +34,13 @@
   "friesland-bovine-genetics": {
     "commodityLabel": "Cattle, Semen",
     "consignmentSpecies": [
-      "Bos taurus"
+      "Domestic cattle (Bos taurus)"
     ]
   },
   "normandie-reproduction-equine": {
     "commodityLabel": "Horse, Embryos/Ova",
     "consignmentSpecies": [
-      "Equus cabalus"
+      "Horse (Equus cabalus)"
     ]
   }
 }
