@@ -45,5 +45,39 @@ module.exports = [
     quantityValue: '3',
     numberOfAnimals: '3',
     viewHref: '#'
+  },
+  // Germinal products, so the germinal products dashboard has Amend examples
+  // too. That is the main dashboard in Testing 4.
+  {
+    reference: 'GBN-GP-26-7K8M3H',
+    commodities: '05111000',
+    commodityLabel: 'Cattle, Semen',
+    categoryLabel: 'Germinal products',
+    statusText: 'Amend',
+    statusTagClass: 'govuk-tag--yellow',
+    reviewVariant: 'draft',
+    isAmend: true,
+    origin: 'Netherlands',
+    consignee: 'Northern Livestock Imports Ltd',
+    consignor: 'Nordic Livestock Export AB',
+    quantityLabel: 'Number of packages',
+    quantityValue: '10',
+    viewHref: '#'
+  },
+  {
+    reference: 'GBN-GP-26-7K8M3J',
+    commodities: '05119985',
+    commodityLabel: 'Horse, Embryos/Ova',
+    categoryLabel: 'Germinal products',
+    statusText: 'Amend',
+    statusTagClass: 'govuk-tag--yellow',
+    reviewVariant: 'draft',
+    isAmend: true,
+    origin: 'France',
+    consignee: 'Northern Livestock Imports Ltd',
+    consignor: 'Nordic Livestock Export AB',
+    quantityLabel: 'Number of packages',
+    quantityValue: '6',
+    viewHref: '#'
   }
 ]

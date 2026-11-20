@@ -5693,11 +5693,11 @@ function getReviewNotificationViewModel (sessionData) {
     addresses: {
       rolesCard: {
         id: 'review-roles-and-addresses',
-        title: 'Roles and addresses',
+        title: 'Consignment addresses',
         changeHref: '/roles-and-addresses',
         rows: rolesRows,
         permanentAddressSection,
-        ...reviewCardErrorState(hasConsignmentAddressesComplete(sessionData), 'Roles and addresses')
+        ...reviewCardErrorState(hasConsignmentAddressesComplete(sessionData), 'Consignment addresses')
       }
     },
     contactAddress: {
@@ -7309,10 +7309,11 @@ function getNotificationHubViewModel (sessionData) {
             ]
           }]),
       {
-        title: skipShipmentFields ? '4. Consignment parties' : '5. Consignment parties',
+        // Named to match the page it opens: caption "Addresses", heading "Consignment addresses"
+        title: skipShipmentFields ? '4. Addresses' : '5. Addresses',
         items: [
           {
-            text: 'Roles and addresses',
+            text: 'Consignment addresses',
             href: '/roles-and-addresses?from=hub',
             hint: 'Consignor or Exporter, Consignee, Importer and Place of Destination',
             status: hasConsignmentAddressesComplete(sessionData) ? statusComplete : statusTodo
