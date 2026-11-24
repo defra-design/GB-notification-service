@@ -6321,7 +6321,7 @@ function buildDr2ActionRequiredWarningText (conditionalItems = []) {
   return conditionalItems[0]
 }
 
-function buildDr2ReviewPageHeader (metadata = {}, reviewVariant = 'journey') {
+function buildDr2ReviewPageHeader (metadata = {}, reviewVariant = 'journey', sessionData = null) {
   const statusConfig = {
     draft: {
       text: 'Draft',
@@ -6341,11 +6341,26 @@ function buildDr2ReviewPageHeader (metadata = {}, reviewVariant = 'journey') {
     }
   }
   const status = statusConfig[reviewVariant] || statusConfig.draft
+  // Design release 2, Round 1 (Germinals) and Round 2 (Live animals) show the
+  // same status label and colour here as on the notification's dashboard card:
+  // "Draft" in grey, "Submitted" in blue, and "Past" in green once the
+  // notification is in the Past tab. What still needs doing on a submitted
+  // notification is said by the warning below the label, not the label.
+  const dashboardStatus = hasJourneyUpdates(sessionData)
+    ? ({
+        draft: { text: 'Draft', tagModifier: 'template' },
+        submitted: { text: 'Submitted', tagModifier: 'submitted' },
+        'action-required': { text: 'Submitted', tagModifier: 'submitted' },
+        'submission-complete': { text: 'Past', tagModifier: 'submission-complete' }
+      })[reviewVariant]
+    : null
 
   return {
     reference: metadata.reference,
-    statusText: metadata.statusText || status.text,
+    statusText: dashboardStatus ? dashboardStatus.text : (metadata.statusText || status.text),
     statusModifier: status.modifier,
+    // Colour of the status label. The "template" modifier is the grey one.
+    statusTagModifier: dashboardStatus ? dashboardStatus.tagModifier : status.modifier,
     dateLabel: reviewVariant === 'draft' ? 'Date created' : 'Date submitted',
     dateValue: reviewVariant === 'draft'
       ? (metadata.dateCreated || formatDeclarationDate())
@@ -6597,7 +6612,7 @@ function resolveDesignRelease2ReviewPageOptions (req, options = {}) {
       showActions: false,
       reviewVariant,
       backLink: dashboardBackLink,
-      pageHeader: buildDr2ReviewPageHeader(metadata, reviewVariant)
+      pageHeader: buildDr2ReviewPageHeader(metadata, reviewVariant, req.session.data)
     }
   }
 
@@ -6630,7 +6645,7 @@ function resolveDesignRelease2ReviewPageOptions (req, options = {}) {
         amendHref: `/notifications/amend?reference=${encodeURIComponent(reference)}`,
         makeTemplateHref: `/notifications/make-template?reference=${encodeURIComponent(reference)}`,
         deleteHref: `/notifications/delete?reference=${encodeURIComponent(reference)}`
-      }, reviewVariant)
+      }, reviewVariant, req.session.data)
     }
   }
 
@@ -7385,8 +7400,14 @@ function renderNotificationHubPage (req, res) {
   })
 }
 
-function buildDashboardPageHref (page, sort, tab, dashboardPath = '/', search = '') {
+function buildDashboardPageHref (page, sort, tab, dashboardPath = '/', search = '', extraParams = {}) {
   const params = new URLSearchParams()
+
+  Object.keys(extraParams || {}).forEach((key) => {
+    if (extraParams[key]) {
+      params.set(key, extraParams[key])
+    }
+  })
 
   if (tab && tab !== 'in-progress') {
     params.set('tab', tab)
@@ -7644,7 +7665,7 @@ function buildDashboardActionsDelayFilterItems (actionNotifications, selectedFil
   }))
 }
 
-function buildDashboardPagination (currentPage, totalPages, sort, tab, dashboardPath = '/', search = '') {
+function buildDashboardPagination (currentPage, totalPages, sort, tab, dashboardPath = '/', search = '', extraParams = {}) {
   if (totalPages <= 1) {
     return {
       items: null,
@@ -7658,7 +7679,7 @@ function buildDashboardPagination (currentPage, totalPages, sort, tab, dashboard
   for (let page = 1; page <= totalPages; page++) {
     items.push({
       number: String(page),
-      href: buildDashboardPageHref(page, sort, tab, dashboardPath, search),
+      href: buildDashboardPageHref(page, sort, tab, dashboardPath, search, extraParams),
       current: page === currentPage
     })
   }
@@ -7667,13 +7688,13 @@ function buildDashboardPagination (currentPage, totalPages, sort, tab, dashboard
     items,
     next: currentPage < totalPages
       ? {
-          href: buildDashboardPageHref(currentPage + 1, sort, tab, dashboardPath, search),
+          href: buildDashboardPageHref(currentPage + 1, sort, tab, dashboardPath, search, extraParams),
           text: 'Next'
         }
       : null,
     previous: currentPage > 1
       ? {
-          href: buildDashboardPageHref(currentPage - 1, sort, tab, dashboardPath, search),
+          href: buildDashboardPageHref(currentPage - 1, sort, tab, dashboardPath, search, extraParams),
           text: 'Previous'
         }
       : null
@@ -8519,18 +8540,11 @@ function getAllDashboardTemplates (sessionData = {}) {
 
   const isAvailable = (template) => !deletedIds.has(template.id) && !savedIds.has(template.id)
 
-  // Round 1 (Germinals), at /testing4, shows germinal product examples only
-  if (isTesting4SessionData(sessionData)) {
-    return [
-      ...savedTemplates,
-      ...dashboardTemplates.filter((template) => template.categoryLabel === 'Germinal products').filter(isAvailable),
-      ...germinalDashboardTemplates.filter(isAvailable)
-    ]
-  }
-
-  // Round 2 (Live animals), at /testing3, shows live animal examples only
-  if (isTesting3SessionData(sessionData)) {
-    return [...savedTemplates, ...testing3DashboardTemplates.filter(isAvailable)]
+  // Round 1 (Germinals), at /testing4, and Round 2 (Live animals), at
+  // /testing3, have no example templates. They start as if the user has not
+  // created any yet, and show only the ones saved in the session.
+  if (isRound2TestingSessionData(sessionData)) {
+    return savedTemplates
   }
 
   // Design release 2 shows its original templates and both sets of examples
@@ -9635,6 +9649,20 @@ function buildDashboardStatusFilterItems (selectedValue = '', options = {}) {
     { value: '', text: 'Select one', selected: !selectedValue }
   ]
 
+  // Where the dashboard uses Draft, Amend, Submitted and Past labels, the
+  // filter offers exactly those statuses
+  if (options.matchCardLabels) {
+    items[0].text = 'All statuses'
+    items.push(
+      { value: 'draft', text: 'Draft', selected: selectedValue === 'draft' },
+      { value: 'amend', text: 'Amend', selected: selectedValue === 'amend' },
+      { value: 'submitted', text: 'Submitted', selected: selectedValue === 'submitted' },
+      { value: 'past', text: 'Past', selected: selectedValue === 'past' }
+    )
+
+    return items
+  }
+
   if (!options.hideDraft) {
     items.push({ value: 'draft', text: 'Draft', selected: selectedValue === 'draft' })
   }
@@ -9642,7 +9670,8 @@ function buildDashboardStatusFilterItems (selectedValue = '', options = {}) {
   items.push(
     { value: 'action-required', text: 'Action required', selected: selectedValue === 'action-required' },
     { value: 'submitted', text: 'Submitted', selected: selectedValue === 'submitted' },
-    { value: 'completed', text: 'Completed', selected: selectedValue === 'completed' }
+    // Called "Past" where the dashboard tab and status label are called Past
+    { value: 'completed', text: options.usePastLabel ? 'Past' : 'Completed', selected: selectedValue === 'completed' }
   )
 
   return items
@@ -9664,8 +9693,25 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
     typeFilter = ''
   }
 
-  if (isDr21 && statusFilter === 'draft') {
+  if (isDr21 && statusFilter === 'completed') {
+    statusFilter = 'past'
+  }
+
+  if (isDr21 && !['draft', 'amend', 'submitted', 'past'].includes(statusFilter)) {
     statusFilter = ''
+  }
+
+  // "Only show notifications that need action" checkbox
+  const needsActionFilter = isDr21 && String(query.needsAction || '').trim() === '1'
+  const filtersActive = Boolean(statusFilter || needsActionFilter) && isDr21
+  const filterParams = {}
+
+  if (isDr21 && statusFilter) {
+    filterParams.status = statusFilter
+  }
+
+  if (needsActionFilter) {
+    filterParams.needsAction = '1'
   }
   const requestedPage = Math.max(1, Number(query.page) || 1)
   const pageSize = dashboardData.pageSize
@@ -9699,8 +9745,36 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
     : activeTab === 'completed'
       ? completedNotifications
       : inProgressNotifications
-  const visibleNotifications = activeSearch
-    ? [...inProgressNotifications, ...draftNotifications, ...completedNotifications]
+  const matchesStatusFilter = (notification) => {
+    if (!filtersActive) {
+      return true
+    }
+
+    if (needsActionFilter && notification.reviewVariant !== 'action-required') {
+      return false
+    }
+
+    if (statusFilter === 'draft') {
+      return notification.reviewVariant === 'draft' && !notification.isAmend
+    }
+
+    if (statusFilter === 'amend') {
+      return notification.reviewVariant === 'draft' && Boolean(notification.isAmend)
+    }
+
+    if (statusFilter === 'submitted') {
+      return notification.reviewVariant === 'submitted' || notification.reviewVariant === 'action-required'
+    }
+
+    if (statusFilter === 'past') {
+      return notification.reviewVariant === 'submission-complete'
+    }
+
+    return true
+  }
+  // Search and the status filters look across every tab
+  const visibleNotifications = (activeSearch || filtersActive)
+    ? [...inProgressNotifications, ...draftNotifications, ...completedNotifications].filter(matchesStatusFilter)
     : tabNotifications
   const totalCount = visibleNotifications.length
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
@@ -9712,7 +9786,9 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
       return notification
     }
 
-    if (activeTab === 'in-progress') {
+    // The label follows the notification, not the tab, so search results that
+    // mix tabs are labelled correctly too.
+    if (notification.reviewVariant === 'submitted' || notification.reviewVariant === 'action-required') {
       return {
         ...notification,
         statusDisplay: {
@@ -9723,12 +9799,12 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
       }
     }
 
-    if (activeTab === 'completed') {
+    if (notification.reviewVariant === 'submission-complete') {
       return {
         ...notification,
         statusDisplay: {
           type: 'tag',
-          text: 'Submitted',
+          text: 'Past',
           govukTag: true,
           govukTagClasses: 'govuk-tag--green'
         }
@@ -9772,12 +9848,14 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
     ],
     notificationSectionHeading: activeSearch
       ? 'Search results'
-      : activeTab === 'drafts'
+      : filtersActive
+        ? 'Filtered results'
+        : activeTab === 'drafts'
         ? 'Draft notifications'
         : activeTab === 'completed'
           ? (isDr21 ? 'Past notifications' : 'Completed notifications')
           : (isDr21 ? 'Submitted notifications' : 'Notifications in progress'),
-    notificationSectionDescription: isDr21 && !activeSearch
+    notificationSectionDescription: isDr21 && !activeSearch && !filtersActive
       ? (activeTab === 'drafts'
         ? 'Notifications you have started but not submitted, and notifications that are being amended.'
         : activeTab === 'completed'
@@ -9831,8 +9909,12 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
       ? buildDashboardTypeFilterItems(typeFilter, { hidePlants: isDr21 })
       : null,
     statusFilter,
-    statusFilterItems: isDr2 ? buildDashboardStatusFilterItems(statusFilter, { hideDraft: isDr21 }) : null,
-    additionalFiltersOpen: isDr2 && Boolean(dateRange || startDate || endDate || typeFilter || statusFilter),
+    statusFilterItems: isDr2 ? buildDashboardStatusFilterItems(statusFilter, { matchCardLabels: isDr21 }) : null,
+    needsActionFilter,
+    filtersActive,
+    filterResultCount: totalCount,
+    clearFiltersHref: buildDashboardPageHref(1, sort, activeTab, dashboardListPath, activeSearch),
+    additionalFiltersOpen: isDr2 && Boolean(dateRange || startDate || endDate || typeFilter || statusFilter || needsActionFilter),
     notifications,
     sort,
     sortItems: buildDashboardSortItems(sort, { testing: isTesting }),
@@ -9840,7 +9922,7 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
     searchResultCount: totalCount,
     clearSearchHref: buildDashboardPageHref(1, sort, activeTab, dashboardListPath),
     resultsText: buildDashboardResultsText(startIndex + 1, endIndex, totalCount, { testing: isTesting }),
-    pagination: buildDashboardPagination(currentPage, totalPages, sort, activeTab, dashboardListPath, activeSearch),
+    pagination: buildDashboardPagination(currentPage, totalPages, sort, activeTab, dashboardListPath, activeSearch, filterParams),
     currentPage,
     dashboardListPath,
     dashboardPageHeading,
@@ -12248,6 +12330,38 @@ function renderUploadDocumentsPage (req, res, locals = {}) {
     ...locals
   })
 }
+
+// While a template is being created in the updated versions, "Save and return"
+// goes to the Review your template page instead of the overview, so users can
+// see everything in the template and what still needs changing.
+// (Registered as a route, not router.use, so each version's router copies it.)
+router.post('*', (req, res, next) => {
+  if (
+    getJourneyFormAction(req) !== 'hub' ||
+    !req.session ||
+    !isDesignRelease21TemplateCreate(req.session.data || {}) ||
+    !hasJourneyUpdates(req.session.data || {})
+  ) {
+    return next()
+  }
+
+  const redirect = res.redirect.bind(res)
+
+  res.redirect = function redirectTemplateSaveToReview (statusOrUrl, maybeUrl) {
+    // The address may already carry the version prefix, such as /testing3
+    const swap = (url) => typeof url === 'string'
+      ? url.replace(/\/notification-hub$/, '/review-notification')
+      : url
+
+    if (typeof statusOrUrl === 'string') {
+      return redirect(swap(statusOrUrl))
+    }
+
+    return redirect(statusOrUrl, swap(maybeUrl))
+  }
+
+  return next()
+})
 
 router.get('/create-notification', (req, res) => {
   const isDr21 = isDesignRelease21SessionData(req.session.data)

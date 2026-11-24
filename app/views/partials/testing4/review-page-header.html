@@ -20,7 +20,7 @@
 <div class="app-dr2-review-page-header">
   <h1 class="app-dr2-review-page-header__reference">{{ pageHeader.reference or notificationReference }}</h1>
 
-  <strong class="govuk-tag app-dr2-review-status__tag app-dr2-review-status__tag--{{ pageHeader.statusModifier }}">
+  <strong class="govuk-tag app-dr2-review-status__tag app-dr2-review-status__tag--{{ pageHeader.statusTagModifier or pageHeader.statusModifier }}">
     {{ pageHeader.statusText }}
   </strong>
 

@@ -24,13 +24,20 @@
 {% set cancelClass = options.cancelClass if options.cancelClass else 'app-origin-form-actions__cancel' %}
 {% set continueClasses = options.continueClasses if options.continueClasses else '' %}
 {% set hubClasses = options.hubClasses if options.hubClasses else 'govuk-button--secondary' %}
-{% set cancelHref = options.cancelHref if options.cancelHref else ((journeyBasePath + '/notification-hub') if journeyBasePath else '/notification-hub') %}
+{# Creating a template: return to the Review your template page, not the overview #}
+{% set isTemplateCreate = data.isCreatingTemplate and not isTemplateReview %}
+{% set returnPage = '/review-notification' if isTemplateCreate else '/notification-hub' %}
+{% set cancelHref = options.cancelHref if (options.cancelHref and not isTemplateCreate) else ((journeyBasePath + returnPage) if journeyBasePath else returnPage) %}
 {% set templateReviewCancelHref = '/templates/' + (data.editingTemplateId or data.templateId or '') %}
 {% set showHub = true if options.showHub is not defined else options.showHub %}
 {% set showCancel = true if options.showCancel is not defined else options.showCancel %}
 {% set continueText = options.continueText if options.continueText else 'Save and continue' %}
 {% set hubText = options.hubText if options.hubText else 'Save and return to overview' %}
 {% set cancelText = options.cancelText if options.cancelText else 'Cancel and return to overview' %}
+{% if isTemplateCreate %}
+  {% set hubText = 'Save and return to template' %}
+  {% set cancelText = 'Cancel and return to template' %}
+{% endif %}
 {% set amendContinueClasses = ('govuk-button--secondary ' + continueClasses) | trim %}
 
 <div class="{{ wrapperClass }}">

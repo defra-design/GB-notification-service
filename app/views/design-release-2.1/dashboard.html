@@ -2,6 +2,7 @@
 
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 {% from "govuk/components/pagination/macro.njk" import govukPagination %}
@@ -208,12 +209,37 @@
                 classes: "app-dr2-dashboard-filters__select",
                 items: statusFilterItems
               }) }}
+
+              {{ govukCheckboxes({
+                idPrefix: "dashboard-filter-needs-action",
+                name: "needsAction",
+                classes: "govuk-checkboxes--small",
+                fieldset: {
+                  legend: {
+                    text: "Needs action",
+                    classes: "govuk-visually-hidden"
+                  }
+                },
+                items: [
+                  {
+                    value: "1",
+                    text: "Only show notifications that need action",
+                    checked: needsActionFilter
+                  }
+                ]
+              }) }}
+
+              {{ govukButton({
+                text: "Apply filters",
+                classes: "govuk-!-margin-bottom-0"
+              }) }}
             </div>
           </div>
         </details>
 
       </form>
 
+      {% if not filtersActive %}
       <div class="govuk-tabs app-dr2-dashboard-tabs">
         <ul class="govuk-tabs__list" role="tablist">
           {% for tabItem in tabItems %}
@@ -225,10 +251,24 @@
           {% endfor %}
         </ul>
       </div>
+      {% endif %}
 
       <h3 class="app-dr2-dashboard-notifications__subheading{% if notificationSectionDescription %} app-dr2-dashboard-notifications__subheading--with-description{% endif %}">{{ notificationSectionHeading }}</h3>
       {% if notificationSectionDescription %}
         <p class="app-dr2-dashboard-notifications__description">{{ notificationSectionDescription }}</p>
+      {% endif %}
+
+      {% if filtersActive and not search %}
+        <p class="govuk-body govuk-!-margin-bottom-4" role="status">
+          {% if filterResultCount == 0 %}
+            No notifications match your filters.
+          {% elif filterResultCount == 1 %}
+            1 notification matches your filters.
+          {% else %}
+            {{ filterResultCount }} notifications match your filters.
+          {% endif %}
+          <a class="govuk-link" href="{{ clearFiltersHref }}">Clear filters</a>
+        </p>
       {% endif %}
 
       <div class="app-dr2-dashboard-notification-list">
