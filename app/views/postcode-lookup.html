@@ -1,0 +1,73 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+
+{% set pageName = "Find an address by postcode" %}
+
+{% block pageTitle %}
+  {{ "Error: " if postcodeError }}{{ pageName }} – {{ serviceName }} – GOV.UK Prototype Kit
+{% endblock %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Spike"
+    },
+    text: "Addresses come from the Companies House register of live companies."
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    {% if postcodeError %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: [{ text: postcodeError, href: "#postcode" }]
+      }) }}
+    {% endif %}
+
+    <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+    <form method="get" action="/postcode-lookup" novalidate>
+      {{ govukInput({
+        label: {
+          text: "Postcode"
+        },
+        hint: {
+          text: "A full UK postcode, like BB4 4AA"
+        },
+        classes: "govuk-input--width-10",
+        id: "postcode",
+        name: "postcode",
+        value: postcodeInput,
+        autocomplete: "postal-code",
+        spellcheck: false,
+        errorMessage: { text: postcodeError } if postcodeError
+      }) }}
+
+      {{ govukButton({
+        text: "Find address"
+      }) }}
+    </form>
+
+    {% if lookup and lookup.status == "found" %}
+      <h2 class="govuk-heading-m" id="results-heading">Registered office addresses</h2>
+      <p class="govuk-body">
+        {{ lookup.addresses.length }} {{ "address" if lookup.addresses.length == 1 else "addresses" }} found for {{ lookup.postcode }}
+      </p>
+      <ul class="govuk-list govuk-list--bullet" aria-labelledby="results-heading" data-testid="postcode-addresses">
+        {% for address in lookup.addresses %}
+          <li>{{ address }}, {{ lookup.postcode }}</li>
+        {% endfor %}
+      </ul>
+    {% elif lookup and lookup.status == "none" %}
+      <h2 class="govuk-heading-m">No registered office addresses found for {{ lookup.postcode }}</h2>
+      <p class="govuk-body">Check the postcode, or try another one.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

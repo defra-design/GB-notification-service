@@ -1,0 +1,72 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+
+{% set pageName = "Add an address" %}
+
+{% block pageTitle %}
+  {{ "Error: " if errorList }}{{ pageName }} – {{ serviceName }} – GOV.UK Prototype Kit
+{% endblock %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    {% if errorList %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: errorList
+      }) }}
+    {% endif %}
+
+    <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+    <form method="post" action="{{ formAction }}" novalidate>
+      {{ govukInput({
+        label: {
+          text: "Enter a UK postcode"
+        },
+        hint: {
+          text: "For example, AB12 3CD"
+        },
+        classes: "govuk-input--width-10",
+        id: "postcode",
+        name: "findAddressPostcode",
+        value: postcodeInput,
+        autocomplete: "postal-code",
+        spellcheck: false,
+        errorMessage: { text: postcodeError } if postcodeError
+      }) }}
+
+      {{ govukButton({
+        text: "Find address"
+      }) }}
+    </form>
+
+    <p class="govuk-body govuk-!-margin-bottom-9">
+      <a class="govuk-link" href="{{ manualHref }}">Enter address manually</a>
+    </p>
+
+    <p class="govuk-body">
+      <a class="govuk-link" href="{{ cancelHref }}">{{ cancelText }}</a>
+    </p>
+  </div>
+</div>
+{% endblock %}
