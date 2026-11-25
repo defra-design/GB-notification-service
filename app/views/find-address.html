@@ -6,7 +6,7 @@
 {% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
 
-{% set pageName = "Add an address" %}
+{% set pageName = pageHeading or "Add an address" %}
 
 {% block pageTitle %}
   {{ "Error: " if errorList }}{{ pageName }} – {{ serviceName }} – GOV.UK Prototype Kit

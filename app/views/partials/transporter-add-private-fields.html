@@ -1,7 +1,19 @@
+{% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/select/macro.njk" import govukSelect %}
 
+{#
+  With the address lookup (GOV.UK "Addresses" pattern) the page has three steps:
+    postcode - enter a postcode and select "Find address"
+    results  - select an address from the dropdown list
+    details  - check the address and add contact details
+  Without the lookup the page shows every field (details).
+#}
+{% set showAddressLookup = showAddressLookup if showAddressLookup is defined else false %}
+{% set lookupStep = (lookupStep or "postcode") if showAddressLookup else "details" %}
+
 <div class="app-transporter-add-private-fields">
+  {% if lookupStep != "results" %}
   {{ govukInput({
     label: {
       text: "Name or organisation name"
@@ -12,7 +24,79 @@
     classes: "app-transporter-add-private-fields__input app-transporter-add-private-fields__input--full",
     errorMessage: data.errors.transporterPrivateName if data.errors and data.errors.transporterPrivateName
   }) }}
+  {% endif %}
 
+  {% if lookupStep == "results" %}
+    <input type="hidden" name="transporterPrivateName" value="{{ formValues.name }}">
+    <input type="hidden" name="addressPostcode" value="{{ lookupPostcode }}">
+
+    <p class="govuk-body govuk-!-margin-bottom-0">
+      Postcode<br>
+      <strong>{{ lookupPostcode }}</strong>
+      <button type="submit" name="action" value="change" class="govuk-link app-govuk-body-link">Change postcode</button>
+    </p>
+
+    {% set addressSelectItems = [{
+      value: "",
+      text: (lookupResultItems | length) + (" address found" if (lookupResultItems | length) == 1 else " addresses found")
+    }] %}
+    {% for item in lookupResultItems %}
+      {% set addressSelectItems = (addressSelectItems.push({ value: item.value, text: item.text, selected: item.checked }), addressSelectItems) %}
+    {% endfor %}
+
+    {{ govukSelect({
+      id: "address-result",
+      name: "addressBookLookupAddressId",
+      label: {
+        text: "Select an address"
+      },
+      errorMessage: data.errors.addressBookLookupAddressId if data.errors and data.errors.addressBookLookupAddressId,
+      items: addressSelectItems
+    }) }}
+
+    <div>
+      {{ govukButton({
+        text: "Continue",
+        name: "action",
+        value: "choose",
+        classes: "govuk-!-margin-bottom-0"
+      }) }}
+    </div>
+
+    <p class="govuk-body govuk-!-margin-bottom-0">
+      <button type="submit" name="action" value="manual" class="govuk-link app-govuk-body-link">Enter address manually</button>
+    </p>
+  {% elif lookupStep == "postcode" %}
+    {{ govukInput({
+      label: {
+        text: "Enter a UK postcode"
+      },
+      hint: {
+        text: "For example, AB12 3CD"
+      },
+      classes: "govuk-input--width-10",
+      id: "address-postcode",
+      name: "addressPostcode",
+      value: lookupPostcode,
+      autocomplete: "postal-code",
+      errorMessage: data.errors.addressPostcode if data.errors and data.errors.addressPostcode
+    }) }}
+
+    <div>
+      {{ govukButton({
+        text: "Find address",
+        name: "action",
+        value: "find",
+        classes: "govuk-!-margin-bottom-0"
+      }) }}
+    </div>
+
+    <p class="govuk-body govuk-!-margin-bottom-0">
+      <button type="submit" name="action" value="manual" class="govuk-link app-govuk-body-link">Enter address manually</button>
+    </p>
+  {% endif %}
+
+  {% if lookupStep == "details" %}
   {{ govukInput({
     label: {
       text: "Address line 1"
@@ -108,4 +192,5 @@
     classes: "app-transporter-add-private-fields__input app-transporter-add-private-fields__input--two-thirds",
     errorMessage: data.errors.transporterPrivatePhone if data.errors and data.errors.transporterPrivatePhone
   }) }}
+  {% endif %}
 </div>

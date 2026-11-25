@@ -1,10 +1,22 @@
 {% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/select/macro.njk" import govukSelect %}
 
 {% set showAddressLookup = showAddressLookup if showAddressLookup is defined else false %}
 {% set showManualAddress = showManualAddress if showManualAddress is defined else (not showAddressLookup) %}
 
+{#
+  With the address lookup (GOV.UK "Addresses" pattern) the page has four steps:
+    transporter - authorisation number
+    postcode - enter a postcode and select "Find address"
+    results  - select an address from the dropdown list
+    details  - name, address and contact details
+  Without the lookup the page shows every field (details).
+#}
+{% set lookupStep = (lookupStep or "transporter") if showAddressLookup else "details" %}
+
 <div class="app-transporter-add-commercial-fields">
+  {% if lookupStep == "transporter" or not showAddressLookup %}
   {{ govukInput({
     label: {
       text: "Transporter authorisation number"
@@ -15,7 +27,99 @@
     classes: "app-transporter-add-commercial-fields__input app-transporter-add-commercial-fields__input--two-thirds",
     errorMessage: data.errors.transporterCommercialAuthorisationNumber if data.errors and data.errors.transporterCommercialAuthorisationNumber
   }) }}
+  {% else %}
+    <input type="hidden" name="transporterCommercialAuthorisationNumber" value="{{ formValues.authorisationNumber }}">
+  {% endif %}
 
+  {# The name sits with the address, on the details step #}
+  {% if lookupStep != "details" %}
+    <input type="hidden" name="transporterCommercialName" value="{{ formValues.name }}">
+  {% endif %}
+
+  {% if lookupStep == "transporter" %}
+    <div>
+      {{ govukButton({
+        text: "Continue",
+        name: "action",
+        value: "transporter-continue",
+        classes: "govuk-!-margin-bottom-0"
+      }) }}
+    </div>
+  {% endif %}
+
+  {% if lookupStep == "results" %}
+    <input type="hidden" name="addressPostcode" value="{{ lookupPostcode }}">
+
+    <p class="govuk-body govuk-!-margin-bottom-0">
+      Postcode<br>
+      <strong>{{ lookupPostcode }}</strong>
+      <button type="submit" name="action" value="change" class="govuk-link app-govuk-body-link">Change postcode</button>
+    </p>
+
+    {% set addressSelectItems = [{
+      value: "",
+      text: (lookupResultItems | length) + (" address found" if (lookupResultItems | length) == 1 else " addresses found")
+    }] %}
+    {% for item in lookupResultItems %}
+      {% set addressSelectItems = (addressSelectItems.push({ value: item.value, text: item.text, selected: item.checked }), addressSelectItems) %}
+    {% endfor %}
+
+    {{ govukSelect({
+      id: "address-result",
+      name: "addressBookLookupAddressId",
+      label: {
+        text: "Select an address"
+      },
+      errorMessage: data.errors.addressBookLookupAddressId if data.errors and data.errors.addressBookLookupAddressId,
+      items: addressSelectItems
+    }) }}
+
+    <div>
+      {{ govukButton({
+        text: "Continue",
+        name: "action",
+        value: "choose",
+        classes: "govuk-!-margin-bottom-0"
+      }) }}
+    </div>
+
+    <p class="govuk-body govuk-!-margin-bottom-0">
+      <button type="submit" name="action" value="manual" class="govuk-link app-govuk-body-link">Enter address manually</button>
+    </p>
+  {% elif lookupStep == "postcode" %}
+    {{ govukInput({
+      label: {
+        text: "Enter a UK postcode"
+      },
+      hint: {
+        text: "For example, BT1 5GS"
+      },
+      classes: "govuk-input--width-10",
+      id: "address-postcode",
+      name: "addressPostcode",
+      value: lookupPostcode,
+      autocomplete: "postal-code",
+      errorMessage: data.errors.addressPostcode if data.errors and data.errors.addressPostcode
+    }) }}
+
+    <div>
+      {{ govukButton({
+        text: "Find address",
+        name: "action",
+        value: "find",
+        classes: "govuk-!-margin-bottom-0"
+      }) }}
+    </div>
+
+    <p class="govuk-body govuk-!-margin-bottom-0">
+      <button type="submit" name="action" value="manual" class="govuk-link app-govuk-body-link">Enter address manually</button>
+    </p>
+  {% elif showAddressLookup and lookupStep == "details" %}
+    <input type="hidden" name="manualAddressEntry" value="true">
+    <input type="hidden" name="addressBookLookupAddressId" value="{{ selectedLookupAddressId or '' }}">
+  {% endif %}
+
+  {% if lookupStep == "details" %}
   {{ govukInput({
     label: {
       text: "Name or organisation name"
@@ -27,104 +131,8 @@
     errorMessage: data.errors.transporterCommercialName if data.errors and data.errors.transporterCommercialName
   }) }}
 
-  {% if showAddressLookup %}
-    <div class="app-transporter-add-commercial-fields__lookup app-address-book-lookup-page">
-      <div
-        class="app-address-book-lookup-page__search{% if data.errors and data.errors.addressLookup %} app-address-book-lookup-page__search--error{% endif %}"
-        data-module="app-address-book-lookup-search"
-        data-manual-field-map='{"nameOrOrganisation":"transporterCommercialName","addressLine1":"transporterCommercialAddressLine1","addressLine2":"transporterCommercialAddressLine2","townOrCity":"transporterCommercialTownOrCity","county":"transporterCommercialCounty","postcode":"transporterCommercialPostcode"}'
-        data-manual-section="#transporter-commercial-manual-address"
-        data-manual-link=".app-transporter-add-commercial-fields__manual-link"
-        data-manual-toggle=".app-transporter-add-commercial-fields__manual-toggle"
-        data-manual-entry="#transporter-commercial-manual-entry"
-        data-reveal-with-address="#transporter-commercial-contact-details"
-      >
-        <label class="govuk-label app-address-book-lookup-page__search-label" for="transporter-commercial-address-lookup-search">
-          Search for an address
-        </label>
-
-        {% if data.errors and data.errors.addressLookup %}
-          <p id="transporter-commercial-address-lookup-search-error" class="govuk-error-message">
-            <span class="govuk-visually-hidden">Error:</span>
-            {{ data.errors.addressLookup.text }}
-          </p>
-        {% endif %}
-
-        <script type="application/json" class="app-address-book-lookup-search__data">{{ lookupAddressesJson | safe }}</script>
-
-        <div class="app-commodity-search-wrapper app-address-book-lookup-page__search-wrapper">
-          <div class="app-commodity-search-panel">
-            <div
-              class="app-commodity-search"
-              aria-expanded="false"
-              aria-controls="transporter-commercial-address-lookup-search-results"
-            >
-              <input
-                class="app-commodity-search__input{% if data.errors and data.errors.addressLookup %} govuk-input--error{% endif %}"
-                id="transporter-commercial-address-lookup-search"
-                type="search"
-                autocomplete="off"
-                placeholder="Start typing..."
-                aria-controls="transporter-commercial-address-lookup-search-results"
-                {% if data.errors and data.errors.addressLookup %}aria-describedby="transporter-commercial-address-lookup-search-error"{% endif %}
-                value="{{ addressLookup or '' }}"
-              >
-              <button class="app-commodity-search__button" type="button" aria-label="Search">
-                <span class="govuk-visually-hidden">Search</span>
-                <svg class="app-commodity-search__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20.3765 20" width="20" height="20" aria-hidden="true" focusable="false">
-                  <path d="M8.90084 14.4683C12.3848 14.4683 15.2091 11.644 15.2091 8.16008C15.2091 4.67613 12.3848 1.85184 8.90084 1.85184C5.41689 1.85184 2.59259 4.67613 2.59259 8.16008C2.59259 11.644 5.41689 14.4683 8.90084 14.4683Z" stroke="currentColor" stroke-width="2.22222" fill="none"/>
-                  <path d="M13.2347 12.8583L19.5908 19.2143" stroke="currentColor" stroke-width="2.22222" fill="none"/>
-                </svg>
-              </button>
-            </div>
-            <ul
-              id="transporter-commercial-address-lookup-search-results"
-              class="app-commodity-search__results"
-              role="list"
-              aria-label="Address search results"
-              hidden
-            ></ul>
-          </div>
-
-          <input
-            type="hidden"
-            name="addressLookup"
-            class="app-address-book-lookup-search__value"
-            value="{{ addressLookup or '' }}"
-          >
-          <input
-            type="hidden"
-            name="addressBookLookupAddressId"
-            class="app-address-book-lookup-search__id"
-            value="{{ selectedLookupAddressId or '' }}"
-          >
-          <div class="app-address-book-lookup-search__status govuk-visually-hidden" aria-live="polite"></div>
-        </div>
-      </div>
-
-      <p class="app-address-book-lookup-page__manual-link app-transporter-add-commercial-fields__manual-link{% if showManualAddress %} app-address-book-lookup-page__manual-link--hidden{% endif %}">
-        <button
-          type="button"
-          class="govuk-link app-govuk-body-link app-address-book-lookup-page__manual-toggle app-transporter-add-commercial-fields__manual-toggle"
-          aria-controls="transporter-commercial-manual-address"
-          aria-expanded="{{ 'true' if showManualAddress else 'false' }}"
-        >
-          Enter address manually
-        </button>
-      </p>
-
-      <input
-        type="hidden"
-        name="manualAddressEntry"
-        value="true"
-        id="transporter-commercial-manual-entry"
-        {% if not showManualAddress %}disabled{% endif %}
-      >
-    </div>
-  {% endif %}
-
   <div
-    class="app-transporter-add-commercial-fields__manual{% if showAddressLookup %} app-address-book-lookup-page__manual{% if not showManualAddress %} app-address-book-lookup-page__manual--hidden{% endif %}{% endif %}"
+    class="app-transporter-add-commercial-fields__manual"
     id="transporter-commercial-manual-address"
   >
     {{ govukInput({
@@ -203,7 +211,7 @@
 
   <div
     id="transporter-commercial-contact-details"
-    class="app-transporter-add-commercial-fields__contact{% if showAddressLookup and not showManualAddress %} app-address-book-lookup-page__manual--hidden{% endif %}"
+    class="app-transporter-add-commercial-fields__contact"
   >
     <h2 class="app-transporter-add-commercial-fields__section-heading">Enter contact details</h2>
 
@@ -232,4 +240,5 @@
       errorMessage: data.errors.transporterCommercialPhone if data.errors and data.errors.transporterCommercialPhone
     }) }}
   </div>
+  {% endif %}
 </div>
