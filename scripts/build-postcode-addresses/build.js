@@ -2,12 +2,17 @@
 //
 //   npm run build:postcode-addresses
 //   npm run build:postcode-addresses -- --source path/to/file.zip|file.csv
+//   npm run build:postcode-addresses -- --audit path/to/audit.jsonl
 //
 // It downloads the latest "BasicCompanyDataAsOneFile" snapshot from
 // Companies House (cached under .cache/companies-house), streams the CSV,
 // keeps every company with a usable postcode and address,
-// removes duplicate addresses within each postcode and writes one JSON file
-// per outward code into a fresh app/data/generated/postcode-addresses.
+// merges variants of the same premises within each postcode (see address.js)
+// and writes one JSON file per outward code into a fresh
+// app/data/generated/postcode-addresses.
+//
+// --audit writes one JSON line for every shown address that merged more than
+// one raw variant: {postcode, shown, variants: [{text, count}]}.
 
 const fs = require('fs')
 const path = require('path')
@@ -17,7 +22,7 @@ const { parse } = require('csv-parse')
 const yauzl = require('yauzl')
 
 const { normalisePostcode, isFullPostcode, outwardCode } = require('../../app/utils/postcode')
-const { addressFromRow, preferredDisplay, compareDisplay } = require('./address')
+const { recordSignature, decodeRecord, groupPostcode } = require('./address')
 
 const repoRoot = path.join(__dirname, '..', '..')
 const DOWNLOAD_PAGE = 'https://download.companieshouse.gov.uk/en_output.html'
@@ -26,6 +31,7 @@ const SNAPSHOT_FILE = /BasicCompanyDataAsOneFile-(\d{4}-\d{2}-\d{2})\.zip/g
 function parseArgs (argv) {
   const args = {
     source: null,
+    audit: null,
     cacheDir: path.join(repoRoot, '.cache', 'companies-house'),
     outDir: path.join(repoRoot, 'app', 'data', 'generated', 'postcode-addresses')
   }
@@ -35,6 +41,7 @@ function parseArgs (argv) {
     const value = argv[i + 1]
 
     if (flag === '--source') args.source = path.resolve(value)
+    else if (flag === '--audit') args.audit = path.resolve(value)
     else if (flag === '--cache-dir') args.cacheDir = path.resolve(value)
     else if (flag === '--out') args.outDir = path.resolve(value)
     else throw new Error(`Unknown option ${flag}`)
@@ -120,7 +127,7 @@ async function collect (csvStream) {
     skippedMissingAddress: 0,
     rowsRetained: 0
   }
-  // outward code -> postcode -> address key -> display text
+  // outward code -> postcode -> record signature -> rows
   const byOutward = new Map()
 
   const parser = csvStream.pipe(parse({
@@ -145,8 +152,8 @@ async function collect (csvStream) {
       continue
     }
 
-    const address = addressFromRow(row)
-    if (!address) {
+    const signature = recordSignature(row, postcode)
+    if (!signature) {
       counts.skippedMissingAddress += 1
       continue
     }
@@ -160,7 +167,7 @@ async function collect (csvStream) {
     let addresses = postcodes.get(postcode)
     if (!addresses) postcodes.set(postcode, (addresses = new Map()))
 
-    addresses.set(address.key, preferredDisplay(addresses.get(address.key), address.display))
+    addresses.set(signature, (addresses.get(signature) || 0) + 1)
   }
 
   return { byOutward, categories, counts }
@@ -170,26 +177,63 @@ function byCodePoint (a, b) {
   return a < b ? -1 : a > b ? 1 : 0
 }
 
-function writeOutput (outDir, byOutward, manifest) {
+function byCountThenText (a, b) {
+  return b.count - a.count || byCodePoint(a.text, b.text)
+}
+
+// Groups one postcode's records into the entries it shows.
+function entriesFor (signatures) {
+  const records = [...signatures.keys()].sort(byCodePoint).map((signature) => decodeRecord(signature, signatures.get(signature)))
+  return groupPostcode(records)
+}
+
+function auditLine (postcode, entry) {
+  const variants = [...entry.raws].map(([text, count]) => ({ text, count })).sort(byCountThenText)
+  return `${JSON.stringify({ postcode, shown: entry.display, variants })}\n`
+}
+
+// Groups every postcode, writes the files and returns the full manifest.
+// The records of each outward code are released once its file is written.
+function writeOutput (outDir, byOutward, manifest, { audit = null } = {}) {
   const partialDir = `${outDir}.partial`
   fs.rmSync(partialDir, { recursive: true, force: true })
   fs.mkdirSync(partialDir, { recursive: true })
 
+  let auditFile = null
+  if (audit) {
+    fs.mkdirSync(path.dirname(audit), { recursive: true })
+    auditFile = fs.openSync(audit, 'w')
+  }
+
   let uniqueAddresses = 0
   let postcodeCount = 0
+  let fileCount = 0
+  let mergedEntries = 0
   let totalBytes = 0
   let largest = { file: null, bytes: 0 }
 
   for (const outward of [...byOutward.keys()].sort(byCodePoint)) {
     const postcodes = byOutward.get(outward)
+    byOutward.delete(outward)
     const content = {}
 
     for (const postcode of [...postcodes.keys()].sort(byCodePoint)) {
-      const displays = [...postcodes.get(postcode).values()].sort(compareDisplay)
-      content[postcode] = displays
-      uniqueAddresses += displays.length
+      const entries = entriesFor(postcodes.get(postcode))
+      if (entries.length === 0) continue
+
+      content[postcode] = entries.map((entry) => entry.display)
+      uniqueAddresses += entries.length
       postcodeCount += 1
+
+      for (const entry of entries) {
+        if (entry.raws.size < 2) continue
+        mergedEntries += 1
+        if (auditFile !== null) fs.writeSync(auditFile, auditLine(postcode, entry))
+      }
     }
+
+    if (Object.keys(content).length === 0) continue
+    fileCount += 1
 
     const file = `${outward}.json`
     const json = JSON.stringify(content)
@@ -206,13 +250,15 @@ function writeOutput (outDir, byOutward, manifest) {
       ...manifest.counts,
       postcodes: postcodeCount,
       uniqueAddresses,
-      files: byOutward.size,
+      mergedEntries,
+      files: fileCount,
       totalBytes,
       largestFile: largest.file,
       largestFileBytes: largest.bytes
     }
   }
   fs.writeFileSync(path.join(partialDir, 'manifest.json'), `${JSON.stringify(fullManifest, null, 2)}\n`)
+  if (auditFile !== null) fs.closeSync(auditFile)
 
   fs.rmSync(outDir, { recursive: true, force: true })
   fs.renameSync(partialDir, outDir)
@@ -247,8 +293,9 @@ async function main () {
     snapshotDate: snapshot.date,
     categoriesSeen: sortedCategories,
     counts
-  })
+  }, { audit: args.audit })
 
+  if (args.audit) console.log(`Wrote the merge audit to ${args.audit}`)
   console.log(JSON.stringify(manifest.counts, null, 2))
   console.log(`Wrote ${manifest.counts.files} files to ${path.relative(repoRoot, args.outDir)}`)
 }
