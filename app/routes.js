@@ -4192,9 +4192,30 @@ function renderTransporterAddPrivatePage (req, res, locals = {}) {
   const sessionData = req.session.data
   const formValues = locals.formValues || getTransporterPrivateForm(sessionData)
   const fromAddressBook = Boolean(sessionData.addressBookAddingTransporter)
+  // UK postcode lookup in the updated versions; other countries use manual entry
+  const showAddressLookup = Boolean(res.locals.isDesignRelease2Version)
+  const privateAddressErrors = [
+    'transporterPrivateAddressLine1',
+    'transporterPrivateTownOrCity',
+    'transporterPrivatePostcode',
+    'transporterPrivateCountry'
+  ]
+  const lookupStep = !showAddressLookup
+    ? ''
+    : (locals.lookupStep || ((
+        formValues.addressLine1 ||
+        (sessionData.errors && privateAddressErrors.some((field) => sessionData.errors[field])) ||
+        locals.showDetails
+      )
+        ? 'details'
+        : 'postcode'))
 
   return res.render('transporter-add-private', {
     backLink: '/transporter/add',
+    showAddressLookup,
+    lookupStep,
+    lookupPostcode: '',
+    lookupResultItems: [],
     formValues,
     countryItems: buildAddressBookCountryItems(formValues.country),
     cancelButtonText: fromAddressBook
@@ -4229,8 +4250,21 @@ function renderTransporterAddCommercialPage (req, res, locals = {}) {
       Boolean(formValues.addressLine1)
     )
 
+  // Steps: transporter (authorisation number), postcode, results, details (name, address, contact)
+  const requestedStep = String((req.query && req.query.step) || '').trim()
+  const lookupStep = !showAddressLookup
+    ? ''
+    : (locals.lookupStep || (['transporter', 'postcode'].includes(requestedStep) ? requestedStep : 'transporter'))
+  const commercialStepBackLinks = {
+    postcode: '/transporter/add/commercial?step=transporter',
+    results: '/transporter/add/commercial?step=postcode',
+    details: '/transporter/add/commercial?step=postcode'
+  }
+
   return res.render('transporter-add-commercial', {
-    backLink: '/transporter/add',
+    lookupPostcode: '',
+    lookupResultItems: [],
+    backLink: commercialStepBackLinks[lookupStep] || '/transporter/add',
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     formValues,
     countryItems: buildCommercialTransporterCountryItems(),
@@ -4252,7 +4286,9 @@ function renderTransporterAddCommercialPage (req, res, locals = {}) {
       ? locals.selectedLookupAddressId
       : '',
     data: sessionData,
-    ...locals
+    ...locals,
+    lookupStep,
+    showManualAddress: showAddressLookup ? lookupStep === 'details' : showManualAddress
   })
 }
 
@@ -4462,6 +4498,137 @@ function parseConsignmentAddressUses (rawValue, sectionId) {
     .filter((value) => allowedValues.has(value))
 }
 
+// Postcode lookup for adding a UK address, following the GOV.UK "Addresses"
+// pattern: enter a postcode, select an address from the list, then check the
+// details. Every step offers "Enter address manually".
+function formatUkPostcode (value) {
+  const compact = String(value || '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+
+  if (compact.length < 5) {
+    return compact
+  }
+
+  return `${compact.slice(0, -3)} ${compact.slice(-3)}`
+}
+
+function isUkPostcode (value) {
+  return /^[A-Z]{1,2}\d[A-Z\d]? \d[A-Z]{2}$/.test(formatUkPostcode(value))
+}
+
+// The prototype only has a small set of example UK addresses. A postcode that
+// matches some of them returns those. Any other valid postcode returns a few
+// example addresses shown at that postcode, so the journey can always continue.
+function findPostcodeLookupAddresses (postcode, sourceAddresses) {
+  const ukAddresses = sourceAddresses || getUkConsignmentLookupAddresses()
+  const matches = ukAddresses.filter((address) => formatUkPostcode(address.manual.postcode) === postcode)
+
+  return matches.length ? matches : ukAddresses.slice(0, 8)
+}
+
+function buildPostcodeLookupResultItems (postcode, selectedId, sourceAddresses) {
+  const seen = new Set()
+
+  return findPostcodeLookupAddresses(postcode, sourceAddresses)
+    .map((address) => ({
+      value: address.id,
+      text: [
+        address.manual.nameOrOrganisation,
+        address.manual.addressLine1,
+        address.manual.addressLine2,
+        address.manual.townOrCity,
+        postcode
+      ].filter(Boolean).join(', '),
+      checked: address.id === selectedId
+    }))
+    // The example data lists some addresses more than once
+    .filter((item) => {
+      if (seen.has(item.text)) {
+        return false
+      }
+
+      seen.add(item.text)
+
+      return true
+    })
+}
+
+// Handles the "Find address" and "Continue" (address chosen) steps. Returns the
+// page options for the next step, or null when the form is the final save.
+function getAddAddressPostcodeLookupLocals (req, showAddressLookup, sourceAddresses) {
+  const action = String((req.body && req.body.action) || '').trim()
+
+  if (!showAddressLookup || (action !== 'find' && action !== 'choose')) {
+    return null
+  }
+
+  const rawPostcode = String(req.body.addressPostcode || '').trim()
+  const postcode = formatUkPostcode(rawPostcode)
+  const setError = (key, text, href) => {
+    req.session.data.errorList = [{ text, href }]
+    req.session.data.errors = { [key]: { text } }
+  }
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+
+  if (!rawPostcode) {
+    setError('addressPostcode', 'Enter a postcode', '#address-postcode')
+
+    return { lookupStep: 'postcode', lookupPostcode: '' }
+  }
+
+  if (!isUkPostcode(rawPostcode)) {
+    setError('addressPostcode', 'Enter a full UK postcode', '#address-postcode')
+
+    return { lookupStep: 'postcode', lookupPostcode: rawPostcode }
+  }
+
+  const selectedId = String(req.body.addressBookLookupAddressId || '').trim()
+  const selectedAddress = action === 'choose' ? getAddressDetailsFromLookup(selectedId) : null
+
+  if (action === 'choose' && !selectedAddress) {
+    setError('addressBookLookupAddressId', 'Select an address', '#address-result')
+  }
+
+  if (!selectedAddress) {
+    return {
+      lookupStep: 'results',
+      lookupPostcode: postcode,
+      lookupResultItems: buildPostcodeLookupResultItems(postcode, '', sourceAddresses)
+    }
+  }
+
+  return {
+    lookupStep: 'details',
+    lookupPostcode: postcode,
+    showManualAddress: true,
+    selectedLookupAddressId: selectedId,
+    manualAddress: {
+      ...selectedAddress,
+      postcode,
+      country: 'United Kingdom',
+      email: '',
+      phone: ''
+    }
+  }
+}
+
+function getAddAddressLookupStep (req, showAddressLookup, showManualAddress, locals = {}) {
+  if (!showAddressLookup) {
+    return ''
+  }
+
+  if (locals.lookupStep) {
+    return locals.lookupStep
+  }
+
+  if (req.query && req.query.change === '1') {
+    return 'postcode'
+  }
+
+  return (showManualAddress || (req.query && req.query.manual === '1')) ? 'details' : 'postcode'
+}
+
 function renderConsignmentAddAddressPage (section, req, res, locals = {}) {
   const sessionData = req.session.data
   const showAddressLookup = consignmentAddAddressUsesLookup(section.id)
@@ -4491,15 +4658,22 @@ function renderConsignmentAddAddressPage (section, req, res, locals = {}) {
       )
     )
 
+  const lookupStep = getAddAddressLookupStep(req, showAddressLookup, showManualAddress, locals)
+
   return res.render('consignment-add-address', {
-    backLink: section.path,
+    backLink: (lookupStep === 'results' || lookupStep === 'details')
+      ? `${section.path}/add-address?change=1`
+      : section.path,
+    lookupStep,
+    lookupPostcode: '',
+    lookupResultItems: [],
     cancelHref: `${versionBasePath}/notification-hub`,
     formAction: `${section.path}/add-address`,
     sectionId: section.id,
     defaultAddressUseLabel,
     defaultAddressUseArticle,
     showAddressLookup,
-    showManualAddress,
+    showManualAddress: showAddressLookup ? lookupStep === 'details' : showManualAddress,
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     manualAddress,
     countryItems: showAddressLookup
@@ -4528,7 +4702,9 @@ function renderConsignmentAddAddressPage (section, req, res, locals = {}) {
       ? locals.selectedAddressUses
       : getDefaultConsignmentAddressUses(section.id),
     data: sessionData,
-    ...locals
+    ...locals,
+    lookupStep,
+    showManualAddress: showAddressLookup ? lookupStep === 'details' : showManualAddress
   })
 }
 
@@ -4591,6 +4767,12 @@ function handleConsignmentAddAddressPost (section, req, res) {
   const selectedAddressUses = parseConsignmentAddressUses(req.body.addressUses, section.id)
 
   setAddressBookConsignmentReturn(req.session.data, section.id)
+
+  const postcodeLookupLocals = getAddAddressPostcodeLookupLocals(req, showAddressLookup)
+
+  if (postcodeLookupLocals) {
+    return renderConsignmentAddAddressPage(section, req, res, postcodeLookupLocals)
+  }
 
   const addressValidation = validateAddressBookManualAddress(manualAddress)
 
@@ -11315,21 +11497,32 @@ function renderAddressBookAddDetailsPage (req, res, locals = {}) {
   const category = sessionData.addressBookAddressCategory
   const addressBookBasePath = getAddressBookBasePath(res)
   const showAddressLookup = addressBookCategoryUsesLookup(category)
-  const manualAddress = locals.manualAddress || getAddressBookManualAddress(sessionData) || buildEmptyAddressBookManualAddress(showAddressLookup)
+  // "Enter address manually" and "Change" (postcode) start from an empty address
+  const startBlank = showAddressLookup && !locals.manualAddress &&
+    (req.query.manual === '1' || req.query.change === '1')
+  const manualAddress = locals.manualAddress ||
+    (startBlank ? null : getAddressBookManualAddress(sessionData)) ||
+    buildEmptyAddressBookManualAddress(showAddressLookup)
   const showManualAddress = locals.showManualAddress != null
     ? locals.showManualAddress
     : Boolean(
       showAddressLookup && (
         manualAddress.addressLine1 ||
         locals.selectedLookupAddressId ||
-        sessionData.addressBookLookupAddressId
+        (!startBlank && sessionData.addressBookLookupAddressId)
       )
     )
+  const lookupStep = getAddAddressLookupStep(req, showAddressLookup, showManualAddress, locals)
 
   return res.render('consignment-add-address', {
     isAddressBookAdd: true,
     serviceNavActive: 'address-book',
-    backLink: `${addressBookBasePath}/add`,
+    backLink: (lookupStep === 'results' || lookupStep === 'details')
+      ? `${addressBookBasePath}/add/lookup?change=1`
+      : `${addressBookBasePath}/add`,
+    lookupStep,
+    lookupPostcode: '',
+    lookupResultItems: [],
     cancelHref: addressBookBasePath,
     formAction: `${addressBookBasePath}/add/lookup`,
     showAddressLookup,
@@ -11355,13 +11548,15 @@ function renderAddressBookAddDetailsPage (req, res, locals = {}) {
       : sessionData.addressBookLookup || '',
     selectedLookupAddressId: locals.selectedLookupAddressId != null
       ? locals.selectedLookupAddressId
-      : sessionData.addressBookLookupAddressId || '',
+      : (startBlank ? '' : sessionData.addressBookLookupAddressId || ''),
     addressUseGroups: getAddressBookAddressUseGroupsForCategory(category),
     selectedAddressUses: locals.selectedAddressUses != null
       ? locals.selectedAddressUses
       : (sessionData.addressBookAddressUses || []),
     data: sessionData,
-    ...locals
+    ...locals,
+    lookupStep,
+    showManualAddress: showAddressLookup ? lookupStep === 'details' : showManualAddress
   })
 }
 
@@ -11379,6 +11574,12 @@ function handleAddressBookAddDetailsPost (req, res) {
   )
   const selectedAddressUses = parseAddressBookUses(req.body.addressUses, category)
   const firstUseOption = getAddressBookUsageOptions(category)[0]
+  const postcodeLookupLocals = getAddAddressPostcodeLookupLocals(req, showAddressLookup)
+
+  if (postcodeLookupLocals) {
+    return renderAddressBookAddDetailsPage(req, res, postcodeLookupLocals)
+  }
+
   const addressValidation = validateAddressBookManualAddress(manualAddress)
   const renderWithErrors = (extraLocals = {}) => renderAddressBookAddDetailsPage(req, res, {
     manualAddress: addressValidation.value,
@@ -14246,6 +14447,45 @@ router.post('/transporter/add/private', (req, res) => {
     return res.redirect(getTransporterAddCancelRedirect(req, res))
   }
 
+  // Postcode lookup steps: find address, select an address, or enter manually
+  if (res.locals.isDesignRelease2Version) {
+    const blankAddress = { addressLine1: '', addressLine2: '', townOrCity: '', county: '', postcode: '' }
+    const lookupFormValues = { ...formValues, country: formValues.country || 'United Kingdom' }
+
+    if (action === 'manual' || action === 'change') {
+      req.session.data.errorList = null
+      req.session.data.errors = null
+
+      return renderTransporterAddPrivatePage(req, res, {
+        formValues: { ...lookupFormValues, ...blankAddress },
+        lookupStep: action === 'manual' ? 'details' : 'postcode'
+      })
+    }
+
+    const postcodeLookupLocals = getAddAddressPostcodeLookupLocals(req, true)
+
+    if (postcodeLookupLocals) {
+      const chosenAddress = postcodeLookupLocals.manualAddress
+
+      return renderTransporterAddPrivatePage(req, res, {
+        lookupStep: postcodeLookupLocals.lookupStep,
+        lookupPostcode: postcodeLookupLocals.lookupPostcode,
+        lookupResultItems: postcodeLookupLocals.lookupResultItems || [],
+        formValues: chosenAddress
+          ? {
+              ...lookupFormValues,
+              addressLine1: chosenAddress.addressLine1 || '',
+              addressLine2: chosenAddress.addressLine2 || '',
+              townOrCity: chosenAddress.townOrCity || '',
+              county: chosenAddress.county || '',
+              postcode: postcodeLookupLocals.lookupPostcode,
+              country: 'United Kingdom'
+            }
+          : { ...lookupFormValues, ...blankAddress }
+      })
+    }
+  }
+
   const validation = validateTransporterPrivateForm(formValues)
 
   if (validation.errorList.length) {
@@ -14254,7 +14494,8 @@ router.post('/transporter/add/private', (req, res) => {
     req.session.data.transporterPrivateForm = validation.value
 
     return renderTransporterAddPrivatePage(req, res, {
-      formValues: validation.value
+      formValues: validation.value,
+      lookupStep: 'details'
     })
   }
 
@@ -14278,6 +14519,12 @@ router.get('/transporter/add/commercial', (req, res) => {
     return
   }
 
+  // Arriving by a link (including the Back links between steps) starts clean
+  if (res.locals.isDesignRelease2Version) {
+    req.session.data.errorList = null
+    req.session.data.errors = null
+  }
+
   return renderTransporterAddCommercialPage(req, res)
 })
 
@@ -14299,6 +14546,85 @@ router.post('/transporter/add/commercial', (req, res) => {
     return res.redirect(getTransporterAddCancelRedirect(req, res))
   }
 
+  // Steps: transporter details, find address, select an address, or enter manually
+  if (res.locals.isDesignRelease2Version) {
+    // Keep what has been entered so far, so Back links and later steps have it
+    req.session.data.transporterCommercialForm = formValues
+
+    if (action === 'transporter-continue') {
+      const transporterValidation = validateTransporterCommercialForm(formValues)
+      const transporterFields = ['transporterCommercialAuthorisationNumber']
+      const transporterErrors = {}
+
+      transporterFields.forEach((field) => {
+        if (transporterValidation.errors[field]) {
+          transporterErrors[field] = transporterValidation.errors[field]
+        }
+      })
+
+      const transporterErrorList = transporterValidation.errorList.filter((error) =>
+        Object.values(transporterErrors).some((fieldError) => fieldError.text === error.text)
+      )
+
+      req.session.data.errorList = transporterErrorList.length ? transporterErrorList : null
+      req.session.data.errors = transporterErrorList.length ? transporterErrors : null
+
+      return renderTransporterAddCommercialPage(req, res, {
+        formValues,
+        lookupStep: transporterErrorList.length ? 'transporter' : 'postcode'
+      })
+    }
+
+    if (action === 'manual' || action === 'change') {
+      req.session.data.errorList = null
+      req.session.data.errors = null
+
+      return renderTransporterAddCommercialPage(req, res, {
+        formValues: action === 'manual'
+          ? { ...formValues, addressLine1: '', addressLine2: '', townOrCity: '', county: '', postcode: '' }
+          : formValues,
+        lookupStep: action === 'manual' ? 'details' : 'postcode',
+        selectedLookupAddressId: ''
+      })
+    }
+
+    const postcodeLookupLocals = getAddAddressPostcodeLookupLocals(
+      req,
+      true,
+      addressBookLookupAddresses.northernIrelandAddresses
+    )
+
+    if (postcodeLookupLocals) {
+      const chosenAddress = postcodeLookupLocals.manualAddress
+
+      return renderTransporterAddCommercialPage(req, res, {
+        lookupStep: postcodeLookupLocals.lookupStep,
+        lookupPostcode: postcodeLookupLocals.lookupPostcode,
+        lookupResultItems: postcodeLookupLocals.lookupResultItems || [],
+        selectedLookupAddressId: postcodeLookupLocals.selectedLookupAddressId || '',
+        formValues: chosenAddress
+          ? {
+              ...formValues,
+              name: (req.body.transporterCommercialName || '').trim() || chosenAddress.nameOrOrganisation || '',
+              addressLine1: chosenAddress.addressLine1 || '',
+              addressLine2: chosenAddress.addressLine2 || '',
+              townOrCity: chosenAddress.townOrCity || '',
+              county: chosenAddress.county || '',
+              postcode: postcodeLookupLocals.lookupPostcode
+            }
+          : {
+              ...formValues,
+              name: (req.body.transporterCommercialName || '').trim(),
+              addressLine1: '',
+              addressLine2: '',
+              townOrCity: '',
+              county: '',
+              postcode: ''
+            }
+      })
+    }
+  }
+
   const validation = validateTransporterCommercialForm(formValues)
 
   if (validation.errorList.length) {
@@ -14306,8 +14632,11 @@ router.post('/transporter/add/commercial', (req, res) => {
     req.session.data.errors = validation.errors
     req.session.data.transporterCommercialForm = validation.value
 
+    const hasTransporterStepErrors = Boolean(validation.errors.transporterCommercialAuthorisationNumber)
+
     return renderTransporterAddCommercialPage(req, res, {
       formValues: validation.value,
+      lookupStep: hasTransporterStepErrors ? 'transporter' : 'details',
       showManualAddress: true,
       addressLookup: formValues.addressLookup || '',
       selectedLookupAddressId: formValues.lookupAddressId || ''
