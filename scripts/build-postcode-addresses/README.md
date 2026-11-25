@@ -23,7 +23,7 @@ To build from a file you already have:
 npm run build:postcode-addresses -- --source path/to/BasicCompanyDataAsOneFile-2026-11-01.zip
 ```
 
-Git ignores both the download and the output.
+The output for the 1 November 2026 snapshot is committed, so the prototype needs no build step when it is deployed. This is a one-off: the files are not refreshed. Git ignores the download.
 
 ## What it keeps
 
