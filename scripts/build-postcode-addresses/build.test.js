@@ -114,6 +114,49 @@ test('lookup refuses to answer when the files have not been built', async () => 
   await assert.rejects(lookupPostcode('BB4 4AA', { dir: emptyDir }), /run npm run build:postcode-addresses/)
 })
 
+const {
+  getPostcodeLookupAddresses,
+  getPostcodeLookupAddressById,
+  getPostcodeLookupAddressesForId
+} = require('../../app/utils/postcode-lookup-addresses')
+
+test('the journey forms get each address as an id, a label and form fields', async () => {
+  const { outDir } = await build([
+    `A LTD,1,,,FLAT 2 MILL HOUSE,3 MILL LANE,TOWN,,England,BB4 4AA,${LTD}`,
+    `B LTD,2,,,UNIT 4,,TOWN,,England,BB4 4AA,${LTD}`
+  ])
+
+  const addresses = getPostcodeLookupAddresses(' bb4 4aa ', { dir: outDir })
+
+  assert.deepEqual(addresses.map((address) => [address.id, address.label]), [
+    ['ch-BB44AA-0', 'FLAT 2 MILL HOUSE, 3 MILL LANE, TOWN, BB4 4AA'],
+    ['ch-BB44AA-1', 'UNIT 4, TOWN, BB4 4AA']
+  ])
+  assert.deepEqual(addresses[0].manual, {
+    nameOrOrganisation: '',
+    addressLine1: 'FLAT 2 MILL HOUSE',
+    addressLine2: '3 MILL LANE',
+    townOrCity: 'TOWN',
+    county: '',
+    postcode: 'BB4 4AA',
+    country: 'United Kingdom'
+  })
+  assert.equal(addresses[1].manual.addressLine2, '')
+
+  assert.deepEqual(getPostcodeLookupAddressById('ch-BB44AA-1', { dir: outDir }), addresses[1])
+  assert.deepEqual(getPostcodeLookupAddressesForId('ch-BB44AA-1', { dir: outDir }), addresses)
+})
+
+test('the journey forms get nothing for an id that names no address', async () => {
+  const { outDir } = await build([`A LTD,1,,,1 ROAD,,TOWN,,England,BB4 4AA,${LTD}`])
+
+  for (const id of ['ch-BB44AA-1', 'ch-BB44AB-0', 'ch-BB4-0', 'ch-../../x-0', 'uk-address-1', '', undefined]) {
+    assert.equal(getPostcodeLookupAddressById(id, { dir: outDir }), null, String(id))
+  }
+  assert.equal(getPostcodeLookupAddressesForId('uk-address-1', { dir: outDir }), null)
+  assert.deepEqual(getPostcodeLookupAddresses('BB4', { dir: outDir }), [])
+})
+
 // ---------------------------------------------------------------------------
 // Matching rules. Each case is a pair of real rows from the 1 November 2026
 // snapshot, written as 'PO box|line 1|line 2|post town|county'. Company names
