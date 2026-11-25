@@ -14638,6 +14638,31 @@ router.post('/intro/sign-in', function (req, res) {
   return res.redirect('/design-release-2.1')
 })
 
+// Spike: registered office addresses for a postcode, from the Companies House
+// files that `npm run build:postcode-addresses` writes.
+const { lookupPostcode } = require('./utils/postcode-address-lookup')
+
+const POSTCODE_ERRORS = {
+  missing: 'Enter a postcode',
+  invalid: 'Enter a full UK postcode, like BB4 4AA'
+}
+
+router.get('/postcode-lookup', async function (req, res, next) {
+  if (req.query.postcode === undefined) return res.render('postcode-lookup')
+
+  try {
+    const lookup = await lookupPostcode(req.query.postcode)
+
+    return res.render('postcode-lookup', {
+      postcodeInput: String(req.query.postcode),
+      postcodeError: POSTCODE_ERRORS[lookup.status],
+      lookup
+    })
+  } catch (error) {
+    return next(error)
+  }
+})
+
 const { mountTestingVersion } = require('./lib/testing-version')
 const { mountTesting3Version } = require('./lib/testing3-version')
 const { mountTesting4Version } = require('./lib/testing4-version')

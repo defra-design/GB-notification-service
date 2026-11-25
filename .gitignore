@@ -7,6 +7,12 @@ node_modules/
 migrate.log
 usage-data-config.json
 
+# Companies House snapshot the postcode address build downloads, and the
+# files it writes (rebuild with npm run build:postcode-addresses)
+.cache/
+app/data/generated/postcode-addresses/
+app/data/generated/postcode-addresses.partial/
+
 # OS and editor
 .DS_Store
 .idea/
