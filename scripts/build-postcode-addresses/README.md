@@ -29,7 +29,7 @@ Git ignores both the download and the output.
 
 | Rule | Detail |
 |---|---|
-| Company categories | Private Limited Company; PRI/LTD BY GUAR/NSC; PRI/LBG/NSC; PRIV LTD SECT. 30 |
+| Company categories | Every type in the register, such as private and public limited companies, LLPs, partnerships, charities and overseas entities |
 | Postcode | Upper case, no spaces, and a full UK postcode. Rows with none, or one that does not fit, are skipped and counted. |
 | Address | Needs a PO box or a first address line. Rows with neither are skipped and counted. |
 | Fields used | PO box, address line 1, address line 2, post town, county |

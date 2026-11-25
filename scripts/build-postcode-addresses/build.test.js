@@ -47,20 +47,24 @@ test('two companies at one address appear once, flats and units stay apart', asy
   assert.equal(manifest.counts.rowsRetained, 6)
 })
 
-test('skips other categories and rows with no usable postcode or address, and counts them', async () => {
-  const { manifest } = await build([
+test('keeps every company type, and skips and counts rows with no usable postcode or address', async () => {
+  const { outDir, manifest } = await build([
     'PLC CO,010,,,1 ROAD,,TOWN,,England,BB4 4AA,Public Limited Company',
+    'PARTNERS LLP,014,,,2 ROAD,,TOWN,,England,BB4 4AA,Limited Liability Partnership',
     `NO POSTCODE,011,,,1 ROAD,,TOWN,,England,,${LTD}`,
     `BAD POSTCODE,012,,,1 ROAD,,TOWN,,England,BB4,${LTD}`,
     `NO ADDRESS,013,,,,,TOWN,,England,BB4 4AA,${LTD}`
   ])
 
-  assert.equal(manifest.counts.rowsRead, 4)
-  assert.equal(manifest.counts.rowsInIncludedCategories, 3)
+  assert.equal(manifest.counts.rowsRead, 5)
   assert.equal(manifest.counts.skippedMissingPostcode, 1)
   assert.equal(manifest.counts.skippedInvalidPostcode, 1)
   assert.equal(manifest.counts.skippedMissingAddress, 1)
-  assert.equal(manifest.counts.files, 0)
+  assert.equal(manifest.counts.rowsRetained, 2)
+  assert.deepEqual(
+    JSON.parse(fs.readFileSync(path.join(outDir, 'BB4.json'), 'utf8')).BB44AA,
+    ['1 ROAD, TOWN', '2 ROAD, TOWN']
+  )
 })
 
 test('the same rows in another order give byte-identical files', async () => {

@@ -5,7 +5,7 @@
 //
 // It downloads the latest "BasicCompanyDataAsOneFile" snapshot from
 // Companies House (cached under .cache/companies-house), streams the CSV,
-// keeps UK private limited companies with a usable postcode and address,
+// keeps every company with a usable postcode and address,
 // removes duplicate addresses within each postcode and writes one JSON file
 // per outward code into a fresh app/data/generated/postcode-addresses.
 
@@ -22,15 +22,6 @@ const { addressFromRow, preferredDisplay, compareDisplay } = require('./address'
 const repoRoot = path.join(__dirname, '..', '..')
 const DOWNLOAD_PAGE = 'https://download.companieshouse.gov.uk/en_output.html'
 const SNAPSHOT_FILE = /BasicCompanyDataAsOneFile-(\d{4}-\d{2}-\d{2})\.zip/g
-
-// The CompanyCategory values kept. Every value the snapshot holds, kept or
-// not, is counted in the manifest so this list can be checked against it.
-const INCLUDED_CATEGORIES = [
-  'Private Limited Company',
-  'PRI/LTD BY GUAR/NSC (Private, limited by guarantee, no share capital)',
-  "PRI/LBG/NSC (Private, Limited by guarantee, no share capital, use of 'Limited' exemption)",
-  'PRIV LTD SECT. 30 (Private limited company, section 30 of the Companies Act)'
-]
 
 function parseArgs (argv) {
   const args = {
@@ -119,11 +110,11 @@ function snapshotDateFromName (sourcePath) {
 }
 
 async function collect (csvStream) {
-  const included = new Set(INCLUDED_CATEGORIES)
+  // Every company type is kept. The manifest counts each CompanyCategory the
+  // snapshot holds, so the mix can be checked.
   const categories = {}
   const counts = {
     rowsRead: 0,
-    rowsInIncludedCategories: 0,
     skippedMissingPostcode: 0,
     skippedInvalidPostcode: 0,
     skippedMissingAddress: 0,
@@ -143,8 +134,6 @@ async function collect (csvStream) {
 
     const category = (row.CompanyCategory || '').trim()
     categories[category] = (categories[category] || 0) + 1
-    if (!included.has(category)) continue
-    counts.rowsInIncludedCategories += 1
 
     const postcode = normalisePostcode(row['RegAddress.PostCode'])
     if (!postcode) {
@@ -245,8 +234,8 @@ async function main () {
   console.log(`Reading ${sourcePath}`)
   const { byOutward, categories, counts } = await collect(await openSource(sourcePath))
 
-  if (counts.rowsInIncludedCategories === 0) {
-    throw new Error('No row matched an included CompanyCategory: check INCLUDED_CATEGORIES against the manifest')
+  if (counts.rowsRetained === 0) {
+    throw new Error('No row had a usable postcode and address: check the CSV columns against the manifest')
   }
 
   const sortedCategories = Object.fromEntries(
@@ -256,7 +245,6 @@ async function main () {
   const manifest = writeOutput(args.outDir, byOutward, {
     source: snapshot.url || path.basename(sourcePath),
     snapshotDate: snapshot.date,
-    includedCategories: INCLUDED_CATEGORIES,
     categoriesSeen: sortedCategories,
     counts
   })
@@ -272,4 +260,4 @@ if (require.main === module) {
   })
 }
 
-module.exports = { collect, writeOutput, INCLUDED_CATEGORIES }
+module.exports = { collect, writeOutput }
