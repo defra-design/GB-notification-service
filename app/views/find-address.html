@@ -5,9 +5,8 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
-{% from "govuk/components/select/macro.njk" import govukSelect %}
 
-{% set pageName = "Find an address" %}
+{% set pageName = "Add an address" %}
 
 {% block pageTitle %}
   {{ "Error: " if errorList }}{{ pageName }} – {{ serviceName }} – GOV.UK Prototype Kit
@@ -37,16 +36,15 @@
       }) }}
     {% endif %}
 
-    <span class="govuk-caption-l">Add new address</span>
     <h1 class="govuk-heading-l">{{ pageName }}</h1>
 
-    <form method="get" action="{{ formAction }}" novalidate>
+    <form method="post" action="{{ formAction }}" novalidate>
       {{ govukInput({
         label: {
-          text: "Postcode"
+          text: "Enter a UK postcode"
         },
         hint: {
-          text: "A full UK postcode, like BB4 4AA"
+          text: "For example, AB12 3CD"
         },
         classes: "govuk-input--width-10",
         id: "postcode",
@@ -58,40 +56,16 @@
       }) }}
 
       {{ govukButton({
-        text: "Find address",
-        classes: "govuk-button--secondary" if lookup and lookup.status == "found"
+        text: "Find address"
       }) }}
     </form>
 
-    {% if lookup and lookup.status == "found" %}
-      <form method="post" action="{{ formAction }}" novalidate>
-        <input type="hidden" name="findAddressPostcode" value="{{ lookup.postcode }}">
-
-        {{ govukSelect({
-          id: "address-id",
-          name: "foundAddressId",
-          label: {
-            text: "Select an address",
-            classes: "govuk-label--m"
-          },
-          hint: {
-            text: "Registered office addresses from Companies House"
-          },
-          items: addressItems,
-          errorMessage: { text: addressError } if addressError
-        }) }}
-
-        {{ govukButton({
-          text: "Use this address"
-        }) }}
-      </form>
-    {% elif lookup and lookup.status == "none" %}
-      <h2 class="govuk-heading-m">No addresses found for {{ lookup.postcode }}</h2>
-      <p class="govuk-body">Check the postcode, or enter the address manually.</p>
-    {% endif %}
+    <p class="govuk-body govuk-!-margin-bottom-9">
+      <a class="govuk-link" href="{{ manualHref }}">Enter address manually</a>
+    </p>
 
     <p class="govuk-body">
-      <a class="govuk-link" href="{{ manualHref }}">Enter the address manually</a>
+      <a class="govuk-link" href="{{ cancelHref }}">{{ cancelText }}</a>
     </p>
   </div>
 </div>

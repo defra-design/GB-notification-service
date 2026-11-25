@@ -4,14 +4,14 @@
 
 These are company addresses, not a full address list, so the page labels them "Registered office addresses".
 
-The journey uses the same files in design release 2.1. A "Find an address" page comes before the two UK address forms:
+The journey uses the same files in design release 2.1. Two pages come before the two UK address forms: "Add an address" takes the postcode, then "Select an address" lists the matches in a dropdown.
 
 | Form | How the user reaches it |
 |---|---|
 | Adding a consignee, importer or place of destination to a notification | "Add a new address" on that section's page |
 | Adding a destination or branch address to the address book | Choosing that address type |
 
-The user enters a postcode and picks an address, and the form opens with it filled in. They still add the name and contact details. "Enter the address manually" opens the empty form.
+The user enters a postcode and picks an address, and the form opens with it filled in. They still add the name and contact details. "Enter address manually" opens the empty form.
 
 ## Build the files
 

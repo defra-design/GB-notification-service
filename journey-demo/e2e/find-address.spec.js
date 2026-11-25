@@ -21,7 +21,7 @@ async function startAddressBookAdd (page) {
 }
 
 async function findPostcode (page, input) {
-  await page.getByLabel('Postcode', { exact: true }).fill(input)
+  await page.getByLabel('Enter a UK postcode').fill(input)
   await page.getByRole('button', { name: 'Find address' }).click()
 }
 
@@ -35,9 +35,12 @@ async function expectFilledIn (page, fields) {
 test.describe('address book: adding a destination address', () => {
   test('a chosen address fills in the form', async ({ page }) => {
     await startAddressBookAdd(page)
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Find an address')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Add an address')
 
     await findPostcode(page, '  m1   1al ')
+    // The matches are on a page of their own.
+    await expect(page).toHaveURL(new RegExp(`${BASE}/address-book/add/find-address/select\\?findAddressPostcode=M1%201AL$`))
+    await expect(page.getByTestId('find-address-postcode')).toHaveText('M1 1AL')
     const select = page.getByLabel('Select an address')
     await expect(select.locator('option')).toHaveText([
       '2 addresses found',
@@ -46,7 +49,7 @@ test.describe('address book: adding a destination address', () => {
     ])
 
     await select.selectOption({ label: 'FLAT 606 OXID HOUSE, 78 NEWTON STREET, MANCHESTER, M1 1AL' })
-    await page.getByRole('button', { name: 'Use this address' }).click()
+    await page.getByRole('button', { name: 'Continue' }).click()
 
     await expect(page).toHaveURL(new RegExp(`${BASE}/address-book/add/lookup$`))
     await expectFilledIn(page, {
@@ -61,7 +64,7 @@ test.describe('address book: adding a destination address', () => {
     await startAddressBookAdd(page)
     await findPostcode(page, 'BB4 4JG')
     await page.getByLabel('Select an address').selectOption({ label: 'UNIT 2 YORK AVENUE, HASLINGDEN, ROSSENDALE, BB4 4JG' })
-    await page.getByRole('button', { name: 'Use this address' }).click()
+    await page.getByRole('button', { name: 'Continue' }).click()
     // The page's search script fills the fields in as it starts, so let it
     // finish before typing.
     await page.waitForLoadState('load')
@@ -79,7 +82,7 @@ test.describe('address book: adding a destination address', () => {
   test('using an address with none chosen asks for one', async ({ page }) => {
     await startAddressBookAdd(page)
     await findPostcode(page, 'BB4 4JG')
-    await page.getByRole('button', { name: 'Use this address' }).click()
+    await page.getByRole('button', { name: 'Continue' }).click()
 
     await expect(page).toHaveTitle(/^Error: /)
     await expect(page.locator('#address-id-error')).toContainText('Select an address')
@@ -103,12 +106,21 @@ test.describe('address book: adding a destination address', () => {
     await findPostcode(page, 'ZZ9 9ZZ')
 
     await expect(page.getByRole('heading', { name: 'No addresses found for ZZ9 9ZZ' })).toBeVisible()
-    await page.getByRole('link', { name: 'Enter the address manually' }).click()
+    await page.getByRole('link', { name: 'Enter address manually' }).click()
 
     await expect(page).toHaveURL(new RegExp(`${BASE}/address-book/add/lookup\\?manual=true$`))
     await expect(page.locator('#address-book-manual-address-line-1')).toBeVisible()
     await expect(page.locator('#address-book-manual-address-line-1')).toHaveValue('')
   })
+})
+
+test('changing the postcode goes back with it filled in', async ({ page }) => {
+  await startAddressBookAdd(page)
+  await findPostcode(page, 'BB4 4JG')
+  await page.getByRole('link', { name: 'Change postcode' }).click()
+
+  await expect(page).toHaveURL(new RegExp(`${BASE}/address-book/add/find-address\\?findAddressPostcode=BB4%204JG$`))
+  await expect(page.getByLabel('Enter a UK postcode')).toHaveValue('BB4 4JG')
 })
 
 test.describe('notification: adding a consignee address', () => {
@@ -119,7 +131,7 @@ test.describe('notification: adding a consignee address', () => {
 
     await findPostcode(page, 'n1 7gu')
     await page.getByLabel('Select an address').selectOption({ label: '20-22 WENLOCK ROAD, LONDON, N1 7GU' })
-    await page.getByRole('button', { name: 'Use this address' }).click()
+    await page.getByRole('button', { name: 'Continue' }).click()
 
     await expect(page).toHaveURL(new RegExp(`${BASE}/consignee/add-address\\?foundAddressId=ch-N17GU-\\d+$`))
     await expectFilledIn(page, {

@@ -14703,119 +14703,164 @@ router.get('/postcode-lookup', async function (req, res, next) {
   }
 })
 
-// The find an address page in front of the UK address forms: the user gives a
-// postcode, picks one of the registered office addresses there, and the form
-// opens with it filled in. `paths` names where the page sits, where Back and
-// "Enter the address manually" go, and where a chosen address is sent.
-function findAddressPage (req, res, paths, { addressError = null } = {}) {
-  const rawPostcode = req.method === 'POST' ? req.body.findAddressPostcode : req.query.findAddressPostcode
-  const page = {
-    formAction: paths.formAction,
-    backLink: paths.backLink,
-    manualHref: paths.manualHref
+// Finding an address takes two pages in front of a UK address form: the user
+// enters a postcode on the first, picks one of the registered office addresses
+// there from a list on the second, and the form opens with it filled in.
+//
+// `route` is the first page's route. `urls(res)` gives the links: `page` (the
+// first page as the browser sees it), `back` and `manual`. `guard` redirects
+// and returns true when the pages do not apply. `onChosen` sends the user on
+// with the address they picked.
+function mountFindAddress ({ route, urls, guard, onChosen }) {
+  const postcodeQuery = (postcode) => `findAddressPostcode=${encodeURIComponent(postcode)}`
+
+  function renderPostcodePage (req, res, { postcodeInput = '', postcodeError = null } = {}) {
+    const links = urls(res)
+
+    return res.render('find-address', {
+      formAction: links.page,
+      backLink: links.back,
+      manualHref: links.manual,
+      cancelHref: links.cancel,
+      cancelText: links.cancelText,
+      postcodeInput,
+      postcodeError,
+      errorList: postcodeError ? [{ text: postcodeError, href: '#postcode' }] : null
+    })
   }
 
-  if (rawPostcode === undefined) return res.render('find-address', page)
+  function renderSelectPage (req, res, postcode, { addressError = null } = {}) {
+    const links = urls(res)
+    const addresses = getPostcodeLookupAddresses(postcode)
+    const shown = formatPostcode(postcode)
 
-  const postcode = normalisePostcode(rawPostcode)
-  const postcodeError = !postcode
-    ? POSTCODE_ERRORS.missing
-    : (isFullPostcode(postcode) ? null : POSTCODE_ERRORS.invalid)
-  const addresses = postcodeError ? [] : getPostcodeLookupAddresses(postcode)
-  const lookup = postcodeError
-    ? null
-    : { status: addresses.length ? 'found' : 'none', postcode: formatPostcode(postcode), addresses }
-  const errorList = [
-    postcodeError && { text: postcodeError, href: '#postcode' },
-    addressError && { text: addressError, href: '#address-id' }
-  ].filter(Boolean)
+    return res.render('find-address-select', {
+      formAction: `${links.page}/select`,
+      backLink: `${links.page}?${postcodeQuery(shown)}`,
+      changeHref: `${links.page}?${postcodeQuery(shown)}`,
+      manualHref: links.manual,
+      cancelHref: links.cancel,
+      cancelText: links.cancelText,
+      postcode: shown,
+      addressCount: addresses.length,
+      addressError,
+      errorList: addressError ? [{ text: addressError, href: '#address-id' }] : null,
+      addressItems: [
+        { value: '', text: `${addresses.length} ${addresses.length === 1 ? 'address' : 'addresses'} found` },
+        ...addresses.map((address) => ({
+          value: address.id,
+          text: address.label,
+          selected: address.id === req.body?.foundAddressId
+        }))
+      ]
+    })
+  }
 
-  return res.render('find-address', {
-    ...page,
-    postcodeInput: String(rawPostcode),
-    postcodeError,
-    addressError,
-    errorList: errorList.length ? errorList : null,
-    lookup,
-    addressItems: [
-      { value: '', text: `${addresses.length} ${addresses.length === 1 ? 'address' : 'addresses'} found` },
-      ...addresses.map((address) => ({
-        value: address.id,
-        text: address.label,
-        selected: address.id === req.body?.foundAddressId
-      }))
-    ]
+  // The postcode the select page is for, or null when it is not a full one.
+  function selectedPostcode (req) {
+    const raw = req.method === 'POST' ? req.body.findAddressPostcode : req.query.findAddressPostcode
+    const postcode = normalisePostcode(raw)
+
+    return postcode && isFullPostcode(postcode) ? postcode : null
+  }
+
+  router.get(route, (req, res) => {
+    if (guard(req, res)) return
+
+    return renderPostcodePage(req, res, { postcodeInput: req.query.findAddressPostcode || '' })
+  })
+
+  router.post(route, (req, res) => {
+    if (guard(req, res)) return
+
+    const rawPostcode = req.body.findAddressPostcode || ''
+    const postcode = normalisePostcode(rawPostcode)
+
+    if (!postcode || !isFullPostcode(postcode)) {
+      return renderPostcodePage(req, res, {
+        postcodeInput: rawPostcode,
+        postcodeError: postcode ? POSTCODE_ERRORS.invalid : POSTCODE_ERRORS.missing
+      })
+    }
+
+    return res.redirect(`${urls(res).page}/select?${postcodeQuery(formatPostcode(postcode))}`)
+  })
+
+  router.get(`${route}/select`, (req, res) => {
+    if (guard(req, res)) return
+
+    const postcode = selectedPostcode(req)
+    if (!postcode) return res.redirect(urls(res).page)
+
+    return renderSelectPage(req, res, postcode)
+  })
+
+  router.post(`${route}/select`, (req, res) => {
+    if (guard(req, res)) return
+
+    const postcode = selectedPostcode(req)
+    if (!postcode) return res.redirect(urls(res).page)
+
+    const found = getPostcodeLookupAddressById(req.body.foundAddressId)
+    if (!found) return renderSelectPage(req, res, postcode, { addressError: 'Select an address' })
+
+    return onChosen(req, res, found)
   })
 }
 
-function chosenAddress (req) {
-  return getPostcodeLookupAddressById(req.body.foundAddressId)
-}
+mountFindAddress({
+  route: '/address-book/add/find-address',
+  urls: (res) => {
+    const addressBookBasePath = getAddressBookBasePath(res)
 
-function addressBookFindAddressPaths (res) {
-  const addressBookBasePath = getAddressBookBasePath(res)
+    return {
+      page: `${addressBookBasePath}/add/find-address`,
+      back: `${addressBookBasePath}/add`,
+      manual: `${addressBookBasePath}/add/lookup?manual=true`,
+      cancel: addressBookBasePath,
+      cancelText: 'Cancel and return to address book'
+    }
+  },
+  guard: (req, res) => {
+    if (res.locals.isDesignRelease2Version && addressBookCategoryUsesLookup(req.session.data.addressBookAddressCategory)) {
+      return false
+    }
 
-  return {
-    formAction: `${addressBookBasePath}/add/find-address`,
-    backLink: `${addressBookBasePath}/add`,
-    manualHref: `${addressBookBasePath}/add/lookup?manual=true`
+    res.redirect(`${getAddressBookBasePath(res)}/add`)
+    return true
+  },
+  onChosen: (req, res, found) => {
+    req.session.data.errorList = null
+    req.session.data.errors = null
+    req.session.data.addressBookLookupAddressId = found.id
+    req.session.data.addressBookLookup = found.label
+    req.session.data.addressBookManualAddress = null
+
+    return res.redirect(`${getAddressBookBasePath(res)}/add/lookup`)
   }
-}
-
-function usesAddressBookFindAddress (req, res) {
-  return Boolean(res.locals.isDesignRelease2Version) &&
-    addressBookCategoryUsesLookup(req.session.data.addressBookAddressCategory)
-}
-
-router.get('/address-book/add/find-address', (req, res) => {
-  if (!usesAddressBookFindAddress(req, res)) return res.redirect(`${getAddressBookBasePath(res)}/add`)
-
-  return findAddressPage(req, res, addressBookFindAddressPaths(res))
-})
-
-router.post('/address-book/add/find-address', (req, res) => {
-  if (!usesAddressBookFindAddress(req, res)) return res.redirect(`${getAddressBookBasePath(res)}/add`)
-
-  const found = chosenAddress(req)
-  if (!found) return findAddressPage(req, res, addressBookFindAddressPaths(res), { addressError: 'Select an address' })
-
-  req.session.data.errorList = null
-  req.session.data.errors = null
-  req.session.data.addressBookLookupAddressId = found.id
-  req.session.data.addressBookLookup = found.label
-  req.session.data.addressBookManualAddress = null
-
-  return res.redirect(`${getAddressBookBasePath(res)}/add/lookup`)
 })
 
 consignmentAddressSections
   .filter((section) => section.selectable && consignmentAddAddressUsesLookup(section.id))
   .forEach((section) => {
-    const paths = {
-      formAction: `${section.path}/find-address`,
-      backLink: section.path,
-      manualHref: `${section.path}/add-address?manual=true`
-    }
-    const guard = (req, res) => {
-      if (!isDesignRelease21SessionData(req.session.data)) {
+    mountFindAddress({
+      route: `${section.path}/find-address`,
+      urls: () => ({
+        page: `${section.path}/find-address`,
+        back: section.path,
+        manual: `${section.path}/add-address?manual=true`,
+        cancel: '/notification-hub',
+        cancelText: 'Cancel and return to hub'
+      }),
+      guard: (req, res) => {
+        if (isDesignRelease21SessionData(req.session.data)) return false
+
         res.redirect(`/address-book/add?from=${section.id}`)
         return true
+      },
+      onChosen: (req, res, found) => {
+        return res.redirect(`${section.path}/add-address?foundAddressId=${encodeURIComponent(found.id)}`)
       }
-      return false
-    }
-
-    router.get(`${section.path}/find-address`, (req, res) => {
-      if (guard(req, res)) return
-      return findAddressPage(req, res, paths)
-    })
-
-    router.post(`${section.path}/find-address`, (req, res) => {
-      if (guard(req, res)) return
-
-      const found = chosenAddress(req)
-      if (!found) return findAddressPage(req, res, paths, { addressError: 'Select an address' })
-
-      return res.redirect(`${section.path}/add-address?foundAddressId=${encodeURIComponent(found.id)}`)
     })
   })
 
