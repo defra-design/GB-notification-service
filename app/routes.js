@@ -876,6 +876,10 @@ function removeSpeciesFromSession (sessionData, speciesId) {
     delete sessionData.numberOfPackages[speciesId]
   }
 
+  if (sessionData.germinalPackages && sessionData.germinalPackages[speciesId] != null) {
+    delete sessionData.germinalPackages[speciesId]
+  }
+
   if (sessionData.netWeight && sessionData.netWeight[speciesId] != null) {
     delete sessionData.netWeight[speciesId]
   }
@@ -911,6 +915,10 @@ function removeCommodityFromSession (sessionData, commodityId) {
 
       if (sessionData.numberOfPackages && sessionData.numberOfPackages[speciesId] != null) {
         delete sessionData.numberOfPackages[speciesId]
+      }
+
+      if (sessionData.germinalPackages && sessionData.germinalPackages[speciesId] != null) {
+        delete sessionData.germinalPackages[speciesId]
       }
 
       if (sessionData.netWeight && sessionData.netWeight[speciesId] != null) {
@@ -1046,6 +1054,9 @@ function buildSpeciesConsignmentEntry (sessionData, speciesId, match) {
   const numberOfAnimals = sessionData.numberOfAnimals || {}
   const numberOfPackages = sessionData.numberOfPackages || {}
   const netWeight = sessionData.netWeight || {}
+  // Germinal products: numberOfPackages holds "Quantity (unit/pieces)" and
+  // germinalPackages holds "Number of packages"
+  const germinalPackages = sessionData.germinalPackages || {}
   const packagingFields = getPackagingFields(commodity)
   const isGerminalProduct = isGerminalProductCommodity(commodity)
 
@@ -1061,6 +1072,7 @@ function buildSpeciesConsignmentEntry (sessionData, speciesId, match) {
     numberOfAnimals: numberOfAnimals[speciesId] != null ? String(numberOfAnimals[speciesId]) : '',
     netWeight: netWeight[speciesId] != null ? String(netWeight[speciesId]) : '',
     numberOfPackages: numberOfPackages[speciesId] != null ? String(numberOfPackages[speciesId]) : '',
+    germinalPackages: germinalPackages[speciesId] != null ? String(germinalPackages[speciesId]) : '',
     showPackaging: !isGerminalProduct && packagingFields.length > 0,
     packagingFields: packagingFields.map((field) => ({
       id: `${field.id}-${speciesId}`,
@@ -1216,6 +1228,56 @@ function parseNumberOfPackages (body, speciesIds) {
   })
 
   return values
+}
+
+// "Number of packages" for germinal products. Optional, like the live animals
+// field, but a value that is entered must be a whole number greater than 0.
+function parseGerminalPackages (body, speciesIds) {
+  const rawValues = body.germinalPackages && typeof body.germinalPackages === 'object'
+    ? body.germinalPackages
+    : {}
+  const values = {}
+
+  speciesIds.forEach((speciesId) => {
+    const match = getSpeciesMatch(speciesId)
+
+    if (!match || !isGerminalProductCommodity(match.commodity)) {
+      return
+    }
+
+    const value = rawValues[speciesId] != null ? rawValues[speciesId] : body[`germinalPackages[${speciesId}]`]
+
+    values[speciesId] = value != null ? String(value).trim() : ''
+  })
+
+  return values
+}
+
+function validateGerminalPackages (values) {
+  const errors = {}
+  const errorList = []
+
+  Object.keys(values).forEach((speciesId) => {
+    const value = values[speciesId]
+
+    if (value && (!/^\d+$/.test(value) || Number(value) < 1)) {
+      errors[`germinalPackages-${speciesId}`] = { text: 'Number of packages must be a whole number greater than 0' }
+      errorList.push({
+        text: 'Number of packages must be a whole number greater than 0',
+        href: `#number-of-packages-${speciesId}`
+      })
+    }
+  })
+
+  return { errors, errorList }
+}
+
+function getTotalGerminalPackageCount (sessionData) {
+  return Object.values(sessionData.germinalPackages || {}).reduce((total, value) => {
+    const count = Number(value)
+
+    return Number.isFinite(count) && count > 0 ? total + count : total
+  }, 0)
 }
 
 function parseNetWeight (body, speciesIds) {
@@ -5535,6 +5597,10 @@ function buildReviewCommoditySections (sessionData) {
           key: GERMINAL_QUANTITY_LABEL,
           value: formatReviewValueOrNa(entry.numberOfPackages)
         })
+        rows.push({
+          key: 'Number of packages',
+          value: formatReviewValueOrNa(entry.germinalPackages)
+        })
       } else {
         rows.push({
           key: 'Number of animals',
@@ -6150,6 +6216,9 @@ function buildDesignRelease2CommodityCards (sessionData, speciesSections, readOn
       ? [{
         key: GERMINAL_QUANTITY_LABEL,
         value: formatReviewValueOrNa(entry.numberOfPackages)
+      }, {
+        key: 'Number of packages',
+        value: formatReviewValueOrNa(entry.germinalPackages)
       }]
       : [{
         key: 'Number of animals',
@@ -7498,9 +7567,12 @@ function getNotificationHubViewModel (sessionData) {
   const statusComplete = { text: 'Complete', class: 'govuk-tag--green' }
   const statusTodo = { text: 'To do', class: 'govuk-tag--blue' }
   const totalAnimals = getTotalAnimalCount(sessionData)
-  const totalPackages = getTotalPackageCount(sessionData)
-  const totalNetWeight = getTotalNetWeight(sessionData)
   const showGerminalSummary = hasGerminalProductsOnly(sessionData)
+  // Germinal products count the "Number of packages" answers, not the quantity
+  const totalPackages = showGerminalSummary
+    ? getTotalGerminalPackageCount(sessionData)
+    : getTotalPackageCount(sessionData)
+  const totalNetWeight = getTotalNetWeight(sessionData)
   const isCreatingTemplate = isCreatingTemplateJourney(sessionData)
   const skipShipmentFields = isDesignRelease21TemplateCreate(sessionData)
 
@@ -7534,6 +7606,8 @@ function getNotificationHubViewModel (sessionData) {
     showGerminalSummary,
     animalCountDisplay: totalAnimals > 0 ? String(totalAnimals) : '0',
     packagesDisplay: totalPackages > 0 ? String(totalPackages) : '0',
+    // Germinal products: the total of the "Quantity (unit/pieces)" answers
+    quantityDisplay: getTotalPackageCount(sessionData) > 0 ? String(getTotalPackageCount(sessionData)) : '0',
     netWeightDisplay: formatNetWeightDisplay(totalNetWeight),
     tasklistHeading: isCreatingTemplate ? 'Template tasklist' : 'Notification tasklist',
     sections: [
@@ -8922,6 +8996,7 @@ function buildTemplateFromSession (sessionData) {
         : [],
       numberOfAnimalsBySpecies: sessionData.numberOfAnimals || {},
       numberOfPackagesBySpecies: sessionData.numberOfPackages || {},
+      germinalPackagesBySpecies: sessionData.germinalPackages || {},
       netWeight: sessionData.netWeight || {},
       packageType: sessionData.packageType || {},
       animalIdentifiers: Object.keys(animalIdentifiers).length
@@ -9225,6 +9300,10 @@ function seedNotificationSessionFromTemplate (sessionData, template) {
     sessionData.numberOfPackages = { ...review.numberOfPackagesBySpecies }
   }
 
+  if (review.germinalPackagesBySpecies && typeof review.germinalPackagesBySpecies === 'object') {
+    sessionData.germinalPackages = { ...review.germinalPackagesBySpecies }
+  }
+
   if (review.netWeight && typeof review.netWeight === 'object') {
     sessionData.netWeight = { ...review.netWeight }
   }
@@ -9337,6 +9416,7 @@ function buildTemplateSessionFromReview (review = {}) {
     commoditySelections: Array.isArray(review.commoditySelections) ? review.commoditySelections : [],
     numberOfAnimals: review.numberOfAnimalsBySpecies || {},
     numberOfPackages: review.numberOfPackagesBySpecies || {},
+    germinalPackages: review.germinalPackagesBySpecies || {},
     netWeight: review.netWeight || {},
     packageType: review.packageType || {},
     animalIdentifiers: review.animalIdentifiers || {},
@@ -12636,14 +12716,15 @@ router.post('*', (req, res, next) => {
 
 router.get('/create-notification', (req, res) => {
   const isDr21 = isDesignRelease21SessionData(req.session.data)
-  // Testing 3 always asks what is being imported, even from a category dashboard
-  const isRound2 = isRound2TestingSessionData(req.session.data)
   const category = normaliseNotificationType(req.query.category)
 
   resetNotificationJourneySession(req.session.data)
   delete req.session.data.isCreatingTemplate
 
-  if (isDr21 && (!category || isRound2)) {
+  // From a live animals or germinal products dashboard the type is already
+  // known, so the "what are you importing" question is skipped. It is only
+  // asked when there is no category, such as from the overall dashboard.
+  if (isDr21 && !category) {
     return res.redirect('/notification-type')
   }
 
@@ -12906,6 +12987,8 @@ router.post('/consignment-details', (req, res) => {
   const speciesIds = normalizeSelectedSpecies(req.session.data.selectedSpecies)
   const numberOfAnimals = parseNumberOfAnimals(req.body, speciesIds)
   const numberOfPackages = parseNumberOfPackages(req.body, speciesIds)
+  const germinalPackages = parseGerminalPackages(req.body, speciesIds)
+  const germinalPackagesValidation = validateGerminalPackages(germinalPackages)
   const storageTemperature = (req.body.storageTemperature || '').trim()
 
   const animalValidation = applyJourneyValidation(
@@ -12926,11 +13009,13 @@ router.post('/consignment-details', (req, res) => {
   const errors = {
     ...animalValidation.errors,
     ...packagingValidation.errors,
+    ...germinalPackagesValidation.errors,
     ...temperatureValidation.errors
   }
   const errorList = [
     ...animalValidation.errorList,
     ...packagingValidation.errorList,
+    ...germinalPackagesValidation.errorList,
     ...temperatureValidation.errorList
   ]
 
@@ -12939,6 +13024,7 @@ router.post('/consignment-details', (req, res) => {
     req.session.data.errors = errors
     req.session.data.numberOfAnimals = numberOfAnimals
     req.session.data.numberOfPackages = numberOfPackages
+    req.session.data.germinalPackages = germinalPackages
     req.session.data.packageType = {}
     req.session.data.storageTemperature = showsGerminalTemperatureQuestion(req.session.data)
       ? (storageTemperature || null)
@@ -12953,6 +13039,7 @@ router.post('/consignment-details', (req, res) => {
   req.session.data.errors = null
   req.session.data.numberOfAnimals = numberOfAnimals
   req.session.data.numberOfPackages = numberOfPackages
+  req.session.data.germinalPackages = germinalPackages
   req.session.data.packageType = {}
   req.session.data.storageTemperature = showsGerminalTemperatureQuestion(req.session.data)
     ? storageTemperature
