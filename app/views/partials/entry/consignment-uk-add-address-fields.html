@@ -1,0 +1,84 @@
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+
+{#
+  UK address lookup, following the GOV.UK Design System "Addresses" pattern:
+    1. postcode  - enter a postcode and select "Find address"
+    2. results   - select an address from the dropdown list
+    3. details   - check the address and add contact details
+  Every step has "Enter address manually".
+#}
+{% set manualAddressHref = formAction + ("&" if "?" in formAction else "?") + "manual=1" %}
+{% set changePostcodeHref = formAction + ("&" if "?" in formAction else "?") + "change=1" %}
+
+{% if lookupStep == "results" %}
+  <input type="hidden" name="addressPostcode" value="{{ lookupPostcode }}">
+
+  <p class="govuk-body">
+    Postcode<br>
+    <strong>{{ lookupPostcode }}</strong>
+    <a class="govuk-link" href="{{ changePostcodeHref }}">Change postcode</a>
+  </p>
+
+  {% set addressSelectItems = [{
+    value: "",
+    text: (lookupResultItems | length) + (" address found" if (lookupResultItems | length) == 1 else " addresses found")
+  }] %}
+  {% for item in lookupResultItems %}
+    {% set addressSelectItems = (addressSelectItems.push({ value: item.value, text: item.text, selected: item.checked }), addressSelectItems) %}
+  {% endfor %}
+
+  {{ govukSelect({
+    id: "address-result",
+    name: "addressBookLookupAddressId",
+    label: {
+      text: "Select an address"
+    },
+    errorMessage: data.errors.addressBookLookupAddressId if data.errors and data.errors.addressBookLookupAddressId,
+    items: addressSelectItems
+  }) }}
+
+  {{ govukButton({
+    text: "Continue",
+    name: "action",
+    value: "choose"
+  }) }}
+
+  <p class="govuk-body">
+    <a class="govuk-link" href="{{ manualAddressHref }}">Enter address manually</a>
+  </p>
+{% elif lookupStep == "details" %}
+  <input type="hidden" name="manualAddressEntry" value="true">
+  <input type="hidden" name="addressBookLookupAddressId" value="{{ selectedLookupAddressId or '' }}">
+
+  <div class="app-consignment-add-address-page__address-form" id="consignment-manual-address">
+    {% include "partials/entry/consignment-uk-manual-address-fields.html" %}
+    {% include "partials/entry/consignment-uk-contact-fields.html" %}
+  </div>
+{% else %}
+  {{ govukInput({
+    label: {
+      text: "Enter a UK postcode"
+    },
+    hint: {
+      text: "For example, AB12 3CD"
+    },
+    classes: "govuk-input--width-10",
+    id: "address-postcode",
+    name: "addressPostcode",
+    value: lookupPostcode,
+    autocomplete: "postal-code",
+    errorMessage: data.errors.addressPostcode if data.errors and data.errors.addressPostcode
+  }) }}
+
+  {{ govukButton({
+    text: "Find address",
+    name: "action",
+    value: "find"
+  }) }}
+
+  <p class="govuk-body">
+    <a class="govuk-link" href="{{ manualAddressHref }}">Enter address manually</a>
+  </p>
+{% endif %}

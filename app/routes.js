@@ -436,6 +436,7 @@ function resetNotificationJourneySession (sessionData) {
   const testing2Session = sessionData._testing2
   const testing3Session = sessionData._testing3
   const testing4Session = sessionData._testing4
+  const entrySession = sessionData._entry
 
   Object.keys(sessionData).forEach((key) => {
     delete sessionData[key]
@@ -483,6 +484,10 @@ function resetNotificationJourneySession (sessionData) {
 
   if (testing4Session && typeof testing4Session === 'object') {
     sessionData._testing4 = testing4Session
+  }
+
+  if (entrySession && typeof entrySession === 'object') {
+    sessionData._entry = entrySession
   }
 }
 
@@ -6806,10 +6811,12 @@ function loadNotificationIntoTemplateSession (sessionData, sourceSnapshot, backL
     '_isTesting2Version',
     '_isTesting3Version',
     '_isTesting4Version',
+    '_isEntryVersion',
     '_testing',
     '_testing2',
     '_testing3',
     '_testing4',
+    '_entry',
     'addressBookAddedAddresses',
     'amendingFrom',
     'amendOriginalSnapshot',
@@ -6877,10 +6884,12 @@ function loadDraftSnapshotIntoSession (sessionData, snapshot) {
     '_isTesting2Version',
     '_isTesting3Version',
     '_isTesting4Version',
+    '_isEntryVersion',
     '_designRelease21',
     '_testing2',
     '_testing3',
     '_testing4',
+    '_entry',
     'deletedNotificationReferences',
     'draftNotifications',
     'submittedNotifications',
@@ -7015,6 +7024,10 @@ function renderReviewNotificationPage (req, res, options = {}) {
   // Dashboard snapshots are shared between versions, so carry the version over
   if (isTesting4SessionData(req.session.data)) {
     sessionData = { ...sessionData, _isTesting4Version: true }
+  }
+
+  if (req.session.data._isEntryVersion) {
+    sessionData = { ...sessionData, _isEntryVersion: true }
   }
 
   if (isTesting3SessionData(req.session.data)) {
@@ -8065,10 +8078,12 @@ function getComparableNotificationSnapshot (sessionData) {
     '_isTesting2Version',
     '_isTesting3Version',
     '_isTesting4Version',
+    '_isEntryVersion',
     '_testing',
     '_testing2',
     '_testing3',
     '_testing4',
+    '_entry',
     'addressBookAddedAddresses',
     'amendingFrom',
     'amendOriginalSnapshot',
@@ -8208,6 +8223,10 @@ function isDesignRelease2SessionData (sessionData) {
 function getDesignReleaseBasePath (sessionData = {}) {
   if (sessionData._isTesting2Version) {
     return '/testing2'
+  }
+
+  if (sessionData._isEntryVersion) {
+    return '/entry'
   }
 
   if (sessionData._isTesting4Version) {
@@ -9558,6 +9577,7 @@ function buildTemplateReviewSessionData (template, requestSession = {}) {
     _isTesting2Version: requestSession._isTesting2Version,
     _isTesting3Version: requestSession._isTesting3Version,
     _isTesting4Version: requestSession._isTesting4Version,
+    _isEntryVersion: requestSession._isEntryVersion,
     isCreatingTemplate: true
   }
 
@@ -9720,10 +9740,31 @@ function buildTemplateReviewViewModel (template, basePath = '/design-release-2.1
   }
 }
 
-function getDashboardTemplatesViewModel (query = {}, sessionData = {}) {
+// `options.entryType` limits the list to one notification type, for the
+// "Sign-in to dashboard" version
+function templateMatchesEntryType (template, entryType) {
+  const isGerminal = String(template.categoryLabel || '').toLowerCase().includes('germinal')
+
+  if (entryType === 'germinal-products') {
+    return isGerminal
+  }
+
+  if (entryType === 'live-animals') {
+    return !isGerminal
+  }
+
+  // Types with no journey yet have no templates
+  return false
+}
+
+function getDashboardTemplatesViewModel (query = {}, sessionData = {}, options = {}) {
   const sort = (query.sort || '').trim()
   const basePath = getDesignReleaseBasePath(sessionData) || '/design-release-2.1'
-  const templates = getAllDashboardTemplates(sessionData).map((template) => ({
+  const allTemplates = getAllDashboardTemplates(sessionData)
+  const templates = (options.entryType
+    ? allTemplates.filter((template) => templateMatchesEntryType(template, options.entryType))
+    : allTemplates
+  ).map((template) => ({
     categoryLabel: template.categoryLabel,
     title: template.title,
     commodityLabel: template.commodityLabel,
@@ -10337,7 +10378,9 @@ function renderDashboardTemplatesPage (req, res) {
   return res.render('dashboard-templates', {
     serviceNavActive: 'templates',
     successMessage,
-    ...getDashboardTemplatesViewModel(req.query, req.session.data)
+    ...getDashboardTemplatesViewModel(req.query, req.session.data, {
+      entryType: res.locals.isEntryVersion ? res.locals.entryType : null
+    })
   })
 }
 
@@ -12682,6 +12725,27 @@ function renderUploadDocumentsPage (req, res, locals = {}) {
   })
 }
 
+// The "Sign-in to dashboard" version remembers which notification type the
+// user chose in a cookie, not in its saved data, because that data is cleared
+// and replaced as notifications are started, opened and copied.
+// (Registered as get and post routes, not router.use or router.all, so each
+// version's router copies it. Only the entry version acts on it.)
+function applyEntryType (req, res, next) {
+  if (res.locals.isEntryVersion) {
+    const type = readCookie(req, ENTRY_TYPE_COOKIE)
+
+    if (ENTRY_TYPES[type]) {
+      res.locals.entryType = type
+      res.locals.entryTypeName = ENTRY_TYPES[type].text
+    }
+  }
+
+  return next()
+}
+
+router.get('*', applyEntryType)
+router.post('*', applyEntryType)
+
 // While a template is being created in the updated versions, "Save and return"
 // goes to the Review your template page instead of the overview, so users can
 // see everything in the template and what still needs changing.
@@ -13230,12 +13294,121 @@ router.get('/', (req, res) => {
     return res.redirect(`/live-animals${queryString}`)
   }
 
+  // The "Sign-in to dashboard" version has no page across all the types: its
+  // home is the dashboard for the chosen type, or the start page before that
+  if (res.locals.isEntryVersion) {
+    return res.redirect(res.locals.entryType
+      ? `${ENTRY_BASE_PATH}/${res.locals.entryType}${queryString}`
+      : `${ENTRY_BASE_PATH}/start`)
+  }
+
   if (isDesignRelease21SessionData(req.session.data)) {
     return renderOverallDashboardPage(req, res)
   }
 
   return renderDashboardPage(req, res)
 })
+
+// ---------------------------------------------------------------------------
+// "Sign-in to dashboard" version (/entry)
+//
+// A start page, a sign-in step and a plain list of links lead to a dashboard
+// for each notification type. There is no page across all the types. The
+// version is a separate copy of Design release 2: see app/lib/entry-version.js.
+// These routes only answer inside that version.
+// ---------------------------------------------------------------------------
+const ENTRY_BASE_PATH = '/entry'
+const ENTRY_TYPE_COOKIE = 'entry-type'
+
+function readCookie (req, name) {
+  const header = String((req.headers && req.headers.cookie) || '')
+  const match = header.split(';').map((part) => part.trim()).find((part) => part.indexOf(`${name}=`) === 0)
+
+  return match ? decodeURIComponent(match.slice(name.length + 1)) : ''
+}
+
+const ENTRY_TYPES = {
+  'live-animals': {
+    text: 'Live animals',
+    hint: 'Includes livestock, horses, poultry and other birds, pets, bees, reptiles and hatching eggs.'
+  },
+  'germinal-products': {
+    text: 'Germinal products',
+    hint: 'Animal semen, ova and embryos.'
+  },
+  'marine-fish': {
+    text: 'Wild marine fish',
+    hint: 'Wild marine fish, cephalopods and crustaceans.',
+    placeholder: true
+  },
+  'high-risk-plants': {
+    text: 'High-risk plants',
+    placeholder: true,
+    hint: 'Plant products that can carry plant diseases: seed and ware potatoes, wood and bark, and plants for planting.'
+  }
+}
+
+router.get('/start', (req, res, next) => {
+  if (!res.locals.isEntryVersion) return next()
+
+  return res.render('start', { signInHref: `${ENTRY_BASE_PATH}/sign-in` })
+})
+
+router.get('/sign-in', (req, res, next) => {
+  if (!res.locals.isEntryVersion) return next()
+
+  return res.render('sign-in', {
+    formAction: `${ENTRY_BASE_PATH}/sign-in`,
+    backLink: `${ENTRY_BASE_PATH}/start`
+  })
+})
+
+router.post('/sign-in', (req, res, next) => {
+  if (!res.locals.isEntryVersion) return next()
+
+  return res.redirect(`${ENTRY_BASE_PATH}/choose`)
+})
+
+router.get('/choose', (req, res, next) => {
+  if (!res.locals.isEntryVersion) return next()
+
+  return res.render('choose-links', {
+    typeItems: Object.keys(ENTRY_TYPES).map((value) => ({
+      text: ENTRY_TYPES[value].text,
+      hint: ENTRY_TYPES[value].hint,
+      href: `${ENTRY_BASE_PATH}/go/${value}`
+    }))
+  })
+})
+
+// Remembers the chosen type and opens its dashboard
+router.get('/go/:type', (req, res, next) => {
+  if (!res.locals.isEntryVersion) return next()
+
+  const type = String(req.params.type || '')
+
+  if (!ENTRY_TYPES[type]) {
+    return res.redirect(`${ENTRY_BASE_PATH}/choose`)
+  }
+
+  res.cookie(ENTRY_TYPE_COOKIE, type, { path: ENTRY_BASE_PATH, sameSite: 'lax' })
+
+  return res.redirect(`${ENTRY_BASE_PATH}/${type}`)
+})
+
+// Types with no journey in the prototype yet get a placeholder dashboard
+Object.keys(ENTRY_TYPES)
+  .filter((type) => ENTRY_TYPES[type].placeholder)
+  .forEach((type) => {
+    router.get(`/${type}`, (req, res, next) => {
+      if (!res.locals.isEntryVersion) return next()
+
+      return res.render('placeholder-dashboard', {
+        serviceNavActive: 'dashboard',
+        placeholderTypeName: ENTRY_TYPES[type].text
+      })
+    })
+  })
 
 router.get('/live-animals', (req, res) => {
   return renderDashboardPage(req, res)
@@ -15333,9 +15506,11 @@ const { mountTestingVersion } = require('./lib/testing-version')
 const { mountTesting3Version } = require('./lib/testing3-version')
 const { mountTesting4Version } = require('./lib/testing4-version')
 const { mountDesignRelease21Version } = require('./lib/design-release-2.1-version')
+const { mountEntryVersion } = require('./lib/entry-version')
 
 // Mount the longer /testing* paths before /testing so Express does not treat them as that route
 mountTesting4Version(govukPrototypeKit, router)
 mountTesting3Version(govukPrototypeKit, router)
 mountTestingVersion(govukPrototypeKit, router)
 mountDesignRelease21Version(govukPrototypeKit, router)
+mountEntryVersion(govukPrototypeKit, router)

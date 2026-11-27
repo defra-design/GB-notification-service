@@ -1,0 +1,32 @@
+{% extends "layouts/main.html" %}
+
+{% set pageName = "Import notification service" %}
+{# Manage account follows the service name and Sign out sits at the right-hand
+   end of the bar; both are added by entry/_header.html #}
+{% set entryShowManageAccount = true %}
+
+{% block pageTitle %}
+  Choose which notifications to view or manage – Import notification service – GOV.UK
+{% endblock %}
+
+{% block header %}
+  {% include "entry/_header.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+    <p class="govuk-body">Choose which notifications to view or manage. You can see your existing notifications and create new ones.</p>
+
+    {% for item in typeItems %}
+      <h2 class="govuk-heading-m govuk-!-margin-bottom-2">
+        <a class="govuk-link" href="{{ item.href }}">{{ item.text }}</a>
+      </h2>
+      <p class="govuk-body">{{ item.hint }}</p>
+      <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

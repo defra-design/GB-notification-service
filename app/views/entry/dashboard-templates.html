@@ -1,0 +1,126 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "partials/entry/dashboard-template-card.html" import dr2DashboardTemplateCard %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+
+{% set pageName = "Manage templates" %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full app-dashboard-page app-dashboard-page--dr2">
+
+    {% if successMessage %}
+      {% set successBannerHtml %}
+        <h3 class="govuk-notification-banner__heading">{{ successMessage }}</h3>
+      {% endset %}
+      {{ govukNotificationBanner({
+        type: "success",
+        titleText: "Success",
+        html: successBannerHtml,
+        classes: "app-dr2-dashboard__success-banner",
+        attributes: {
+          "data-auto-dismiss-ms": "5000"
+        }
+      }) }}
+    {% endif %}
+
+    <section class="app-dr2-dashboard-intro app-dr2-dashboard-intro--templates govuk-!-margin-bottom-8" aria-labelledby="dashboard-templates-heading">
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+          <div class="app-dr2-dashboard-intro__header">
+            {% if entryTypeName %}<p class="app-dr2-dashboard-intro__caption">{{ entryTypeName }}</p>{% endif %}
+            {# "Change import type" sits to the right of the heading, as on the dashboard #}
+            <div class="app-entry-heading-row">
+              <h1 class="app-dr2-dashboard-intro__heading" id="dashboard-templates-heading">Manage templates</h1>
+              <a class="govuk-link govuk-body govuk-!-margin-bottom-0" href="/entry/choose">Change import type</a>
+            </div>
+            <p class="app-dr2-dashboard-intro__description">Select, manage or create new notification templates</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="app-dr2-dashboard-intro__actions">
+        {{ govukButton({
+          text: "Create new template",
+          href: "/entry/templates/create?new=1"
+        }) }}
+      </div>
+
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+          {% set templatesDetailsHtml %}
+            <p class="govuk-body">Create a notification template if you import the same commodities regularly and want to save time. You can choose how much information you pre-populate in the form, and can complete the template so that you only need to:</p>
+            <ul class="govuk-list govuk-list--bullet">
+              <li>provide the arrival date</li>
+              <li>upload any documents</li>
+            </ul>
+            <p class="govuk-body">You can also create a template from an existing notification:</p>
+            <ol class="govuk-list govuk-list--number">
+              <li>Select 'View' on the notification in your dashboard.</li>
+              <li>Select 'Actions', then 'Make template'.</li>
+              <li>Give the template a name.</li>
+              <li>Change or remove anything that will be different next time, then select 'Save template'.</li>
+            </ol>
+            {{ govukWarningText({
+              text: "It is your responsibility to check that all information in a notification is correct when it is submitted.",
+              iconFallbackText: "Warning",
+              classes: "govuk-!-margin-bottom-0"
+            }) }}
+          {% endset %}
+          {{ govukDetails({
+            summaryText: "Help with templates",
+            html: templatesDetailsHtml,
+            classes: "govuk-!-margin-bottom-0"
+          }) }}
+        </div>
+      </div>
+    </section>
+
+    <section class="app-dr2-dashboard-templates" aria-labelledby="dashboard-templates-list-heading">
+      <h2 class="app-dr2-dashboard-templates__heading" id="dashboard-templates-list-heading">My templates</h2>
+
+      {% if templates | length %}
+      <div class="app-dr2-dashboard-templates__controls">
+        <p class="app-dr2-dashboard-results__count">{{ resultsText }}</p>
+
+        <div class="app-dr2-dashboard-search__sort">
+          {{ govukSelect({
+            id: "dashboard-templates-sort",
+            name: "sort",
+            label: {
+              text: "Sort by:",
+              classes: "app-dr2-dashboard-search__sort-label"
+            },
+            classes: "app-dr2-dashboard-search__sort-select",
+            items: sortItems
+          }) }}
+        </div>
+      </div>
+
+      <div class="app-dr2-dashboard-template-list">
+        {% for template in templates %}
+          {{ dr2DashboardTemplateCard(template) }}
+        {% endfor %}
+      </div>
+      {% else %}
+        <p class="govuk-body">You have no {{ (entryTypeName or "notification") | lower }} templates.</p>
+      {% endif %}
+    </section>
+
+  </div>
+</div>
+{% endblock %}
