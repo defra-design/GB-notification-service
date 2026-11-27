@@ -61,6 +61,9 @@ function createVersionMount ({
   versionFlag,
   viewFolder,
   otherVersionBases = [],
+  // false keeps the address book and submitted notifications inside this
+  // version only, instead of sharing them with the other versions
+  shareSessionKeys = true,
   setupSession = () => {},
   setupLocals = () => ({})
 }) {
@@ -182,6 +185,10 @@ function createVersionMount ({
   }
 
   function attachSharedSessionAccessors (nest, root) {
+    if (!shareSessionKeys) {
+      return
+    }
+
     SHARED_SESSION_KEYS.forEach((key) => {
       Object.defineProperty(nest, key, {
         configurable: true,
@@ -197,6 +204,10 @@ function createVersionMount ({
   }
 
   function detachSharedSessionAccessors (nest) {
+    if (!shareSessionKeys) {
+      return
+    }
+
     SHARED_SESSION_KEYS.forEach((key) => {
       if (Object.prototype.hasOwnProperty.call(nest, key)) {
         delete nest[key]

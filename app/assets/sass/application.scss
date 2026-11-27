@@ -10092,3 +10092,28 @@ body.app-dr2-amend-modal-open {
 .step-nav__list--choice li {
   margin-bottom: 5px;
 }
+
+// "Sign-in to dashboard" version: the item with this class, and any after it,
+// sit at the right-hand end of the GOV.UK service navigation on wider screens. On a phone it stays in the menu
+// list with the other links.
+@media (min-width: 40.0625em) {
+  .app-service-navigation__item--end {
+    margin-left: auto;
+  }
+
+  // The final item lines up with the right-hand edge of the page content
+  .app-service-navigation__item--last {
+    margin-right: 0;
+  }
+}
+
+// "Sign-in to dashboard" version: the page heading with the "Change import
+// type" link at the right-hand end of the same line. The link drops under the
+// heading when there is not room, such as on a phone.
+.app-entry-heading-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 5px 20px;
+}

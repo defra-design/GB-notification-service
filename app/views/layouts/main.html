@@ -60,19 +60,50 @@ https://prototype-kit.service.gov.uk/docs/how-to-use-layouts
     {% endif %}
   {% else %}
     {{ govukHeader({
-      homepageUrl: navServiceHref,
+      homepageUrl: "/index",
       serviceName: serviceName if not useServiceNavigation,
-      serviceUrl: serviceUrl if not useServiceNavigation else navServiceHref,
+      serviceUrl: serviceUrl if not useServiceNavigation else navDashboardHref,
       containerClasses: "govuk-width-container"
     }) }}
 
     {% if useServiceNavigation %}
       {% if isDesignRelease2Version %}
-        {% if isDesignRelease21Version %}
+        {% if isEntryVersion and entryType %}
+          {# "Sign-in to dashboard" version: the service name, the links for the
+             chosen type and Sign out. The type and "Change import type" are on the
+             dashboard; Manage account is on the page where the type is chosen #}
+          {% set entryTypeHref = journeyBasePath + "/" + entryType %}
+          {{
+            govukServiceNavigation({
+              serviceName: "Import notification service",
+              serviceUrl: entryTypeHref,
+              navigation: [
+                {
+                  href: entryTypeHref,
+                  text: "Dashboard",
+                  active: serviceNavActive == "dashboard"
+                },
+                {
+                  href: navTemplatesHref,
+                  text: "Templates",
+                  active: serviceNavActive == "templates"
+                },
+                {
+                  href: navAddressBookHref,
+                  text: "Address book",
+                  active: serviceNavActive == "address-book"
+                }
+              ],
+              slots: {
+                navigationEnd: '<li class="govuk-service-navigation__item app-service-navigation__item--end app-service-navigation__item--last"><a class="govuk-service-navigation__link" href="' + journeyBasePath + '/start">Sign out</a></li>'
+              }
+            })
+          }}
+        {% elif isDesignRelease21Version %}
           {{
             govukServiceNavigation({
               serviceName: serviceName,
-              serviceUrl: navServiceHref,
+              serviceUrl: navDashboardHref,
               navigation: [
                 {
                   href: navDashboardHref,
@@ -100,7 +131,7 @@ https://prototype-kit.service.gov.uk/docs/how-to-use-layouts
           {{
             govukServiceNavigation({
               serviceName: serviceName,
-              serviceUrl: navServiceHref,
+              serviceUrl: navDashboardHref,
               navigation: [
                 {
                   href: navDashboardHref,
@@ -133,7 +164,7 @@ https://prototype-kit.service.gov.uk/docs/how-to-use-layouts
         {{
           govukServiceNavigation({
             serviceName: serviceName,
-            serviceUrl: navServiceHref,
+            serviceUrl: navDashboardHref,
             navigation: [
               {
                 href: navDashboardHref,

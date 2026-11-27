@@ -28,6 +28,16 @@
 
       <div class="app-notification-hub-cards">
         {% if showGerminalSummary %}
+          <section class="app-notification-hub-card" aria-label="Quantity summary">
+            <div class="app-notification-hub-card__top">
+              <p class="app-notification-hub-card__value">{{ quantityDisplay }}</p>
+              <p class="app-notification-hub-card__label">Units/pieces</p>
+            </div>
+            <div class="app-notification-hub-card__bottom">
+              <p class="app-notification-hub-card__caption">Total quantity in this consignment</p>
+            </div>
+          </section>
+
           <section class="app-notification-hub-card" aria-label="Packages summary">
             <div class="app-notification-hub-card__top">
               <p class="app-notification-hub-card__value">{{ packagesDisplay }}</p>
@@ -38,15 +48,6 @@
             </div>
           </section>
 
-          <section class="app-notification-hub-card" aria-label="Net weight summary">
-            <div class="app-notification-hub-card__top">
-              <p class="app-notification-hub-card__value">{{ netWeightDisplay }}</p>
-              <p class="app-notification-hub-card__label">Kilograms</p>
-            </div>
-            <div class="app-notification-hub-card__bottom">
-              <p class="app-notification-hub-card__caption">Total weight of packages in this consignment</p>
-            </div>
-          </section>
         {% else %}
           <section class="app-notification-hub-card" aria-label="Animals summary">
             <div class="app-notification-hub-card__top">

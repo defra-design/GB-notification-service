@@ -5,7 +5,7 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
 
-{% set pageName = "Add a commercial transporter" %}
+{% set pageName = "Select an address" if lookupStep == "results" else "Add a commercial transporter" %}
 
 {% block beforeContent %}
   {{ govukPhaseBanner({
@@ -30,7 +30,7 @@
 
         <div class="app-transporter-add-page__header">
           <p class="app-transporter-add-page__caption">Add a new transporter</p>
-          <h1 class="app-transporter-add-page__heading">Add a commercial transporter</h1>
+          <h1 class="app-transporter-add-page__heading">{{ pageName }}</h1>
         </div>
 
         {% if data.errorList %}
@@ -40,7 +40,8 @@
           }) }}
         {% endif %}
 
-        {% if data.notificationType != 'germinal-products' %}
+        {# The authorisation help sits with the authorisation number, on the first step #}
+        {% if data.notificationType != 'germinal-products' and lookupStep == "transporter" %}
           {% include "partials/transporter-authorisation-banner.html" %}
         {% endif %}
 
@@ -48,10 +49,12 @@
           {% include "partials/transporter-add-commercial-fields.html" %}
 
           <div class="app-transporter-add-commercial-form__actions">
-            {{ govukButton({
-              text: "Save and continue",
-              classes: "app-transporter-add-commercial-form__continue-button"
-            }) }}
+            {% if lookupStep == "details" %}
+              {{ govukButton({
+                text: "Save and continue",
+                classes: "app-transporter-add-commercial-form__continue-button"
+              }) }}
+            {% endif %}
 
             {{ govukButton({
               text: cancelButtonText if cancelButtonText else "Cancel and return to dashboard",

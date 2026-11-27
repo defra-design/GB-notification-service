@@ -1,0 +1,20 @@
+{# Header for the pages before a notification type is chosen: no Dashboard,
+   Templates or Address book until the user is inside a type #}
+{% from "govuk/components/header/macro.njk" import govukHeader %}
+{% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
+
+{{ govukHeader({
+  homepageUrl: "/index",
+  containerClasses: "govuk-width-container"
+}) }}
+
+{% if entryShowManageAccount %}
+  {% set entryManageAccountItem = '<li class="govuk-service-navigation__item"><a class="govuk-service-navigation__link" href="#">Manage account</a></li>' %}
+  {{ govukServiceNavigation({
+    serviceName: "Import notification service",
+    slots: {
+      navigationStart: entryManageAccountItem,
+      navigationEnd: '<li class="govuk-service-navigation__item app-service-navigation__item--end app-service-navigation__item--last"><a class="govuk-service-navigation__link" href="/entry/start">Sign out</a></li>'
+    }
+  }) }}
+{% endif %}

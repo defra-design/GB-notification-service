@@ -1,0 +1,81 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+
+{% set pageName = "Select an address" if addressCount else "No addresses found" %}
+
+{% block pageTitle %}
+  {{ "Error: " if errorList }}{{ pageName }} – {{ serviceName }} – GOV.UK Prototype Kit
+{% endblock %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: "Alpha"
+    },
+    html: 'This is a new service. Help us improve it and <a class="govuk-link" href="#">give your feedback by email</a>.'
+  }) }}
+
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    {% if errorList %}
+      {{ govukErrorSummary({
+        titleText: "There is a problem",
+        errorList: errorList
+      }) }}
+    {% endif %}
+
+    {% if addressCount %}
+      <h1 class="govuk-heading-l">{{ pageName }}</h1>
+    {% else %}
+      <h1 class="govuk-heading-l">No addresses found for {{ postcode }}</h1>
+    {% endif %}
+
+    <p class="govuk-body">
+      Postcode<br>
+      <strong data-testid="find-address-postcode">{{ postcode }}</strong>
+      <a class="govuk-link" href="{{ changeHref }}">Change postcode</a>
+    </p>
+
+    {% if addressCount %}
+      <form method="post" action="{{ formAction }}" novalidate>
+        <input type="hidden" name="findAddressPostcode" value="{{ postcode }}">
+
+        {{ govukSelect({
+          id: "address-id",
+          name: "foundAddressId",
+          label: {
+            text: "Select an address"
+          },
+          classes: "govuk-!-width-full",
+          items: addressItems,
+          errorMessage: { text: addressError } if addressError
+        }) }}
+
+        {{ govukButton({
+          text: "Continue"
+        }) }}
+      </form>
+    {% endif %}
+
+    <p class="govuk-body govuk-!-margin-bottom-9">
+      <a class="govuk-link" href="{{ manualHref }}">Enter address manually</a>
+    </p>
+
+    <p class="govuk-body">
+      <a class="govuk-link" href="{{ cancelHref }}">{{ cancelText }}</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

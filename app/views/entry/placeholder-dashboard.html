@@ -1,0 +1,23 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+
+{% set pageName = "Dashboard" %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+    <span class="govuk-caption-l">Dashboard</span>
+    <div class="app-entry-heading-row govuk-!-margin-bottom-6">
+      <h1 class="govuk-heading-l govuk-!-margin-bottom-0">{{ placeholderTypeName }}</h1>
+      <a class="govuk-link govuk-body govuk-!-margin-bottom-0" href="/entry/choose">Change import type</a>
+    </div>
+
+    {{ govukInsetText({
+      text: "The " + (placeholderTypeName | lower) + " journey is not part of this prototype yet. This page shows where the journey would arrive."
+    }) }}
+
+    <p class="govuk-body">You have no {{ placeholderTypeName | lower }} notifications.</p>
+  </div>
+</div>
+{% endblock %}

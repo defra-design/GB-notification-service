@@ -5,6 +5,8 @@
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
 {% from "govuk/components/select/macro.njk" import govukSelect %}
 {% from "partials/design-release-2.1/dashboard-template-card.html" import dr2DashboardTemplateCard %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
 
 {% set pageName = "Manage templates" %}
 
@@ -36,7 +38,7 @@
       }) }}
     {% endif %}
 
-    <section class="app-dr2-dashboard-intro app-dr2-dashboard-intro--templates" aria-labelledby="dashboard-templates-heading">
+    <section class="app-dr2-dashboard-intro app-dr2-dashboard-intro--templates govuk-!-margin-bottom-8" aria-labelledby="dashboard-templates-heading">
       <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
           <div class="app-dr2-dashboard-intro__header">
@@ -51,6 +53,35 @@
           text: "Create new template",
           href: "/design-release-2.1/templates/create?new=1"
         }) }}
+      </div>
+
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+          {% set templatesDetailsHtml %}
+            <p class="govuk-body">Create a notification template if you import the same commodities regularly and want to save time. You can choose how much information you pre-populate in the form, and can complete the template so that you only need to:</p>
+            <ul class="govuk-list govuk-list--bullet">
+              <li>provide the arrival date</li>
+              <li>upload any documents</li>
+            </ul>
+            <p class="govuk-body">You can also create a template from an existing notification:</p>
+            <ol class="govuk-list govuk-list--number">
+              <li>Select 'View' on the notification in your dashboard.</li>
+              <li>Select 'Actions', then 'Make template'.</li>
+              <li>Give the template a name.</li>
+              <li>Change or remove anything that will be different next time, then select 'Save template'.</li>
+            </ol>
+            {{ govukWarningText({
+              text: "It is your responsibility to check that all information in a notification is correct when it is submitted.",
+              iconFallbackText: "Warning",
+              classes: "govuk-!-margin-bottom-0"
+            }) }}
+          {% endset %}
+          {{ govukDetails({
+            summaryText: "Help with templates",
+            html: templatesDetailsHtml,
+            classes: "govuk-!-margin-bottom-0"
+          }) }}
+        </div>
       </div>
     </section>
 

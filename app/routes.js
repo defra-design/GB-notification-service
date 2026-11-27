@@ -42,6 +42,18 @@ function getUkConsignmentLookupAddresses () {
   return addressBookLookupAddresses.addresses.filter((address) => address.country === 'United Kingdom')
 }
 const addressBookLookupAddresses = require('./data/address-book-lookup-addresses')
+const {
+  getPostcodeLookupAddresses,
+  getPostcodeLookupAddressById,
+  getPostcodeLookupAddressesForId
+} = require('./utils/postcode-lookup-addresses')
+const { normalisePostcode, isFullPostcode, formatPostcode } = require('./utils/postcode')
+
+// The addresses a UK address form lists: those at the postcode the user found
+// the chosen address at, or the example addresses when there is none.
+function getUkLookupAddressesFor (selectedLookupAddressId) {
+  return getPostcodeLookupAddressesForId(selectedLookupAddressId) || getUkConsignmentLookupAddresses()
+}
 const dashboardData = require('./data/dashboard-notifications')
 const dashboardTemplates = require('./data/dashboard-templates')
 const testing3DashboardAmendNotifications = require('./data/dashboard-notifications-testing3')
@@ -424,6 +436,7 @@ function resetNotificationJourneySession (sessionData) {
   const testing2Session = sessionData._testing2
   const testing3Session = sessionData._testing3
   const testing4Session = sessionData._testing4
+  const entrySession = sessionData._entry
 
   Object.keys(sessionData).forEach((key) => {
     delete sessionData[key]
@@ -471,6 +484,10 @@ function resetNotificationJourneySession (sessionData) {
 
   if (testing4Session && typeof testing4Session === 'object') {
     sessionData._testing4 = testing4Session
+  }
+
+  if (entrySession && typeof entrySession === 'object') {
+    sessionData._entry = entrySession
   }
 }
 
@@ -864,6 +881,10 @@ function removeSpeciesFromSession (sessionData, speciesId) {
     delete sessionData.numberOfPackages[speciesId]
   }
 
+  if (sessionData.germinalPackages && sessionData.germinalPackages[speciesId] != null) {
+    delete sessionData.germinalPackages[speciesId]
+  }
+
   if (sessionData.netWeight && sessionData.netWeight[speciesId] != null) {
     delete sessionData.netWeight[speciesId]
   }
@@ -899,6 +920,10 @@ function removeCommodityFromSession (sessionData, commodityId) {
 
       if (sessionData.numberOfPackages && sessionData.numberOfPackages[speciesId] != null) {
         delete sessionData.numberOfPackages[speciesId]
+      }
+
+      if (sessionData.germinalPackages && sessionData.germinalPackages[speciesId] != null) {
+        delete sessionData.germinalPackages[speciesId]
       }
 
       if (sessionData.netWeight && sessionData.netWeight[speciesId] != null) {
@@ -1034,6 +1059,9 @@ function buildSpeciesConsignmentEntry (sessionData, speciesId, match) {
   const numberOfAnimals = sessionData.numberOfAnimals || {}
   const numberOfPackages = sessionData.numberOfPackages || {}
   const netWeight = sessionData.netWeight || {}
+  // Germinal products: numberOfPackages holds "Quantity (unit/pieces)" and
+  // germinalPackages holds "Number of packages"
+  const germinalPackages = sessionData.germinalPackages || {}
   const packagingFields = getPackagingFields(commodity)
   const isGerminalProduct = isGerminalProductCommodity(commodity)
 
@@ -1049,6 +1077,7 @@ function buildSpeciesConsignmentEntry (sessionData, speciesId, match) {
     numberOfAnimals: numberOfAnimals[speciesId] != null ? String(numberOfAnimals[speciesId]) : '',
     netWeight: netWeight[speciesId] != null ? String(netWeight[speciesId]) : '',
     numberOfPackages: numberOfPackages[speciesId] != null ? String(numberOfPackages[speciesId]) : '',
+    germinalPackages: germinalPackages[speciesId] != null ? String(germinalPackages[speciesId]) : '',
     showPackaging: !isGerminalProduct && packagingFields.length > 0,
     packagingFields: packagingFields.map((field) => ({
       id: `${field.id}-${speciesId}`,
@@ -1204,6 +1233,56 @@ function parseNumberOfPackages (body, speciesIds) {
   })
 
   return values
+}
+
+// "Number of packages" for germinal products. Optional, like the live animals
+// field, but a value that is entered must be a whole number greater than 0.
+function parseGerminalPackages (body, speciesIds) {
+  const rawValues = body.germinalPackages && typeof body.germinalPackages === 'object'
+    ? body.germinalPackages
+    : {}
+  const values = {}
+
+  speciesIds.forEach((speciesId) => {
+    const match = getSpeciesMatch(speciesId)
+
+    if (!match || !isGerminalProductCommodity(match.commodity)) {
+      return
+    }
+
+    const value = rawValues[speciesId] != null ? rawValues[speciesId] : body[`germinalPackages[${speciesId}]`]
+
+    values[speciesId] = value != null ? String(value).trim() : ''
+  })
+
+  return values
+}
+
+function validateGerminalPackages (values) {
+  const errors = {}
+  const errorList = []
+
+  Object.keys(values).forEach((speciesId) => {
+    const value = values[speciesId]
+
+    if (value && (!/^\d+$/.test(value) || Number(value) < 1)) {
+      errors[`germinalPackages-${speciesId}`] = { text: 'Number of packages must be a whole number greater than 0' }
+      errorList.push({
+        text: 'Number of packages must be a whole number greater than 0',
+        href: `#number-of-packages-${speciesId}`
+      })
+    }
+  })
+
+  return { errors, errorList }
+}
+
+function getTotalGerminalPackageCount (sessionData) {
+  return Object.values(sessionData.germinalPackages || {}).reduce((total, value) => {
+    const count = Number(value)
+
+    return Number.isFinite(count) && count > 0 ? total + count : total
+  }, 0)
 }
 
 function parseNetWeight (body, speciesIds) {
@@ -4192,9 +4271,30 @@ function renderTransporterAddPrivatePage (req, res, locals = {}) {
   const sessionData = req.session.data
   const formValues = locals.formValues || getTransporterPrivateForm(sessionData)
   const fromAddressBook = Boolean(sessionData.addressBookAddingTransporter)
+  // UK postcode lookup in the updated versions; other countries use manual entry
+  const showAddressLookup = Boolean(res.locals.isDesignRelease2Version)
+  const privateAddressErrors = [
+    'transporterPrivateAddressLine1',
+    'transporterPrivateTownOrCity',
+    'transporterPrivatePostcode',
+    'transporterPrivateCountry'
+  ]
+  const lookupStep = !showAddressLookup
+    ? ''
+    : (locals.lookupStep || ((
+        formValues.addressLine1 ||
+        (sessionData.errors && privateAddressErrors.some((field) => sessionData.errors[field])) ||
+        locals.showDetails
+      )
+        ? 'details'
+        : 'postcode'))
 
   return res.render('transporter-add-private', {
     backLink: '/transporter/add',
+    showAddressLookup,
+    lookupStep,
+    lookupPostcode: '',
+    lookupResultItems: [],
     formValues,
     countryItems: buildAddressBookCountryItems(formValues.country),
     cancelButtonText: fromAddressBook
@@ -4229,8 +4329,21 @@ function renderTransporterAddCommercialPage (req, res, locals = {}) {
       Boolean(formValues.addressLine1)
     )
 
+  // Steps: transporter (authorisation number), postcode, results, details (name, address, contact)
+  const requestedStep = String((req.query && req.query.step) || '').trim()
+  const lookupStep = !showAddressLookup
+    ? ''
+    : (locals.lookupStep || (['transporter', 'postcode'].includes(requestedStep) ? requestedStep : 'transporter'))
+  const commercialStepBackLinks = {
+    postcode: '/transporter/add/commercial?step=transporter',
+    results: '/transporter/add/commercial?step=postcode',
+    details: '/transporter/add/commercial?step=postcode'
+  }
+
   return res.render('transporter-add-commercial', {
-    backLink: '/transporter/add',
+    lookupPostcode: '',
+    lookupResultItems: [],
+    backLink: commercialStepBackLinks[lookupStep] || '/transporter/add',
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     formValues,
     countryItems: buildCommercialTransporterCountryItems(),
@@ -4252,7 +4365,9 @@ function renderTransporterAddCommercialPage (req, res, locals = {}) {
       ? locals.selectedLookupAddressId
       : '',
     data: sessionData,
-    ...locals
+    ...locals,
+    lookupStep,
+    showManualAddress: showAddressLookup ? lookupStep === 'details' : showManualAddress
   })
 }
 
@@ -4421,7 +4536,7 @@ function renderConsignmentAddressSelectPage (section, req, res, locals = {}) {
       : sessionData[section.sessionAddressIdKey] || '',
     searchQuery,
     addAddressHref: isDesignRelease21SessionData(sessionData)
-      ? `${section.path}/add-address`
+      ? `${section.path}/${consignmentAddAddressUsesLookup(section.id) ? 'find-address' : 'add-address'}`
       : `/address-book/add?from=${section.id}`,
     successMessage,
     data: sessionData,
@@ -4462,6 +4577,168 @@ function parseConsignmentAddressUses (rawValue, sectionId) {
     .filter((value) => allowedValues.has(value))
 }
 
+// Postcode lookup for adding a UK address, following the GOV.UK "Addresses"
+// pattern: enter a postcode, select an address from the list, then check the
+// details. Every step offers "Enter address manually".
+function formatUkPostcode (value) {
+  const compact = String(value || '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+
+  if (compact.length < 5) {
+    return compact
+  }
+
+  return `${compact.slice(0, -3)} ${compact.slice(-3)}`
+}
+
+function isUkPostcode (value) {
+  return /^[A-Z]{1,2}\d[A-Z\d]? \d[A-Z]{2}$/.test(formatUkPostcode(value))
+}
+
+// Real registered office addresses at the postcode (Companies House data).
+// None found means the user is asked to check the postcode or enter the
+// address manually, the same as on the find an address pages.
+function findPostcodeLookupAddresses (postcode) {
+  return getPostcodeLookupAddresses(postcode)
+}
+
+function buildPostcodeLookupResultItems (postcode, selectedId, sourceAddresses) {
+  const seen = new Set()
+
+  return findPostcodeLookupAddresses(postcode, sourceAddresses)
+    .map((address) => ({
+      value: address.id,
+      text: String(address.id).indexOf('ch-') === 0
+        ? address.label
+        : [
+            address.manual.nameOrOrganisation,
+            address.manual.addressLine1,
+            address.manual.addressLine2,
+            address.manual.townOrCity,
+            postcode
+          ].filter(Boolean).join(', '),
+      checked: address.id === selectedId
+    }))
+    // The example data lists some addresses more than once
+    .filter((item) => {
+      if (seen.has(item.text)) {
+        return false
+      }
+
+      seen.add(item.text)
+
+      return true
+    })
+}
+
+// Handles the "Find address" and "Continue" (address chosen) steps. Returns the
+// page options for the next step, or null when the form is the final save.
+function getAddAddressPostcodeLookupLocals (req, showAddressLookup, sourceAddresses) {
+  const action = String((req.body && req.body.action) || '').trim()
+
+  if (!showAddressLookup || (action !== 'find' && action !== 'choose')) {
+    return null
+  }
+
+  const rawPostcode = String(req.body.addressPostcode || '').trim()
+  const postcode = formatUkPostcode(rawPostcode)
+  const setError = (key, text, href) => {
+    req.session.data.errorList = [{ text, href }]
+    req.session.data.errors = { [key]: { text } }
+  }
+
+  req.session.data.errorList = null
+  req.session.data.errors = null
+
+  if (!rawPostcode) {
+    setError('addressPostcode', 'Enter a postcode', '#address-postcode')
+
+    return { lookupStep: 'postcode', lookupPostcode: '' }
+  }
+
+  if (!isUkPostcode(rawPostcode)) {
+    setError('addressPostcode', 'Enter a full UK postcode', '#address-postcode')
+
+    return { lookupStep: 'postcode', lookupPostcode: rawPostcode }
+  }
+
+  const selectedId = String(req.body.addressBookLookupAddressId || '').trim()
+  const selectedAddress = action === 'choose' ? getAddressDetailsFromLookup(selectedId) : null
+
+  if (action === 'choose' && !selectedAddress) {
+    setError('addressBookLookupAddressId', 'Select an address', '#address-result')
+  }
+
+  if (!selectedAddress) {
+    const lookupResultItems = buildPostcodeLookupResultItems(postcode, '', sourceAddresses)
+
+    if (!lookupResultItems.length) {
+      setError(
+        'addressPostcode',
+        `No addresses found for ${postcode}. Check the postcode or enter the address manually`,
+        '#address-postcode'
+      )
+
+      return { lookupStep: 'postcode', lookupPostcode: postcode }
+    }
+
+    return {
+      lookupStep: 'results',
+      lookupPostcode: postcode,
+      lookupResultItems
+    }
+  }
+
+  return {
+    lookupStep: 'details',
+    lookupPostcode: postcode,
+    showManualAddress: true,
+    selectedLookupAddressId: selectedId,
+    manualAddress: {
+      ...selectedAddress,
+      postcode,
+      country: 'United Kingdom',
+      email: '',
+      phone: ''
+    }
+  }
+}
+
+// The heading names the type of address being added, for example
+// "Add an address for an importer"
+function getConsignmentAddAddressHeading (sectionId) {
+  const addressUse = CONSIGNMENT_SECTION_ADDRESS_TYPE_MAP[sectionId] || ''
+  const label = addressUse ? getAddressBookAddressTypeLabel(addressUse) : ''
+
+  if (!label) {
+    return 'Add an address'
+  }
+
+  return `Add an address for ${/^[aeiou]/i.test(label) ? 'an' : 'a'} ${label.toLowerCase()}`
+}
+
+// "Enter address manually" links: the find an address pages send manual=true
+function isManualAddressRequest (req) {
+  const manual = req.query && req.query.manual
+
+  return manual === '1' || manual === 'true'
+}
+
+function getAddAddressLookupStep (req, showAddressLookup, showManualAddress, locals = {}) {
+  if (!showAddressLookup) {
+    return ''
+  }
+
+  if (locals.lookupStep) {
+    return locals.lookupStep
+  }
+
+  if (req.query && req.query.change === '1') {
+    return 'postcode'
+  }
+
+  return (showManualAddress || isManualAddressRequest(req)) ? 'details' : 'postcode'
+}
+
 function renderConsignmentAddAddressPage (section, req, res, locals = {}) {
   const sessionData = req.session.data
   const showAddressLookup = consignmentAddAddressUsesLookup(section.id)
@@ -4491,15 +4768,20 @@ function renderConsignmentAddAddressPage (section, req, res, locals = {}) {
       )
     )
 
+  const lookupStep = getAddAddressLookupStep(req, showAddressLookup, showManualAddress, locals)
+
   return res.render('consignment-add-address', {
-    backLink: section.path,
+    backLink: showAddressLookup ? `${section.path}/find-address` : section.path,
+    lookupStep,
+    lookupPostcode: '',
+    lookupResultItems: [],
     cancelHref: `${versionBasePath}/notification-hub`,
     formAction: `${section.path}/add-address`,
     sectionId: section.id,
     defaultAddressUseLabel,
     defaultAddressUseArticle,
     showAddressLookup,
-    showManualAddress,
+    showManualAddress: showAddressLookup ? lookupStep === 'details' : showManualAddress,
     notificationReference: sessionData.notificationReference || PROTOTYPE_NOTIFICATION_REFERENCE,
     manualAddress,
     countryItems: showAddressLookup
@@ -4516,7 +4798,7 @@ function renderConsignmentAddAddressPage (section, req, res, locals = {}) {
         },
         ...buildAddressBookCountryItems(manualAddress.country)
       ],
-    lookupAddressesJson: JSON.stringify(getUkConsignmentLookupAddresses()),
+    lookupAddressesJson: JSON.stringify(getUkLookupAddressesFor(locals.selectedLookupAddressId)),
     addressLookup: locals.addressLookup != null
       ? locals.addressLookup
       : '',
@@ -4528,7 +4810,9 @@ function renderConsignmentAddAddressPage (section, req, res, locals = {}) {
       ? locals.selectedAddressUses
       : getDefaultConsignmentAddressUses(section.id),
     data: sessionData,
-    ...locals
+    ...locals,
+    lookupStep,
+    showManualAddress: showAddressLookup ? lookupStep === 'details' : showManualAddress
   })
 }
 
@@ -4548,7 +4832,35 @@ function handleConsignmentAddAddressGet (section, req, res) {
   req.session.data.errorList = null
   req.session.data.errors = null
 
-  return renderConsignmentAddAddressPage(section, req, res)
+  // A UK address starts on the find an address page; this page is the form
+  // that follows it, with the chosen address filled in or empty for manual entry
+  if (
+    consignmentAddAddressUsesLookup(section.id) &&
+    !getPostcodeLookupAddressById(req.query.foundAddressId) &&
+    !isManualAddressRequest(req)
+  ) {
+    return res.redirect(`${section.path}/find-address`)
+  }
+
+  return renderConsignmentAddAddressPage(section, req, res, foundAddressLocals(req.query))
+}
+
+// What a UK address form opens with after the find an address page: the
+// chosen address filled in, or the empty fields when the user asked to enter
+// the address manually.
+function foundAddressLocals (query = {}) {
+  const found = getPostcodeLookupAddressById(query.foundAddressId)
+
+  if (found) {
+    return {
+      manualAddress: { ...found.manual, email: '', phone: '' },
+      selectedLookupAddressId: found.id,
+      addressLookup: found.label,
+      showManualAddress: true
+    }
+  }
+
+  return (query.manual === 'true' || query.manual === '1') ? { showManualAddress: true } : {}
 }
 
 function mergeManualAddressFromLookupAndBody (lookupManualAddress, body, options = {}) {
@@ -4591,6 +4903,12 @@ function handleConsignmentAddAddressPost (section, req, res) {
   const selectedAddressUses = parseConsignmentAddressUses(req.body.addressUses, section.id)
 
   setAddressBookConsignmentReturn(req.session.data, section.id)
+
+  const postcodeLookupLocals = getAddAddressPostcodeLookupLocals(req, showAddressLookup)
+
+  if (postcodeLookupLocals) {
+    return renderConsignmentAddAddressPage(section, req, res, postcodeLookupLocals)
+  }
 
   const addressValidation = validateAddressBookManualAddress(manualAddress)
 
@@ -5284,6 +5602,10 @@ function buildReviewCommoditySections (sessionData) {
           key: GERMINAL_QUANTITY_LABEL,
           value: formatReviewValueOrNa(entry.numberOfPackages)
         })
+        rows.push({
+          key: 'Number of packages',
+          value: formatReviewValueOrNa(entry.germinalPackages)
+        })
       } else {
         rows.push({
           key: 'Number of animals',
@@ -5899,6 +6221,9 @@ function buildDesignRelease2CommodityCards (sessionData, speciesSections, readOn
       ? [{
         key: GERMINAL_QUANTITY_LABEL,
         value: formatReviewValueOrNa(entry.numberOfPackages)
+      }, {
+        key: 'Number of packages',
+        value: formatReviewValueOrNa(entry.germinalPackages)
       }]
       : [{
         key: 'Number of animals',
@@ -6321,7 +6646,7 @@ function buildDr2ActionRequiredWarningText (conditionalItems = []) {
   return conditionalItems[0]
 }
 
-function buildDr2ReviewPageHeader (metadata = {}, reviewVariant = 'journey') {
+function buildDr2ReviewPageHeader (metadata = {}, reviewVariant = 'journey', sessionData = null) {
   const statusConfig = {
     draft: {
       text: 'Draft',
@@ -6341,11 +6666,26 @@ function buildDr2ReviewPageHeader (metadata = {}, reviewVariant = 'journey') {
     }
   }
   const status = statusConfig[reviewVariant] || statusConfig.draft
+  // Design release 2, Round 1 (Germinals) and Round 2 (Live animals) show the
+  // same status label and colour here as on the notification's dashboard card:
+  // "Draft" in grey, "Submitted" in blue, and "Past" in green once the
+  // notification is in the Past tab. What still needs doing on a submitted
+  // notification is said by the warning below the label, not the label.
+  const dashboardStatus = hasJourneyUpdates(sessionData)
+    ? ({
+        draft: { text: 'Draft', tagModifier: 'template' },
+        submitted: { text: 'Submitted', tagModifier: 'submitted' },
+        'action-required': { text: 'Submitted', tagModifier: 'submitted' },
+        'submission-complete': { text: 'Past', tagModifier: 'submission-complete' }
+      })[reviewVariant]
+    : null
 
   return {
     reference: metadata.reference,
-    statusText: metadata.statusText || status.text,
+    statusText: dashboardStatus ? dashboardStatus.text : (metadata.statusText || status.text),
     statusModifier: status.modifier,
+    // Colour of the status label. The "template" modifier is the grey one.
+    statusTagModifier: dashboardStatus ? dashboardStatus.tagModifier : status.modifier,
     dateLabel: reviewVariant === 'draft' ? 'Date created' : 'Date submitted',
     dateValue: reviewVariant === 'draft'
       ? (metadata.dateCreated || formatDeclarationDate())
@@ -6471,10 +6811,12 @@ function loadNotificationIntoTemplateSession (sessionData, sourceSnapshot, backL
     '_isTesting2Version',
     '_isTesting3Version',
     '_isTesting4Version',
+    '_isEntryVersion',
     '_testing',
     '_testing2',
     '_testing3',
     '_testing4',
+    '_entry',
     'addressBookAddedAddresses',
     'amendingFrom',
     'amendOriginalSnapshot',
@@ -6542,10 +6884,12 @@ function loadDraftSnapshotIntoSession (sessionData, snapshot) {
     '_isTesting2Version',
     '_isTesting3Version',
     '_isTesting4Version',
+    '_isEntryVersion',
     '_designRelease21',
     '_testing2',
     '_testing3',
     '_testing4',
+    '_entry',
     'deletedNotificationReferences',
     'draftNotifications',
     'submittedNotifications',
@@ -6597,7 +6941,7 @@ function resolveDesignRelease2ReviewPageOptions (req, options = {}) {
       showActions: false,
       reviewVariant,
       backLink: dashboardBackLink,
-      pageHeader: buildDr2ReviewPageHeader(metadata, reviewVariant)
+      pageHeader: buildDr2ReviewPageHeader(metadata, reviewVariant, req.session.data)
     }
   }
 
@@ -6630,7 +6974,7 @@ function resolveDesignRelease2ReviewPageOptions (req, options = {}) {
         amendHref: `/notifications/amend?reference=${encodeURIComponent(reference)}`,
         makeTemplateHref: `/notifications/make-template?reference=${encodeURIComponent(reference)}`,
         deleteHref: `/notifications/delete?reference=${encodeURIComponent(reference)}`
-      }, reviewVariant)
+      }, reviewVariant, req.session.data)
     }
   }
 
@@ -6680,6 +7024,10 @@ function renderReviewNotificationPage (req, res, options = {}) {
   // Dashboard snapshots are shared between versions, so carry the version over
   if (isTesting4SessionData(req.session.data)) {
     sessionData = { ...sessionData, _isTesting4Version: true }
+  }
+
+  if (req.session.data._isEntryVersion) {
+    sessionData = { ...sessionData, _isEntryVersion: true }
   }
 
   if (isTesting3SessionData(req.session.data)) {
@@ -7232,9 +7580,12 @@ function getNotificationHubViewModel (sessionData) {
   const statusComplete = { text: 'Complete', class: 'govuk-tag--green' }
   const statusTodo = { text: 'To do', class: 'govuk-tag--blue' }
   const totalAnimals = getTotalAnimalCount(sessionData)
-  const totalPackages = getTotalPackageCount(sessionData)
-  const totalNetWeight = getTotalNetWeight(sessionData)
   const showGerminalSummary = hasGerminalProductsOnly(sessionData)
+  // Germinal products count the "Number of packages" answers, not the quantity
+  const totalPackages = showGerminalSummary
+    ? getTotalGerminalPackageCount(sessionData)
+    : getTotalPackageCount(sessionData)
+  const totalNetWeight = getTotalNetWeight(sessionData)
   const isCreatingTemplate = isCreatingTemplateJourney(sessionData)
   const skipShipmentFields = isDesignRelease21TemplateCreate(sessionData)
 
@@ -7268,6 +7619,8 @@ function getNotificationHubViewModel (sessionData) {
     showGerminalSummary,
     animalCountDisplay: totalAnimals > 0 ? String(totalAnimals) : '0',
     packagesDisplay: totalPackages > 0 ? String(totalPackages) : '0',
+    // Germinal products: the total of the "Quantity (unit/pieces)" answers
+    quantityDisplay: getTotalPackageCount(sessionData) > 0 ? String(getTotalPackageCount(sessionData)) : '0',
     netWeightDisplay: formatNetWeightDisplay(totalNetWeight),
     tasklistHeading: isCreatingTemplate ? 'Template tasklist' : 'Notification tasklist',
     sections: [
@@ -7385,8 +7738,14 @@ function renderNotificationHubPage (req, res) {
   })
 }
 
-function buildDashboardPageHref (page, sort, tab, dashboardPath = '/', search = '') {
+function buildDashboardPageHref (page, sort, tab, dashboardPath = '/', search = '', extraParams = {}) {
   const params = new URLSearchParams()
+
+  Object.keys(extraParams || {}).forEach((key) => {
+    if (extraParams[key]) {
+      params.set(key, extraParams[key])
+    }
+  })
 
   if (tab && tab !== 'in-progress') {
     params.set('tab', tab)
@@ -7644,7 +8003,7 @@ function buildDashboardActionsDelayFilterItems (actionNotifications, selectedFil
   }))
 }
 
-function buildDashboardPagination (currentPage, totalPages, sort, tab, dashboardPath = '/', search = '') {
+function buildDashboardPagination (currentPage, totalPages, sort, tab, dashboardPath = '/', search = '', extraParams = {}) {
   if (totalPages <= 1) {
     return {
       items: null,
@@ -7658,7 +8017,7 @@ function buildDashboardPagination (currentPage, totalPages, sort, tab, dashboard
   for (let page = 1; page <= totalPages; page++) {
     items.push({
       number: String(page),
-      href: buildDashboardPageHref(page, sort, tab, dashboardPath, search),
+      href: buildDashboardPageHref(page, sort, tab, dashboardPath, search, extraParams),
       current: page === currentPage
     })
   }
@@ -7667,13 +8026,13 @@ function buildDashboardPagination (currentPage, totalPages, sort, tab, dashboard
     items,
     next: currentPage < totalPages
       ? {
-          href: buildDashboardPageHref(currentPage + 1, sort, tab, dashboardPath, search),
+          href: buildDashboardPageHref(currentPage + 1, sort, tab, dashboardPath, search, extraParams),
           text: 'Next'
         }
       : null,
     previous: currentPage > 1
       ? {
-          href: buildDashboardPageHref(currentPage - 1, sort, tab, dashboardPath, search),
+          href: buildDashboardPageHref(currentPage - 1, sort, tab, dashboardPath, search, extraParams),
           text: 'Previous'
         }
       : null
@@ -7719,10 +8078,12 @@ function getComparableNotificationSnapshot (sessionData) {
     '_isTesting2Version',
     '_isTesting3Version',
     '_isTesting4Version',
+    '_isEntryVersion',
     '_testing',
     '_testing2',
     '_testing3',
     '_testing4',
+    '_entry',
     'addressBookAddedAddresses',
     'amendingFrom',
     'amendOriginalSnapshot',
@@ -7862,6 +8223,10 @@ function isDesignRelease2SessionData (sessionData) {
 function getDesignReleaseBasePath (sessionData = {}) {
   if (sessionData._isTesting2Version) {
     return '/testing2'
+  }
+
+  if (sessionData._isEntryVersion) {
+    return '/entry'
   }
 
   if (sessionData._isTesting4Version) {
@@ -8519,18 +8884,11 @@ function getAllDashboardTemplates (sessionData = {}) {
 
   const isAvailable = (template) => !deletedIds.has(template.id) && !savedIds.has(template.id)
 
-  // Round 1 (Germinals), at /testing4, shows germinal product examples only
-  if (isTesting4SessionData(sessionData)) {
-    return [
-      ...savedTemplates,
-      ...dashboardTemplates.filter((template) => template.categoryLabel === 'Germinal products').filter(isAvailable),
-      ...germinalDashboardTemplates.filter(isAvailable)
-    ]
-  }
-
-  // Round 2 (Live animals), at /testing3, shows live animal examples only
-  if (isTesting3SessionData(sessionData)) {
-    return [...savedTemplates, ...testing3DashboardTemplates.filter(isAvailable)]
+  // Round 1 (Germinals), at /testing4, and Round 2 (Live animals), at
+  // /testing3, have no example templates. They start as if the user has not
+  // created any yet, and show only the ones saved in the session.
+  if (isRound2TestingSessionData(sessionData)) {
+    return savedTemplates
   }
 
   // Design release 2 shows its original templates and both sets of examples
@@ -8657,6 +9015,7 @@ function buildTemplateFromSession (sessionData) {
         : [],
       numberOfAnimalsBySpecies: sessionData.numberOfAnimals || {},
       numberOfPackagesBySpecies: sessionData.numberOfPackages || {},
+      germinalPackagesBySpecies: sessionData.germinalPackages || {},
       netWeight: sessionData.netWeight || {},
       packageType: sessionData.packageType || {},
       animalIdentifiers: Object.keys(animalIdentifiers).length
@@ -8960,6 +9319,10 @@ function seedNotificationSessionFromTemplate (sessionData, template) {
     sessionData.numberOfPackages = { ...review.numberOfPackagesBySpecies }
   }
 
+  if (review.germinalPackagesBySpecies && typeof review.germinalPackagesBySpecies === 'object') {
+    sessionData.germinalPackages = { ...review.germinalPackagesBySpecies }
+  }
+
   if (review.netWeight && typeof review.netWeight === 'object') {
     sessionData.netWeight = { ...review.netWeight }
   }
@@ -9072,6 +9435,7 @@ function buildTemplateSessionFromReview (review = {}) {
     commoditySelections: Array.isArray(review.commoditySelections) ? review.commoditySelections : [],
     numberOfAnimals: review.numberOfAnimalsBySpecies || {},
     numberOfPackages: review.numberOfPackagesBySpecies || {},
+    germinalPackages: review.germinalPackagesBySpecies || {},
     netWeight: review.netWeight || {},
     packageType: review.packageType || {},
     animalIdentifiers: review.animalIdentifiers || {},
@@ -9213,6 +9577,7 @@ function buildTemplateReviewSessionData (template, requestSession = {}) {
     _isTesting2Version: requestSession._isTesting2Version,
     _isTesting3Version: requestSession._isTesting3Version,
     _isTesting4Version: requestSession._isTesting4Version,
+    _isEntryVersion: requestSession._isEntryVersion,
     isCreatingTemplate: true
   }
 
@@ -9375,10 +9740,31 @@ function buildTemplateReviewViewModel (template, basePath = '/design-release-2.1
   }
 }
 
-function getDashboardTemplatesViewModel (query = {}, sessionData = {}) {
+// `options.entryType` limits the list to one notification type, for the
+// "Sign-in to dashboard" version
+function templateMatchesEntryType (template, entryType) {
+  const isGerminal = String(template.categoryLabel || '').toLowerCase().includes('germinal')
+
+  if (entryType === 'germinal-products') {
+    return isGerminal
+  }
+
+  if (entryType === 'live-animals') {
+    return !isGerminal
+  }
+
+  // Types with no journey yet have no templates
+  return false
+}
+
+function getDashboardTemplatesViewModel (query = {}, sessionData = {}, options = {}) {
   const sort = (query.sort || '').trim()
   const basePath = getDesignReleaseBasePath(sessionData) || '/design-release-2.1'
-  const templates = getAllDashboardTemplates(sessionData).map((template) => ({
+  const allTemplates = getAllDashboardTemplates(sessionData)
+  const templates = (options.entryType
+    ? allTemplates.filter((template) => templateMatchesEntryType(template, options.entryType))
+    : allTemplates
+  ).map((template) => ({
     categoryLabel: template.categoryLabel,
     title: template.title,
     commodityLabel: template.commodityLabel,
@@ -9635,6 +10021,20 @@ function buildDashboardStatusFilterItems (selectedValue = '', options = {}) {
     { value: '', text: 'Select one', selected: !selectedValue }
   ]
 
+  // Where the dashboard uses Draft, Amend, Submitted and Past labels, the
+  // filter offers exactly those statuses
+  if (options.matchCardLabels) {
+    items[0].text = 'All statuses'
+    items.push(
+      { value: 'draft', text: 'Draft', selected: selectedValue === 'draft' },
+      { value: 'amend', text: 'Amend', selected: selectedValue === 'amend' },
+      { value: 'submitted', text: 'Submitted', selected: selectedValue === 'submitted' },
+      { value: 'past', text: 'Past', selected: selectedValue === 'past' }
+    )
+
+    return items
+  }
+
   if (!options.hideDraft) {
     items.push({ value: 'draft', text: 'Draft', selected: selectedValue === 'draft' })
   }
@@ -9642,7 +10042,8 @@ function buildDashboardStatusFilterItems (selectedValue = '', options = {}) {
   items.push(
     { value: 'action-required', text: 'Action required', selected: selectedValue === 'action-required' },
     { value: 'submitted', text: 'Submitted', selected: selectedValue === 'submitted' },
-    { value: 'completed', text: 'Completed', selected: selectedValue === 'completed' }
+    // Called "Past" where the dashboard tab and status label are called Past
+    { value: 'completed', text: options.usePastLabel ? 'Past' : 'Completed', selected: selectedValue === 'completed' }
   )
 
   return items
@@ -9664,8 +10065,25 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
     typeFilter = ''
   }
 
-  if (isDr21 && statusFilter === 'draft') {
+  if (isDr21 && statusFilter === 'completed') {
+    statusFilter = 'past'
+  }
+
+  if (isDr21 && !['draft', 'amend', 'submitted', 'past'].includes(statusFilter)) {
     statusFilter = ''
+  }
+
+  // "Only show notifications that need action" checkbox
+  const needsActionFilter = isDr21 && String(query.needsAction || '').trim() === '1'
+  const filtersActive = Boolean(statusFilter || needsActionFilter) && isDr21
+  const filterParams = {}
+
+  if (isDr21 && statusFilter) {
+    filterParams.status = statusFilter
+  }
+
+  if (needsActionFilter) {
+    filterParams.needsAction = '1'
   }
   const requestedPage = Math.max(1, Number(query.page) || 1)
   const pageSize = dashboardData.pageSize
@@ -9699,8 +10117,36 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
     : activeTab === 'completed'
       ? completedNotifications
       : inProgressNotifications
-  const visibleNotifications = activeSearch
-    ? [...inProgressNotifications, ...draftNotifications, ...completedNotifications]
+  const matchesStatusFilter = (notification) => {
+    if (!filtersActive) {
+      return true
+    }
+
+    if (needsActionFilter && notification.reviewVariant !== 'action-required') {
+      return false
+    }
+
+    if (statusFilter === 'draft') {
+      return notification.reviewVariant === 'draft' && !notification.isAmend
+    }
+
+    if (statusFilter === 'amend') {
+      return notification.reviewVariant === 'draft' && Boolean(notification.isAmend)
+    }
+
+    if (statusFilter === 'submitted') {
+      return notification.reviewVariant === 'submitted' || notification.reviewVariant === 'action-required'
+    }
+
+    if (statusFilter === 'past') {
+      return notification.reviewVariant === 'submission-complete'
+    }
+
+    return true
+  }
+  // Search and the status filters look across every tab
+  const visibleNotifications = (activeSearch || filtersActive)
+    ? [...inProgressNotifications, ...draftNotifications, ...completedNotifications].filter(matchesStatusFilter)
     : tabNotifications
   const totalCount = visibleNotifications.length
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
@@ -9712,7 +10158,9 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
       return notification
     }
 
-    if (activeTab === 'in-progress') {
+    // The label follows the notification, not the tab, so search results that
+    // mix tabs are labelled correctly too.
+    if (notification.reviewVariant === 'submitted' || notification.reviewVariant === 'action-required') {
       return {
         ...notification,
         statusDisplay: {
@@ -9723,12 +10171,12 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
       }
     }
 
-    if (activeTab === 'completed') {
+    if (notification.reviewVariant === 'submission-complete') {
       return {
         ...notification,
         statusDisplay: {
           type: 'tag',
-          text: 'Submitted',
+          text: 'Past',
           govukTag: true,
           govukTagClasses: 'govuk-tag--green'
         }
@@ -9777,12 +10225,14 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
     ],
     notificationSectionHeading: activeSearch
       ? 'Search results'
-      : activeTab === 'drafts'
+      : filtersActive
+        ? 'Filtered results'
+        : activeTab === 'drafts'
         ? 'Draft notifications'
         : activeTab === 'completed'
           ? (isDr21 ? 'Past notifications' : 'Completed notifications')
           : (isDr21 ? 'Submitted notifications' : 'Notifications in progress'),
-    notificationSectionDescription: isDr21 && !activeSearch
+    notificationSectionDescription: isDr21 && !activeSearch && !filtersActive
       ? (activeTab === 'drafts'
         ? 'Notifications you have started but not submitted, and notifications that are being amended.'
         : activeTab === 'completed'
@@ -9836,8 +10286,12 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
       ? buildDashboardTypeFilterItems(typeFilter, { hidePlants: isDr21 })
       : null,
     statusFilter,
-    statusFilterItems: isDr2 ? buildDashboardStatusFilterItems(statusFilter, { hideDraft: isDr21 }) : null,
-    additionalFiltersOpen: isDr2 && Boolean(dateRange || startDate || endDate || typeFilter || statusFilter),
+    statusFilterItems: isDr2 ? buildDashboardStatusFilterItems(statusFilter, { matchCardLabels: isDr21 }) : null,
+    needsActionFilter,
+    filtersActive,
+    filterResultCount: totalCount,
+    clearFiltersHref: buildDashboardPageHref(1, sort, activeTab, dashboardListPath, activeSearch),
+    additionalFiltersOpen: isDr2 && Boolean(dateRange || startDate || endDate || typeFilter || statusFilter || needsActionFilter),
     notifications,
     sort,
     sortItems: buildDashboardSortItems(sort, { testing: isTesting }),
@@ -9845,7 +10299,7 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
     searchResultCount: totalCount,
     clearSearchHref: buildDashboardPageHref(1, sort, activeTab, dashboardListPath),
     resultsText: buildDashboardResultsText(startIndex + 1, endIndex, totalCount, { testing: isTesting }),
-    pagination: buildDashboardPagination(currentPage, totalPages, sort, activeTab, dashboardListPath, activeSearch),
+    pagination: buildDashboardPagination(currentPage, totalPages, sort, activeTab, dashboardListPath, activeSearch, filterParams),
     currentPage,
     dashboardListPath,
     dashboardPageHeading,
@@ -9930,7 +10384,9 @@ function renderDashboardTemplatesPage (req, res) {
   return res.render('dashboard-templates', {
     serviceNavActive: 'templates',
     successMessage,
-    ...getDashboardTemplatesViewModel(req.query, req.session.data)
+    ...getDashboardTemplatesViewModel(req.query, req.session.data, {
+      entryType: res.locals.isEntryVersion ? res.locals.entryType : null
+    })
   })
 }
 
@@ -11239,21 +11695,34 @@ function renderAddressBookAddDetailsPage (req, res, locals = {}) {
   const category = sessionData.addressBookAddressCategory
   const addressBookBasePath = getAddressBookBasePath(res)
   const showAddressLookup = addressBookCategoryUsesLookup(category)
-  const manualAddress = locals.manualAddress || getAddressBookManualAddress(sessionData) || buildEmptyAddressBookManualAddress(showAddressLookup)
+  // "Enter address manually" and "Change" (postcode) start from an empty address
+  const startBlank = showAddressLookup && !locals.manualAddress &&
+    (isManualAddressRequest(req) || req.query.change === '1')
+  const manualAddress = locals.manualAddress ||
+    (startBlank ? null : getAddressBookManualAddress(sessionData)) ||
+    buildEmptyAddressBookManualAddress(showAddressLookup)
   const showManualAddress = locals.showManualAddress != null
     ? locals.showManualAddress
     : Boolean(
       showAddressLookup && (
         manualAddress.addressLine1 ||
         locals.selectedLookupAddressId ||
-        sessionData.addressBookLookupAddressId
+        (!startBlank && sessionData.addressBookLookupAddressId)
       )
     )
+  const lookupStep = getAddAddressLookupStep(req, showAddressLookup, showManualAddress, locals)
+
+  const selectedLookupAddressId = locals.selectedLookupAddressId != null
+    ? locals.selectedLookupAddressId
+    : sessionData.addressBookLookupAddressId || ''
 
   return res.render('consignment-add-address', {
     isAddressBookAdd: true,
     serviceNavActive: 'address-book',
-    backLink: `${addressBookBasePath}/add`,
+    backLink: showAddressLookup ? `${addressBookBasePath}/add/find-address` : `${addressBookBasePath}/add`,
+    lookupStep,
+    lookupPostcode: '',
+    lookupResultItems: [],
     cancelHref: addressBookBasePath,
     formAction: `${addressBookBasePath}/add/lookup`,
     showAddressLookup,
@@ -11273,19 +11742,19 @@ function renderAddressBookAddDetailsPage (req, res, locals = {}) {
         },
         ...buildAddressBookCountryItems(manualAddress.country)
       ],
-    lookupAddressesJson: JSON.stringify(getUkConsignmentLookupAddresses()),
+    lookupAddressesJson: JSON.stringify(getUkLookupAddressesFor(selectedLookupAddressId)),
     addressLookup: locals.addressLookup != null
       ? locals.addressLookup
       : sessionData.addressBookLookup || '',
-    selectedLookupAddressId: locals.selectedLookupAddressId != null
-      ? locals.selectedLookupAddressId
-      : sessionData.addressBookLookupAddressId || '',
+    selectedLookupAddressId: startBlank ? '' : selectedLookupAddressId,
     addressUseGroups: getAddressBookAddressUseGroupsForCategory(category),
     selectedAddressUses: locals.selectedAddressUses != null
       ? locals.selectedAddressUses
       : (sessionData.addressBookAddressUses || []),
     data: sessionData,
-    ...locals
+    ...locals,
+    lookupStep,
+    showManualAddress: showAddressLookup ? lookupStep === 'details' : showManualAddress
   })
 }
 
@@ -11303,6 +11772,12 @@ function handleAddressBookAddDetailsPost (req, res) {
   )
   const selectedAddressUses = parseAddressBookUses(req.body.addressUses, category)
   const firstUseOption = getAddressBookUsageOptions(category)[0]
+  const postcodeLookupLocals = getAddAddressPostcodeLookupLocals(req, showAddressLookup)
+
+  if (postcodeLookupLocals) {
+    return renderAddressBookAddDetailsPage(req, res, postcodeLookupLocals)
+  }
+
   const addressValidation = validateAddressBookManualAddress(manualAddress)
   const renderWithErrors = (extraLocals = {}) => renderAddressBookAddDetailsPage(req, res, {
     manualAddress: addressValidation.value,
@@ -11544,7 +12019,8 @@ function getManualAddressFromLookup (addressId) {
     return null
   }
 
-  const lookupAddress = addressBookLookupAddresses.getAddressById(addressId)
+  const lookupAddress = addressBookLookupAddresses.getAddressById(addressId) ||
+    getPostcodeLookupAddressById(addressId)
 
   return lookupAddress ? lookupAddress.manual : null
 }
@@ -12255,16 +12731,70 @@ function renderUploadDocumentsPage (req, res, locals = {}) {
   })
 }
 
+// The "Sign-in to dashboard" version remembers which notification type the
+// user chose in a cookie, not in its saved data, because that data is cleared
+// and replaced as notifications are started, opened and copied.
+// (Registered as get and post routes, not router.use or router.all, so each
+// version's router copies it. Only the entry version acts on it.)
+function applyEntryType (req, res, next) {
+  if (res.locals.isEntryVersion) {
+    const type = readCookie(req, ENTRY_TYPE_COOKIE)
+
+    if (ENTRY_TYPES[type]) {
+      res.locals.entryType = type
+      res.locals.entryTypeName = ENTRY_TYPES[type].text
+    }
+  }
+
+  return next()
+}
+
+router.get('*', applyEntryType)
+router.post('*', applyEntryType)
+
+// While a template is being created in the updated versions, "Save and return"
+// goes to the Review your template page instead of the overview, so users can
+// see everything in the template and what still needs changing.
+// (Registered as a route, not router.use, so each version's router copies it.)
+router.post('*', (req, res, next) => {
+  if (
+    getJourneyFormAction(req) !== 'hub' ||
+    !req.session ||
+    !isDesignRelease21TemplateCreate(req.session.data || {}) ||
+    !hasJourneyUpdates(req.session.data || {})
+  ) {
+    return next()
+  }
+
+  const redirect = res.redirect.bind(res)
+
+  res.redirect = function redirectTemplateSaveToReview (statusOrUrl, maybeUrl) {
+    // The address may already carry the version prefix, such as /testing3
+    const swap = (url) => typeof url === 'string'
+      ? url.replace(/\/notification-hub$/, '/review-notification')
+      : url
+
+    if (typeof statusOrUrl === 'string') {
+      return redirect(swap(statusOrUrl))
+    }
+
+    return redirect(statusOrUrl, swap(maybeUrl))
+  }
+
+  return next()
+})
+
 router.get('/create-notification', (req, res) => {
   const isDr21 = isDesignRelease21SessionData(req.session.data)
-  // Testing 3 always asks what is being imported, even from a category dashboard
-  const isRound2 = isRound2TestingSessionData(req.session.data)
   const category = normaliseNotificationType(req.query.category)
 
   resetNotificationJourneySession(req.session.data)
   delete req.session.data.isCreatingTemplate
 
-  if (isDr21 && (!category || isRound2)) {
+  // From a live animals or germinal products dashboard the type is already
+  // known, so the "what are you importing" question is skipped. It is only
+  // asked when there is no category, such as from the overall dashboard.
+  if (isDr21 && !category) {
     return res.redirect('/notification-type')
   }
 
@@ -12527,6 +13057,8 @@ router.post('/consignment-details', (req, res) => {
   const speciesIds = normalizeSelectedSpecies(req.session.data.selectedSpecies)
   const numberOfAnimals = parseNumberOfAnimals(req.body, speciesIds)
   const numberOfPackages = parseNumberOfPackages(req.body, speciesIds)
+  const germinalPackages = parseGerminalPackages(req.body, speciesIds)
+  const germinalPackagesValidation = validateGerminalPackages(germinalPackages)
   const storageTemperature = (req.body.storageTemperature || '').trim()
 
   const animalValidation = applyJourneyValidation(
@@ -12547,11 +13079,13 @@ router.post('/consignment-details', (req, res) => {
   const errors = {
     ...animalValidation.errors,
     ...packagingValidation.errors,
+    ...germinalPackagesValidation.errors,
     ...temperatureValidation.errors
   }
   const errorList = [
     ...animalValidation.errorList,
     ...packagingValidation.errorList,
+    ...germinalPackagesValidation.errorList,
     ...temperatureValidation.errorList
   ]
 
@@ -12560,6 +13094,7 @@ router.post('/consignment-details', (req, res) => {
     req.session.data.errors = errors
     req.session.data.numberOfAnimals = numberOfAnimals
     req.session.data.numberOfPackages = numberOfPackages
+    req.session.data.germinalPackages = germinalPackages
     req.session.data.packageType = {}
     req.session.data.storageTemperature = showsGerminalTemperatureQuestion(req.session.data)
       ? (storageTemperature || null)
@@ -12574,6 +13109,7 @@ router.post('/consignment-details', (req, res) => {
   req.session.data.errors = null
   req.session.data.numberOfAnimals = numberOfAnimals
   req.session.data.numberOfPackages = numberOfPackages
+  req.session.data.germinalPackages = germinalPackages
   req.session.data.packageType = {}
   req.session.data.storageTemperature = showsGerminalTemperatureQuestion(req.session.data)
     ? storageTemperature
@@ -12764,12 +13300,121 @@ router.get('/', (req, res) => {
     return res.redirect(`/live-animals${queryString}`)
   }
 
+  // The "Sign-in to dashboard" version has no page across all the types: its
+  // home is the dashboard for the chosen type, or the start page before that
+  if (res.locals.isEntryVersion) {
+    return res.redirect(res.locals.entryType
+      ? `${ENTRY_BASE_PATH}/${res.locals.entryType}${queryString}`
+      : `${ENTRY_BASE_PATH}/start`)
+  }
+
   if (isDesignRelease21SessionData(req.session.data)) {
     return renderOverallDashboardPage(req, res)
   }
 
   return renderDashboardPage(req, res)
 })
+
+// ---------------------------------------------------------------------------
+// "Sign-in to dashboard" version (/entry)
+//
+// A start page, a sign-in step and a plain list of links lead to a dashboard
+// for each notification type. There is no page across all the types. The
+// version is a separate copy of Design release 2: see app/lib/entry-version.js.
+// These routes only answer inside that version.
+// ---------------------------------------------------------------------------
+const ENTRY_BASE_PATH = '/entry'
+const ENTRY_TYPE_COOKIE = 'entry-type'
+
+function readCookie (req, name) {
+  const header = String((req.headers && req.headers.cookie) || '')
+  const match = header.split(';').map((part) => part.trim()).find((part) => part.indexOf(`${name}=`) === 0)
+
+  return match ? decodeURIComponent(match.slice(name.length + 1)) : ''
+}
+
+const ENTRY_TYPES = {
+  'live-animals': {
+    text: 'Live animals',
+    hint: 'Includes livestock, horses, poultry and other birds, pets, bees, reptiles and hatching eggs.'
+  },
+  'germinal-products': {
+    text: 'Germinal products',
+    hint: 'Animal semen, ova and embryos.'
+  },
+  'marine-fish': {
+    text: 'Wild marine fish',
+    hint: 'Wild marine fish, cephalopods and crustaceans.',
+    placeholder: true
+  },
+  'high-risk-plants': {
+    text: 'High-risk plants',
+    placeholder: true,
+    hint: 'Plant products that can carry plant diseases: seed and ware potatoes, wood and bark, and plants for planting.'
+  }
+}
+
+router.get('/start', (req, res, next) => {
+  if (!res.locals.isEntryVersion) return next()
+
+  return res.render('start', { signInHref: `${ENTRY_BASE_PATH}/sign-in` })
+})
+
+router.get('/sign-in', (req, res, next) => {
+  if (!res.locals.isEntryVersion) return next()
+
+  return res.render('sign-in', {
+    formAction: `${ENTRY_BASE_PATH}/sign-in`,
+    backLink: `${ENTRY_BASE_PATH}/start`
+  })
+})
+
+router.post('/sign-in', (req, res, next) => {
+  if (!res.locals.isEntryVersion) return next()
+
+  return res.redirect(`${ENTRY_BASE_PATH}/choose`)
+})
+
+router.get('/choose', (req, res, next) => {
+  if (!res.locals.isEntryVersion) return next()
+
+  return res.render('choose-links', {
+    typeItems: Object.keys(ENTRY_TYPES).map((value) => ({
+      text: ENTRY_TYPES[value].text,
+      hint: ENTRY_TYPES[value].hint,
+      href: `${ENTRY_BASE_PATH}/go/${value}`
+    }))
+  })
+})
+
+// Remembers the chosen type and opens its dashboard
+router.get('/go/:type', (req, res, next) => {
+  if (!res.locals.isEntryVersion) return next()
+
+  const type = String(req.params.type || '')
+
+  if (!ENTRY_TYPES[type]) {
+    return res.redirect(`${ENTRY_BASE_PATH}/choose`)
+  }
+
+  res.cookie(ENTRY_TYPE_COOKIE, type, { path: ENTRY_BASE_PATH, sameSite: 'lax' })
+
+  return res.redirect(`${ENTRY_BASE_PATH}/${type}`)
+})
+
+// Types with no journey in the prototype yet get a placeholder dashboard
+Object.keys(ENTRY_TYPES)
+  .filter((type) => ENTRY_TYPES[type].placeholder)
+  .forEach((type) => {
+    router.get(`/${type}`, (req, res, next) => {
+      if (!res.locals.isEntryVersion) return next()
+
+      return res.render('placeholder-dashboard', {
+        serviceNavActive: 'dashboard',
+        placeholderTypeName: ENTRY_TYPES[type].text
+      })
+    })
+  })
 
 router.get('/live-animals', (req, res) => {
   return renderDashboardPage(req, res)
@@ -13124,6 +13769,13 @@ router.post('/address-book/add', (req, res) => {
       return res.redirect('/transporter/add')
     }
 
+    if (addressBookCategoryUsesLookup(category.value)) {
+      req.session.data.addressBookLookupAddressId = null
+      req.session.data.addressBookLookup = null
+      req.session.data.addressBookManualAddress = null
+      return res.redirect(`${addressBookBasePath}/add/find-address`)
+    }
+
     return res.redirect(`${addressBookBasePath}/add/lookup`)
   }
 
@@ -13150,7 +13802,17 @@ router.get('/address-book/add/lookup', (req, res) => {
   }
 
   if (res.locals.isDesignRelease2Version && isAddressBookUsageCategory(req.session.data.addressBookAddressCategory)) {
-    return renderAddressBookAddDetailsPage(req, res)
+    // A UK address starts on the find an address page
+    if (
+      addressBookCategoryUsesLookup(req.session.data.addressBookAddressCategory) &&
+      !req.session.data.addressBookLookupAddressId &&
+      !req.session.data.addressBookManualAddress &&
+      !isManualAddressRequest(req)
+    ) {
+      return res.redirect(`${getAddressBookBasePath(res)}/add/find-address`)
+    }
+
+    return renderAddressBookAddDetailsPage(req, res, isManualAddressRequest(req) ? { showManualAddress: true } : {})
   }
 
   return renderAddressBookLookupPage(req, res)
@@ -14138,6 +14800,45 @@ router.post('/transporter/add/private', (req, res) => {
     return res.redirect(getTransporterAddCancelRedirect(req, res))
   }
 
+  // Postcode lookup steps: find address, select an address, or enter manually
+  if (res.locals.isDesignRelease2Version) {
+    const blankAddress = { addressLine1: '', addressLine2: '', townOrCity: '', county: '', postcode: '' }
+    const lookupFormValues = { ...formValues, country: formValues.country || 'United Kingdom' }
+
+    if (action === 'manual' || action === 'change') {
+      req.session.data.errorList = null
+      req.session.data.errors = null
+
+      return renderTransporterAddPrivatePage(req, res, {
+        formValues: { ...lookupFormValues, ...blankAddress },
+        lookupStep: action === 'manual' ? 'details' : 'postcode'
+      })
+    }
+
+    const postcodeLookupLocals = getAddAddressPostcodeLookupLocals(req, true)
+
+    if (postcodeLookupLocals) {
+      const chosenAddress = postcodeLookupLocals.manualAddress
+
+      return renderTransporterAddPrivatePage(req, res, {
+        lookupStep: postcodeLookupLocals.lookupStep,
+        lookupPostcode: postcodeLookupLocals.lookupPostcode,
+        lookupResultItems: postcodeLookupLocals.lookupResultItems || [],
+        formValues: chosenAddress
+          ? {
+              ...lookupFormValues,
+              addressLine1: chosenAddress.addressLine1 || '',
+              addressLine2: chosenAddress.addressLine2 || '',
+              townOrCity: chosenAddress.townOrCity || '',
+              county: chosenAddress.county || '',
+              postcode: postcodeLookupLocals.lookupPostcode,
+              country: 'United Kingdom'
+            }
+          : { ...lookupFormValues, ...blankAddress }
+      })
+    }
+  }
+
   const validation = validateTransporterPrivateForm(formValues)
 
   if (validation.errorList.length) {
@@ -14146,7 +14847,8 @@ router.post('/transporter/add/private', (req, res) => {
     req.session.data.transporterPrivateForm = validation.value
 
     return renderTransporterAddPrivatePage(req, res, {
-      formValues: validation.value
+      formValues: validation.value,
+      lookupStep: 'details'
     })
   }
 
@@ -14170,6 +14872,12 @@ router.get('/transporter/add/commercial', (req, res) => {
     return
   }
 
+  // Arriving by a link (including the Back links between steps) starts clean
+  if (res.locals.isDesignRelease2Version) {
+    req.session.data.errorList = null
+    req.session.data.errors = null
+  }
+
   return renderTransporterAddCommercialPage(req, res)
 })
 
@@ -14191,6 +14899,85 @@ router.post('/transporter/add/commercial', (req, res) => {
     return res.redirect(getTransporterAddCancelRedirect(req, res))
   }
 
+  // Steps: transporter details, find address, select an address, or enter manually
+  if (res.locals.isDesignRelease2Version) {
+    // Keep what has been entered so far, so Back links and later steps have it
+    req.session.data.transporterCommercialForm = formValues
+
+    if (action === 'transporter-continue') {
+      const transporterValidation = validateTransporterCommercialForm(formValues)
+      const transporterFields = ['transporterCommercialAuthorisationNumber']
+      const transporterErrors = {}
+
+      transporterFields.forEach((field) => {
+        if (transporterValidation.errors[field]) {
+          transporterErrors[field] = transporterValidation.errors[field]
+        }
+      })
+
+      const transporterErrorList = transporterValidation.errorList.filter((error) =>
+        Object.values(transporterErrors).some((fieldError) => fieldError.text === error.text)
+      )
+
+      req.session.data.errorList = transporterErrorList.length ? transporterErrorList : null
+      req.session.data.errors = transporterErrorList.length ? transporterErrors : null
+
+      return renderTransporterAddCommercialPage(req, res, {
+        formValues,
+        lookupStep: transporterErrorList.length ? 'transporter' : 'postcode'
+      })
+    }
+
+    if (action === 'manual' || action === 'change') {
+      req.session.data.errorList = null
+      req.session.data.errors = null
+
+      return renderTransporterAddCommercialPage(req, res, {
+        formValues: action === 'manual'
+          ? { ...formValues, addressLine1: '', addressLine2: '', townOrCity: '', county: '', postcode: '' }
+          : formValues,
+        lookupStep: action === 'manual' ? 'details' : 'postcode',
+        selectedLookupAddressId: ''
+      })
+    }
+
+    const postcodeLookupLocals = getAddAddressPostcodeLookupLocals(
+      req,
+      true,
+      addressBookLookupAddresses.northernIrelandAddresses
+    )
+
+    if (postcodeLookupLocals) {
+      const chosenAddress = postcodeLookupLocals.manualAddress
+
+      return renderTransporterAddCommercialPage(req, res, {
+        lookupStep: postcodeLookupLocals.lookupStep,
+        lookupPostcode: postcodeLookupLocals.lookupPostcode,
+        lookupResultItems: postcodeLookupLocals.lookupResultItems || [],
+        selectedLookupAddressId: postcodeLookupLocals.selectedLookupAddressId || '',
+        formValues: chosenAddress
+          ? {
+              ...formValues,
+              name: (req.body.transporterCommercialName || '').trim() || chosenAddress.nameOrOrganisation || '',
+              addressLine1: chosenAddress.addressLine1 || '',
+              addressLine2: chosenAddress.addressLine2 || '',
+              townOrCity: chosenAddress.townOrCity || '',
+              county: chosenAddress.county || '',
+              postcode: postcodeLookupLocals.lookupPostcode
+            }
+          : {
+              ...formValues,
+              name: (req.body.transporterCommercialName || '').trim(),
+              addressLine1: '',
+              addressLine2: '',
+              townOrCity: '',
+              county: '',
+              postcode: ''
+            }
+      })
+    }
+  }
+
   const validation = validateTransporterCommercialForm(formValues)
 
   if (validation.errorList.length) {
@@ -14198,8 +14985,11 @@ router.post('/transporter/add/commercial', (req, res) => {
     req.session.data.errors = validation.errors
     req.session.data.transporterCommercialForm = validation.value
 
+    const hasTransporterStepErrors = Boolean(validation.errors.transporterCommercialAuthorisationNumber)
+
     return renderTransporterAddCommercialPage(req, res, {
       formValues: validation.value,
+      lookupStep: hasTransporterStepErrors ? 'transporter' : 'details',
       showManualAddress: true,
       addressLookup: formValues.addressLookup || '',
       selectedLookupAddressId: formValues.lookupAddressId || ''
@@ -14530,13 +15320,203 @@ router.post('/intro/sign-in', function (req, res) {
   return res.redirect('/design-release-2.1')
 })
 
+// Spike: registered office addresses for a postcode, from the Companies House
+// files that `npm run build:postcode-addresses` writes.
+const { lookupPostcode } = require('./utils/postcode-address-lookup')
+
+const POSTCODE_ERRORS = {
+  missing: 'Enter a postcode',
+  invalid: 'Enter a full UK postcode, like BB4 4AA'
+}
+
+router.get('/postcode-lookup', async function (req, res, next) {
+  if (req.query.postcode === undefined) return res.render('postcode-lookup')
+
+  try {
+    const lookup = await lookupPostcode(req.query.postcode)
+
+    return res.render('postcode-lookup', {
+      postcodeInput: String(req.query.postcode),
+      postcodeError: POSTCODE_ERRORS[lookup.status],
+      lookup
+    })
+  } catch (error) {
+    return next(error)
+  }
+})
+
+// Finding an address takes two pages in front of a UK address form: the user
+// enters a postcode on the first, picks one of the registered office addresses
+// there from a list on the second, and the form opens with it filled in.
+//
+// `route` is the first page's route. `urls(res)` gives the links: `page` (the
+// first page as the browser sees it), `back` and `manual`. `guard` redirects
+// and returns true when the pages do not apply. `onChosen` sends the user on
+// with the address they picked.
+function mountFindAddress ({ route, urls, guard, onChosen }) {
+  const postcodeQuery = (postcode) => `findAddressPostcode=${encodeURIComponent(postcode)}`
+
+  function renderPostcodePage (req, res, { postcodeInput = '', postcodeError = null } = {}) {
+    const links = urls(res)
+
+    return res.render('find-address', {
+      pageHeading: links.heading,
+      formAction: links.page,
+      backLink: links.back,
+      manualHref: links.manual,
+      cancelHref: links.cancel,
+      cancelText: links.cancelText,
+      postcodeInput,
+      postcodeError,
+      errorList: postcodeError ? [{ text: postcodeError, href: '#postcode' }] : null
+    })
+  }
+
+  function renderSelectPage (req, res, postcode, { addressError = null } = {}) {
+    const links = urls(res)
+    const addresses = getPostcodeLookupAddresses(postcode)
+    const shown = formatPostcode(postcode)
+
+    return res.render('find-address-select', {
+      formAction: `${links.page}/select`,
+      backLink: `${links.page}?${postcodeQuery(shown)}`,
+      changeHref: `${links.page}?${postcodeQuery(shown)}`,
+      manualHref: links.manual,
+      cancelHref: links.cancel,
+      cancelText: links.cancelText,
+      postcode: shown,
+      addressCount: addresses.length,
+      addressError,
+      errorList: addressError ? [{ text: addressError, href: '#address-id' }] : null,
+      addressItems: [
+        { value: '', text: `${addresses.length} ${addresses.length === 1 ? 'address' : 'addresses'} found` },
+        ...addresses.map((address) => ({
+          value: address.id,
+          text: address.label,
+          selected: address.id === req.body?.foundAddressId
+        }))
+      ]
+    })
+  }
+
+  // The postcode the select page is for, or null when it is not a full one.
+  function selectedPostcode (req) {
+    const raw = req.method === 'POST' ? req.body.findAddressPostcode : req.query.findAddressPostcode
+    const postcode = normalisePostcode(raw)
+
+    return postcode && isFullPostcode(postcode) ? postcode : null
+  }
+
+  router.get(route, (req, res) => {
+    if (guard(req, res)) return
+
+    return renderPostcodePage(req, res, { postcodeInput: req.query.findAddressPostcode || '' })
+  })
+
+  router.post(route, (req, res) => {
+    if (guard(req, res)) return
+
+    const rawPostcode = req.body.findAddressPostcode || ''
+    const postcode = normalisePostcode(rawPostcode)
+
+    if (!postcode || !isFullPostcode(postcode)) {
+      return renderPostcodePage(req, res, {
+        postcodeInput: rawPostcode,
+        postcodeError: postcode ? POSTCODE_ERRORS.invalid : POSTCODE_ERRORS.missing
+      })
+    }
+
+    return res.redirect(`${urls(res).page}/select?${postcodeQuery(formatPostcode(postcode))}`)
+  })
+
+  router.get(`${route}/select`, (req, res) => {
+    if (guard(req, res)) return
+
+    const postcode = selectedPostcode(req)
+    if (!postcode) return res.redirect(urls(res).page)
+
+    return renderSelectPage(req, res, postcode)
+  })
+
+  router.post(`${route}/select`, (req, res) => {
+    if (guard(req, res)) return
+
+    const postcode = selectedPostcode(req)
+    if (!postcode) return res.redirect(urls(res).page)
+
+    const found = getPostcodeLookupAddressById(req.body.foundAddressId)
+    if (!found) return renderSelectPage(req, res, postcode, { addressError: 'Select an address' })
+
+    return onChosen(req, res, found)
+  })
+}
+
+mountFindAddress({
+  route: '/address-book/add/find-address',
+  urls: (res) => {
+    const addressBookBasePath = getAddressBookBasePath(res)
+
+    return {
+      page: `${addressBookBasePath}/add/find-address`,
+      back: `${addressBookBasePath}/add`,
+      manual: `${addressBookBasePath}/add/lookup?manual=true`,
+      cancel: addressBookBasePath,
+      cancelText: 'Cancel and return to address book'
+    }
+  },
+  guard: (req, res) => {
+    if (res.locals.isDesignRelease2Version && addressBookCategoryUsesLookup(req.session.data.addressBookAddressCategory)) {
+      return false
+    }
+
+    res.redirect(`${getAddressBookBasePath(res)}/add`)
+    return true
+  },
+  onChosen: (req, res, found) => {
+    req.session.data.errorList = null
+    req.session.data.errors = null
+    req.session.data.addressBookLookupAddressId = found.id
+    req.session.data.addressBookLookup = found.label
+    req.session.data.addressBookManualAddress = null
+
+    return res.redirect(`${getAddressBookBasePath(res)}/add/lookup`)
+  }
+})
+
+consignmentAddressSections
+  .filter((section) => section.selectable && consignmentAddAddressUsesLookup(section.id))
+  .forEach((section) => {
+    mountFindAddress({
+      route: `${section.path}/find-address`,
+      urls: () => ({
+        heading: getConsignmentAddAddressHeading(section.id),
+        page: `${section.path}/find-address`,
+        back: section.path,
+        manual: `${section.path}/add-address?manual=true`,
+        cancel: '/notification-hub',
+        cancelText: 'Cancel and return to hub'
+      }),
+      guard: (req, res) => {
+        if (isDesignRelease21SessionData(req.session.data)) return false
+
+        res.redirect(`/address-book/add?from=${section.id}`)
+        return true
+      },
+      onChosen: (req, res, found) => {
+        return res.redirect(`${section.path}/add-address?foundAddressId=${encodeURIComponent(found.id)}`)
+      }
+    })
+  })
+
 const { mountTestingVersion } = require('./lib/testing-version')
 const { mountTesting3Version } = require('./lib/testing3-version')
 const { mountTesting4Version } = require('./lib/testing4-version')
 const { mountDesignRelease21Version } = require('./lib/design-release-2.1-version')
+const { mountEntryVersion } = require('./lib/entry-version')
 
 // Mount the longer /testing* paths before /testing so Express does not treat them as that route
 mountTesting4Version(govukPrototypeKit, router)
 mountTesting3Version(govukPrototypeKit, router)
 mountTestingVersion(govukPrototypeKit, router)
 mountDesignRelease21Version(govukPrototypeKit, router)
+mountEntryVersion(govukPrototypeKit, router)

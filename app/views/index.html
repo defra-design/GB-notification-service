@@ -105,6 +105,43 @@ Import notification service
       }) }}
     </div>
 
+    <div class="prototype-release-card govuk-!-margin-top-6">
+      {{ govukTag({
+        text: "In design",
+        classes: "govuk-tag--purple"
+      }) }}
+
+      <h2 class="govuk-heading-l">
+        Sign-in to dashboard
+      </h2>
+
+      <h3 class="govuk-heading-m">
+        From sign-in to a dashboard for each notification type
+      </h3>
+
+      <p class="govuk-body">
+        After signing in, the user sees a link to each notification type and goes to the dashboard for the one they choose. There is no page across all the types. It is a separate copy of Design release 2, with its own journey, dashboards, address book and saved data.
+      </p>
+
+      {{ govukDetails({
+        summaryText: "What this version includes",
+        html: '
+          <ul class="govuk-list govuk-list--bullet">
+            <li>A start page and a choice of sign-in</li>
+            <li>A page of links to live animals, germinal products, wild marine fish and high-risk plants, with Manage account</li>
+            <li>Dashboards with a "Change import type" link under the heading, and "Sign out" in the navigation</li>
+            <li>Placeholder dashboards for wild marine fish and high-risk plants</li>
+            <li>Nothing shared with the other versions</li>
+          </ul>
+        '
+      }) }}
+
+      {{ govukButton({
+        text: "Start sign-in to dashboard",
+        href: "/entry/start"
+      }) }}
+    </div>
+
     <h2 class="govuk-heading-l govuk-!-margin-top-9">
       Testing prototypes
     </h2>

@@ -192,7 +192,7 @@
             }) }}
 
             {{ govukButton({
-              text: "Save and return to hub",
+              text: "Save and return to template" if data.isCreatingTemplate else "Save and return to hub",
               name: "action",
               value: "hub",
               classes: "govuk-button--secondary"
@@ -200,7 +200,11 @@
           </div>
 
           <p class="app-origin-form-actions__cancel">
-            <a class="govuk-link" href="{{ hubCancelHref or ((journeyBasePath + '/notification-hub') if journeyBasePath else '/notification-hub') }}">Cancel and return to hub</a>
+            {% if data.isCreatingTemplate %}
+              <a class="govuk-link" href="{{ (journeyBasePath + '/review-notification') if journeyBasePath else '/review-notification' }}">Cancel and return to template</a>
+            {% else %}
+              <a class="govuk-link" href="{{ hubCancelHref or ((journeyBasePath + '/notification-hub') if journeyBasePath else '/notification-hub') }}">Cancel and return to hub</a>
+            {% endif %}
           </p>
         </div>
       {% endif %}

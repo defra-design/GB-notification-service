@@ -1,0 +1,75 @@
+{% extends "layouts/main.html" %}
+
+{# Content from the "Import notification service" start page (future state)
+   mocked up on the team's Mural board. "Start now" goes to this version's
+   sign-in step. #}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+
+{% set pageName = "Import notification service" %}
+
+{% block pageTitle %}
+  Import notification service – GOV.UK
+{% endblock %}
+
+{% block header %}
+  {% include "entry/_header.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+
+    {% set rulesChangedHtml %}
+      <h3 class="govuk-notification-banner__heading">The rules on import notifications have changed</h3>
+      <p class="govuk-body">Since [date], many goods from the EU do not need an import notification any more. You must still follow all other import rules for these goods.</p>
+      <p class="govuk-body">Read <a class="govuk-notification-banner__link" href="#">Goods from the EU that do not need an import notification</a>.</p>
+    {% endset %}
+
+    {{ govukNotificationBanner({
+      html: rulesChangedHtml
+    }) }}
+
+    <span class="govuk-caption-l">Guidance</span>
+    <h1 class="govuk-heading-l">Import notification service</h1>
+
+    <p class="govuk-body">Importers and import agents need to use this service to notify authorities about some goods they import to Great Britain.</p>
+
+    {{ govukInsetText({
+      text: "The import of products, animals, food and feed system (IPAFFS) is no longer in use. You need to use this service instead."
+    }) }}
+
+    <h2 class="govuk-heading-m">Which goods need notifying</h2>
+
+    <p class="govuk-body">From an EU country:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>live animals, such as livestock, pets, wild animals and zoo animals</li>
+      <li>germinal products: animal semen, ova and embryos</li>
+      <li>high-risk plant products: seed and ware potatoes, wood and bark, and plants for planting</li>
+    </ul>
+
+    <p class="govuk-body">For high-risk plant products, this also applies to goods from Norway, Switzerland and Liechtenstein.</p>
+
+    <p class="govuk-body">From any country:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>wild marine fish, cephalopods and crustaceans</li>
+    </ul>
+
+    <p class="govuk-body">For all other goods from non-EU countries, <a class="govuk-link" href="#">use TRACES</a>, the EU system for imports and exports.</p>
+
+    <p class="govuk-body">If you're not sure, <a class="govuk-link" href="#">check if you need to submit an import notification</a> before you start.</p>
+
+    <h2 class="govuk-heading-m">Before you start</h2>
+
+    <p class="govuk-body">You'll need to sign in. Sign in the same way you did for IPAFFS. If you have not used IPAFFS, you can create sign-in details and register.</p>
+
+    {{ govukButton({
+      text: "Start now",
+      href: signInHref,
+      isStartButton: true
+    }) }}
+
+  </div>
+</div>
+{% endblock %}

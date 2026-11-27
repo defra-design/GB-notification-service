@@ -132,6 +132,22 @@
                     },
                     errorMessage: numberOfPackagesError
                   }) }}
+
+                  {% set germinalPackagesError = data.errors["germinalPackages-" + species.speciesId] if data.errors and data.errors["germinalPackages-" + species.speciesId] %}
+
+                  {{ govukInput({
+                    label: {
+                      text: "Number of packages"
+                    },
+                    id: "number-of-packages-" + species.speciesId,
+                    name: "germinalPackages[" + species.speciesId + "]",
+                    value: species.germinalPackages,
+                    classes: "govuk-input--width-10 app-consignment-details-page__input",
+                    formGroup: {
+                      classes: "app-consignment-details-page__field"
+                    },
+                    errorMessage: germinalPackagesError
+                  }) }}
                 {% else %}
                   {% set numberOfAnimalsError = data.errors["numberOfAnimals-" + species.speciesId] if data.errors and data.errors["numberOfAnimals-" + species.speciesId] %}
 

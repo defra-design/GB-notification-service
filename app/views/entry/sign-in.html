@@ -1,0 +1,52 @@
+{% extends "layouts/main.html" %}
+
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% set pageName = "Sign in" %}
+
+{% block header %}
+  {% include "entry/_header.html" %}
+{% endblock %}
+
+{% block beforeContent %}
+  {{ govukBackLink({
+    text: "Back",
+    href: backLink
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+    {# A stand-in for the real sign-in, which is not built in the prototype #}
+    <div class="govuk-summary-card">
+      <div class="govuk-summary-card__title-wrapper">
+        <h2 class="govuk-summary-card__title">This step is not part of the prototype</h2>
+      </div>
+      <div class="govuk-summary-card__content">
+        <p class="govuk-body">The user signs in with either Government Gateway or GOV.UK One Login. Both lead to the same place.</p>
+
+        <p class="govuk-body">To sign in, the user:</p>
+        <ol class="govuk-list govuk-list--number">
+          <li>chooses Government Gateway or GOV.UK One Login</li>
+          <li>enters their sign-in details</li>
+          <li>enters a security code, sent to their phone or from an authenticator app</li>
+          <li>comes back to the Import notification service, signed in</li>
+        </ol>
+
+        <p class="govuk-body">If the user does not have an account, they need to create one before they can sign in. If they have not used this service or IPAFFS before, they also need to register for it.</p>
+      </div>
+    </div>
+
+    <form method="post" action="{{ formAction }}" novalidate>
+      {{ govukButton({
+        text: "Continue"
+      }) }}
+    </form>
+  </div>
+</div>
+{% endblock %}
