@@ -10186,13 +10186,18 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
     return notification
   })
   const dashboardListPath = getDashboardListPath(sessionData, category)
+  const categoryHeading = DASHBOARD_CATEGORIES[category] && DASHBOARD_CATEGORIES[category].heading
+  // Design release 2 heads both its category dashboards the way Round 2
+  // (Live animals) does: "Your import notifications", with the category as
+  // the heading of the list below.
   const dashboardPageHeading = (
     (sessionData._isTesting3Version && category === 'live-animals') ||
-    (sessionData._isTesting4Version && category === 'germinal-products')
+    (sessionData._isTesting4Version && category === 'germinal-products') ||
+    (isDesignRelease21OnlySessionData(sessionData) && categoryHeading)
   )
     ? 'Your import notifications'
-    : (DASHBOARD_CATEGORIES[category] && DASHBOARD_CATEGORIES[category].heading) ||
-      'Live animals and germinal products'
+    : categoryHeading || 'Live animals and germinal products'
+  const dashboardSectionHeading = categoryHeading || 'Notifications'
   const actionsHref = category ? `/actions?category=${encodeURIComponent(category)}` : '/actions'
   const changesHref = category ? `/changes?category=${encodeURIComponent(category)}` : '/changes'
 
@@ -10298,6 +10303,7 @@ function getDashboardViewModel (sessionData = {}, query = {}) {
     currentPage,
     dashboardListPath,
     dashboardPageHeading,
+    dashboardSectionHeading,
     dashboardCategory: category,
     actionsHref,
     changesHref,

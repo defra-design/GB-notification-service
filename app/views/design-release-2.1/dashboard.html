@@ -63,28 +63,8 @@
       </div>
     </section>
 
-    <section class="app-dr2-dashboard-glance" aria-labelledby="dashboard-glance-heading">
-      <h2 class="app-dr2-dashboard-glance__heading" id="dashboard-glance-heading">Summary</h2>
-
-      <div class="app-dr2-dashboard-glance__cards">
-        <article class="app-dr2-dashboard-glance-card app-dr2-dashboard-glance-card--action">
-          <h3 class="app-dr2-dashboard-glance-card__title">Action needed</h3>
-          <p class="app-dr2-dashboard-glance-card__description">Tasks requiring your attention</p>
-          <p class="app-dr2-dashboard-glance-card__count">{{ glanceCounts.actionNeeded }}</p>
-          <a class="govuk-link app-dr2-dashboard-glance-card__link" href="{{ actionsHref }}">View tasks</a>
-        </article>
-
-        <article class="app-dr2-dashboard-glance-card">
-          <h3 class="app-dr2-dashboard-glance-card__title">Status updated</h3>
-          <p class="app-dr2-dashboard-glance-card__description">Changes in the past 24 hours</p>
-          <p class="app-dr2-dashboard-glance-card__count app-dr2-dashboard-glance-card__count--blue">{{ glanceCounts.statusChange }}</p>
-          <a class="govuk-link app-dr2-dashboard-glance-card__link" href="{{ changesHref }}">View updates</a>
-        </article>
-      </div>
-    </section>
-
     <section class="app-dr2-dashboard-notifications" aria-labelledby="dashboard-notifications-heading">
-      <h2 class="app-dr2-dashboard-notifications__heading" id="dashboard-notifications-heading">Notifications</h2>
+      <h2 class="app-dr2-dashboard-notifications__heading" id="dashboard-notifications-heading">{{ dashboardSectionHeading or "Notifications" }}</h2>
 
       <form method="get" action="{{ dashboardListPath }}" class="app-dr2-dashboard-search">
         {% if activeTab and activeTab != "in-progress" %}
